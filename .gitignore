@@ -97,5 +97,8 @@ fabric.properties
 .gitignore
 
 # Data files
-/data
-/matching
+/data/obj_01/rgb
+/data/obj_01/depth
+/data/scene_01/rgb
+/data/scene_01/depth
+/data/objectness

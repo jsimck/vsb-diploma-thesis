@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.6)
 project(vsb-semestral-project)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-set(SOURCE_FILES main.cpp)
+set(SOURCE_FILES main.cpp objdetect/matching.cpp objdetect/matching.h core/template.cpp core/template.h objdetect/objectness.cpp objdetect/objectness.h utils/template_parser.cpp utils/template_parser.h utils/timer.cpp utils/timer.h)
 
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
