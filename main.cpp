@@ -12,9 +12,14 @@ int main() {
     TemplateParser parser = TemplateParser("data/obj_01");
     parser.setTplCount(10);
 
+    Timer t;
     // Load scene
-    cv::Mat scene = cv::imread("data/scene_01/rgb/0000.png");
-    cv::Mat sceneDepth = cv::imread("data/scene_01/depth/0000.png");
+    cv::Mat scene = cv::imread("/Users/jansimecek/ClionProjects/vsb-semestral-project/data/scene_01/rgb/0000.png", CV_LOAD_IMAGE_GRAYSCALE);
+    cv::Mat sceneDepth = cv::imread("data/scene_01/depth/0000.png", CV_LOAD_IMAGE_UNCHANGED);
+
+    // Convert to float
+    scene.convertTo(scene, CV_32FC1, 1.0f / 255.0f);
+    sceneDepth.convertTo(sceneDepth, CV_32FC1, 1.0f / 65536.0f);
 
     // Load templates
     std::cout << "Parsing... ";
@@ -22,18 +27,19 @@ int main() {
     std::cout << "DONE!" << std::endl;
 
     // Edge based objectness
-//    edgeBasedObjectness(scene, sceneDepth, templates);
+    edgeBasedObjectness(scene, sceneDepth, templates);
+    std::cout << "Time: " << t.elapsed() << std::endl;
 
     // BING generate NG
 //    std::cout << "Generating BING normed gradients... ";
 //    generateBINGTrainingSet("data/objectness", templates);
 //    std::cout << "DONE!" << std::endl;
 
-    // Compute BING
+//     Compute BING
 //    std::cout << "BING... ";
 //    std::vector<cv::Vec4i> bingBB;
-//    computeBING("data/objectness", scene, bingBB);
-//    computeBING("data/bing", scene, bingBB);
+//    computeBING("/Users/jansimecek/ClionProjects/vsb-semestral-project/data/objectness", scene, bingBB);
+//    computeBING("/Users/jansimecek/ClionProjects/vsb-semestral-project/data/bing", scene, bingBB);
 //    std::cout << "DONE!";
 
     // Match templates

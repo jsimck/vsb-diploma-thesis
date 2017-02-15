@@ -36,15 +36,15 @@ Template TemplateParser::parseTemplate(int index, cv::FileNode &node) {
 
     // Load image
     cv::Mat src = cv::imread(this->basePath + "/rgb/" + fileName + ".png", CV_LOAD_IMAGE_GRAYSCALE);
-    cv::Mat srcDepth = cv::imread(this->basePath + "/depth/" + fileName + ".png", CV_LOAD_IMAGE_GRAYSCALE);
+    cv::Mat srcDepth = cv::imread(this->basePath + "/depth/" + fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
 
     // Crop image using bounds
     src = src(bounds);
     srcDepth = srcDepth(bounds);
 
     // Convert to float
-    src.convertTo(src, CV_32FC1, 1.0f/255.0f);
-    srcDepth.convertTo(srcDepth, CV_32FC1, 1.0f/255.0f);
+    src.convertTo(src, CV_32FC1, 1.0f / 255.0f);
+    srcDepth.convertTo(srcDepth, CV_32FC1, 1.0f / 65536.0f); // 16-bit
 
     return Template(fileName, bounds, src, srcDepth);
 }

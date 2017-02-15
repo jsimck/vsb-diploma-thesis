@@ -1,6 +1,11 @@
 #include "objectness.h"
 #include <opencv2/opencv.hpp>
 #include <opencv2/saliency.hpp>
+#include "../utils/utils.h"
+
+#ifndef DEBUG
+#define DEBUG
+#endif
 
 void generateBINGTrainingSet(std::string destPath, std::vector<Template> &templates) {
     // Create file storage
@@ -61,79 +66,122 @@ void computeBING(std::string trainingPath, cv::Mat &scene, std::vector<cv::Vec4i
     }
 }
 
-void edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<Template> &templates) {
+void filterSobel(cv::Mat &src, cv::Mat &dst) {
+    // Sobel masks
+    int filterX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
+    int filterY[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
+
+    int rows = src.rows, cols = src.cols;
+    dst = cv::Mat(rows, cols, CV_32FC1);
+
+    for (int y = 1; y < rows - 1; y++) {
+        for (int x = 1; x < cols - 1; x++) {
+
+            int i = 0;
+            float sumX = 0.0f, sumY = 0.0f;
+            for (int yy = 0; yy < 3; yy++) {
+                for (int xx = 0; xx < 3; xx++) {
+                    float px = src.at<float>(yy + y - 1, x + xx - 1);
+                    sumX += px * filterX[i];
+                    sumY += px * filterY[i];
+                    i++;
+                }
+            }
+
+            // Add sum of x and y derivatives
+            dst.at<float>(y, x) = sqrt(SQR(sumX) + SQR(sumY));
+        }
+    }
+}
+
+cv::Vec4i edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<Template> &templates) {
     // Set threshold
-    uchar threshold = 100;
+    const float THRESHOLD = 0.01f;
 
     // Take first template [just for demonstration]
+    cv::Mat sceneSobel, tplSobel;
     cv::Mat tpl = templates[0].srcDepth;
 
-    // Run sobel over the image
-    cv::Mat tplSobel_x, tplSobel_y, tplSobel;
-    cv::Sobel(tpl, tplSobel_x, CV_32F, 1, 0);
-    cv::Sobel(tpl, tplSobel_y, CV_32F, 0, 1);
-    cv::addWeighted(tplSobel_x, 0.5, tplSobel_y, 0.5, 0, tplSobel);
-    cv::threshold(tplSobel, tplSobel, 0, 255, CV_THRESH_BINARY);
+    // Apply sobel filter on template and scene
+    filterSobel(tpl, tplSobel);
+    filterSobel(sceneDepth, sceneSobel);
 
     // Count edgels in template
     int tplEdgels = 0;
+
     for (int y = 0; y < tplSobel.rows; y++) {
         for (int x = 0; x < tplSobel.cols; x++) {
-            if (tplSobel.at<uchar>(y, x) > threshold) {
+            if (tplSobel.at<float>(y, x) > THRESHOLD) {
                 tplEdgels++;
             }
         }
     }
 
-//    tplEdgels *= 0.1;
-
-    // Calculate edgels in sceneDepth over each sliding window
-    cv::Mat sceneSobel_x, sceneSobel_y, sceneSobel;
-    cv::Sobel(sceneDepth, sceneSobel_x, -1, 1, 0);
-    cv::Sobel(sceneDepth, sceneSobel_y, -1, 0, 1);
-    cv::addWeighted(sceneSobel_x, 0.5, sceneSobel_y, 0.5, 0, sceneSobel);
-    cv::threshold(sceneSobel, sceneSobel, 0, 255, CV_THRESH_BINARY);
+    // Set min number of edgels to 30% of original
+    tplEdgels *= 0.3;
 
     // Helper vars
+    std::vector<cv::Vec4i> windows;
     int sizeX = tpl.cols;
     int sizeY = tpl.rows;
-    int step = sizeX;
 
     // Slide window over scene and calculate edgel count for each overlap
-    std::vector<cv::Rect> windows;
-    for (int y = 0; y < sceneSobel.rows - sizeY; y += step) {
-        for (int x = 0; x < sceneSobel.cols - sizeX; x += step) {
+    for (int y = 0; y < sceneSobel.rows - sizeY; y += sizeY) {
+        for (int x = 0; x < sceneSobel.cols - sizeX; x += sizeX) {
             int sceneEdgels = 0;
 
+            // Count edgels in sliding window
             for (int yy = y; yy < y + sizeY; yy++) {
-                for (int xx = y; xx < x + sizeX; xx++) {
-                    if (sceneSobel.at<uchar>(yy, xx) > threshold) {
+                for (int xx = x; xx < x + sizeX; xx++) {
+                    if (sceneSobel.at<float>(yy, xx) > THRESHOLD) {
                         sceneEdgels++;
                     }
                 }
             }
 
-
+            float color = 0.35f;
+            // Check if current window contains at least 30% of tpl edgels, if yes, save window variables
             if (sceneEdgels >= tplEdgels) {
-                cv::rectangle(scene, cv::Point(x, y), cv::Point(x + sizeX, y + sizeY), 255);
-                cv::imshow("Scene", scene);
-                windows.push_back(cv::Rect(x, y, x + sizeX, y + sizeY));
-            } else {
-                std::cout << sceneEdgels << std::endl;
-                std::cout << tplEdgels << std::endl;
+                windows.push_back(cv::Vec4i(x, y, x + sizeX, y + sizeY));
+                color = 8.0f;
             }
+
+#ifdef DEBUG
+            // Draw rect
+            cv::rectangle(scene, cv::Point(x, y), cv::Point(x + sizeX, y + sizeY), color);
+
+            // Draw text into corresponding rect with edgel count
+            std::stringstream ss;
+            ss << "T: " << tplEdgels;
+            cv::putText(scene, ss.str(), cv::Point(x + 3, y + sizeY - 20), CV_FONT_HERSHEY_SIMPLEX, 0.45f, color);
+            ss.str("");
+            ss << "S: " << sceneEdgels;
+            cv::putText(scene, ss.str(), cv::Point(x + 3, y + sizeY - 5), CV_FONT_HERSHEY_SIMPLEX, 0.45f, color);
+#endif
         }
     }
 
-    // Draw rectanges on matched windows
-    for (int j = 0; j < windows.size(); j++) {
-        cv::Rect window = windows[j];
-        cv::rectangle(scene, cv::Point(window.x, window.y), cv::Point(window.width, window.height), 255);
+    // Calculate coordinates of outer BB
+    int minX = sceneSobel.cols, maxX = 0;
+    int minY = sceneSobel.rows, maxY = 0;
+    for (int i = 0; i < windows.size(); i++) {
+        if (minX > windows[i][0]) minX = windows[i][0];
+        if (minY > windows[i][1]) minY = windows[i][1];
+        if (maxX < windows[i][2]) maxX = windows[i][2];
+        if (maxY < windows[i][3]) maxY = windows[i][3];
     }
 
-    cv::imshow("Sobel Scene", sceneSobel);
-    cv::imshow("Sobel Template", tplSobel);
+#ifdef DEBUG
+    // Draw outer BB based on max/min values of all smaller boxes
+    cv::rectangle(scene, cv::Point(minX, minY), cv::Point(maxX, maxY), 1.0f, 3);
+
+    // Show results
     cv::imshow("Scene", scene);
-    cv::imshow("Depth", sceneDepth);
+    cv::imshow("Sobel Scene", sceneSobel);
+    cv::imshow("Depth Scene", sceneDepth);
     cv::waitKey(0);
+#endif
+
+    // Return resulted BB window
+    return cv::Vec4i(minX, minY, maxX, maxY);
 }

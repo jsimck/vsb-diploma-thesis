@@ -102,3 +102,6 @@ fabric.properties
 /data/scene_01/rgb
 /data/scene_01/depth
 /data/objectness
+
+cmake-build-debug/
+cmake-build-release/
