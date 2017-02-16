@@ -96,7 +96,7 @@ void filterSobel(cv::Mat &src, cv::Mat &dst) {
 
 cv::Vec4i edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<Template> &templates) {
     // Set threshold
-    const float THRESHOLD = 0.01f;
+    const float THRESHOLD = 0;
 
     // Take first template [just for demonstration]
     cv::Mat sceneSobel, tplSobel;
@@ -106,16 +106,29 @@ cv::Vec4i edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<T
     filterSobel(tpl, tplSobel);
     filterSobel(sceneDepth, sceneSobel);
 
-    // Count edgels in template
-    int tplEdgels = 0;
+    // Apply threshold
+    cv::threshold(tplSobel, tplSobel, 0.01f, 1.0f, CV_THRESH_BINARY);
+    cv::threshold(sceneSobel, sceneSobel, 0.01f, 1.0f, CV_THRESH_BINARY);
 
-    for (int y = 0; y < tplSobel.rows; y++) {
-        for (int x = 0; x < tplSobel.cols; x++) {
-            if (tplSobel.at<float>(y, x) > THRESHOLD) {
-                tplEdgels++;
-            }
-        }
-    }
+//    cv::imshow("Tpl sobel thresh", tplSobel);
+//    cv::imshow("Secne sobel thresh", sceneSobel);
+//    cv::waitKey(0);
+
+    // Calculate image integral
+    cv::Mat tplIntegral, sceneIntegral;
+    cv::integral(tplSobel, tplIntegral, CV_32F);
+    cv::integral(sceneSobel, sceneIntegral, CV_32F);
+
+    // Count edgels in template
+    float tplEdgels = tplIntegral.at<float>(tplIntegral.rows - 1, tplIntegral.cols - 1);
+
+//    for (int y = 0; y < tplSobel.rows; y++) {
+//        for (int x = 0; x < tplSobel.cols; x++) {
+//            if (tplSobel.at<float>(y, x) > THRESHOLD) {
+//                tplEdgelss++;
+//            }
+//        }
+//    }
 
     // Set min number of edgels to 30% of original
     tplEdgels *= 0.3;
@@ -125,19 +138,26 @@ cv::Vec4i edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<T
     int sizeX = tpl.cols;
     int sizeY = tpl.rows;
 
+    std::cout << tplIntegral;
+
     // Slide window over scene and calculate edgel count for each overlap
     for (int y = 0; y < sceneSobel.rows - sizeY; y += sizeY) {
         for (int x = 0; x < sceneSobel.cols - sizeX; x += sizeX) {
-            int sceneEdgels = 0;
-
+//            int sceneEdgels = 0;
             // Count edgels in sliding window
-            for (int yy = y; yy < y + sizeY; yy++) {
-                for (int xx = x; xx < x + sizeX; xx++) {
-                    if (sceneSobel.at<float>(yy, xx) > THRESHOLD) {
-                        sceneEdgels++;
-                    }
-                }
-            }
+//            for (int yy = y; yy < y + sizeY; yy++) {
+//                for (int xx = x; xx < x + sizeX; xx++) {
+//                    if (sceneSobel.at<float>(yy, xx) > THRESHOLD) {
+//                        sceneEdgels++;
+//                    }
+//                }
+//            }
+
+            // Calc edgel value in current sliding window with help of image integral
+            float sceneEdgels = tplIntegral.at<float>(y + sizeY, x + sizeX)
+                - sceneIntegral.at<float>(y, x + sizeX)
+                - sceneIntegral.at<float>(y + sizeY, x)
+                + sceneIntegral.at<float>(y, x);
 
             float color = 0.35f;
             // Check if current window contains at least 30% of tpl edgels, if yes, save window variables
@@ -176,9 +196,9 @@ cv::Vec4i edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<T
     cv::rectangle(scene, cv::Point(minX, minY), cv::Point(maxX, maxY), 1.0f, 3);
 
     // Show results
-    cv::imshow("Scene", scene);
     cv::imshow("Sobel Scene", sceneSobel);
     cv::imshow("Depth Scene", sceneDepth);
+    cv::imshow("Scene", scene);
     cv::waitKey(0);
 #endif
 

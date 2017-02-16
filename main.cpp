@@ -14,8 +14,8 @@ int main() {
 
     Timer t;
     // Load scene
-    cv::Mat scene = cv::imread("/Users/jansimecek/ClionProjects/vsb-semestral-project/data/scene_01/rgb/0000.png", CV_LOAD_IMAGE_GRAYSCALE);
-    cv::Mat sceneDepth = cv::imread("data/scene_01/depth/0000.png", CV_LOAD_IMAGE_UNCHANGED);
+    cv::Mat scene = cv::imread("/Users/jansimecek/ClionProjects/vsb-semestral-project/data/scene_01/rgb/0025.png", CV_LOAD_IMAGE_GRAYSCALE);
+    cv::Mat sceneDepth = cv::imread("data/scene_01/depth/0025.png", CV_LOAD_IMAGE_UNCHANGED);
 
     // Convert to float
     scene.convertTo(scene, CV_32FC1, 1.0f / 255.0f);
