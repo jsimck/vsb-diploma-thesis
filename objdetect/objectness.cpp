@@ -7,81 +7,21 @@
 #define DEBUG
 #endif
 
-void generateBINGTrainingSet(std::string destPath, std::vector<Template> &templates) {
-    // Create file storage
-    cv::FileStorage fsWrite;
-
-    for (int i = 0; i < templates.size(); i++) {
-        // Load template and crop
-        cv::Mat templ = templates[i].src;
-
-        // Run sobel
-        cv::Mat templSobel_x, templSobel_y, templSobel;
-        cv::Sobel(templ, templSobel_x, -1, 1, 0);
-        cv::Sobel(templ, templSobel_y, -1, 0, 1);
-        cv::addWeighted(templSobel_x, 0.5, templSobel_y, 0.5, 0, templSobel);
-
-        // Calculate helper variables
-        bool biggerHeight = templ.rows > templ.cols;
-        int size = biggerHeight ? templ.rows : templ.cols;
-        int offset = biggerHeight ? (size - templ.cols) / 2 : (size - templ.rows) / 2;
-        int top = biggerHeight ? 0 : offset;
-        int left = biggerHeight ? offset : 0;
-
-        // Copy to keep ratio and Resize
-        cv::Mat dest = cv::Mat::zeros(size, size, CV_32FC1);
-        templSobel.copyTo(dest(cv::Rect(left, top, templSobel.cols, templSobel.rows)));
-        cv::resize(templSobel, templSobel, cv::Size(8, 8));
-
-//        cv::imshow("Image resized", templSobel);
-//        cv::waitKey(0);
-
-        // Save file
-        fsWrite.open(destPath + "/ObjNessB2W8I." + templates[i].fileName + ".yml.gz", cv::FileStorage::WRITE);
-        fsWrite << "ObjNessB2W8I" + templates[i].fileName << templSobel;
-    }
-
-    // Release
-    fsWrite.release();
-}
-
-void computeBING(std::string trainingPath, cv::Mat &scene, std::vector<cv::Vec4i> &resultBB) {
-    cv::saliency::ObjectnessBING objectnessBING;
-    std::vector<cv::Vec4i> objectnessBoundingBox;
-    objectnessBING.setTrainingPath(trainingPath);
-
-    if (objectnessBING.computeSaliency(scene, objectnessBoundingBox) ) {
-        std::vector<float> values = objectnessBING.getobjectnessValues();
-        printf("detected candidates: %d\n", (int) objectnessBoundingBox.size());
-        printf("scores: %d\n", (int) values.size());
-
-        for (int i = 0; i < 20; i++) {
-            cv::Vec4i bb = objectnessBoundingBox[i];
-            printf("index=%d, value=%f\n", i, values[i]);
-            rectangle(scene, cv::Point(bb[0], bb[1]), cv::Point(bb[2], bb[3]), cv::Scalar(0, 0, 255), 4);
-
-            cv::imshow("BING", scene);
-            cv::waitKey(0);
-        }
-    }
-}
-
 void filterSobel(cv::Mat &src, cv::Mat &dst) {
     // Sobel masks
     int filterX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
     int filterY[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
 
     int rows = src.rows, cols = src.cols;
-    dst = cv::Mat(rows, cols, CV_32FC1);
+    cv::GaussianBlur(src, dst, cv::Size(3, 3), 0, 0); // Reduce noise
 
     for (int y = 1; y < rows - 1; y++) {
         for (int x = 1; x < cols - 1; x++) {
-
             int i = 0;
-            float sumX = 0.0f, sumY = 0.0f;
+            double sumX = 0.0, sumY = 0.0;
             for (int yy = 0; yy < 3; yy++) {
                 for (int xx = 0; xx < 3; xx++) {
-                    float px = src.at<float>(yy + y - 1, x + xx - 1);
+                    double px = src.at<double>(yy + y - 1, x + xx - 1);
                     sumX += px * filterX[i];
                     sumY += px * filterY[i];
                     i++;
@@ -89,15 +29,27 @@ void filterSobel(cv::Mat &src, cv::Mat &dst) {
             }
 
             // Add sum of x and y derivatives
-            dst.at<float>(y, x) = sqrt(SQR(sumX) + SQR(sumY));
+            dst.at<double>(y, x) = sqrt(SQR(sumX) + SQR(sumY));
         }
     }
 }
 
-cv::Vec4i edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<Template> &templates) {
-    // Set threshold
-    const float THRESHOLD = 0;
+void thresholdMinMax(cv::Mat &src, cv::Mat &dst, double min, double max) {
+    src = dst.clone();
 
+    for (int y = 0; y < src.rows; y++) {
+        for (int x = 0; x < src.cols; x++) {
+            if (src.at<double>(y, x) >= min && src.at<double>(y, x) <= max) {
+                dst.at<double>(y, x) = 1.0;
+            } else {
+                dst.at<double>(y, x) = 0.0;
+            }
+        }
+    }
+}
+
+cv::Vec4i edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &sceneColor, std::vector<Template> &templates,
+                              double thresh) {
     // Take first template [just for demonstration]
     cv::Mat sceneSobel, tplSobel;
     cv::Mat tpl = templates[0].srcDepth;
@@ -106,78 +58,51 @@ cv::Vec4i edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<T
     filterSobel(tpl, tplSobel);
     filterSobel(sceneDepth, sceneSobel);
 
-    // Apply threshold
-    cv::threshold(tplSobel, tplSobel, 0.01f, 1.0f, CV_THRESH_BINARY);
-    cv::threshold(sceneSobel, sceneSobel, 0.01f, 1.0f, CV_THRESH_BINARY);
-
-//    cv::imshow("Tpl sobel thresh", tplSobel);
-//    cv::imshow("Secne sobel thresh", sceneSobel);
-//    cv::waitKey(0);
+    // Apply thresh
+    cv::threshold(tplSobel, tplSobel, thresh, 1.0, CV_THRESH_BINARY);
+    thresholdMinMax(sceneSobel, sceneSobel, 0.01, 0.1);
 
     // Calculate image integral
     cv::Mat tplIntegral, sceneIntegral;
-    cv::integral(tplSobel, tplIntegral, CV_32F);
-    cv::integral(sceneSobel, sceneIntegral, CV_32F);
-
-    // Count edgels in template
-    float tplEdgels = tplIntegral.at<float>(tplIntegral.rows - 1, tplIntegral.cols - 1);
-
-//    for (int y = 0; y < tplSobel.rows; y++) {
-//        for (int x = 0; x < tplSobel.cols; x++) {
-//            if (tplSobel.at<float>(y, x) > THRESHOLD) {
-//                tplEdgelss++;
-//            }
-//        }
-//    }
+    cv::integral(tplSobel, tplIntegral, CV_64F);
+    cv::integral(sceneSobel, sceneIntegral, CV_64F);
 
     // Set min number of edgels to 30% of original
-    tplEdgels *= 0.3;
+    tplIntegral *= 0.3;
+    double tplEdgels = tplIntegral.at<double>(tplIntegral.rows - 1, tplIntegral.cols - 1);
 
     // Helper vars
     std::vector<cv::Vec4i> windows;
-    int sizeX = tpl.cols;
-    int sizeY = tpl.rows;
-
-    std::cout << tplIntegral;
+    int sizeX = tpl.cols, sizeY = tpl.rows;
+    int stepX = tpl.cols / 3, stepY = tpl.rows / 3;// Set step to half of template width for better BB detection
 
     // Slide window over scene and calculate edgel count for each overlap
-    for (int y = 0; y < sceneSobel.rows - sizeY; y += sizeY) {
-        for (int x = 0; x < sceneSobel.cols - sizeX; x += sizeX) {
-//            int sceneEdgels = 0;
-            // Count edgels in sliding window
-//            for (int yy = y; yy < y + sizeY; yy++) {
-//                for (int xx = x; xx < x + sizeX; xx++) {
-//                    if (sceneSobel.at<float>(yy, xx) > THRESHOLD) {
-//                        sceneEdgels++;
-//                    }
-//                }
-//            }
+    for (int y = 0; y < sceneSobel.rows - sizeY; y += stepY) {
+        for (int x = 0; x < sceneSobel.cols - sizeX; x += stepX) {
 
             // Calc edgel value in current sliding window with help of image integral
-            float sceneEdgels = tplIntegral.at<float>(y + sizeY, x + sizeX)
-                - sceneIntegral.at<float>(y, x + sizeX)
-                - sceneIntegral.at<float>(y + sizeY, x)
-                + sceneIntegral.at<float>(y, x);
+            double sceneEdgels = sceneIntegral.at<double>(y + sizeY, x + sizeX)
+                - sceneIntegral.at<double>(y, x + sizeX)
+                - sceneIntegral.at<double>(y + sizeY, x)
+                + sceneIntegral.at<double>(y, x);
 
-            float color = 0.35f;
             // Check if current window contains at least 30% of tpl edgels, if yes, save window variables
             if (sceneEdgels >= tplEdgels) {
                 windows.push_back(cv::Vec4i(x, y, x + sizeX, y + sizeY));
-                color = 8.0f;
-            }
-
 #ifdef DEBUG
             // Draw rect
-            cv::rectangle(scene, cv::Point(x, y), cv::Point(x + sizeX, y + sizeY), color);
+//            cv::rectangle(scene, cv::Point(x, y), cv::Point(x + sizeX, y + sizeY), 0.8);
+            cv::rectangle(sceneColor, cv::Point(x, y), cv::Point(x + sizeX, y + sizeY), cv::Vec3b(190, 190, 190));
 
             // Draw text into corresponding rect with edgel count
             std::stringstream ss;
             ss << "T: " << tplEdgels;
-            cv::putText(scene, ss.str(), cv::Point(x + 3, y + sizeY - 20), CV_FONT_HERSHEY_SIMPLEX, 0.45f, color);
+            cv::putText(sceneColor, ss.str(), cv::Point(x + 3, y + sizeY - 20), CV_FONT_HERSHEY_SIMPLEX, 0.45, cv::Vec3b(190, 190, 190));
             ss.str("");
             ss << "S: " << sceneEdgels;
-            cv::putText(scene, ss.str(), cv::Point(x + 3, y + sizeY - 5), CV_FONT_HERSHEY_SIMPLEX, 0.45f, color);
+            cv::putText(sceneColor, ss.str(), cv::Point(x + 3, y + sizeY - 5), CV_FONT_HERSHEY_SIMPLEX, 0.45, cv::Vec3b(190, 190, 190));
 #endif
+            }
         }
     }
 
@@ -193,13 +118,14 @@ cv::Vec4i edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<T
 
 #ifdef DEBUG
     // Draw outer BB based on max/min values of all smaller boxes
-    cv::rectangle(scene, cv::Point(minX, minY), cv::Point(maxX, maxY), 1.0f, 3);
+//    cv::rectangle(scene, cv::Point(minX, minY), cv::Point(maxX, maxY), 1.0f, 3);
+    cv::rectangle(sceneColor, cv::Point(minX, minY), cv::Point(maxX, maxY), cv::Vec3b(0, 255, 0), 2);
 
     // Show results
-    cv::imshow("Sobel Scene", sceneSobel);
     cv::imshow("Depth Scene", sceneDepth);
-    cv::imshow("Scene", scene);
-    cv::waitKey(0);
+    cv::imshow("Sobel Scene", sceneSobel);
+    cv::imshow("Scene", sceneColor);
+    cv::waitKey(1);
 #endif
 
     // Return resulted BB window

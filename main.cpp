@@ -12,51 +12,43 @@ int main() {
     TemplateParser parser = TemplateParser("data/obj_01");
     parser.setTplCount(10);
 
-    Timer t;
     // Load scene
-    cv::Mat scene = cv::imread("/Users/jansimecek/ClionProjects/vsb-semestral-project/data/scene_01/rgb/0025.png", CV_LOAD_IMAGE_GRAYSCALE);
-    cv::Mat sceneDepth = cv::imread("data/scene_01/depth/0025.png", CV_LOAD_IMAGE_UNCHANGED);
+    cv::Mat scene;
+    cv::Mat sceneColor = cv::imread("/Users/jansimecek/ClionProjects/vsb-semestral-project/data/scene_01/rgb/0230.png", CV_LOAD_IMAGE_COLOR);
+    cv::Mat sceneDepth = cv::imread("data/scene_01/depth/0230.png", CV_LOAD_IMAGE_UNCHANGED);
 
-    // Convert to float
-    scene.convertTo(scene, CV_32FC1, 1.0f / 255.0f);
-    sceneDepth.convertTo(sceneDepth, CV_32FC1, 1.0f / 65536.0f);
+    // Convect to grayscale
+    cv::cvtColor(sceneColor, scene, CV_BGR2GRAY);
+
+    // Convert to double
+    scene.convertTo(scene, CV_64FC1, 1.0f / 255.0f);
+    sceneDepth.convertTo(sceneDepth, CV_64FC1, 1.0f / 65536.0f);
 
     // Load templates
     std::cout << "Parsing... ";
     parser.parse(templates);
     std::cout << "DONE!" << std::endl;
 
+
     // Edge based objectness
-    edgeBasedObjectness(scene, sceneDepth, templates);
-    std::cout << "Time: " << t.elapsed() << std::endl;
+    edgeBasedObjectness(scene, sceneDepth, sceneColor, templates, 0.01);
 
-    // BING generate NG
-//    std::cout << "Generating BING normed gradients... ";
-//    generateBINGTrainingSet("data/objectness", templates);
-//    std::cout << "DONE!" << std::endl;
-
-//     Compute BING
-//    std::cout << "BING... ";
-//    std::vector<cv::Vec4i> bingBB;
-//    computeBING("/Users/jansimecek/ClionProjects/vsb-semestral-project/data/objectness", scene, bingBB);
-//    computeBING("/Users/jansimecek/ClionProjects/vsb-semestral-project/data/bing", scene, bingBB);
-//    std::cout << "DONE!";
 
     // Match templates
-//    std::vector<cv::Rect> matchBB;
-//    Timer t;
-//
-//    std::cout << "Matching... ";
-//    matchTemplate(scene, templates, matchBB);
-//    std::cout << "DONE!" << std::endl;
-//    std::cout << "Elapsed: " << t.elapsed() << "s";
-//
-//    // Show results
-//    for (int i = 0; i < matchBB.size(); i++) {
-//        cv::rectangle(scene, matchBB[i], cv::Vec3b(0, 255, 0), 1);
-//    }
-//
-//    cv::imshow("Result", scene);
-//    cv::waitKey(0);
+    std::vector<cv::Rect> matchBB;
+    Timer t;
+
+    std::cout << "Matching... ";
+    matchTemplate(scene, templates, matchBB);
+    std::cout << "DONE!" << std::endl;
+    std::cout << "Elapsed: " << t.elapsed() << "s";
+
+    // Show results
+    for (int i = 0; i < matchBB.size(); i++) {
+        cv::rectangle(scene, matchBB[i], cv::Vec3b(0, 255, 0), 1);
+    }
+
+    cv::imshow("Result", scene);
+    cv::waitKey(0);
     return 0;
 }

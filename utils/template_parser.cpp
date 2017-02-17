@@ -42,9 +42,9 @@ Template TemplateParser::parseTemplate(int index, cv::FileNode &node) {
     src = src(bounds);
     srcDepth = srcDepth(bounds);
 
-    // Convert to float
-    src.convertTo(src, CV_32FC1, 1.0f / 255.0f);
-    srcDepth.convertTo(srcDepth, CV_32FC1, 1.0f / 65536.0f); // 16-bit
+    // Convert to double
+    src.convertTo(src, CV_64FC1, 1.0 / 255.0);
+    srcDepth.convertTo(srcDepth, CV_64FC1, 1.0 / 65536.0); // 16-bit
 
     return Template(fileName, bounds, src, srcDepth);
 }
