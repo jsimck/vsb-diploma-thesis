@@ -3,10 +3,6 @@
 #include <opencv2/saliency.hpp>
 #include "../utils/utils.h"
 
-#ifndef DEBUG
-#define DEBUG
-#endif
-
 void filterSobel(cv::Mat &src, cv::Mat &dst) {
     // Sobel masks
     int filterX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
@@ -48,8 +44,8 @@ void thresholdMinMax(cv::Mat &src, cv::Mat &dst, double min, double max) {
     }
 }
 
-cv::Vec4i edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &sceneColor, std::vector<Template> &templates,
-                              double thresh) {
+cv::Rect edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &sceneColor, std::vector<Template> &templates,
+                             double thresh) {
     // Take first template [just for demonstration]
     cv::Mat sceneSobel, tplSobel;
     cv::Mat tpl = templates[0].srcDepth;
@@ -125,9 +121,9 @@ cv::Vec4i edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &scen
     cv::imshow("Depth Scene", sceneDepth);
     cv::imshow("Sobel Scene", sceneSobel);
     cv::imshow("Scene", sceneColor);
-    cv::waitKey(1);
+    cv::waitKey(0);
 #endif
 
     // Return resulted BB window
-    return cv::Vec4i(minX, minY, maxX, maxY);
+    return cv::Rect(minX, minY, maxX - minX, maxY - minY);
 }
