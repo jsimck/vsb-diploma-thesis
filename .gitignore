@@ -98,8 +98,11 @@ fabric.properties
 
 # Data files
 /data/obj_01/rgb
+/data/obj_09/rgb
 /data/obj_01/depth
+/data/obj_09/depth
 /data/scene_01/rgb
+/data/scene_01/depth
 /data/scene_01/depth
 /data/objectness
 
