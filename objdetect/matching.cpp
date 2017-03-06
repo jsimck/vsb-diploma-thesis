@@ -5,8 +5,30 @@
 #define MATCH_NORMED_CROSS_CORRELATION
 // #define MATCH_NORMED_CORRELATION_COEF
 
-std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB) {
+std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, double overlapThresh = 0.5) {
     // r = m(a/s) ... s - scale, a - area
+    std::vector<cv::Rect> pick;
+
+    // There are no boxes
+    if (matchBB.size() == 0) {
+        return pick;
+    }
+
+    // Copy BB vector into an array
+    int matchSize = static_cast<int>(matchBB.size());
+    cv::Rect sorted[matchSize];
+    std::copy(matchBB.begin(), matchBB.end(), sorted);
+
+    // Sort BB by bottom right (y) coordinate
+    for (int i = 0; i < matchSize - 1; i++) {
+        for (int j = 0; j < matchSize - i - 1; j++) {
+            if (sorted[j].br().y > sorted[j + 1].br().y) {
+                cv::Rect tmp = sorted[j];
+                sorted[j] = sorted[j + 1];
+                sorted[j + 1] = tmp;
+            }
+        }
+    }
 }
 
 cv::Scalar matRoiMean(cv::Size maskSize, cv::Rect roi) {
@@ -111,6 +133,9 @@ std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vect
             matchBB.push_back(maxRect);
         }
     }
+
+    // Call non maxima suppression on result BBoxes
+    nonMaximaSuppression(matchBB);
 
     return matchBB;
 }

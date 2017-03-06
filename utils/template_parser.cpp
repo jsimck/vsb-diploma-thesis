@@ -21,6 +21,23 @@ void TemplateParser::parse(std::vector<Template> &templates) {
     fs.release();
 }
 
+void TemplateParser::parseRange(std::vector<Template> &templates, int *indices, int indicesLength) {
+    // Load obj_info
+    cv::FileStorage fs;
+    fs.open(this->basePath + "/obj_info.yml", cv::FileStorage::READ);
+
+    for (int i = 0; i < indicesLength; i++) {
+        int tplIndex = indices[i];
+        std::string index = "tpl_" + std::to_string(tplIndex);
+        cv::FileNode objInfo = fs[index];
+
+        // Parse template
+        templates.push_back(parseTemplate(tplIndex, objInfo));
+    }
+
+    fs.release();
+}
+
 Template TemplateParser::parseTemplate(int index, cv::FileNode &node) {
     // Get template bounding box
     std::vector<int> objBB;

@@ -10,6 +10,7 @@ public:
     TemplateParser(std::string basePath, int tplCount = 1296);
 
     void parse(std::vector<Template> &templates);
+    void parseRange(std::vector<Template> &templates, int *indices, int indicesLength);
 
     void setBasePath(std::string path);
     std::string getBasePath();

@@ -25,7 +25,9 @@ int main() {
 
     // Load templates
     std::cout << "Parsing... ";
-    parser.parse(templates);
+//    parser.parse(templates);
+    int indices[] = {0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478};
+    parser.parseRange(templates, indices, 11);
     std::cout << "DONE!" << std::endl;
 
     // Stop Matching time
