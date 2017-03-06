@@ -1,6 +1,5 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include <opencv2/saliency.hpp>
 #include "utils/template_parser.h"
 #include "objdetect/matching.h"
 #include "objdetect/objectness.h"
@@ -14,8 +13,8 @@ int main() {
 
     // Load scene
     cv::Mat scene;
-    cv::Mat sceneColor = cv::imread("/Users/jansimecek/ClionProjects/vsb-semestral-project/data/scene_01/rgb/0244.png", CV_LOAD_IMAGE_COLOR);
-    cv::Mat sceneDepth = cv::imread("data/scene_01/depth/0244.png", CV_LOAD_IMAGE_UNCHANGED);
+    cv::Mat sceneColor = cv::imread("data/scene_01/rgb/0000.png", CV_LOAD_IMAGE_COLOR);
+    cv::Mat sceneDepth = cv::imread("data/scene_01/depth/0000.png", CV_LOAD_IMAGE_UNCHANGED);
 
     // Convect to grayscale
     cv::cvtColor(sceneColor, scene, CV_BGR2GRAY);
@@ -40,15 +39,17 @@ int main() {
     std::vector<cv::Rect> matchBB;
 
     std::cout << "Matching... ";
+//    matchBB = matchTemplate(scene, cv::Rect(0, 0, scene.cols - 1, scene.rows - 1), templates);
     matchBB = matchTemplate(scene, objectsRoi, templates);
     std::cout << "DONE!" << std::endl;
 
     // Print elapsed time
-    std::cout << "Elapsed: " << t.elapsed() << "s";
+    std::cout << "Elapsed: " << t.elapsed() << "s" << std::endl;
+    std::cout << "BB Size: " << matchBB.size() << std::endl;
 
     // Show results
     for (int i = 0; i < matchBB.size(); i++) {
-        cv::rectangle(sceneColor, matchBB[i], cv::Vec3b(0, 255, 0), 1);
+        cv::rectangle(sceneColor, matchBB[i], cv::Scalar(0, 255, 0), 1);
     }
 
     cv::imshow("Result", sceneColor);

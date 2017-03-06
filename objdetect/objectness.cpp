@@ -1,6 +1,4 @@
 #include "objectness.h"
-#include <opencv2/opencv.hpp>
-#include <opencv2/saliency.hpp>
 #include "../utils/utils.h"
 
 void filterSobel(cv::Mat &src, cv::Mat &dst) {

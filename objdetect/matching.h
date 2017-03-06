@@ -4,6 +4,6 @@
 #include <opencv2/opencv.hpp>
 #include "../core/template.h"
 
-std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect roi, std::vector<Template> &templates);
+std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vector<Template> &templates);
 
 #endif //VSB_SEMESTRAL_PROJECT_MATCHING_H

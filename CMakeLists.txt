@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
 project(vsb-semestral-project)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_C_COMPILER "/usr/local/bin/gcc-6")
 set(CMAKE_CXX_COMPILER "/usr/local/bin/g++-6")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
