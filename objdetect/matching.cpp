@@ -5,7 +5,7 @@
 #define MATCH_NORMED_CROSS_CORRELATION
 // #define MATCH_NORMED_CORRELATION_COEF
 
-std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, double overlapThresh = 0.5) {
+std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::vector<double> &scoreBB, double overlapThresh) {
     // r = m(a/s) ... s - scale, a - area
     std::vector<cv::Rect> pick;
 
@@ -16,17 +16,49 @@ std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, doubl
 
     // Copy BB vector into an array
     int matchSize = static_cast<int>(matchBB.size());
-    cv::Rect sorted[matchSize];
-    std::copy(matchBB.begin(), matchBB.end(), sorted);
+    cv::Rect sortedBB[matchSize];
+    double sortedScore[matchSize];
+    std::copy(matchBB.begin(), matchBB.end(), sortedBB);
+    std::copy(scoreBB.begin(), scoreBB.end(), sortedScore);
 
     // Sort BB by bottom right (y) coordinate
     for (int i = 0; i < matchSize - 1; i++) {
         for (int j = 0; j < matchSize - i - 1; j++) {
-            if (sorted[j].br().y > sorted[j + 1].br().y) {
-                cv::Rect tmp = sorted[j];
-                sorted[j] = sorted[j + 1];
-                sorted[j + 1] = tmp;
+            if (sortedScore[j] < sortedScore[j + 1]) {
+                // Save BB to tmp
+                double tmpScore = sortedScore[j];
+                cv::Rect tmpBB = sortedBB[j];
+
+                // Switch bb and scoreBB
+                sortedScore[j] = sortedScore[j + 1];
+                sortedScore[j + 1] = tmpScore;
+                sortedBB[j] = sortedBB[j + 1];
+                sortedBB[j + 1] = tmpBB;
             }
+        }
+    }
+
+    // Compare with first template
+    cv::Rect rootBB = sortedBB[0];
+    // Push root by default
+    pick.push_back(rootBB);
+
+    for (int i = 1; i < matchSize; i++) {
+        cv::Rect bb = sortedBB[i];
+
+        // Get overlap BB coordinates
+        int xx1 = std::max<int>(bb.tl().x, rootBB.tl().x);
+        int xx2 = std::min<int>(bb.br().x, rootBB.br().x);
+        int yy1 = std::max<int>(bb.tl().y, rootBB.tl().y);
+        int yy2 = std::min<int>(bb.br().y, rootBB.br().y);
+
+        // Calculate overlap area
+        int h = std::max<int>(0, xx2 - xx1 + 1);
+        int w = std::max<int>(0, yy2 - yy1 + 1);
+        double overlap = static_cast<double>(h * w) / static_cast<double>(rootBB.area());
+
+        if (overlap < overlapThresh) {
+            pick.push_back(bb);
         }
     }
 }
@@ -41,6 +73,7 @@ cv::Scalar matRoiMean(cv::Size maskSize, cv::Rect roi) {
 
 std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vector<Template> &templates) {
     std::vector<cv::Rect> matchBB;
+    std::vector<double> scoreBB;
 
     // Match configuration
     const int step = 4;
@@ -110,7 +143,7 @@ std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vect
                 // Calculate correlation using NORMED_CROSS_CORRELATION / NORMED_CORRELATION_COEF method
                 double crossSum = sum / sqrt(sumNormI * sumNormT);
 
-                // Check if we found new max score, if yes -> save roi location + score
+                // Check if we found new max scoreBB, if yes -> save roi location + scoreBB
                 if (crossSum > maxScore) {
                     maxRect = cv::Rect(x, y, wSize.width, wSize.height);
                     maxScore = crossSum;
@@ -121,21 +154,20 @@ std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vect
 
         // If we found match over given threshold, push it into BB array
         if (matchFound) {
-#ifdef DEBUG
-            // Print score
-            std::cout << "Match rect score: " << maxScore << ", area: " << maxRect.area() << ", finalScore: " << maxRect.area() * maxScore << std::endl;
-#endif
             // Offset result rectangle by inputROI x and y values
             maxRect.x += inputRoi.x;
             maxRect.y += inputRoi.y;
 
             // Return best match rectangle position and BB
             matchBB.push_back(maxRect);
+            scoreBB.push_back(maxScore);
+
+            // Correct way, but ot working in my implementation due to matching algorithm
+            // scoreBB.push_back(maxScore * maxRect.area());
         }
     }
 
     // Call non maxima suppression on result BBoxes
-    nonMaximaSuppression(matchBB);
-
-    return matchBB;
+//    return matchBB;
+    return nonMaximaSuppression(matchBB, scoreBB);
 }
