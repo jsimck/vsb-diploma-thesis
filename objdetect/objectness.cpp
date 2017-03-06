@@ -104,15 +104,14 @@ cv::Rect edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &scene
     int minX = sceneSobel.cols, maxX = 0;
     int minY = sceneSobel.rows, maxY = 0;
     for (int i = 0; i < windows.size(); i++) {
-        if (minX > windows[i][0]) minX = windows[i][0];
-        if (minY > windows[i][1]) minY = windows[i][1];
-        if (maxX < windows[i][2]) maxX = windows[i][2];
-        if (maxY < windows[i][3]) maxY = windows[i][3];
+        minX = std::min(minX, windows[i][0]);
+        minY = std::min(minY, windows[i][1]);
+        maxX = std::max(maxX, windows[i][2]);
+        maxY = std::max(maxY, windows[i][3]);
     }
 
 #ifdef DEBUG
     // Draw outer BB based on max/min values of all smaller boxes
-//    cv::rectangle(scene, cv::Point(minX, minY), cv::Point(maxX, maxY), 1.0f, 3);
     cv::rectangle(sceneColor, cv::Point(minX, minY), cv::Point(maxX, maxY), cv::Vec3b(0, 255, 0), 2);
 
     // Show results

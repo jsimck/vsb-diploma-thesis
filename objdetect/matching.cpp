@@ -9,6 +9,9 @@ std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::
     // r = m(a/s) ... s - scale, a - area
     std::vector<cv::Rect> pick;
 
+    // Array of indexes we want to delete
+    std::vector<int> suppressIndexes;
+
     // There are no boxes
     if (matchBB.size() == 0) {
         return pick;
@@ -56,6 +59,12 @@ std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::
         int h = std::max<int>(0, xx2 - xx1 + 1);
         int w = std::max<int>(0, yy2 - yy1 + 1);
         double overlap = static_cast<double>(h * w) / static_cast<double>(rootBB.area());
+
+        if (overlap > overlapThresh) {
+            // Push index of this window to suppression array, since it is overlapping over minimum threshold
+            // with a window of higher score, we can safely ignore this window
+            suppressIndexes.push_back(i);
+        }
 
         if (overlap < overlapThresh) {
             pick.push_back(bb);
@@ -168,6 +177,5 @@ std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vect
     }
 
     // Call non maxima suppression on result BBoxes
-//    return matchBB;
     return nonMaximaSuppression(matchBB, scoreBB);
 }
