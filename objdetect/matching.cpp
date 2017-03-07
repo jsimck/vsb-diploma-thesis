@@ -1,75 +1,107 @@
 #include "matching.h"
+#include <numeric>
 #include "../utils/utils.h"
 
 #define DEBUG
 #define MATCH_NORMED_CROSS_CORRELATION
 // #define MATCH_NORMED_CORRELATION_COEF
 
-std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::vector<double> &scoreBB, double overlapThresh) {
-    // r = m(a/s) ... s - scale, a - area
-    std::vector<cv::Rect> pick;
-
-    // Array of indexes we want to delete
-    std::vector<int> suppressIndexes;
-
-    // There are no boxes
-    if (matchBB.size() == 0) {
-        return pick;
-    }
-
-    // Copy BB vector into an array
-    int matchSize = static_cast<int>(matchBB.size());
-    cv::Rect sortedBB[matchSize];
-    double sortedScore[matchSize];
-    std::copy(matchBB.begin(), matchBB.end(), sortedBB);
-    std::copy(scoreBB.begin(), scoreBB.end(), sortedScore);
-
-    // Sort BB by bottom right (y) coordinate
-    for (int i = 0; i < matchSize - 1; i++) {
-        for (int j = 0; j < matchSize - i - 1; j++) {
-            if (sortedScore[j] < sortedScore[j + 1]) {
+void sortBBByScore(std::vector<cv::Rect> &matchBB, std::vector<double> &scoreBB) {
+    // By score, DESC
+    for (int i = 0; i < matchBB.size() - 1; i++) {
+        for (int j = 0; j < matchBB.size() - i - 1; j++) {
+            if (scoreBB[j] < scoreBB[j + 1]) {
                 // Save BB to tmp
-                double tmpScore = sortedScore[j];
-                cv::Rect tmpBB = sortedBB[j];
+                double tmpScore = scoreBB[j];
+                cv::Rect tmpBB = matchBB[j];
 
                 // Switch bb and scoreBB
-                sortedScore[j] = sortedScore[j + 1];
-                sortedScore[j + 1] = tmpScore;
-                sortedBB[j] = sortedBB[j + 1];
-                sortedBB[j + 1] = tmpBB;
+                scoreBB[j] = scoreBB[j + 1];
+                scoreBB[j + 1] = tmpScore;
+                matchBB[j] = matchBB[j + 1];
+                matchBB[j + 1] = tmpBB;
             }
         }
     }
+}
 
-    // Compare with first template
-    cv::Rect rootBB = sortedBB[0];
-    // Push root by default
-    pick.push_back(rootBB);
+std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::vector<double> &scoreBB, double overlapThresh) {
+    // Result vector of picked bounding boxes
+    std::vector<cv::Rect> pick;
 
-    for (int i = 1; i < matchSize; i++) {
-        cv::Rect bb = sortedBB[i];
+    // Sort BB by score
+    sortBBByScore(matchBB, scoreBB);
 
-        // Get overlap BB coordinates
-        int xx1 = std::max<int>(bb.tl().x, rootBB.tl().x);
-        int xx2 = std::min<int>(bb.br().x, rootBB.br().x);
-        int yy1 = std::max<int>(bb.tl().y, rootBB.tl().y);
-        int yy2 = std::min<int>(bb.br().y, rootBB.br().y);
+    // Indexes of bounding boxes to check (length of BB at start) and fill it with index values
+    std::vector<int> idx(matchBB.size());
+    std::iota(idx.begin(), idx.end(), 0);
+    std::vector<int> suppress; // Vector to store indexes which we want to remove at end of each iteration
 
-        // Calculate overlap area
-        int h = std::max<int>(0, xx2 - xx1 + 1);
-        int w = std::max<int>(0, yy2 - yy1 + 1);
-        double overlap = static_cast<double>(h * w) / static_cast<double>(rootBB.area());
+    // Loop until we check all indexes
+    while (!idx.empty()) {
+        // Pick first element with highest score (sorted from highest->lowest in previous step)
+        int firstIndex = idx.front();
+        cv::Rect firstBB = matchBB[firstIndex];
+        // Store this index into suppress array, we won't check against this BB again
+        suppress.push_back(firstIndex);
+        pick.push_back(firstBB);
 
-        if (overlap > overlapThresh) {
+        // Check overlaps with all other bounding boxes, skipping first (since it is the one we're checking)
+        for (int i = 1; i < idx.size(); i++) {
+            // Get next bounding box in line
+            cv::Rect BB = matchBB[i];
+
+            // Get overlap BB coordinates
+            int ox1 = std::max<int>(BB.tl().x, firstBB.tl().x);
+            int ox2 = std::min<int>(BB.br().x, firstBB.br().x);
+            int oy1 = std::max<int>(BB.tl().y, firstBB.tl().y);
+            int oy2 = std::min<int>(BB.br().y, firstBB.br().y);
+
+            // Calculate overlap area
+            int h = std::max<int>(0, oy2 - oy1);
+            int w = std::max<int>(0, ox2 - ox1);
+            double overlap = static_cast<double>(h * w) / static_cast<double>(firstBB.area());
+
             // Push index of this window to suppression array, since it is overlapping over minimum threshold
             // with a window of higher score, we can safely ignore this window
-            suppressIndexes.push_back(i);
+            if (overlap > overlapThresh) {
+                std::cout << "Overlap: " << overlap << std::endl;
+                suppress.push_back(i);
+            }
         }
 
-        if (overlap < overlapThresh) {
-            pick.push_back(bb);
+        std::cout << "Suppress vector:" << std::endl;
+        for (auto &&item : suppress) {
+            std::cout << item << std::endl;
+        }
+
+        std::cout << "Idx vector:" << std::endl;
+        for (auto &&item2 : idx) {
+            std::cout << item2 << std::endl;
+        }
+
+        // Remove all suppress indexes from idx array
+        idx.erase(std::remove_if(idx.begin(), idx.end(),
+            [&suppress, &idx](int v) -> bool {
+                return std::find(suppress.begin(), suppress.end(), v) != suppress.end();
+            }
+        ), idx.end());
+
+        // Clear suppress list
+        suppress.clear();
+
+        std::cout << "Idx vector new:" << std::endl;
+        for (auto &&item2 : idx) {
+            std::cout << item2 << std::endl;
         }
     }
+
+    // Return only bounding boxes that passed non maxima suppression
+//    for (int i = 0; i < idx.size(); i++) {
+//        pick.push_back(matchBB[idx[i]]);
+//    }
+
+    return pick;
 }
 
 cv::Scalar matRoiMean(cv::Size maskSize, cv::Rect roi) {
