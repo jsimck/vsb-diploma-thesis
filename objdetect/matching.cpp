@@ -42,14 +42,18 @@ std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::
         // Pick first element with highest score (sorted from highest->lowest in previous step)
         int firstIndex = idx.front();
         cv::Rect firstBB = matchBB[firstIndex];
+
         // Store this index into suppress array, we won't check against this BB again
         suppress.push_back(firstIndex);
+
+        // Push this BB to final array of filtered bounding boxes
         pick.push_back(firstBB);
 
         // Check overlaps with all other bounding boxes, skipping first (since it is the one we're checking)
         for (int i = 1; i < idx.size(); i++) {
-            // Get next bounding box in line
-            cv::Rect BB = matchBB[i];
+            // Get next index and bounding box in line
+            int offsetIndex = *(&idx.front() + i);
+            cv::Rect BB = matchBB[offsetIndex];
 
             // Get overlap BB coordinates
             int ox1 = std::max<int>(BB.tl().x, firstBB.tl().x);
@@ -65,19 +69,8 @@ std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::
             // Push index of this window to suppression array, since it is overlapping over minimum threshold
             // with a window of higher score, we can safely ignore this window
             if (overlap > overlapThresh) {
-                std::cout << "Overlap: " << overlap << std::endl;
-                suppress.push_back(i);
+                suppress.push_back(offsetIndex);
             }
-        }
-
-        std::cout << "Suppress vector:" << std::endl;
-        for (auto &&item : suppress) {
-            std::cout << item << std::endl;
-        }
-
-        std::cout << "Idx vector:" << std::endl;
-        for (auto &&item2 : idx) {
-            std::cout << item2 << std::endl;
         }
 
         // Remove all suppress indexes from idx array
@@ -89,17 +82,7 @@ std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::
 
         // Clear suppress list
         suppress.clear();
-
-        std::cout << "Idx vector new:" << std::endl;
-        for (auto &&item2 : idx) {
-            std::cout << item2 << std::endl;
-        }
     }
-
-    // Return only bounding boxes that passed non maxima suppression
-//    for (int i = 0; i < idx.size(); i++) {
-//        pick.push_back(matchBB[idx[i]]);
-//    }
 
     return pick;
 }
@@ -203,7 +186,7 @@ std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vect
             matchBB.push_back(maxRect);
             scoreBB.push_back(maxScore);
 
-            // Correct way, but ot working in my implementation due to matching algorithm
+            // Correct way, but not working in my implementation due to use of different matching algorithm
             // scoreBB.push_back(maxScore * maxRect.area());
         }
     }
