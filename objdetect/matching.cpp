@@ -2,10 +2,6 @@
 #include <numeric>
 #include "../utils/utils.h"
 
-#define DEBUG
-#define MATCH_NORMED_CROSS_CORRELATION
-// #define MATCH_NORMED_CORRELATION_COEF
-
 void sortBBByScore(std::vector<cv::Rect> &matchBB, std::vector<double> &scoreBB) {
     // By score, DESC
     for (int i = 0; i < matchBB.size() - 1; i++) {
