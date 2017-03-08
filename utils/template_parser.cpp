@@ -39,31 +39,45 @@ void TemplateParser::parseRange(std::vector<Template> &templates, int *indices, 
 }
 
 Template TemplateParser::parseTemplate(int index, cv::FileNode &node) {
-    // Get template bounding box
-    std::vector<int> objBB;
-    node["obj_bb"] >> objBB;
+    // Init template param matrices
+    std::vector<double> vCamK, vCamRm2c, vCamTm2c;
+    std::vector<int> vObjBB;
+
+    // Nodes containing matrices and vectors to parse
+    node["obj_bb"] >> vObjBB;
+    node["cam_K"] >> vCamK;
+    node["cam_R_m2c"] >> vCamRm2c;
+    node["cam_t_m2c"] >> vCamTm2c;
+
+    // Get other params from .yml file
+    int elev = node["elev"];
+    int mode = node["mode"];
+
+    // TODO incorrect parsing of cam matrices
+    // Parse objBB and cam matrices and translation vector
+    cv::Rect objBB = cv::Rect(vObjBB[0], vObjBB[1], vObjBB[2], vObjBB[3]);
+    cv::Mat camK = cv::Mat(3, 3, CV_64FC1, vCamK.data());
+    cv::Mat camRm2c = cv::Mat(3, 3, CV_64FC1, vCamK.data());
+    cv::Vec3d camTm2c(vCamTm2c[0], vCamTm2c[1], vCamTm2c[2]);
 
     // Create filename from index
     std::stringstream ss;
     ss << std::setw(4) << std::setfill('0') << index;
     std::string fileName = ss.str();
 
-    // Parse obj bounds
-    cv::Rect bounds = cv::Rect(objBB[0], objBB[1], objBB[2], objBB[3]);
-
     // Load image
     cv::Mat src = cv::imread(this->basePath + "/rgb/" + fileName + ".png", CV_LOAD_IMAGE_GRAYSCALE);
     cv::Mat srcDepth = cv::imread(this->basePath + "/depth/" + fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
 
     // Crop image using bounds
-    src = src(bounds);
-    srcDepth = srcDepth(bounds);
+    src = src(objBB);
+    srcDepth = srcDepth(objBB);
 
     // Convert to double
     src.convertTo(src, CV_64FC1, 1.0 / 255.0);
     srcDepth.convertTo(srcDepth, CV_64FC1, 1.0 / 65536.0); // 16-bit
 
-    return Template(fileName, bounds, src, srcDepth);
+    return Template { fileName, src, srcDepth, objBB, camK, camRm2c, camTm2c, elev, mode };
 }
 
 void TemplateParser::setBasePath(std::string path) {

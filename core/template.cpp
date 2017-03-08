@@ -1,12 +1,16 @@
 #include "template.h"
 
-Template::Template(std::string fileName, cv::Rect bounds, cv::Mat &src, cv::Mat &srcDepth) {
-    this->fileName = fileName;
-    this->bounds = bounds;
-    this->src = src;
-    this->srcDepth = srcDepth;
-}
+std::ostream &operator<<(std::ostream &os, const Template &t) {
+    os << "Template ID: " << 0 << std::endl // TODO id
+       << "fileName: " << t.fileName << std::endl
+       << "src (size): " << t.src.size()  << std::endl
+       << "srcDepth (size): " << t.srcDepth.size() << std::endl
+       << "bounds: " << t.bounds  << std::endl
+       << "camK: " << t.camK  << std::endl
+       << "camRm2c: " << t.camRm2c << std::endl
+       << "camTm2c: " << t.camTm2c  << std::endl
+       << "elev: " << t.elev  << std::endl
+       << "mode: " << t.mode;
 
-void Template::print() {
-    std::cout << "Filename: " << this->fileName << " Bounds:" << this->bounds << std::endl;
+    return os;
 }
