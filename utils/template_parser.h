@@ -24,7 +24,8 @@ private:
     std::string basePath;
     unsigned int tplCount;
 
-    Template parseTemplate(int index, std::string path, cv::FileNode &node);
+    Template parseGt(int index, std::string path, cv::FileNode &gtNode);
+    void parseInfo(Template &tpl, cv::FileNode &infoNode);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_TEMPLATEPARSER_H

@@ -107,7 +107,7 @@ cv::Rect objectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &sceneColor, cv
 
     // Helper vars
     std::vector<cv::Vec4i> windows;
-    int sizeX = minEdgels[1], sizeY = minEdgels[2];
+    int sizeX = minEdgels[1] / 2, sizeY = minEdgels[2] / 2; // Set sliding window size to half of original window
     int stepX = sizeX / 3, stepY = sizeY / 3; // Set step to third of template width for better BB detection
 
     // Slide window over scene and calculate edgel count for each overlap

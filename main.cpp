@@ -22,10 +22,11 @@ int main() {
     scene.convertTo(scene, CV_64FC1, 1.0f / 255.0f);
     sceneDepth.convertTo(sceneDepth, CV_64FC1, 1.0f / 65536.0f);
 
+
     /// ***** PREPARATION STAGE - START *****
-//    // Parse templates (groups)
+    // Parse templates (groups)
 //    std::cout << "Parsing... " << std::endl;
-//    std::vector<std::string> tplNames = { "obj_01", "obj_09" };
+//    std::vector<std::string> tplNames = { "02", "25", "29", "30" };
 //    parser.parse(templateGroups, tplNames);
 //    std::cout << "DONE! " << templateGroups.size() << " template groups parsed" << std::endl << std::endl;
 //
@@ -37,14 +38,17 @@ int main() {
 
 
     /// Test DATA - START
-    cv::Vec3i minEdgels(332, 59, 59);
+//    cv::Vec3i minEdgels(332, 59, 59);
+    cv::Vec3i minEdgels(417, 112, 108);
     std::vector<int> indices = { 0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478 };
 
     std::vector<Template> templatesObj1, templatesObj9;
-    parser.parseTemplate(templatesObj1, "obj_01", indices);
-    parser.parseTemplate(templatesObj9, "obj_09", indices);
-    TemplateGroup group1("obj_01", templatesObj1);
-    TemplateGroup group2("obj_09", templatesObj9);
+    parser.parseTemplate(templatesObj1, "02", indices);
+    parser.parseTemplate(templatesObj9, "25", indices);
+
+    TemplateGroup group1("02", templatesObj1);
+    TemplateGroup group2("25", templatesObj9);
+
     templateGroups.push_back(group1);
     templateGroups.push_back(group2);
     /// Test DATA - END

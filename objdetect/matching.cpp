@@ -126,8 +126,8 @@ std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vect
         for (int i = 0; i < templates.size(); i++) {
             // Calculate final size of inputRoi, if possible we extend it's height by the half height of match template
             // since objectness measure can ignore bottom edges that are not visible on depth maps
-            if (inputRoi.br().y + templates[0].objBB.height / 2 < input.rows) {
-                inputRoi.height += templates[0].objBB.height / 2;
+            if (inputRoi.br().y + templates[i].objBB.height / 2 < input.rows) {
+                inputRoi.height += templates[i].objBB.height / 2;
             }
 
             // Get area of interest from input image using input ROI rectr
