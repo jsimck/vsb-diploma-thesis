@@ -1,7 +1,6 @@
 #ifndef VSB_SEMESTRAL_PROJECT_TEMPLATE_H
 #define VSB_SEMESTRAL_PROJECT_TEMPLATE_H
 
-
 #include <string>
 #include <opencv2/opencv.hpp>
 #include <ostream>
@@ -26,6 +25,5 @@ public:
 
     friend std::ostream &operator<<(std::ostream &os, const Template &t);
 };
-
 
 #endif //VSB_SEMESTRAL_PROJECT_TEMPLATE_H

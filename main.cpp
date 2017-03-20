@@ -7,7 +7,7 @@
 
 int main() {
     // Parse rgb templates
-    std::vector<Template> templateGroups;
+    std::vector<TemplateGroup> templateGroups;
     std::vector<Template> templates;
     TemplateParser parser = TemplateParser("data/");
 
@@ -24,11 +24,14 @@ int main() {
     sceneDepth.convertTo(sceneDepth, CV_64FC1, 1.0f / 65536.0f);
 
     // Load templates
-    std::cout << "Parsing... ";
+    std::cout << "Parsing... " << std::endl;
+    std::vector<std::string> tplNames = { "obj_01", "obj_09" };
+    parser.parse(templateGroups, tplNames);
+
 //    parser.parseTemplate(templates);
-    int indices[] = {0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478};
-    parser.parseTemplate(templates, "obj_01", indices, 11);
-    std::cout << "DONE! " << templates.size() << " templates parsed" <<std::endl;
+//    std::vector<int> indices = { 0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478 };
+//    parser.parseTemplate(templates, "obj_01", indices);
+    std::cout << "DONE! " << templateGroups.size() << " Template groups parsed" <<std::endl;
 
     // Stop Matching time
     Timer t;

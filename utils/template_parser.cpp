@@ -1,16 +1,29 @@
 #include "template_parser.h"
+#include <cassert>
 
 int TemplateParser::idCounter = 0;
 
-TemplateParser::TemplateParser(std::string basePath, int tplCount) {
+TemplateParser::TemplateParser(const std::string basePath, unsigned int tplCount) {
     setBasePath(basePath);
     setTplCount(tplCount);
+}
+
+void TemplateParser::parse(std::vector<TemplateGroup> &groups, std::vector<std::string> tplNames) {
+    for (auto &&tplName : tplNames) {
+        std::vector<Template> templates;
+        parseTemplate(templates, tplName);
+
+        // Push to groups vector
+        groups.push_back(TemplateGroup(tplName, templates));
+        std::cout << "Parsed: " << tplName << ", templatesSize: " << templates.size() << std::endl;
+    }
 }
 
 void TemplateParser::parseTemplate(std::vector<Template> &templates, std::string tplName) {
     // Load obj_info
     cv::FileStorage fs;
     fs.open(this->basePath + tplName + "/obj_info.yml", cv::FileStorage::READ);
+    assert(fs.isOpened());
 
     for (int i = 0; i < this->tplCount; i++) {
         std::string index = "tpl_" + std::to_string(i);
@@ -23,12 +36,13 @@ void TemplateParser::parseTemplate(std::vector<Template> &templates, std::string
     fs.release();
 }
 
-void TemplateParser::parseTemplate(std::vector<Template> &templates, std::string tplName, const int *indices, int indicesLength) {
+void TemplateParser::parseTemplate(std::vector<Template> &templates, std::string tplName, std::vector<int> indices) {
     // Load obj_info
     cv::FileStorage fs;
     fs.open(this->basePath + tplName + "/obj_info.yml", cv::FileStorage::READ);
+    assert(fs.isOpened());
 
-    for (int i = 0; i < indicesLength; i++) {
+    for (int i = 0; i < indices.size(); i++) {
         int tplIndex = indices[i];
         std::string index = "tpl_" + std::to_string(tplIndex);
         cv::FileNode objInfo = fs[index];
@@ -94,10 +108,10 @@ std::string TemplateParser::getBasePath() {
     return this->basePath;
 }
 
-int TemplateParser::getTplCount() {
-    return this->tplCount;
+void TemplateParser::setTplCount(unsigned int tplCount) {
+    this->tplCount = tplCount;
 }
 
-void TemplateParser::setTplCount(int tplCount) {
-    this->tplCount = (tplCount < 0) ? 0 : tplCount;
+unsigned int TemplateParser::getTplCount() {
+    return this->tplCount;
 }
