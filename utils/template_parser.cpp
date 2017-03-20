@@ -1,10 +1,5 @@
 #include "template_parser.h"
 
-TemplateParser::TemplateParser(std::string basePath, int tplCount) {
-    this->basePath = basePath;
-    this->tplCount = tplCount;
-}
-
 void TemplateParser::parse(std::vector<Template> &templates) {
     // Load obj_info
     cv::FileStorage fs;
@@ -21,7 +16,7 @@ void TemplateParser::parse(std::vector<Template> &templates) {
     fs.release();
 }
 
-void TemplateParser::parseRange(std::vector<Template> &templates, int *indices, int indicesLength) {
+void TemplateParser::parse(std::vector<Template> &templates, int *indices, int indicesLength) {
     // Load obj_info
     cv::FileStorage fs;
     fs.open(this->basePath + "/obj_info.yml", cv::FileStorage::READ);
@@ -53,11 +48,10 @@ Template TemplateParser::parseTemplate(int index, cv::FileNode &node) {
     int elev = node["elev"];
     int mode = node["mode"];
 
-    // TODO incorrect parsing of cam matrices
     // Parse objBB and cam matrices and translation vector
-    cv::Rect objBB = cv::Rect(vObjBB[0], vObjBB[1], vObjBB[2], vObjBB[3]);
+    cv::Rect objBB(vObjBB[0], vObjBB[1], vObjBB[2], vObjBB[3]);
     cv::Mat camK = cv::Mat(3, 3, CV_64FC1, vCamK.data());
-    cv::Mat camRm2c = cv::Mat(3, 3, CV_64FC1, vCamK.data());
+    cv::Mat camRm2c = cv::Mat(3, 3, CV_64FC1, vCamRm2c.data());
     cv::Vec3d camTm2c(vCamTm2c[0], vCamTm2c[1], vCamTm2c[2]);
 
     // Create filename from index
@@ -69,7 +63,7 @@ Template TemplateParser::parseTemplate(int index, cv::FileNode &node) {
     cv::Mat src = cv::imread(this->basePath + "/rgb/" + fileName + ".png", CV_LOAD_IMAGE_GRAYSCALE);
     cv::Mat srcDepth = cv::imread(this->basePath + "/depth/" + fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
 
-    // Crop image using bounds
+    // Crop image using objBB
     src = src(objBB);
     srcDepth = srcDepth(objBB);
 
@@ -77,7 +71,7 @@ Template TemplateParser::parseTemplate(int index, cv::FileNode &node) {
     src.convertTo(src, CV_64FC1, 1.0 / 255.0);
     srcDepth.convertTo(srcDepth, CV_64FC1, 1.0 / 65536.0); // 16-bit
 
-    return Template { fileName, src, srcDepth, objBB, camK, camRm2c, camTm2c, elev, mode };
+    return Template(fileName, src, srcDepth, objBB, camK.clone(), camRm2c.clone(), camTm2c, elev, mode);
 }
 
 void TemplateParser::setBasePath(std::string path) {

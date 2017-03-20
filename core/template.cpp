@@ -5,7 +5,7 @@ std::ostream &operator<<(std::ostream &os, const Template &t) {
        << "fileName: " << t.fileName << std::endl
        << "src (size): " << t.src.size()  << std::endl
        << "srcDepth (size): " << t.srcDepth.size() << std::endl
-       << "bounds: " << t.bounds  << std::endl
+       << "objBB: " << t.objBB  << std::endl
        << "camK: " << t.camK  << std::endl
        << "camRm2c: " << t.camRm2c << std::endl
        << "camTm2c: " << t.camTm2c  << std::endl
