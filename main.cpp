@@ -23,21 +23,32 @@ int main() {
     sceneDepth.convertTo(sceneDepth, CV_64FC1, 1.0f / 65536.0f);
 
     /// ***** PREPARATION STAGE - START *****
-    // Parse templates (groups)
-    std::cout << "Parsing... " << std::endl;
-    std::vector<std::string> tplNames = { "obj_01", "obj_09" };
-    parser.parse(templateGroups, tplNames);
-    std::cout << "DONE! " << templateGroups.size() << " template groups parsed" << std::endl << std::endl;
-
-    // Get number of edgels of template containing least amount of them
-    std::cout << "Extracting minimum of template edgels... " << std::endl;
-    cv::Vec3i minEdgels = extractMinEdgels(templateGroups);
-    std::cout << "DONE! " << minEdgels << " minimum found" <<std::endl << std::endl;
+//    // Parse templates (groups)
+//    std::cout << "Parsing... " << std::endl;
+//    std::vector<std::string> tplNames = { "obj_01", "obj_09" };
+//    parser.parse(templateGroups, tplNames);
+//    std::cout << "DONE! " << templateGroups.size() << " template groups parsed" << std::endl << std::endl;
+//
+//    // Get number of edgels of template containing least amount of them
+//    std::cout << "Extracting minimum of template edgels... " << std::endl;
+//    cv::Vec3i minEdgels = extractMinEdgels(templateGroups);
+//    std::cout << "DONE! " << minEdgels << " minimum found" <<std::endl << std::endl;
     /// ***** PREPARATION STAGE - END *****
 
-//    std::vector<int> indices = { 0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478 };
-//    parser.parseTemplate(templates, "obj_01", indices);
-//    cv::Vec3i minEdgels(332, 59, 59);
+
+    /// Test DATA - START
+    cv::Vec3i minEdgels(332, 59, 59);
+    std::vector<int> indices = { 0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478 };
+
+    std::vector<Template> templatesObj1, templatesObj9;
+    parser.parseTemplate(templatesObj1, "obj_01", indices);
+    parser.parseTemplate(templatesObj9, "obj_09", indices);
+    TemplateGroup group1("obj_01", templatesObj1);
+    TemplateGroup group2("obj_09", templatesObj9);
+    templateGroups.push_back(group1);
+    templateGroups.push_back(group2);
+    /// Test DATA - END
+
 
     /// ***** MATCHING - START *****
     // Stop Matching time
@@ -45,13 +56,13 @@ int main() {
 
     // Edge based objectness
     cv::Rect objectsRoi;
-    objectsRoi = objectness(scene, sceneDepth, sceneColor, templates, minEdgels);
+    objectsRoi = objectness(scene, sceneDepth, sceneColor, minEdgels);
 
     // Match templates
     std::vector<cv::Rect> matchBB;
 
     std::cout << "Matching... ";
-    matchBB = matchTemplate(scene, objectsRoi, templates);
+    matchBB = matchTemplate(scene, objectsRoi, templateGroups);
     std::cout << "DONE!" << std::endl;
     /// ***** MATCHING - END *****
 

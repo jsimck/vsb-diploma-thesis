@@ -3,6 +3,10 @@
 #include "../utils/utils.h"
 
 void sortBBByScore(std::vector<cv::Rect> &matchBB, std::vector<double> &scoreBB) {
+    // Checks
+    assert(matchBB.size() > 0);
+    assert(scoreBB.size() > 0);
+
     // By score, DESC
     for (int i = 0; i < matchBB.size() - 1; i++) {
         for (int j = 0; j < matchBB.size() - i - 1; j++) {
@@ -22,6 +26,11 @@ void sortBBByScore(std::vector<cv::Rect> &matchBB, std::vector<double> &scoreBB)
 }
 
 std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::vector<double> &scoreBB, double overlapThresh) {
+    // Checks
+    assert(matchBB.size() > 0);
+    assert(scoreBB.size() > 0);
+    assert(overlapThresh > 0);
+
     // Result vector of picked bounding boxes
     std::vector<cv::Rect> pick;
 
@@ -91,7 +100,13 @@ cv::Scalar matRoiMean(cv::Size maskSize, cv::Rect roi) {
     return cv::mean(maskRoi);
 }
 
-std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vector<Template> &templates) {
+std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vector<TemplateGroup> &groups) {
+    // Checks
+    assert(!input.empty());
+    assert(inputRoi.area() > 0);
+    assert(groups.size() > 0);
+
+    // Vector of matched bounding boxes and their score
     std::vector<cv::Rect> matchBB;
     std::vector<double> scoreBB;
 
@@ -99,91 +114,100 @@ std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vect
     const int step = 4;
     const double minCorrelation = 0.5;
 
-    #pragma omp parallel for schedule(dynamic, 1) shared(input, inputRoi, templates, matchBB)
-    for (int i = 0; i < templates.size(); i++) {
-        // Calculate final size of inputRoi, if possible we extend it's height by the half height of match template
-        // since objectness measure can ignore bottom edges that are not visible on depth maps
-        if (inputRoi.br().y + templates[0].objBB.height / 2 < input.rows) {
-            inputRoi.height += templates[0].objBB.height / 2;
+    for (auto &g : groups) {
+        std::vector<Template> &templates = g.templates;
+
+        // Skip empty groups
+        if (templates.size() <= 0) {
+            continue;
         }
 
-        // Get area of interest from input image using input ROI rect
-        cv::Mat croppedInput(input, inputRoi);
+        #pragma omp parallel for schedule(dynamic, 1) shared(input, inputRoi, templates, matchBB)
+        for (int i = 0; i < templates.size(); i++) {
+            // Calculate final size of inputRoi, if possible we extend it's height by the half height of match template
+            // since objectness measure can ignore bottom edges that are not visible on depth maps
+            if (inputRoi.br().y + templates[0].objBB.height / 2 < input.rows) {
+                inputRoi.height += templates[0].objBB.height / 2;
+            }
 
-        // Get match template from templates
-        cv::Mat tpl = templates[i].src;
-        cv::Size wSize = tpl.size();
+            // Get area of interest from input image using input ROI rectr
+            cv::Mat croppedInput(input, inputRoi);
 
-        // Set default helper variables for matching
-        bool matchFound = false;
-        double maxScore = minCorrelation;
-        cv::Rect maxRect;
+            // Get match template from templates
+            cv::Mat tpl = templates[i].src;
+            cv::Size wSize = tpl.size();
 
-#ifdef MATCH_NORMED_CORRELATION_COEF
-        // Get template mean
-        cv::Scalar meanT = cv::mean(tpl);
-#endif
+            // Set default helper variables for matching
+            bool matchFound = false;
+            double maxScore = minCorrelation;
+            cv::Rect maxRect;
 
-        for (int y = 0; y < croppedInput.rows - wSize.height; y += step) {
-            for (int x = 0; x < croppedInput.cols - wSize.width; x += step) {
-                double sum = 0, sumNormT = 0, sumNormI = 0;
+    #ifdef MATCH_NORMED_CORRELATION_COEF
+            // Get template mean
+            cv::Scalar meanT = cv::mean(tpl);
+    #endif
 
-#ifdef MATCH_NORMED_CORRELATION_COEF
-                // Get mean of input image processed area
-                cv::Scalar meanI = matRoiMean(croppedInput.size(), cv::Rect(x, y, wSize.width, wSize.height));
-#endif
+            for (int y = 0; y < croppedInput.rows - wSize.height; y += step) {
+                for (int x = 0; x < croppedInput.cols - wSize.width; x += step) {
+                    double sum = 0, sumNormT = 0, sumNormI = 0;
 
-                // Loop through template
-                for (int ty = 0; ty < wSize.height; ty++) {
-                    for (int tx = 0; tx < wSize.width; tx++) {
-                        double Ti = tpl.at<double>(ty, tx);
+    #ifdef MATCH_NORMED_CORRELATION_COEF
+                    // Get mean of input image processed area
+                    cv::Scalar meanI = matRoiMean(croppedInput.size(), cv::Rect(x, y, wSize.width, wSize.height));
+    #endif
 
-                        // Ignore black pixels
-                        if (Ti == 0) continue;
+                    // Loop through template
+                    for (int ty = 0; ty < wSize.height; ty++) {
+                        for (int tx = 0; tx < wSize.width; tx++) {
+                            double Ti = tpl.at<double>(ty, tx);
 
-                        // Get input image value
-                        double Ii = croppedInput.at<double>(y + ty, x + tx);
+                            // Ignore black pixels
+                            if (Ti == 0) continue;
 
-#ifdef MATCH_NORMED_CORRELATION_COEF
-                        // Calculate sums for normalized correlation coefficient method
-                        sum += ((Ii - meanI.val[0]) * (Ti - meanT.val[0]));
-                        sumNormI += SQR(Ii - meanI.val[0]);
-                        sumNormT += SQR(Ti - meanT.val[0]);
-#endif
+                            // Get input image value
+                            double Ii = croppedInput.at<double>(y + ty, x + tx);
 
-#ifdef MATCH_NORMED_CROSS_CORRELATION
-                        // Calculate sums for normalized cross correlation method
-                        sum += ((Ii) * (Ti));
-                        sumNormI += SQR(Ii);
-                        sumNormT += SQR(Ti);
-#endif
+    #ifdef MATCH_NORMED_CORRELATION_COEF
+                            // Calculate sums for normalized correlation coefficient method
+                            sum += ((Ii - meanI.val[0]) * (Ti - meanT.val[0]));
+                            sumNormI += SQR(Ii - meanI.val[0]);
+                            sumNormT += SQR(Ti - meanT.val[0]);
+    #endif
+
+    #ifdef MATCH_NORMED_CROSS_CORRELATION
+                            // Calculate sums for normalized cross correlation method
+                            sum += ((Ii) * (Ti));
+                            sumNormI += SQR(Ii);
+                            sumNormT += SQR(Ti);
+    #endif
+                        }
+                    }
+
+                    // Calculate correlation using NORMED_CROSS_CORRELATION / NORMED_CORRELATION_COEF method
+                    double crossSum = sum / sqrt(sumNormI * sumNormT);
+
+                    // Check if we found new max scoreBB, if yes -> save roi location + scoreBB
+                    if (crossSum > maxScore) {
+                        maxRect = cv::Rect(x, y, wSize.width, wSize.height);
+                        maxScore = crossSum;
+                        matchFound = true;
                     }
                 }
-
-                // Calculate correlation using NORMED_CROSS_CORRELATION / NORMED_CORRELATION_COEF method
-                double crossSum = sum / sqrt(sumNormI * sumNormT);
-
-                // Check if we found new max scoreBB, if yes -> save roi location + scoreBB
-                if (crossSum > maxScore) {
-                    maxRect = cv::Rect(x, y, wSize.width, wSize.height);
-                    maxScore = crossSum;
-                    matchFound = true;
-                }
             }
-        }
 
-        // If we found match over given threshold, push it into BB array
-        if (matchFound) {
-            // Offset result rectangle by inputROI x and y values
-            maxRect.x += inputRoi.x;
-            maxRect.y += inputRoi.y;
+            // If we found match over given threshold, push it into BB array
+            if (matchFound) {
+                // Offset result rectangle by inputROI x and y values
+                maxRect.x += inputRoi.x;
+                maxRect.y += inputRoi.y;
 
-            // Return best match rectangle position and BB
-            matchBB.push_back(maxRect);
-            scoreBB.push_back(maxScore);
+                // Return best match rectangle position and BB
+                matchBB.push_back(maxRect);
+                scoreBB.push_back(maxScore);
 
-            // Correct way, but not working in my implementation due to use of different matching algorithm
-            // scoreBB.push_back(maxScore * maxRect.area());
+                // Correct way, but not working in my implementation due to use of different matching algorithm
+                // scoreBB.push_back(maxScore * maxRect.area());
+            }
         }
     }
 

@@ -78,8 +78,7 @@ cv::Vec3i extractMinEdgels(std::vector<TemplateGroup> &templateGroups, double mi
     return output;
 }
 
-cv::Rect objectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &sceneColor, std::vector<Template> &templates,
-                    cv::Vec3i minEdgels, double minThresh, double maxThresh) {
+cv::Rect objectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &sceneColor, cv::Vec3i minEdgels, double minThresh, double maxThresh) {
     // Edgels count and template bounding box should be greater than 0
     assert(minEdgels[0] > 0);
     assert(minEdgels[1] > 0);

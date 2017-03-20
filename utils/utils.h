@@ -1,8 +1,6 @@
 #ifndef VSB_SEMESTRAL_PROJECT_UTILS_H
 #define VSB_SEMESTRAL_PROJECT_UTILS_H
 
-
 #define SQR(x) ((x) * (x))
-
 
 #endif //VSB_SEMESTRAL_PROJECT_UTILS_H
