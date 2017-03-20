@@ -2,7 +2,7 @@
 
 int TemplateParser::idCounter = 0;
 
-void TemplateParser::parse(std::vector<Template> &templates) {
+void TemplateParser::parseTemplate(std::vector<Template> &templates) {
     // Load obj_info
     cv::FileStorage fs;
     fs.open(this->basePath + "/obj_info.yml", cv::FileStorage::READ);
@@ -18,7 +18,7 @@ void TemplateParser::parse(std::vector<Template> &templates) {
     fs.release();
 }
 
-void TemplateParser::parse(std::vector<Template> &templates, int *indices, int indicesLength) {
+void TemplateParser::parseTemplate(std::vector<Template> &templates, const int *indices, int indicesLength) {
     // Load obj_info
     cv::FileStorage fs;
     fs.open(this->basePath + "/obj_info.yml", cv::FileStorage::READ);
@@ -41,7 +41,7 @@ Template TemplateParser::parseTemplate(int index, cv::FileNode &node) {
     std::vector<double> vCamK, vCamRm2c, vCamTm2c;
     std::vector<int> vObjBB;
 
-    // Nodes containing matrices and vectors to parse
+    // Nodes containing matrices and vectors to parseTemplate
     node["obj_bb"] >> vObjBB;
     node["cam_K"] >> vCamK;
     node["cam_R_m2c"] >> vCamRm2c;

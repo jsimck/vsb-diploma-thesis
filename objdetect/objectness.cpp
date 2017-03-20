@@ -64,6 +64,7 @@ cv::Rect edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &scene
     // Set min number of edgels to 30% of original
     tplIntegral *= 0.3;
     double tplEdgels = tplIntegral.at<double>(tplIntegral.rows - 1, tplIntegral.cols - 1);
+    // TODO - use smallest template
 
     // Helper vars
     std::vector<cv::Vec4i> windows;

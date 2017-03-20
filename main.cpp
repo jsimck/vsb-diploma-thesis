@@ -9,7 +9,6 @@ int main() {
     // Parse rgb templates
     std::vector<Template> templates;
     TemplateParser parser = TemplateParser("data/obj_01");
-    parser.setTplCount(10);
 
     // Load scene
     cv::Mat scene;
@@ -25,12 +24,10 @@ int main() {
 
     // Load templates
     std::cout << "Parsing... ";
-//    parser.parse(templates);
+//    parser.parseTemplate(templates);
     int indices[] = {0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478};
-    parser.parse(templates, indices, 11);
-    std::cout << "DONE!" << std::endl;
-
-    std::cout << templates[5] << std::endl;
+    parser.parseTemplate(templates, indices, 11);
+    std::cout << "DONE! " << templates.size() << " templates parsed" <<std::endl;
 
     // Stop Matching time
     Timer t;
@@ -43,7 +40,6 @@ int main() {
     std::vector<cv::Rect> matchBB;
 
     std::cout << "Matching... ";
-//    matchBB = matchTemplate(scene, cv::Rect(0, 0, scene.cols - 1, scene.rows - 1), templates);
     matchBB = matchTemplate(scene, objectsRoi, templates);
     std::cout << "DONE!" << std::endl;
 
