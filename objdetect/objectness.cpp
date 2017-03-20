@@ -1,10 +1,19 @@
 #include "objectness.h"
+#include <cassert>
 #include "../utils/utils.h"
 
 void filterSobel(cv::Mat &src, cv::Mat &dst) {
+    // Src should not be empty
+    assert(!src.empty());
+
     // Sobel masks
     int filterX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
     int filterY[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
+
+    // Create dst matrix if its empty
+    if (dst.empty()) {
+        dst = cv::Mat(src.size(), src.type());
+    }
 
     int rows = src.rows, cols = src.cols;
     cv::GaussianBlur(src, dst, cv::Size(3, 3), 0, 0); // Reduce noise
@@ -29,7 +38,9 @@ void filterSobel(cv::Mat &src, cv::Mat &dst) {
 }
 
 void thresholdMinMax(cv::Mat &src, cv::Mat &dst, double min, double max) {
-    src = dst.clone();
+    // Both matrices should not be empty
+    assert(!src.empty());
+    assert(!dst.empty());
 
     for (int y = 0; y < src.rows; y++) {
         for (int x = 0; x < src.cols; x++) {
@@ -42,34 +53,63 @@ void thresholdMinMax(cv::Mat &src, cv::Mat &dst, double min, double max) {
     }
 }
 
-cv::Rect edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &sceneColor, std::vector<Template> &templates,
-                             double thresh) {
+cv::Vec3i extractMinEdgels(std::vector<TemplateGroup> &templateGroups, double minThresh, double maxThresh) {
+    assert(!templateGroups.empty());
+
+    int edgels = 0;
+    cv::Vec3i output(INT_MAX, 0, 0);
+    cv::Mat tplSobel, tplIntegral;
+
+    for (auto &group : templateGroups) {
+        for (auto &t : group.templates) {
+            filterSobel(t.srcDepth, tplSobel);
+            thresholdMinMax(tplSobel, tplSobel, minThresh, maxThresh);
+            cv::integral(t.srcDepth, tplIntegral, CV_64F);
+            edgels = static_cast<int>(tplIntegral.at<double>(tplIntegral.rows - 1, tplIntegral.cols - 1));
+
+            if (edgels < output[0]) {
+                output[0] = edgels;
+                output[1] = t.srcDepth.cols;
+                output[2] = t.srcDepth.rows;
+            }
+        }
+    }
+
+    return output;
+}
+
+cv::Rect objectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &sceneColor, std::vector<Template> &templates,
+                    cv::Vec3i minEdgels, double minThresh, double maxThresh) {
+    // Edgels count and template bounding box should be greater than 0
+    assert(minEdgels[0] > 0);
+    assert(minEdgels[1] > 0);
+    assert(minEdgels[2] > 0);
+
+    // Matrices should not be empty
+    assert(!scene.empty());
+    assert(!sceneDepth.empty());
+    assert(!sceneColor.empty());
+
     // Take first template [just for demonstration]
-    cv::Mat sceneSobel, tplSobel;
-    cv::Mat tpl = templates[0].srcDepth;
+    cv::Mat sceneSobel;
 
     // Apply sobel filter on template and scene
-    filterSobel(tpl, tplSobel);
     filterSobel(sceneDepth, sceneSobel);
 
     // Apply thresh
-    cv::threshold(tplSobel, tplSobel, thresh, 1.0, CV_THRESH_BINARY);
-    thresholdMinMax(sceneSobel, sceneSobel, 0.01, 0.1);
+    thresholdMinMax(sceneSobel, sceneSobel, minThresh, maxThresh);
 
     // Calculate image integral
-    cv::Mat tplIntegral, sceneIntegral;
-    cv::integral(tplSobel, tplIntegral, CV_64F);
+    cv::Mat sceneIntegral;
     cv::integral(sceneSobel, sceneIntegral, CV_64F);
 
     // Set min number of edgels to 30% of original
-    tplIntegral *= 0.3;
-    double tplEdgels = tplIntegral.at<double>(tplIntegral.rows - 1, tplIntegral.cols - 1);
-    // TODO - use smallest template
+    minEdgels[0] *= 0.30;
 
     // Helper vars
     std::vector<cv::Vec4i> windows;
-    int sizeX = tpl.cols, sizeY = tpl.rows;
-    int stepX = tpl.cols / 3, stepY = tpl.rows / 3;// Set step to half of template width for better BB detection
+    int sizeX = minEdgels[1], sizeY = minEdgels[2];
+    int stepX = sizeX / 3, stepY = sizeY / 3; // Set step to third of template width for better BB detection
 
     // Slide window over scene and calculate edgel count for each overlap
     for (int y = 0; y < sceneSobel.rows - sizeY; y += stepY) {
@@ -82,16 +122,14 @@ cv::Rect edgeBasedObjectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &scene
                 + sceneIntegral.at<double>(y, x);
 
             // Check if current window contains at least 30% of tpl edgels, if yes, save window variables
-            if (sceneEdgels >= tplEdgels) {
+            if (sceneEdgels >= minEdgels[0]) {
                 windows.push_back(cv::Vec4i(x, y, x + sizeX, y + sizeY));
 #ifdef DEBUG
-            // Draw rect
-//            cv::rectangle(scene, cv::Point(x, y), cv::Point(x + sizeX, y + sizeY), 0.8);
             cv::rectangle(sceneColor, cv::Point(x, y), cv::Point(x + sizeX, y + sizeY), cv::Vec3b(190, 190, 190));
 
             // Draw text into corresponding rect with edgel count
             std::stringstream ss;
-            ss << "T: " << tplEdgels;
+            ss << "T: " << minEdgels;
             cv::putText(sceneColor, ss.str(), cv::Point(x + 3, y + sizeY - 20), CV_FONT_HERSHEY_SIMPLEX, 0.45, cv::Vec3b(190, 190, 190));
             ss.str("");
             ss << "S: " << sceneEdgels;

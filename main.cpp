@@ -6,7 +6,6 @@
 #include "utils/timer.h"
 
 int main() {
-    // Parse rgb templates
     std::vector<TemplateGroup> templateGroups;
     std::vector<Template> templates;
     TemplateParser parser = TemplateParser("data/");
@@ -23,22 +22,30 @@ int main() {
     scene.convertTo(scene, CV_64FC1, 1.0f / 255.0f);
     sceneDepth.convertTo(sceneDepth, CV_64FC1, 1.0f / 65536.0f);
 
-    // Load templates
+    /// ***** PREPARATION STAGE - START *****
+    // Parse templates (groups)
     std::cout << "Parsing... " << std::endl;
     std::vector<std::string> tplNames = { "obj_01", "obj_09" };
     parser.parse(templateGroups, tplNames);
+    std::cout << "DONE! " << templateGroups.size() << " template groups parsed" << std::endl << std::endl;
 
-//    parser.parseTemplate(templates);
+    // Get number of edgels of template containing least amount of them
+    std::cout << "Extracting minimum of template edgels... " << std::endl;
+    cv::Vec3i minEdgels = extractMinEdgels(templateGroups);
+    std::cout << "DONE! " << minEdgels << " minimum found" <<std::endl << std::endl;
+    /// ***** PREPARATION STAGE - END *****
+
 //    std::vector<int> indices = { 0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478 };
 //    parser.parseTemplate(templates, "obj_01", indices);
-    std::cout << "DONE! " << templateGroups.size() << " Template groups parsed" <<std::endl;
+//    cv::Vec3i minEdgels(332, 59, 59);
 
+    /// ***** MATCHING - START *****
     // Stop Matching time
     Timer t;
 
     // Edge based objectness
     cv::Rect objectsRoi;
-    objectsRoi = edgeBasedObjectness(scene, sceneDepth, sceneColor, templates, 0.01);
+    objectsRoi = objectness(scene, sceneDepth, sceneColor, templates, minEdgels);
 
     // Match templates
     std::vector<cv::Rect> matchBB;
@@ -46,7 +53,10 @@ int main() {
     std::cout << "Matching... ";
     matchBB = matchTemplate(scene, objectsRoi, templates);
     std::cout << "DONE!" << std::endl;
+    /// ***** MATCHING - END *****
 
+
+    /// ***** RESULTS - START *****
     // Print elapsed time
     std::cout << "Elapsed: " << t.elapsed() << "s" << std::endl;
     std::cout << "BB Size: " << matchBB.size() << std::endl;
@@ -58,5 +68,7 @@ int main() {
 
     cv::imshow("Result", sceneColor);
     cv::waitKey(0);
+    /// ***** RESULTS - END *****
+
     return 0;
 }
