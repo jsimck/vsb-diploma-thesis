@@ -2,26 +2,31 @@
 
 int TemplateParser::idCounter = 0;
 
-void TemplateParser::parseTemplate(std::vector<Template> &templates) {
+TemplateParser::TemplateParser(std::string basePath, int tplCount) {
+    setBasePath(basePath);
+    setTplCount(tplCount);
+}
+
+void TemplateParser::parseTemplate(std::vector<Template> &templates, std::string tplName) {
     // Load obj_info
     cv::FileStorage fs;
-    fs.open(this->basePath + "/obj_info.yml", cv::FileStorage::READ);
+    fs.open(this->basePath + tplName + "/obj_info.yml", cv::FileStorage::READ);
 
     for (int i = 0; i < this->tplCount; i++) {
         std::string index = "tpl_" + std::to_string(i);
         cv::FileNode objInfo = fs[index];
 
         // Parse template
-        templates.push_back(parseTemplate(i, objInfo));
+        templates.push_back(parseTemplate(i, this->basePath + tplName, objInfo));
     }
 
     fs.release();
 }
 
-void TemplateParser::parseTemplate(std::vector<Template> &templates, const int *indices, int indicesLength) {
+void TemplateParser::parseTemplate(std::vector<Template> &templates, std::string tplName, const int *indices, int indicesLength) {
     // Load obj_info
     cv::FileStorage fs;
-    fs.open(this->basePath + "/obj_info.yml", cv::FileStorage::READ);
+    fs.open(this->basePath + tplName + "/obj_info.yml", cv::FileStorage::READ);
 
     for (int i = 0; i < indicesLength; i++) {
         int tplIndex = indices[i];
@@ -29,14 +34,14 @@ void TemplateParser::parseTemplate(std::vector<Template> &templates, const int *
         cv::FileNode objInfo = fs[index];
 
         // Parse template
-        templates.push_back(parseTemplate(tplIndex, objInfo));
+        templates.push_back(parseTemplate(tplIndex, this->basePath + tplName, objInfo));
         this->idCounter++;
     }
 
     fs.release();
 }
 
-Template TemplateParser::parseTemplate(int index, cv::FileNode &node) {
+Template TemplateParser::parseTemplate(int index, std::string path, cv::FileNode &node) {
     // Init template param matrices
     std::vector<double> vCamK, vCamRm2c, vCamTm2c;
     std::vector<int> vObjBB;
@@ -63,8 +68,8 @@ Template TemplateParser::parseTemplate(int index, cv::FileNode &node) {
     std::string fileName = ss.str();
 
     // Load image
-    cv::Mat src = cv::imread(this->basePath + "/rgb/" + fileName + ".png", CV_LOAD_IMAGE_GRAYSCALE);
-    cv::Mat srcDepth = cv::imread(this->basePath + "/depth/" + fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
+    cv::Mat src = cv::imread(path + "/rgb/" + fileName + ".png", CV_LOAD_IMAGE_GRAYSCALE);
+    cv::Mat srcDepth = cv::imread(path + "/depth/" + fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
 
     // Crop image using objBB
     src = src(objBB);
@@ -78,6 +83,10 @@ Template TemplateParser::parseTemplate(int index, cv::FileNode &node) {
 }
 
 void TemplateParser::setBasePath(std::string path) {
+    if (path.compare(path.size() - 1, 1, "/") != 0) {
+        path = path + "/";
+    }
+
     this->basePath = path;
 }
 
@@ -90,5 +99,5 @@ int TemplateParser::getTplCount() {
 }
 
 void TemplateParser::setTplCount(int tplCount) {
-    this->tplCount = tplCount;
+    this->tplCount = (tplCount < 0) ? 0 : tplCount;
 }
