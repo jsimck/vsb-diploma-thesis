@@ -30,6 +30,8 @@ int main() {
     parser.parse(templates, indices, 11);
     std::cout << "DONE!" << std::endl;
 
+    std::cout << templates[5] << std::endl;
+
     // Stop Matching time
     Timer t;
 

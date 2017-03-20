@@ -8,7 +8,7 @@
 
 struct Template {
 public:
-    // Template file name, gray and depth image
+    int id;
     std::string fileName;
     cv::Mat src;
     cv::Mat srcDepth;
@@ -21,8 +21,8 @@ public:
     int elev;
     int mode;
 
-    Template(std::string fileName, cv::Mat src, cv::Mat srcDepth, cv::Rect objBB, cv::Mat camK, cv::Mat camRm2c, cv::Vec3d camTm2c, int elev, int mode)
-            : fileName(fileName), src(src), srcDepth(srcDepth), objBB(objBB), camK(camK), camRm2c(camRm2c), camTm2c(camTm2c), elev(elev), mode(mode) {}
+    Template(int id, std::string fileName, cv::Mat src, cv::Mat srcDepth, cv::Rect objBB, cv::Mat camK, cv::Mat camRm2c, cv::Vec3d camTm2c, int elev, int mode)
+            : id(id), fileName(fileName), src(src), srcDepth(srcDepth), objBB(objBB), camK(camK), camRm2c(camRm2c), camTm2c(camTm2c), elev(elev), mode(mode) {}
 
     friend std::ostream &operator<<(std::ostream &os, const Template &t);
 };

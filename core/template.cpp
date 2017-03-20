@@ -1,7 +1,7 @@
 #include "template.h"
 
 std::ostream &operator<<(std::ostream &os, const Template &t) {
-    os << "Template ID: " << 0 << std::endl // TODO id
+    os << "Template ID: " << t.id << std::endl
        << "fileName: " << t.fileName << std::endl
        << "src (size): " << t.src.size()  << std::endl
        << "srcDepth (size): " << t.srcDepth.size() << std::endl

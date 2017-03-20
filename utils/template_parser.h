@@ -7,6 +7,8 @@
 
 class TemplateParser {
 public:
+    static int idCounter;
+
     TemplateParser(std::string basePath, int tplCount = 1296) : basePath(basePath), tplCount(tplCount) {}
 
     void parse(std::vector<Template> &templates);
