@@ -18,7 +18,7 @@ void trainingSetGeneration(cv::Mat &train, cv::Mat &trainDepth) {
 
     for (int y = 1; y < trainDepth.rows - 1; y++) {
         for (int x = 1; x < trainDepth.cols - 1; x++) {
-            if (trainDepth.at<float>(y, x) == 0) continue;
+//            if (trainDepth.at<float>(y, x) <= 7500) continue;
 
             float dzdx = (trainDepth.at<float>(y, x + 1) - trainDepth.at<float>(y, x - 1)) / 2.0f;
             float dzdy = (trainDepth.at<float>(y + 1, x) - trainDepth.at<float>(y - 1, x)) / 2.0f;
@@ -29,18 +29,16 @@ void trainingSetGeneration(cv::Mat &train, cv::Mat &trainDepth) {
         }
     }
 
-    cv::normalize(normals, normals, 0.0f, 1.0f, CV_MINMAX, CV_32FC3);
-
-    for (int y = 1; y < normals.rows - 1; y++) {
-        for (int x = 1; x < normals.cols - 1; x++) {
-            std::cout << "[" << x << ", " << y << "] ("
-                      <<  trainDepth.at<float>(y, x - 1) << ", "
-                     <<  trainDepth.at<float>(y, x) << ", "
-                        <<  trainDepth.at<float>(y, x + 1)
-                      << ") "
-                      << normals.at<cv::Vec3f>(y, x) << std::endl;
-        }
-    }
+//    for (int y = 1; y < normals.rows - 1; y++) {
+//        for (int x = 1; x < normals.cols - 1; x++) {
+//            std::cout << "[" << x << ", " << y << "] ("
+//                      <<  trainDepth.at<float>(y, x - 1) << ", "
+//                     <<  trainDepth.at<float>(y, x) << ", "
+//                        <<  trainDepth.at<float>(y, x + 1)
+//                      << ") "
+//                      << normals.at<cv::Vec3f>(y, x) << std::endl;
+//        }
+//    }
 
     cv::Mat norm_8uc3 = cv::Mat(normals.size(), CV_8UC3);
     for (int y = 1; y < normals.rows - 1; y++) {
@@ -53,6 +51,8 @@ void trainingSetGeneration(cv::Mat &train, cv::Mat &trainDepth) {
             norm_8uc3.at<cv::Vec3b>(y, x) = cv::Vec3b(b, g, r);
         }
     }
+
+    cv::normalize(normals, normals, 0.0f, 1.0f, CV_MINMAX, CV_32FC3);
 
     // Show results
     cv::imshow("test train - norm_8uc3", norm_8uc3);
