@@ -94,7 +94,7 @@ fabric.properties
 # Debug files
 *.dSYM/
 *.su
-
+.gitignore
 
 # Data files
 /data/*/rgb

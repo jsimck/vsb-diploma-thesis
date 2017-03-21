@@ -1,9 +1,11 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <opencv2/saliency.hpp>
 #include "utils/template_parser.h"
 #include "objdetect/matching.h"
 #include "objdetect/objectness.h"
 #include "utils/timer.h"
+#include "objdetect/hashing.h"
 
 int main() {
     std::vector<TemplateGroup> templateGroups;
@@ -12,15 +14,15 @@ int main() {
 
     // Load scene
     cv::Mat scene;
-    cv::Mat sceneColor = cv::imread("data/scene_01/rgb/0000.png", CV_LOAD_IMAGE_COLOR);
-    cv::Mat sceneDepth = cv::imread("data/scene_01/depth/0000.png", CV_LOAD_IMAGE_UNCHANGED);
+    cv::Mat sceneColor = cv::imread("data/scene_01/rgb/0428.png", CV_LOAD_IMAGE_COLOR);
+    cv::Mat sceneDepth = cv::imread("data/scene_01/depth/0428.png", CV_LOAD_IMAGE_UNCHANGED);
 
     // Convect to grayscale
     cv::cvtColor(sceneColor, scene, CV_BGR2GRAY);
 
     // Convert to double
     scene.convertTo(scene, CV_64FC1, 1.0f / 255.0f);
-    sceneDepth.convertTo(sceneDepth, CV_64FC1, 1.0f / 65536.0f);
+//    sceneDepth.convertTo(sceneDepth, CV_64FC1, 1.0f / 65536.0f);
 
 
     /// ***** PREPARATION STAGE - START *****
@@ -52,6 +54,19 @@ int main() {
     templateGroups.push_back(group1);
     templateGroups.push_back(group2);
     /// Test DATA - END
+
+
+    /// Hashing test
+    cv::Mat testDepth;
+    cv::Mat testNormal = cv::imread("data/depth_test.png", CV_LOAD_IMAGE_UNCHANGED);
+
+    std::cout << sceneDepth.type() << std::endl;
+    testNormal.convertTo(testNormal, CV_32FC1);
+    sceneDepth.convertTo(sceneDepth, CV_32FC1);
+    testDepth = testNormal.clone();
+    trainingSetGeneration(scene, sceneDepth);
+
+    return 0;
 
 
     /// ***** MATCHING - START *****
