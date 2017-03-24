@@ -22,7 +22,6 @@ int main() {
     scene.convertTo(scene, CV_64FC1, 1.0f / 255.0f);
     sceneDepth.convertTo(sceneDepth, CV_64FC1, 1.0f / 65536.0f);
 
-
     /// ***** PREPARATION STAGE - START *****
     // Parse templates (groups)
 //    std::cout << "Parsing... " << std::endl;
@@ -38,8 +37,6 @@ int main() {
 
 
     /// Test DATA - START
-//    cv::Vec3i minEdgels(332, 59, 59);
-    cv::Vec3i minEdgels(417, 112, 108);
     std::vector<int> indices = { 0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478 };
 
     std::vector<Template> templatesObj1, templatesObj9;
@@ -51,6 +48,10 @@ int main() {
 
     templateGroups.push_back(group1);
     templateGroups.push_back(group2);
+
+    // Get number of edgels of template containing least amount of them
+    std::cout << "Extracting minimum of template edgels... " << std::endl;
+    cv::Vec3i minEdgels = extractMinEdgels(templateGroups);
     /// Test DATA - END
 
 
