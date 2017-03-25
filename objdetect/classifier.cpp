@@ -133,6 +133,8 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
     for (auto &table : this->hashTables) {
         std::cout << table << std::endl;
     }
+
+    objectness::objectness(this->sceneGrayscale, this->sceneDepthNormalized, this->scene, this->minEdgels);
 }
 
 // Getters and setters

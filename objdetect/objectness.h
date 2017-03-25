@@ -5,10 +5,6 @@
 #include "../core/template.h"
 #include "../core/template_group.h"
 
-#ifndef DEBUG
-#define DEBUG
-#endif
-
 namespace objectness {
     void filterSobel(cv::Mat &src, cv::Mat &dst);
     void thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float max);

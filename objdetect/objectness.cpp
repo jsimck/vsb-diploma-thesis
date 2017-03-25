@@ -126,7 +126,7 @@ cv::Rect objectness::objectness(cv::Mat &scene, cv::Mat &sceneDepthNormalized, c
             // Check if current window contains at least 30% of tpl edgels, if yes, save window variables
             if (sceneEdgels >= minEdgels[0]) {
                 windows.push_back(cv::Vec4i(x, y, x + sizeX, y + sizeY));
-#ifdef DEBUG
+#ifndef NDEBUG
             cv::rectangle(sceneColor, cv::Point(x, y), cv::Point(x + sizeX, y + sizeY), cv::Vec3b(190, 190, 190));
 
             // Draw text into corresponding rect with edgel count
@@ -151,7 +151,7 @@ cv::Rect objectness::objectness(cv::Mat &scene, cv::Mat &sceneDepthNormalized, c
         maxY = std::max(maxY, windows[i][3]);
     }
 
-#ifdef DEBUG
+#ifndef NDEBUG
     // Draw outer BB based on max/min values of all smaller boxes
     cv::rectangle(sceneColor, cv::Point(minX, minY), cv::Point(maxX, maxY), cv::Vec3b(0, 255, 0), 2);
 
