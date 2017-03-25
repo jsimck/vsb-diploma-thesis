@@ -52,9 +52,11 @@ int main() {
     templateGroups.push_back(group2);
 
     // Get number of edgels of template containing least amount of them
-    std::cout << "Extracting minimum of template edgels... " << std::endl;
+    std::cout << "Extracting minimum of template edgels... ";
     cv::Vec3i minEdgels = extractMinEdgels(templateGroups);
+    std::cout << "extracted: " << minEdgels << std::endl;
 
+    std::cout << "Hashing";
     // Hashing test
     Hashing h;
     h.train(templateGroups);

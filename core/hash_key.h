@@ -22,5 +22,4 @@ public:
     bool operator!=(const HashKey &rhs) const;
 };
 
-
 #endif //VSB_SEMESTRAL_PROJECT_HASHKEY_H

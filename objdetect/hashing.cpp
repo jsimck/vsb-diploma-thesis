@@ -44,6 +44,51 @@ void Hashing::train(std::vector<TemplateGroup> &groups) {
     // Testing, get first template
     auto t = groups[0].templates[0].srcDepth;
 
+    // Generate triplet params
+    float stepX = t.cols / static_cast<float>(this->featurePointsGrid.width);
+    float stepY = t.rows / static_cast<float>(this->featurePointsGrid.height);
+    float offsetX = stepX / 2.0f;
+    float offsetY = stepY / 2.0f;
+
+    // vizualization of triplets
+    Triplet triplets[100];
+    for (int i = 0; i < 100; ++i) {
+        triplets[i] = Triplet::createRandomTriplet(this->featurePointsGrid);
+
+        cv::Point c = triplets[i].getCenterCoords(offsetX, offsetY, stepX, stepY);
+        cv::Point p1 = triplets[i].getP1Coords(offsetX, offsetY, stepX, stepY);
+        cv::Point p2 = triplets[i].getP2Coords(offsetX, offsetY, stepX, stepY);
+        std::cout << "Triplet coords (" << c.x << ", " << c.y << ") "
+                                  << " (" << p1.x << ", " << p1.y << ") "
+                                  << " (" << p2.x << ", " << p2.y << ") "<< std::endl;
+
+
+        cv::circle(t, c, 1, cv::Scalar(1.0), -1);
+        cv::circle(t, p1, 1, cv::Scalar(0.65), -1);
+        cv::circle(t, p2, 1, cv::Scalar(0.4), -1);
+
+        cv::line(t, c, p1, cv::Scalar(1.0));
+        cv::line(t, c, p2, cv::Scalar(1.0));
+
+        std::cout << "Triplet " << i << ": " << triplets[i] << std::endl;
+    }
+
     cv::imshow("Train hashing, test template", t);
     cv::waitKey(0);
+}
+
+const cv::Size Hashing::getFeaturePointsGrid() {
+    return this->featurePointsGrid;
+}
+
+const std::vector<HashTable> &Hashing::getHashTables() {
+    return this->hashTables;
+}
+
+void Hashing::setFeaturePointsGrid(cv::Size featurePointsGrid) {
+    this->featurePointsGrid = featurePointsGrid;
+}
+
+void Hashing::setHashTables(const std::vector<HashTable> &hashTables) {
+    this->hashTables = hashTables;
 }
