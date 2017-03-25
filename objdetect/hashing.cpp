@@ -1,3 +1,4 @@
+#include <unordered_set>
 #include "hashing.h"
 
 cv::Vec3d Hashing::extractSurfaceNormal(cv::Mat &src, cv::Point c) {
@@ -8,20 +9,11 @@ cv::Vec3d Hashing::extractSurfaceNormal(cv::Mat &src, cv::Point c) {
     return cv::normalize(d);
 }
 
-std::vector<Triplet> Hashing::generateTripletsSubset(int k) {
-    assert(k > 0);
-    std::vector<Triplet> triplets(k);
-
-    for (int i = 0; i < k; ++i) {
-        triplets.push_back(Triplet::createRandomTriplet(this->featurePointsGrid));
-    }
-
-    return triplets;
-}
-
 int Hashing::quantizeSurfaceNormals(cv::Vec3f normal) {
     // Normal should not be === 0, always at least z > 2
-    assert(normal[0] >= 0 || normal[1] >= 0 || normal[2] >= 0);
+    if (normal[0] < 0 && normal[1] < 0 && normal[2] < 0) {
+        std::cout << normal << std::endl;
+    }
 
     // For quantization of surface normals into 8 bins
     // in our case z is always positive, that's why we're using
@@ -37,7 +29,7 @@ int Hashing::quantizeSurfaceNormals(cv::Vec3f normal) {
         cv::Vec3f(1.0f, -1.0f, 1.0f), // 7. octant
     };
 
-    int minIndex = 0;
+    int minIndex = -1;
     float maxDot = 0, dot;
     for (int i = 0; i < 8; i++) {
         // By doing dot product between octant normals and calculated normal
@@ -50,6 +42,9 @@ int Hashing::quantizeSurfaceNormals(cv::Vec3f normal) {
             minIndex = i;
         }
     }
+
+    // Index should in interval <0,7>
+    assert(minIndex >= 0 && minIndex < 8);
 
     return minIndex;
 }
@@ -73,75 +68,62 @@ void Hashing::train(std::vector<TemplateGroup> &groups) {
     // Checks
     assert(groups.size() > 0);
 
-    // Init hash table
-    HashTable hashTable;
-    hashTable.triplets = generateTripletsSubset();
+    // Init hash tables
+    std::vector<HashTable> hashTables(100);
+    for (int i = 0; i < 100; ++i) {
+        // Init hash table
+        HashTable hashTable;
+        // TODO - make sure triplets are different for each table
+        hashTable.triplet = Triplet::createRandomTriplet(this->featurePointsGrid); // one per hash table
 
-    for (auto &group : groups) {
-        for (auto &t : group.templates) {
-            // Generate triplet params
-            float stepX = t.srcDepth.cols / static_cast<float>(this->featurePointsGrid.width);
-            float stepY = t.srcDepth.cols / static_cast<float>(this->featurePointsGrid.height);
-            float offsetX = stepX / 2.0f;
-            float offsetY = stepY / 2.0f;
+        for (auto &group : groups) {
+            for (auto &t : group.templates) {
+                // Generate triplet params
+                float stepX = t.srcDepth.cols / static_cast<float>(this->featurePointsGrid.width);
+                float stepY = t.srcDepth.cols / static_cast<float>(this->featurePointsGrid.height);
+                float offsetX = stepX / 2.0f;
+                float offsetY = stepY / 2.0f;
 
-            // Assign this template to hash table key
-            for (auto &triplet : hashTable.triplets) {
+                // Get triplet points
+                cv::Point p1 = hashTable.triplet.getP1Coords(offsetX, stepX, offsetY, stepY);
+                cv::Point p2 = hashTable.triplet.getP2Coords(offsetX, stepX, offsetY, stepY);
+                cv::Point p3 = hashTable.triplet.getP3Coords(offsetX, stepX, offsetY, stepY);
 
+                // Relative depths
+                float d1 = t.srcDepth.at<float>(p2) - t.srcDepth.at<float>(p1);
+                float d2 = t.srcDepth.at<float>(p3) - t.srcDepth.at<float>(p1);
+
+                // Generate hash key
+                HashKey key(
+                    quantizeDepths(d1),
+                    quantizeDepths(d2),
+                    quantizeSurfaceNormals(extractSurfaceNormal(t.srcDepth, p1)),
+                    quantizeSurfaceNormals(extractSurfaceNormal(t.srcDepth, p2)),
+                    quantizeSurfaceNormals(extractSurfaceNormal(t.srcDepth, p3))
+                );
+
+                // Check if key exists, if not initialize it
+                if (hashTable.templates.find(key) == hashTable.templates.end()) {
+                    std::vector<Template> hashTemplates;
+                    hashTable.templates[key] = hashTemplates;
+                }
+
+                // Get reference to entry and check for duplicates, if it passes, insert
+                auto &entry = hashTable.templates.at(key);
+                if (std::find(entry.begin(), entry.end(), t) == entry.end()) {
+                    entry.push_back(t);
+                }
             }
         }
+
+        // Push hash table to list
+        hashTables.push_back(hashTable);
     }
 
-    // vizualization of triplets
-//    for (int i = 0; i < 100; ++i) {
-//
-//        // Triplet points
-//        cv::Point p1 = triplets[i].getP1Coords(offsetX, stepX, offsetY, stepY);
-//        cv::Point p2 = triplets[i].getCoords(2 ,offsetX, stepX, offsetY, stepY);
-//        cv::Point p3 = triplets[i].getP3Coords(offsetX, stepX, offsetY, stepY);
-//
-//        // Relative depths
-//        float d1 = t.at<float>(p2) - t.at<float>(p1);
-//        float d2 = t.at<float>(p3) - t.at<float>(p1);
-//
-//        std::cout << d1 << std::endl;
-//        std::cout << d2 << std::endl;
-//
-//        HashKey key(
-//            quantizeDepths(d1),
-//            quantizeDepths(d2),
-//            quantizeSurfaceNormals(extractSurfaceNormal(t, p1)),
-//            quantizeSurfaceNormals(extractSurfaceNormal(t, p2)),
-//            quantizeSurfaceNormals(extractSurfaceNormal(t, p3))
-//        );
-//        std::cout << "HashKey: " << key << std::endl;
-
-//        cv::Point c = triplets[i].getP1Coords(offsetX, stepX, offsetY, stepY);
-//        cv::Point p2 = triplets[i].getP2Coords(offsetX, stepX, offsetY, stepY);
-//        cv::Point p3 = triplets[i].getP3Coords(offsetX, stepX, offsetY, stepY);
-//        std::cout << "Triplet coords (" << c.x << ", " << c.y << ") "
-//                                  << " (" << p2.x << ", " << p2.y << ") "
-//                                  << " (" << p3.x << ", " << p3.y << ") "<< std::endl;
-//
-//
-//        cv::circle(t, c, 1, cv::Scalar(1.0), -1);
-//        cv::circle(t, p2, 1, cv::Scalar(0.65), -1);
-//        cv::circle(t, p3, 1, cv::Scalar(0.4), -1);
-//
-//        cv::line(t, c, p2, cv::Scalar(1.0));
-//        cv::line(t, c, p3, cv::Scalar(1.0));
-//
-//        std::cout << "Triplet " << i << ": " << triplets[i] << std::endl;
-
-//    cv::Mat t_copy = cv::Mat(t.size(), CV_32FC3);
-//    for (int y = 1; y < t.rows - 1; y++) {
-//        for (int x = 1; x < t.cols - 1; x++) {
-//            t_copy.at<cv::Vec3f>(y, x) = extractSurfaceNormal(t, cv::Point(x, y));
-//        }
-//    }
-//
-//    cv::imshow("Train hashing, test template", t_copy);
-//    cv::waitKey(0);
+    // Print hash tables
+    for (auto &&hasht : hashTables) {
+        std::cout << hasht << std::endl;
+    }
 }
 
 const cv::Size Hashing::getFeaturePointsGrid() {

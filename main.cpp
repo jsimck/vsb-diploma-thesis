@@ -57,10 +57,11 @@ int main() {
     cv::Vec3i minEdgels = extractMinEdgels(templateGroups);
     std::cout << "extracted: " << minEdgels << std::endl;
 
-    std::cout << "Hashing";
+    std::cout << "Hashing...";
     // Hashing test
     Hashing h;
     h.train(templateGroups);
+    std::cout << "DONE" << std::endl;
     /// Test DATA - END
     return 0;
 

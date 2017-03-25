@@ -11,8 +11,6 @@ private:
     std::vector<HashTable> hashTables;
 
     cv::Vec3d extractSurfaceNormal(cv::Mat &src, cv::Point c);
-    std::vector<Triplet> generateTripletsSubset(int k = 100);
-
     int quantizeSurfaceNormals(cv::Vec3f normal);
     int quantizeDepths(float depth);
 public:

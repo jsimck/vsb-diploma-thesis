@@ -14,3 +14,14 @@ std::ostream &operator<<(std::ostream &os, const Template &t) {
 
     return os;
 }
+
+bool Template::operator==(const Template &rhs) const {
+    return id == rhs.id &&
+           fileName == rhs.fileName &&
+           elev == rhs.elev &&
+           mode == rhs.mode;
+}
+
+bool Template::operator!=(const Template &rhs) const {
+    return !(rhs == *this);
+}
