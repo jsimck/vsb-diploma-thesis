@@ -12,9 +12,9 @@
  */
 struct Triplet {
 private:
-    cv::Point pc;
     cv::Point p1;
     cv::Point p2;
+    cv::Point p3;
 
     inline static cv::Point randomPoint(const cv::Size referencePointsGrid);
 public:
@@ -22,11 +22,12 @@ public:
     static Triplet createRandomTriplet(const cv::Size referencePointsGrid);
 
     Triplet() {}
-    Triplet(const cv::Point pc, const cv::Point p1, const cv::Point p2) : pc(pc), p1(p1), p2(p2) {}
+    Triplet(const cv::Point p1, const cv::Point p2, const cv::Point p3) : p1(p1), p2(p2), p3(p3) {}
 
-    cv::Point getCenterCoords(float offsetX, float stepX, float offsetY, float stepY);
+    cv::Point getCoords(int index, float offsetX, float stepX, float offsetY, float stepY);
     cv::Point getP1Coords(float offsetX, float stepX, float offsetY, float stepY);
     cv::Point getP2Coords(float offsetX, float stepX, float offsetY, float stepY);
+    cv::Point getP3Coords(float offsetX, float stepX, float offsetY, float stepY);
 
     friend std::ostream &operator<<(std::ostream &os, const Triplet &triplet);
 };

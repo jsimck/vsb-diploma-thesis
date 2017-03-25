@@ -13,16 +13,17 @@ int main() {
     TemplateParser parser = TemplateParser("data/");
 
     // Load scene
-    cv::Mat scene;
+    cv::Mat scene, sceneDepthNormalized;
     cv::Mat sceneColor = cv::imread("data/scene_01/rgb/0000.png", CV_LOAD_IMAGE_COLOR);
     cv::Mat sceneDepth = cv::imread("data/scene_01/depth/0000.png", CV_LOAD_IMAGE_UNCHANGED);
 
     // Convect to grayscale
     cv::cvtColor(sceneColor, scene, CV_BGR2GRAY);
 
-    // Convert to double
+    // Convert to float
     scene.convertTo(scene, CV_32FC1, 1.0f / 255.0f);
-    sceneDepth.convertTo(sceneDepth, CV_32FC1, 1.0f / 65536.0f);
+    sceneDepth.convertTo(sceneDepth, CV_32FC1);
+    sceneDepth.convertTo(sceneDepthNormalized, CV_32FC1, 1.0f / 65536.0f);
 
     /// ***** PREPARATION STAGE - START *****
     // Parse templates (groups)
@@ -56,12 +57,12 @@ int main() {
     cv::Vec3i minEdgels = extractMinEdgels(templateGroups);
     std::cout << "extracted: " << minEdgels << std::endl;
 
-//    std::cout << "Hashing";
-//    // Hashing test
-//    Hashing h;
-//    h.train(templateGroups);
-//    /// Test DATA - END
-//    return 0;
+    std::cout << "Hashing";
+    // Hashing test
+    Hashing h;
+    h.train(templateGroups);
+    /// Test DATA - END
+    return 0;
 
 
     /// ***** MATCHING - START *****
@@ -70,7 +71,7 @@ int main() {
 
     // Edge based objectness
     cv::Rect objectsRoi;
-    objectsRoi = objectness(scene, sceneDepth, sceneColor, minEdgels);
+    objectsRoi = objectness(scene, sceneDepthNormalized, sceneColor, minEdgels);
 
     // Match templates
     std::vector<cv::Rect> matchBB;

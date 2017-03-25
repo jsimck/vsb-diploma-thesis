@@ -60,13 +60,14 @@ cv::Vec3i extractMinEdgels(std::vector<TemplateGroup> &templateGroups, float min
 
     int edgels = 0;
     cv::Vec3i output(INT_MAX, 0, 0);
-    cv::Mat tplSobel, tplIntegral;
+    cv::Mat tplSobel, tplIntegral, tplNormalized;
 
     for (auto &group : templateGroups) {
         for (auto &t : group.templates) {
-            filterSobel(t.srcDepth, tplSobel);
+            t.srcDepth.convertTo(tplNormalized, CV_32F, 1.0f / 65536.0f);
+            filterSobel(tplNormalized, tplSobel);
             thresholdMinMax(tplSobel, tplSobel, minThresh, maxThresh);
-            cv::integral(t.srcDepth, tplIntegral, CV_32F);
+            cv::integral(tplNormalized, tplIntegral, CV_32F);
             edgels = static_cast<int>(tplIntegral.at<float>(tplIntegral.rows - 1, tplIntegral.cols - 1));
 
             if (edgels < output[0]) {
@@ -80,7 +81,7 @@ cv::Vec3i extractMinEdgels(std::vector<TemplateGroup> &templateGroups, float min
     return output;
 }
 
-cv::Rect objectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &sceneColor, cv::Vec3i minEdgels, float minThresh, float maxThresh) {
+cv::Rect objectness(cv::Mat &scene, cv::Mat &sceneDepthNormalized, cv::Mat &sceneColor, cv::Vec3i minEdgels, float minThresh, float maxThresh) {
     // Edgels count and template bounding box should be greater than 0
     assert(minEdgels[0] > 0);
     assert(minEdgels[1] > 0);
@@ -88,14 +89,14 @@ cv::Rect objectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &sceneColor, cv
 
     // Matrices should not be empty
     assert(!scene.empty());
-    assert(!sceneDepth.empty());
+    assert(!sceneDepthNormalized.empty());
     assert(!sceneColor.empty());
 
     // Take first template [just for demonstration]
     cv::Mat sceneSobel;
 
     // Apply sobel filter on template and scene
-    filterSobel(sceneDepth, sceneSobel);
+    filterSobel(sceneDepthNormalized, sceneSobel);
 
     // Apply thresh
     thresholdMinMax(sceneSobel, sceneSobel, minThresh, maxThresh);
@@ -155,7 +156,7 @@ cv::Rect objectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &sceneColor, cv
     cv::rectangle(sceneColor, cv::Point(minX, minY), cv::Point(maxX, maxY), cv::Vec3b(0, 255, 0), 2);
 
     // Show results
-    cv::imshow("Depth Scene", sceneDepth);
+    cv::imshow("Depth Scene", sceneDepthNormalized);
     cv::imshow("Sobel Scene", sceneSobel);
     cv::imshow("Scene", sceneColor);
     cv::waitKey(0);

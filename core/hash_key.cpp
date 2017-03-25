@@ -1,4 +1,5 @@
 #include "hash_key.h"
+#include <boost/functional/hash.hpp>
 
 bool HashKey::operator==(const HashKey &rhs) const {
     return d1 == rhs.d1 &&
@@ -13,7 +14,6 @@ bool HashKey::operator!=(const HashKey &rhs) const {
 }
 
 std::ostream &operator<<(std::ostream &os, const HashKey &key) {
-    os << "d1: " << key.d1 << " d2: " << key.d2 << " n1: " << key.n1 << " n2: " << key.n2 << " n3: " << key.n3
-       << " key: " << key.key;
+    os << "(" << key.d1 << ", " << key.d2 << ", " << key.n1 << ", " << key.n2 << ", " << key.n3 << ")";
     return os;
 }
