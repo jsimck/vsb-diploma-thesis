@@ -42,7 +42,7 @@ int Hashing::quantizeSurfaceNormals(cv::Vec3f normal) {
 
 void Hashing::train(std::vector<TemplateGroup> &groups) {
     // Testing, get first template
-    auto t = groups[0].templates[0].srcDepth;
+    auto t = groups[0].templates[6].srcDepth;
 
     // Generate triplet params
     float stepX = t.cols / static_cast<float>(this->featurePointsGrid.width);
@@ -51,29 +51,36 @@ void Hashing::train(std::vector<TemplateGroup> &groups) {
     float offsetY = stepY / 2.0f;
 
     // vizualization of triplets
-    Triplet triplets[100];
-    for (int i = 0; i < 100; ++i) {
-        triplets[i] = Triplet::createRandomTriplet(this->featurePointsGrid);
-
-        cv::Point c = triplets[i].getCenterCoords(offsetX, stepX, offsetY, stepY);
-        cv::Point p1 = triplets[i].getP1Coords(offsetX, stepX, offsetY, stepY);
-        cv::Point p2 = triplets[i].getP2Coords(offsetX, stepX, offsetY, stepY);
-        std::cout << "Triplet coords (" << c.x << ", " << c.y << ") "
-                                  << " (" << p1.x << ", " << p1.y << ") "
-                                  << " (" << p2.x << ", " << p2.y << ") "<< std::endl;
-
-
-        cv::circle(t, c, 1, cv::Scalar(1.0), -1);
-        cv::circle(t, p1, 1, cv::Scalar(0.65), -1);
-        cv::circle(t, p2, 1, cv::Scalar(0.4), -1);
-
-        cv::line(t, c, p1, cv::Scalar(1.0));
-        cv::line(t, c, p2, cv::Scalar(1.0));
-
-        std::cout << "Triplet " << i << ": " << triplets[i] << std::endl;
+//    Triplet triplets[100];
+//    for (int i = 0; i < 100; ++i) {
+//        triplets[i] = Triplet::createRandomTriplet(this->featurePointsGrid);
+//
+//        cv::Point c = triplets[i].getCenterCoords(offsetX, stepX, offsetY, stepY);
+//        cv::Point p1 = triplets[i].getP1Coords(offsetX, stepX, offsetY, stepY);
+//        cv::Point p2 = triplets[i].getP2Coords(offsetX, stepX, offsetY, stepY);
+//        std::cout << "Triplet coords (" << c.x << ", " << c.y << ") "
+//                                  << " (" << p1.x << ", " << p1.y << ") "
+//                                  << " (" << p2.x << ", " << p2.y << ") "<< std::endl;
+//
+//
+//        cv::circle(t, c, 1, cv::Scalar(1.0), -1);
+//        cv::circle(t, p1, 1, cv::Scalar(0.65), -1);
+//        cv::circle(t, p2, 1, cv::Scalar(0.4), -1);
+//
+//        cv::line(t, c, p1, cv::Scalar(1.0));
+//        cv::line(t, c, p2, cv::Scalar(1.0));
+//
+//        std::cout << "Triplet " << i << ": " << triplets[i] << std::endl;
+//    }
+    
+    cv::Mat t_copy = cv::Mat(t.size(), CV_32FC3);
+    for (int y = 1; y < t.rows - 1; y++) {
+        for (int x = 1; x < t.cols - 1; x++) {
+            t_copy.at<cv::Vec3f>(y, x) = extractSurfaceNormal(t, cv::Point(x, y));
+        }
     }
 
-    cv::imshow("Train hashing, test template", t);
+    cv::imshow("Train hashing, test template", t_copy);
     cv::waitKey(0);
 }
 

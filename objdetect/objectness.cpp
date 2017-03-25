@@ -55,6 +55,8 @@ void thresholdMinMax(cv::Mat &src, cv::Mat &dst, double min, double max) {
 
 cv::Vec3i extractMinEdgels(std::vector<TemplateGroup> &templateGroups, double minThresh, double maxThresh) {
     assert(!templateGroups.empty());
+    assert(minThresh >= 0);
+    assert(maxThresh >= 0);
 
     int edgels = 0;
     cv::Vec3i output(INT_MAX, 0, 0);

@@ -22,7 +22,7 @@ int main() {
 
     // Convert to double
     scene.convertTo(scene, CV_64FC1, 1.0f / 255.0f);
-//    sceneDepth.convertTo(sceneDepth, CV_64FC1, 1.0f / 65536.0f);
+    sceneDepth.convertTo(sceneDepth, CV_64FC1, 1.0f / 65536.0f);
 
     /// ***** PREPARATION STAGE - START *****
     // Parse templates (groups)
@@ -56,13 +56,12 @@ int main() {
     cv::Vec3i minEdgels = extractMinEdgels(templateGroups);
     std::cout << "extracted: " << minEdgels << std::endl;
 
-    std::cout << "Hashing";
-    // Hashing test
-    Hashing h;
-    h.train(templateGroups);
-    /// Test DATA - END
-
-    return 0;
+//    std::cout << "Hashing";
+//    // Hashing test
+//    Hashing h;
+//    h.train(templateGroups);
+//    /// Test DATA - END
+//    return 0;
 
 
     /// ***** MATCHING - START *****

@@ -1,6 +1,8 @@
 #ifndef VSB_SEMESTRAL_PROJECT_HASHKEY_H
 #define VSB_SEMESTRAL_PROJECT_HASHKEY_H
 
+#include <ostream>
+
 struct HashKey {
 private:
     // Key values
@@ -20,6 +22,7 @@ public:
 
     bool operator==(const HashKey &rhs) const;
     bool operator!=(const HashKey &rhs) const;
+    friend std::ostream &operator<<(std::ostream &os, const HashKey &key);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_HASHKEY_H
