@@ -40,36 +40,10 @@ int Hashing::quantizeSurfaceNormals(cv::Vec3f normal) {
     return minIndex;
 }
 
-void trainingSetGeneration(cv::Mat &train, cv::Mat &trainDepth) {
-    cv::Mat normals = cv::Mat::zeros(trainDepth.size(), CV_32FC3);
-    Hashing h;
+void Hashing::train(std::vector<TemplateGroup> &groups) {
+    // Testing, get first template
+    auto t = groups[0].templates[0].srcDepth;
 
-
-    for (int y = 1; y < trainDepth.rows - 1; y++) {
-        for (int x = 1; x < trainDepth.cols - 1; x++) {
-            normals.at<cv::Vec3f>(y, x) = h.extractSurfaceNormal(trainDepth, cv::Point(x, y));
-            std::cout << h.quantizeSurfaceNormals(normals.at<cv::Vec3f>(y, x)) << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    cv::Mat norm_8uc3 = cv::Mat(normals.size(), CV_8UC3);
-    for (int y = 1; y < normals.rows - 1; y++) {
-        for (int x = 1; x < normals.cols - 1; x++) {
-            uchar b, g, r;
-            cv::Vec3f px = normals.at<cv::Vec3f>(y, x);
-            b = static_cast<uchar>(px[0] * 255.0f);
-            g = static_cast<uchar>(px[1] * 255.0f);
-            r = static_cast<uchar>(px[2] * 255.0f);
-            norm_8uc3.at<cv::Vec3b>(y, x) = cv::Vec3b(b, g, r);
-        }
-    }
-
-    cv::normalize(normals, normals, 0.0f, 1.0f, CV_MINMAX, CV_32FC3);
-
-    // Show results
-    cv::imshow("test train - norm_8uc3", norm_8uc3);
-    cv::imshow("test train depth", trainDepth);
-    cv::imshow("test train depth - normals", normals);
+    cv::imshow("Train hashing, test template", t);
     cv::waitKey(0);
 }

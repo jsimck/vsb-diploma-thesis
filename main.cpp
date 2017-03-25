@@ -39,67 +39,60 @@ int main() {
 
 
     /// Test DATA - START
-//    std::vector<int> indices = { 0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478 };
-//
-//    std::vector<Template> templatesObj1, templatesObj9;
-//    parser.parseTemplate(templatesObj1, "02", indices);
-//    parser.parseTemplate(templatesObj9, "25", indices);
-//
-//    TemplateGroup group1("02", templatesObj1);
-//    TemplateGroup group2("25", templatesObj9);
-//
-//    templateGroups.push_back(group1);
-//    templateGroups.push_back(group2);
-//
-//    // Get number of edgels of template containing least amount of them
-//    std::cout << "Extracting minimum of template edgels... " << std::endl;
-//    cv::Vec3i minEdgels = extractMinEdgels(templateGroups);
+    std::vector<int> indices = { 0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478 };
+
+    std::vector<Template> templatesObj1, templatesObj9;
+    parser.parseTemplate(templatesObj1, "02", indices);
+    parser.parseTemplate(templatesObj9, "25", indices);
+
+    TemplateGroup group1("02", templatesObj1);
+    TemplateGroup group2("25", templatesObj9);
+
+    templateGroups.push_back(group1);
+    templateGroups.push_back(group2);
+
+    // Get number of edgels of template containing least amount of them
+    std::cout << "Extracting minimum of template edgels... " << std::endl;
+    cv::Vec3i minEdgels = extractMinEdgels(templateGroups);
+
+    // Hashing test
+    Hashing h;
+    h.train(templateGroups);
     /// Test DATA - END
 
+    return 0;
 
-    /// Hashing test
-    cv::Mat testDepth;
-    cv::Mat testNormal = cv::imread("data/depth_test.png", CV_LOAD_IMAGE_UNCHANGED);
 
-    std::cout << sceneDepth.type() << std::endl;
-    testNormal.convertTo(testNormal, CV_32FC1);
-    sceneDepth.convertTo(sceneDepth, CV_32FC1);
-    testDepth = testNormal.clone();
-    trainingSetGeneration(scene, sceneDepth);
+    /// ***** MATCHING - START *****
+    // Stop Matching time
+    Timer t;
+
+    // Edge based objectness
+    cv::Rect objectsRoi;
+    objectsRoi = objectness(scene, sceneDepth, sceneColor, minEdgels);
+
+    // Match templates
+    std::vector<cv::Rect> matchBB;
+
+    std::cout << "Matching... ";
+    matchBB = matchTemplate(scene, objectsRoi, templateGroups);
+    std::cout << "DONE!" << std::endl;
+    /// ***** MATCHING - END *****
+
+
+    /// ***** RESULTS - START *****
+    // Print elapsed time
+    std::cout << "Elapsed: " << t.elapsed() << "s" << std::endl;
+    std::cout << "BB Size: " << matchBB.size() << std::endl;
+
+    // Show results
+    for (int i = 0; i < matchBB.size(); i++) {
+        cv::rectangle(sceneColor, matchBB[i], cv::Scalar(0, 255, 0), 1);
+    }
+
+    cv::imshow("Result", sceneColor);
+    cv::waitKey(0);
+    /// ***** RESULTS - END *****
 
     return 0;
-//
-//
-//    /// ***** MATCHING - START *****
-//    // Stop Matching time
-//    Timer t;
-//
-//    // Edge based objectness
-//    cv::Rect objectsRoi;
-//    objectsRoi = objectness(scene, sceneDepth, sceneColor, minEdgels);
-//
-//    // Match templates
-//    std::vector<cv::Rect> matchBB;
-//
-//    std::cout << "Matching... ";
-//    matchBB = matchTemplate(scene, objectsRoi, templateGroups);
-//    std::cout << "DONE!" << std::endl;
-//    /// ***** MATCHING - END *****
-//
-//
-//    /// ***** RESULTS - START *****
-//    // Print elapsed time
-//    std::cout << "Elapsed: " << t.elapsed() << "s" << std::endl;
-//    std::cout << "BB Size: " << matchBB.size() << std::endl;
-//
-//    // Show results
-//    for (int i = 0; i < matchBB.size(); i++) {
-//        cv::rectangle(sceneColor, matchBB[i], cv::Scalar(0, 255, 0), 1);
-//    }
-//
-//    cv::imshow("Result", sceneColor);
-//    cv::waitKey(0);
-//    /// ***** RESULTS - END *****
-//
-//    return 0;
 }
