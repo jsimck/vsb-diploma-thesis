@@ -6,7 +6,7 @@
 // Init uniform distribution engine
 typedef std::mt19937 Engine;
 typedef std::uniform_real_distribution<float> Distribution;
-auto uniformGenerator = std::bind(Distribution(0.0f, 1.0f), Engine(time(NULL)));
+auto uniformGenerator = std::bind(Distribution(0.0f, 1.0f), Engine(1));
 
 cv::Point Triplet::getCenterCoords(float offsetX, float stepX, float offsetY, float stepY) {
     return cv::Point(

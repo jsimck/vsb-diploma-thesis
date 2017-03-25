@@ -55,9 +55,9 @@ void Hashing::train(std::vector<TemplateGroup> &groups) {
     for (int i = 0; i < 100; ++i) {
         triplets[i] = Triplet::createRandomTriplet(this->featurePointsGrid);
 
-        cv::Point c = triplets[i].getCenterCoords(offsetX, offsetY, stepX, stepY);
-        cv::Point p1 = triplets[i].getP1Coords(offsetX, offsetY, stepX, stepY);
-        cv::Point p2 = triplets[i].getP2Coords(offsetX, offsetY, stepX, stepY);
+        cv::Point c = triplets[i].getCenterCoords(offsetX, stepX, offsetY, stepY);
+        cv::Point p1 = triplets[i].getP1Coords(offsetX, stepX, offsetY, stepY);
+        cv::Point p2 = triplets[i].getP2Coords(offsetX, stepX, offsetY, stepY);
         std::cout << "Triplet coords (" << c.x << ", " << c.y << ") "
                                   << " (" << p1.x << ", " << p1.y << ") "
                                   << " (" << p2.x << ", " << p2.y << ") "<< std::endl;
