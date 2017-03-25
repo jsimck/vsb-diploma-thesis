@@ -9,7 +9,7 @@ private:
     std::vector<HashTable> hashTables;
 public:
     cv::Vec3d extractSurfaceNormal(cv::Mat &src, cv::Point c);
-    char quantizeSurfaceNormals(cv::Vec3f normal);
+    int quantizeSurfaceNormals(cv::Vec3f normal);
 };
 
 void trainingSetGeneration(cv::Mat &train, cv::Mat &trainDepth);

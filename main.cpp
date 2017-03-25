@@ -26,15 +26,15 @@ int main() {
 
     /// ***** PREPARATION STAGE - START *****
     // Parse templates (groups)
-    std::cout << "Parsing... " << std::endl;
-    std::vector<std::string> tplNames = { "02", "25", "29", "30" };
-    parser.parse(templateGroups, tplNames);
-    std::cout << "DONE! " << templateGroups.size() << " template groups parsed" << std::endl << std::endl;
-
-    // Get number of edgels of template containing least amount of them
-    std::cout << "Extracting minimum of template edgels... " << std::endl;
-    cv::Vec3i minEdgels = extractMinEdgels(templateGroups);
-    std::cout << "DONE! " << minEdgels << " minimum found" <<std::endl << std::endl;
+//    std::cout << "Parsing... " << std::endl;
+//    std::vector<std::string> tplNames = { "02", "25", "29", "30" };
+//    parser.parse(templateGroups, tplNames);
+//    std::cout << "DONE! " << templateGroups.size() << " template groups parsed" << std::endl << std::endl;
+//
+//    // Get number of edgels of template containing least amount of them
+//    std::cout << "Extracting minimum of template edgels... " << std::endl;
+//    cv::Vec3i minEdgels = extractMinEdgels(templateGroups);
+//    std::cout << "DONE! " << minEdgels << " minimum found" <<std::endl << std::endl;
     /// ***** PREPARATION STAGE - END *****
 
 
@@ -68,38 +68,38 @@ int main() {
     trainingSetGeneration(scene, sceneDepth);
 
     return 0;
-
-
-    /// ***** MATCHING - START *****
-    // Stop Matching time
-    Timer t;
-
-    // Edge based objectness
-    cv::Rect objectsRoi;
-    objectsRoi = objectness(scene, sceneDepth, sceneColor, minEdgels);
-
-    // Match templates
-    std::vector<cv::Rect> matchBB;
-
-    std::cout << "Matching... ";
-    matchBB = matchTemplate(scene, objectsRoi, templateGroups);
-    std::cout << "DONE!" << std::endl;
-    /// ***** MATCHING - END *****
-
-
-    /// ***** RESULTS - START *****
-    // Print elapsed time
-    std::cout << "Elapsed: " << t.elapsed() << "s" << std::endl;
-    std::cout << "BB Size: " << matchBB.size() << std::endl;
-
-    // Show results
-    for (int i = 0; i < matchBB.size(); i++) {
-        cv::rectangle(sceneColor, matchBB[i], cv::Scalar(0, 255, 0), 1);
-    }
-
-    cv::imshow("Result", sceneColor);
-    cv::waitKey(0);
-    /// ***** RESULTS - END *****
-
-    return 0;
+//
+//
+//    /// ***** MATCHING - START *****
+//    // Stop Matching time
+//    Timer t;
+//
+//    // Edge based objectness
+//    cv::Rect objectsRoi;
+//    objectsRoi = objectness(scene, sceneDepth, sceneColor, minEdgels);
+//
+//    // Match templates
+//    std::vector<cv::Rect> matchBB;
+//
+//    std::cout << "Matching... ";
+//    matchBB = matchTemplate(scene, objectsRoi, templateGroups);
+//    std::cout << "DONE!" << std::endl;
+//    /// ***** MATCHING - END *****
+//
+//
+//    /// ***** RESULTS - START *****
+//    // Print elapsed time
+//    std::cout << "Elapsed: " << t.elapsed() << "s" << std::endl;
+//    std::cout << "BB Size: " << matchBB.size() << std::endl;
+//
+//    // Show results
+//    for (int i = 0; i < matchBB.size(); i++) {
+//        cv::rectangle(sceneColor, matchBB[i], cv::Scalar(0, 255, 0), 1);
+//    }
+//
+//    cv::imshow("Result", sceneColor);
+//    cv::waitKey(0);
+//    /// ***** RESULTS - END *****
+//
+//    return 0;
 }

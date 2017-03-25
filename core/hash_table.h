@@ -9,8 +9,8 @@
 
 class HashTable {
 public:
-    std::vector<Triplet> triplets;
-    std::unordered_map<HashKey, std::vector<Template>> templates;
+//    std::vector<Triplet> triplets;
+//    std::unordered_map<HashKey, std::vector<Template>> templates;
 };
 
 

@@ -3,7 +3,7 @@
 #include "triplet.h"
 
 // 12x12 = 144 reference points -> size 12
-int Triplet::TRIPLET_SIZE = 12;
+const int Triplet::TRIPLET_SIZE = 12;
 
 // Init uniform distribution engine
 typedef std::mt19937 Engine;
