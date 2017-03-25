@@ -9,9 +9,9 @@
 // #define MATCH_NORMED_CORRELATION_COEF
 
 // Sort bounding boxes by their matching score (DESC)
-void sortBBByScore(std::vector<cv::Rect> &matchBB, std::vector<double> &scoreBB);
+void sortBBByScore(std::vector<cv::Rect> &matchBB, std::vector<float> &scoreBB);
 // Suppresses matched bounding boxes which are overlapped by given threshold,
-std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::vector<double> &scoreBB, double overlapThresh = 0.5);
+std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::vector<float> &scoreBB, float overlapThresh = 0.5f);
 // Calculates mean of given image ROI
 cv::Scalar matRoiMean(cv::Size maskSize, cv::Rect roi);
 

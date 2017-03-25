@@ -2,7 +2,7 @@
 #include <numeric>
 #include "../utils/utils.h"
 
-void sortBBByScore(std::vector<cv::Rect> &matchBB, std::vector<double> &scoreBB) {
+void sortBBByScore(std::vector<cv::Rect> &matchBB, std::vector<float> &scoreBB) {
     // Checks
     assert(matchBB.size() > 0);
     assert(scoreBB.size() > 0);
@@ -12,7 +12,7 @@ void sortBBByScore(std::vector<cv::Rect> &matchBB, std::vector<double> &scoreBB)
         for (int j = 0; j < matchBB.size() - i - 1; j++) {
             if (scoreBB[j] < scoreBB[j + 1]) {
                 // Save BB to tmp
-                double tmpScore = scoreBB[j];
+                float tmpScore = scoreBB[j];
                 cv::Rect tmpBB = matchBB[j];
 
                 // Switch bb and scoreBB
@@ -25,7 +25,7 @@ void sortBBByScore(std::vector<cv::Rect> &matchBB, std::vector<double> &scoreBB)
     }
 }
 
-std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::vector<double> &scoreBB, double overlapThresh) {
+std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::vector<float> &scoreBB, float overlapThresh) {
     // Checks
     assert(matchBB.size() > 0);
     assert(scoreBB.size() > 0);
@@ -69,7 +69,7 @@ std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::
             // Calculate overlap area
             int h = std::max<int>(0, oy2 - oy1);
             int w = std::max<int>(0, ox2 - ox1);
-            double overlap = static_cast<double>(h * w) / static_cast<double>(firstBB.area());
+            float overlap = static_cast<float>(h * w) / static_cast<float>(firstBB.area());
 
             // Push index of this window to suppression array, since it is overlapping over minimum threshold
             // with a window of higher score, we can safely ignore this window
@@ -93,7 +93,7 @@ std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::
 }
 
 cv::Scalar matRoiMean(cv::Size maskSize, cv::Rect roi) {
-    cv::Mat mask(maskSize, CV_64F, cv::Scalar(0));
+    cv::Mat mask(maskSize, CV_32F, cv::Scalar(0));
     cv::Mat maskRoi(mask, roi);
     maskRoi = cv::Scalar(1.0);
 
@@ -108,11 +108,11 @@ std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vect
 
     // Vector of matched bounding boxes and their score
     std::vector<cv::Rect> matchBB;
-    std::vector<double> scoreBB;
+    std::vector<float> scoreBB;
 
     // Match configuration
     const int step = 5;
-    const double minCorrelation = 0.5;
+    const float minCorrelation = 0.5;
 
     for (auto &g : groups) {
         std::vector<Template> &templates = g.templates;
@@ -139,7 +139,7 @@ std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vect
 
             // Set default helper variables for matching
             bool matchFound = false;
-            double maxScore = minCorrelation;
+            float maxScore = minCorrelation;
             cv::Rect maxRect;
 
     #ifdef MATCH_NORMED_CORRELATION_COEF
@@ -149,7 +149,7 @@ std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vect
 
             for (int y = 0; y < croppedInput.rows - wSize.height; y += step) {
                 for (int x = 0; x < croppedInput.cols - wSize.width; x += step) {
-                    double sum = 0, sumNormT = 0, sumNormI = 0;
+                    float sum = 0, sumNormT = 0, sumNormI = 0;
 
     #ifdef MATCH_NORMED_CORRELATION_COEF
                     // Get mean of input image processed area
@@ -159,13 +159,13 @@ std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vect
                     // Loop through template
                     for (int ty = 0; ty < wSize.height; ty++) {
                         for (int tx = 0; tx < wSize.width; tx++) {
-                            double Ti = tpl.at<double>(ty, tx);
+                            float Ti = tpl.at<float>(ty, tx);
 
                             // Ignore black pixels
                             if (Ti == 0) continue;
 
                             // Get input image value
-                            double Ii = croppedInput.at<double>(y + ty, x + tx);
+                            float Ii = croppedInput.at<float>(y + ty, x + tx);
 
     #ifdef MATCH_NORMED_CORRELATION_COEF
                             // Calculate sums for normalized correlation coefficient method
@@ -184,7 +184,7 @@ std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vect
                     }
 
                     // Calculate correlation using NORMED_CROSS_CORRELATION / NORMED_CORRELATION_COEF method
-                    double crossSum = sum / sqrt(sumNormI * sumNormT);
+                    float crossSum = sum / sqrt(sumNormI * sumNormT);
 
                     // Check if we found new max scoreBB, if yes -> save roi location + scoreBB
                     if (crossSum > maxScore) {

@@ -71,7 +71,6 @@ int main() {
     // Edge based objectness
     cv::Rect objectsRoi;
     objectsRoi = objectness(scene, sceneDepth, sceneColor, minEdgels);
-    return 0;
 
     // Match templates
     std::vector<cv::Rect> matchBB;
