@@ -122,7 +122,7 @@ std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vect
             continue;
         }
 
-        #pragma omp parallel for schedule(dynamic) shared(input, inputRoi, templates, matchBB)
+        #pragma omp parallel for schedule(dynamic) shared(input, inputRoi, matchBB)
         for (int i = 0; i < templates.size(); i++) {
             // Calculate final size of inputRoi, if possible we extend it's height by the half height of match template
             // since objectness measure can ignore bottom edges that are not visible on depth maps
@@ -133,7 +133,7 @@ std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vect
             // Get area of interest from input image using input ROI rectr
             cv::Mat croppedInput(input, inputRoi);
 
-            // Get match template from templates
+            // Get match template from templateFolders
             cv::Mat tpl = templates[i].src;
             cv::Size wSize = tpl.size();
 

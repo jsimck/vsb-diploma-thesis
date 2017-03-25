@@ -2,7 +2,7 @@
 #include <cassert>
 #include "../utils/utils.h"
 
-void filterSobel(cv::Mat &src, cv::Mat &dst) {
+void objectness::filterSobel(cv::Mat &src, cv::Mat &dst) {
     // Src should not be empty
     assert(!src.empty());
 
@@ -37,7 +37,7 @@ void filterSobel(cv::Mat &src, cv::Mat &dst) {
     }
 }
 
-void thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float max) {
+void objectness::thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float max) {
     // Both matrices should not be empty
     assert(!src.empty());
     assert(!dst.empty());
@@ -53,7 +53,7 @@ void thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float max) {
     }
 }
 
-cv::Vec3i extractMinEdgels(std::vector<TemplateGroup> &templateGroups, float minThresh, float maxThresh) {
+cv::Vec3i objectness::extractMinEdgels(std::vector<TemplateGroup> &templateGroups, float minThresh, float maxThresh) {
     assert(!templateGroups.empty());
     assert(minThresh >= 0);
     assert(maxThresh >= 0);
@@ -81,7 +81,7 @@ cv::Vec3i extractMinEdgels(std::vector<TemplateGroup> &templateGroups, float min
     return output;
 }
 
-cv::Rect objectness(cv::Mat &scene, cv::Mat &sceneDepthNormalized, cv::Mat &sceneColor, cv::Vec3i minEdgels, float minThresh, float maxThresh) {
+cv::Rect objectness::objectness(cv::Mat &scene, cv::Mat &sceneDepthNormalized, cv::Mat &sceneColor, cv::Vec3i minEdgels, float minThresh, float maxThresh) {
     // Edgels count and template bounding box should be greater than 0
     assert(minEdgels[0] > 0);
     assert(minEdgels[1] > 0);

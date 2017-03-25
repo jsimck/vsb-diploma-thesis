@@ -3,15 +3,16 @@
 
 int TemplateParser::idCounter = 0;
 
-TemplateParser::TemplateParser(const std::string basePath, unsigned int tplCount) {
-    setBasePath(basePath);
-    setTplCount(tplCount);
-}
-
-void TemplateParser::parse(std::vector<TemplateGroup> &groups, std::vector<std::string> tplNames) {
-    for (auto &&tplName : tplNames) {
+void TemplateParser::parse(std::vector<TemplateGroup> &groups) {
+    for (auto &&tplName : this->templateFolders) {
         std::vector<Template> templates;
-        parseTemplate(templates, tplName);
+
+        // If indices are not null, parse specified ids
+        if (this->indices) {
+            parseTemplate(templates, tplName, this->indices);
+        } else {
+            parseTemplate(templates, tplName);
+        }
 
         // Push to groups vector
         groups.push_back(TemplateGroup(tplName, templates));
@@ -49,14 +50,14 @@ void TemplateParser::parseTemplate(std::vector<Template> &templates, std::string
     fs.release();
 }
 
-void TemplateParser::parseTemplate(std::vector<Template> &templates, std::string tplName, std::vector<int> indices) {
+void TemplateParser::parseTemplate(std::vector<Template> &templates, std::string tplName, std::unique_ptr<std::vector<int>> &indices) {
     // Load obj_gt
     cv::FileStorage fs;
     fs.open(this->basePath + tplName + "/gt.yml", cv::FileStorage::READ);
     assert(fs.isOpened());
 
-    for (int i = 0; i < indices.size(); i++) {
-        int tplIndex = indices[i];
+    for (int i = 0; i < (*indices).size(); i++) {
+        int tplIndex = (*indices)[i];
         std::string index = "tpl_" + std::to_string(tplIndex);
         cv::FileNode objGt = fs[index];
 
@@ -69,8 +70,8 @@ void TemplateParser::parseTemplate(std::vector<Template> &templates, std::string
     fs.open(this->basePath + tplName + "/info.yml", cv::FileStorage::READ);
     assert(fs.isOpened());
 
-    for (int i = 0; i < indices.size(); i++) {
-        int tplIndex = indices[i];
+    for (int i = 0; i < (*indices).size(); i++) {
+        int tplIndex = (*indices)[i];
         std::string index = "tpl_" + std::to_string(tplIndex);
         cv::FileNode objGt = fs[index];
 
@@ -142,7 +143,7 @@ void TemplateParser::setBasePath(std::string path) {
     this->basePath = path;
 }
 
-std::string TemplateParser::getBasePath() {
+std::string TemplateParser::getBasePath() const {
     return this->basePath;
 }
 
@@ -150,6 +151,27 @@ void TemplateParser::setTplCount(unsigned int tplCount) {
     this->tplCount = tplCount;
 }
 
-unsigned int TemplateParser::getTplCount() {
+unsigned int TemplateParser::getTplCount() const {
     return this->tplCount;
 }
+
+const std::vector<std::string> &TemplateParser::getTemplateFolders() const {
+    return this->templateFolders;
+}
+
+void TemplateParser::setTemplateFolders(const std::vector<std::string> &templateFolders) {
+    this->templateFolders = templateFolders;
+}
+
+int TemplateParser::getIdCounter() {
+    return idCounter;
+}
+
+const std::unique_ptr<std::vector<int>> &TemplateParser::getIndices() const {
+    return this->indices;
+}
+
+void TemplateParser::setIndices(std::unique_ptr<std::vector<int>> &indices) {
+    this->indices.swap(indices);
+}
+

@@ -5,24 +5,27 @@
 #include "../core/hash_table.h"
 #include "../core/template_group.h"
 
-class Hashing {
+class Hasher {
 private:
     cv::Size featurePointsGrid;
-    std::vector<HashTable> hashTables;
 
-    cv::Vec3d extractSurfaceNormal(cv::Mat &src, cv::Point c);
+    // Methods
+    cv::Vec3d extractSurfaceNormal(const cv::Mat &src, cv::Point c);
     int quantizeSurfaceNormals(cv::Vec3f normal);
     int quantizeDepths(float depth);
 public:
-    Hashing() : featurePointsGrid(cv::Size(12, 12)) {}
-    Hashing(cv::Size referencePointsGrid) : featurePointsGrid(referencePointsGrid) {}
+    // Constructors
+    Hasher() : featurePointsGrid(cv::Size(12, 12)) {}
+    Hasher(cv::Size referencePointsGrid) : featurePointsGrid(referencePointsGrid) {}
 
-    void train(std::vector<TemplateGroup> &groups);
+    // Methods
+    void train(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables, unsigned int numberOfHashTables = 100);
 
+    // Getters
     const cv::Size getFeaturePointsGrid();
-    const std::vector<HashTable> &getHashTables();
+
+    // Setters
     void setFeaturePointsGrid(cv::Size featurePointsGrid);
-    void setHashTables(const std::vector<HashTable> &hashTables);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_HASHING_H

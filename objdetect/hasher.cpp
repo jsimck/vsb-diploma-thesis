@@ -1,7 +1,7 @@
 #include <unordered_set>
-#include "hashing.h"
+#include "hasher.h"
 
-cv::Vec3d Hashing::extractSurfaceNormal(cv::Mat &src, cv::Point c) {
+cv::Vec3d Hasher::extractSurfaceNormal(const cv::Mat &src, cv::Point c) {
     float dzdx = (src.at<float>(c.y, c.x + 1) - src.at<float>(c.y, c.x - 1)) / 2.0f;
     float dzdy = (src.at<float>(c.y + 1, c.x) - src.at<float>(c.y - 1, c.x)) / 2.0f;
     cv::Vec3f d(-dzdy, -dzdx, 1.0f);
@@ -9,7 +9,7 @@ cv::Vec3d Hashing::extractSurfaceNormal(cv::Mat &src, cv::Point c) {
     return cv::normalize(d);
 }
 
-int Hashing::quantizeSurfaceNormals(cv::Vec3f normal) {
+int Hasher::quantizeSurfaceNormals(cv::Vec3f normal) {
     // Normal should not be === 0, always at least z > 2
     if (normal[0] < 0 && normal[1] < 0 && normal[2] < 0) {
         std::cout << normal << std::endl;
@@ -49,7 +49,7 @@ int Hashing::quantizeSurfaceNormals(cv::Vec3f normal) {
     return minIndex;
 }
 
-int Hashing::quantizeDepths(float depth) {
+int Hasher::quantizeDepths(float depth) {
     // TODO WRONG - relative depths can have <-65k, +65k> values
     if (depth <= 13107) {
         return 0; // 1. bin
@@ -64,12 +64,14 @@ int Hashing::quantizeDepths(float depth) {
     }
 }
 
-void Hashing::train(std::vector<TemplateGroup> &groups) {
+void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables, unsigned int numberOfHashTables) {
     // Checks
     assert(groups.size() > 0);
 
     // Init hash tables
-    std::vector<HashTable> hashTables(100);
+    hashTables.reserve(numberOfHashTables);
+
+    // Generate triplets
     for (int i = 0; i < 100; ++i) {
         // Init hash table
         HashTable hashTable;
@@ -119,25 +121,12 @@ void Hashing::train(std::vector<TemplateGroup> &groups) {
         // Push hash table to list
         hashTables.push_back(hashTable);
     }
-
-    // Print hash tables
-    for (auto &&hasht : hashTables) {
-        std::cout << hasht << std::endl;
-    }
 }
 
-const cv::Size Hashing::getFeaturePointsGrid() {
+const cv::Size Hasher::getFeaturePointsGrid() {
     return this->featurePointsGrid;
 }
 
-const std::vector<HashTable> &Hashing::getHashTables() {
-    return this->hashTables;
-}
-
-void Hashing::setFeaturePointsGrid(cv::Size featurePointsGrid) {
+void Hasher::setFeaturePointsGrid(cv::Size featurePointsGrid) {
     this->featurePointsGrid = featurePointsGrid;
-}
-
-void Hashing::setHashTables(const std::vector<HashTable> &hashTables) {
-    this->hashTables = hashTables;
 }

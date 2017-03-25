@@ -83,8 +83,8 @@ Triplet Triplet::createRandomTriplet(cv::Size referencePointsGrid) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Triplet &triplet) {
-    os << "p1: (" << triplet.p1.x  << ", " << triplet.p1.y << ") ";
-    os << "p1: (" << triplet.p2.x  << ", " << triplet.p2.y << ") ";
-    os << "p2: (" << triplet.p3.x  << ", " << triplet.p3.y << ") ";
+    os << "p1(" << triplet.p1.x  << ", " << triplet.p1.y << "), ";
+    os << "p1(" << triplet.p2.x  << ", " << triplet.p2.y << "), ";
+    os << "p2(" << triplet.p3.x  << ", " << triplet.p3.y << ") ";
     return os;
 }
