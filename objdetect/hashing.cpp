@@ -2,6 +2,33 @@
 #include "../utils/utils.h"
 #include <opencv2/rgbd.hpp>
 
+cv::Vec3d Hashing::extractSurfaceNormal(cv::Mat &src, cv::Point c) {
+    float dzdx = (src.at<float>(c.y, c.x + 1) - src.at<float>(c.y, c.x - 1)) / 2.0f;
+    float dzdy = (src.at<float>(c.y + 1, c.x) - src.at<float>(c.y - 1, c.x)) / 2.0f;
+    cv::Vec3f d(-dzdy, -dzdx, 1.0f);
+
+    return cv::normalize(d);
+}
+
+char Hashing::quantizeSurfaceNormals(cv::Vec3f normal) {
+    // For quantization of surface normals into 8 bins, we're using faces of Octahedron
+    // where each face represents 1 bin
+    static cv::Vec3f octahedronUnitNormals[8] = {
+        cv::Vec3f(1.0f, 0, 1.0f),
+        cv::Vec3f(0, 1.0f, 1.0f),
+        cv::Vec3f(-1.0f, 0, 1.0f),
+        cv::Vec3f(0, -1.0f, 1.0f),
+        cv::Vec3f(1.0f, 0, -1.0f),
+        cv::Vec3f(0, 1.0f, -1.0f),
+        cv::Vec3f(-1.0f, 0, -1.0f),
+        cv::Vec3f(0, -1.0f, -1.0f),
+    };
+
+
+
+    return 0;
+}
+
 void trainingSetGeneration(cv::Mat &train, cv::Mat &trainDepth) {
 //    auto rgbdNormals = cv::rgbd::RgbdNormals(trainDepth.rows, trainDepth.cols, CV_32F, );
 
