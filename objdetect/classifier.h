@@ -5,6 +5,7 @@
 #include "../core/hash_table.h"
 #include "../utils/template_parser.h"
 #include "hasher.h"
+#include "objectness.h"
 
 class Classifier {
 private:
@@ -19,16 +20,20 @@ private:
     cv::Mat sceneDepth;
     cv::Mat sceneDepthNormalized;
 
+    cv::Rect objectnessROI;
     std::vector<TemplateGroup> templateGroups;
     std::vector<HashTable> hashTables;
 
     TemplateParser parser;
     Hasher hasher;
+    Objectness objectness;
 
     // Methods
     void parseTemplates();
     void extractMinEdgels();
     void trainHashTables();
+    void initObjectness();
+    void detectObjectness();
     void loadScene();
 public:
     // Constructors
@@ -53,6 +58,7 @@ public:
     const cv::Mat &getSceneDepthNormalized() const;
     const std::vector<TemplateGroup> &getTemplateGroups() const;
     const std::vector<HashTable> &getHashTables() const;
+    const cv::Rect &getObjectnessROI() const;
 
     // Setters
     void setMinEdgels(const cv::Vec3f &minEdgels);
@@ -66,6 +72,7 @@ public:
     void setSceneDepthNormalized(const cv::Mat &sceneDepthNormalized);
     void setTemplateGroups(const std::vector<TemplateGroup> &templateGroups);
     void setHashTables(const std::vector<HashTable> &hashTables);
+    void setObjectnessROI(const cv::Rect &objectnessROI);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_CLASSIFICATOR_H

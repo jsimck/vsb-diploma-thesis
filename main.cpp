@@ -9,7 +9,7 @@
 int main() {
     // Init classifier
     const std::vector<std::string> tplNames = { "02", "25", "29", "30" };
-    Classifier classifier("data/", tplNames, "scene_01/", "0368.png");
+    Classifier classifier("data/", tplNames, "scene_01/", "0000.png");
 
     // Init indices
     std::unique_ptr<std::vector<int>> indices { new std::vector<int>() };

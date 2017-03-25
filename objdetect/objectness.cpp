@@ -2,9 +2,18 @@
 #include <cassert>
 #include "../utils/utils.h"
 
-void objectness::filterSobel(cv::Mat &src, cv::Mat &dst) {
+Objectness::Objectness() {
+    setMatchThresholdFactor(0.3f);
+    setMaxThreshold(0.1f);
+    setMinThreshold(0.01f);
+    setSlidingWindowSizeFactor(1.0f);
+    setSlidingWindowStepFactor(0.4f);
+}
+
+void Objectness::filterSobel(cv::Mat &src, cv::Mat &dst) {
     // Src should not be empty
     assert(!src.empty());
+    assert(src.type() == 5); // CV_32FC1
 
     // Sobel masks
     int filterX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
@@ -15,11 +24,12 @@ void objectness::filterSobel(cv::Mat &src, cv::Mat &dst) {
         dst = cv::Mat(src.size(), src.type());
     }
 
-    int rows = src.rows, cols = src.cols;
-    cv::GaussianBlur(src, dst, cv::Size(3, 3), 0, 0); // Reduce noise
+    // Blur image little bit to reduce noise
+    cv::GaussianBlur(src, dst, cv::Size(3, 3), 0, 0);
 
-    for (int y = 1; y < rows - 1; y++) {
-        for (int x = 1; x < cols - 1; x++) {
+    // Apply sobel filter
+    for (int y = 1; y < src.rows - 1; y++) {
+        for (int x = 1; x < src.cols - 1; x++) {
             int i = 0;
             float sumX = 0, sumY = 0;
             for (int yy = 0; yy < 3; yy++) {
@@ -37,14 +47,21 @@ void objectness::filterSobel(cv::Mat &src, cv::Mat &dst) {
     }
 }
 
-void objectness::thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float max) {
-    // Both matrices should not be empty
+void Objectness::thresholdMinMax(cv::Mat &src, cv::Mat &dst, float minThreshold, float maxThreshold) {
+    // Check matrices type and if they're not empty
     assert(!src.empty());
     assert(!dst.empty());
+    assert(src.type() == 5); // CV_32FC1
+    assert(dst.type() == 5); // CV_32FC1
 
+    // Check thresholds
+    assert(minThreshold >= 0);
+    assert(maxThreshold >= 0 && maxThreshold > minThreshold);
+
+    // Apply very simple min/max thresholding for the source image
     for (int y = 0; y < src.rows; y++) {
         for (int x = 0; x < src.cols; x++) {
-            if (src.at<float>(y, x) >= min && src.at<float>(y, x) <= max) {
+            if (src.at<float>(y, x) >= minThreshold && src.at<float>(y, x) <= maxThreshold) {
                 dst.at<float>(y, x) = 1.0;
             } else {
                 dst.at<float>(y, x) = 0.0;
@@ -53,20 +70,26 @@ void objectness::thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float ma
     }
 }
 
-cv::Vec3i objectness::extractMinEdgels(std::vector<TemplateGroup> &templateGroups, float minThresh, float maxThresh) {
+cv::Vec3f Objectness::extractMinEdgels(std::vector<TemplateGroup> &templateGroups) {
+    // Checks
     assert(!templateGroups.empty());
-    assert(minThresh >= 0);
-    assert(maxThresh >= 0);
 
+    // Extract edgels
     int edgels = 0;
     cv::Vec3i output(INT_MAX, 0, 0);
     cv::Mat tplSobel, tplIntegral, tplNormalized;
 
+    // Find template which contains least amount of the edgels and get his bounding box
     for (auto &group : templateGroups) {
         for (auto &t : group.templates) {
+            // Normalize input image into <0, 1> values
             t.srcDepth.convertTo(tplNormalized, CV_32F, 1.0f / 65536.0f);
+
+            // Apply sobel filter and thresholding
             filterSobel(tplNormalized, tplSobel);
-            thresholdMinMax(tplSobel, tplSobel, minThresh, maxThresh);
+            thresholdMinMax(tplSobel, tplSobel, this->minThreshold, this->maxThreshold);
+
+            // Compute integral image for easier computation of edgels
             cv::integral(tplNormalized, tplIntegral, CV_32F);
             edgels = static_cast<int>(tplIntegral.at<float>(tplIntegral.rows - 1, tplIntegral.cols - 1));
 
@@ -78,40 +101,43 @@ cv::Vec3i objectness::extractMinEdgels(std::vector<TemplateGroup> &templateGroup
         }
     }
 
+    // Save output
     return output;
 }
 
-cv::Rect objectness::objectness(cv::Mat &scene, cv::Mat &sceneDepthNormalized, cv::Mat &sceneColor, cv::Vec3i minEdgels, float minThresh, float maxThresh) {
-    // Edgels count and template bounding box should be greater than 0
+cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, cv::Vec3f minEdgels) {
+    // Check thresholds and min edgels
     assert(minEdgels[0] > 0);
     assert(minEdgels[1] > 0);
     assert(minEdgels[2] > 0);
+    assert(matchThresholdFactor > 0);
+    assert(slidingWindowSizeFactor > 0);
+    assert(slidingWindowStepFactor > 0);
 
     // Matrices should not be empty
-    assert(!scene.empty());
+    assert(!sceneGrayscale.empty());
     assert(!sceneDepthNormalized.empty());
     assert(!sceneColor.empty());
 
-    // Take first template [just for demonstration]
+    // Check channels
+    assert(sceneGrayscale.type() == 5); // CV_32FC1
+    assert(sceneDepthNormalized.type() == 5); // CV_32FC1
+    assert(sceneColor.type() == 16); // CV_8UC3
+
+    // Apply sobel filter and thresholding on normalized Depth scene (<0, 1> px values)
     cv::Mat sceneSobel;
-
-    // Apply sobel filter on template and scene
     filterSobel(sceneDepthNormalized, sceneSobel);
-
-    // Apply thresh
-    thresholdMinMax(sceneSobel, sceneSobel, minThresh, maxThresh);
+    thresholdMinMax(sceneSobel, sceneSobel, this->minThreshold, this->maxThreshold);
 
     // Calculate image integral
     cv::Mat sceneIntegral;
     cv::integral(sceneSobel, sceneIntegral, CV_32F);
 
-    // Set min number of edgels to 30% of original
-    minEdgels[0] *= 0.30;
-
-    // Helper vars
+    // Init helper variables
     std::vector<cv::Vec4i> windows;
-    int sizeX = minEdgels[1] / 2, sizeY = minEdgels[2] / 2; // Set sliding window size to half of original window
-    int stepX = sizeX / 3, stepY = sizeY / 3; // Set step to third of template width for better BB detection
+    minEdgels[0] *= matchThresholdFactor;
+    int sizeX = static_cast<int>(minEdgels[1] * slidingWindowSizeFactor), sizeY = static_cast<int>(minEdgels[2] * slidingWindowSizeFactor);
+    int stepX = static_cast<int>(sizeX * slidingWindowStepFactor), stepY = static_cast<int>(sizeY * slidingWindowStepFactor);
 
     // Slide window over scene and calculate edgel count for each overlap
     for (int y = 0; y < sceneSobel.rows - sizeY; y += stepY) {
@@ -123,19 +149,17 @@ cv::Rect objectness::objectness(cv::Mat &scene, cv::Mat &sceneDepthNormalized, c
                 - sceneIntegral.at<float>(y + sizeY, x)
                 + sceneIntegral.at<float>(y, x);
 
-            // Check if current window contains at least 30% of tpl edgels, if yes, save window variables
             if (sceneEdgels >= minEdgels[0]) {
                 windows.push_back(cv::Vec4i(x, y, x + sizeX, y + sizeY));
 #ifndef NDEBUG
             cv::rectangle(sceneColor, cv::Point(x, y), cv::Point(x + sizeX, y + sizeY), cv::Vec3b(190, 190, 190));
 
-            // Draw text into corresponding rect with edgel count
             std::stringstream ss;
             ss << "T: " << minEdgels[0];
-            cv::putText(sceneColor, ss.str(), cv::Point(x + 3, y + sizeY - 20), CV_FONT_HERSHEY_SIMPLEX, 0.45, cv::Vec3b(190, 190, 190));
+            cv::putText(sceneColor, ss.str(), cv::Point(x + 3, y + sizeY - 15), CV_FONT_HERSHEY_SIMPLEX, 0.3, cv::Vec3b(255, 255, 255));
             ss.str("");
             ss << "S: " << sceneEdgels;
-            cv::putText(sceneColor, ss.str(), cv::Point(x + 3, y + sizeY - 5), CV_FONT_HERSHEY_SIMPLEX, 0.45, cv::Vec3b(190, 190, 190));
+            cv::putText(sceneColor, ss.str(), cv::Point(x + 3, y + sizeY - 5), CV_FONT_HERSHEY_SIMPLEX, 0.3, cv::Vec3b(255, 255, 255));
 #endif
             }
         }
@@ -151,17 +175,65 @@ cv::Rect objectness::objectness(cv::Mat &scene, cv::Mat &sceneDepthNormalized, c
         maxY = std::max(maxY, windows[i][3]);
     }
 
+    // Create outer BB
+    cv::Rect outerBB(minX, minY, maxX - minX, maxY - minY);
+    assert(outerBB.width > 0 && outerBB.height > 0);
+
 #ifndef NDEBUG
     // Draw outer BB based on max/min values of all smaller boxes
     cv::rectangle(sceneColor, cv::Point(minX, minY), cv::Point(maxX, maxY), cv::Vec3b(0, 255, 0), 2);
 
     // Show results
-    cv::imshow("Depth Scene", sceneDepthNormalized);
-    cv::imshow("Sobel Scene", sceneSobel);
-    cv::imshow("Scene", sceneColor);
+    cv::imshow("Objectness::Depth Scene", sceneDepthNormalized);
+    cv::imshow("Objectness::Sobel Scene", sceneSobel);
+    cv::imshow("Objectness::Scene", sceneColor);
     cv::waitKey(0);
 #endif
 
-    // Return resulted BB window
-    return cv::Rect(minX, minY, maxX - minX, maxY - minY);
+    return outerBB;
+}
+
+float Objectness::getMinThreshold() const {
+    return this->minThreshold;
+}
+
+float Objectness::getMaxThreshold() const {
+    return this->maxThreshold;
+}
+
+float Objectness::getMatchThresholdFactor() const {
+    return this->matchThresholdFactor;
+}
+
+float Objectness::getSlidingWindowSizeFactor() const {
+    return this->slidingWindowSizeFactor;
+}
+
+float Objectness::getSlidingWindowStepFactor() const {
+    return this->slidingWindowStepFactor;
+}
+
+void Objectness::setMinThreshold(float minThreshold) {
+    assert(minThreshold >= 0);
+    this->minThreshold = minThreshold;
+}
+
+void Objectness::setMaxThreshold(float maxThreshold) {
+    assert(maxThreshold >= 0);
+    this->maxThreshold = maxThreshold;
+}
+
+void Objectness::setMatchThresholdFactor(float matchThresholdFactor) {
+    assert(matchThresholdFactor > 0);
+    this->matchThresholdFactor = matchThresholdFactor;
+}
+
+void Objectness::setSlidingWindowSizeFactor(float slidingWindowSizeFactor) {
+    assert(slidingWindowSizeFactor > 0);
+    this->slidingWindowSizeFactor = slidingWindowSizeFactor;
+}
+
+void Objectness::setSlidingWindowStepFactor(float slidingWindowStepFactor) {
+    assert(slidingWindowStepFactor > 0);
+    this->slidingWindowStepFactor = slidingWindowStepFactor;
 }

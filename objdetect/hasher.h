@@ -15,7 +15,7 @@ private:
     int quantizeDepths(float depth);
 public:
     // Constructors
-    Hasher() : featurePointsGrid(cv::Size(12, 12)) {}
+    Hasher() {}
     Hasher(cv::Size referencePointsGrid) : featurePointsGrid(referencePointsGrid) {}
 
     // Methods

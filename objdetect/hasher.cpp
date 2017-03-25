@@ -97,12 +97,12 @@ void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTab
                 cv::Point p3 = hashTable.triplet.getP3Coords(offsetX, stepX, offsetY, stepY);
 
                 // Check if we're not out of bounds
-                assert(p1.x > 0 && p1.x < t.srcDepth.cols);
-                assert(p1.y > 0 && p1.y < t.srcDepth.rows);
-                assert(p2.x > 0 && p2.x < t.srcDepth.cols);
-                assert(p2.y > 0 && p2.y < t.srcDepth.rows);
-                assert(p3.x > 0 && p3.x < t.srcDepth.cols);
-                assert(p3.y > 0 && p3.y < t.srcDepth.rows);
+                assert(p1.x >= 0 && p1.x < t.srcDepth.cols);
+                assert(p1.y >= 0 && p1.y < t.srcDepth.rows);
+                assert(p2.x >= 0 && p2.x < t.srcDepth.cols);
+                assert(p2.y >= 0 && p2.y < t.srcDepth.rows);
+                assert(p3.x >= 0 && p3.x < t.srcDepth.cols);
+                assert(p3.y >= 0 && p3.y < t.srcDepth.rows);
 
                 // Relative depths
                 float d1 = t.srcDepth.at<float>(p2) - t.srcDepth.at<float>(p1);
