@@ -5,6 +5,8 @@
 #include "template.h"
 
 struct TemplateGroup {
+private:
+    std::string folderName;
 public:
     std::vector<Template> templates;
 
@@ -12,8 +14,6 @@ public:
             : folderName(folderName), templates(templates) {}
 
     const std::string &getFolderName() const;
-private:
-    std::string folderName;
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_TEMPLATE_GROUP_H

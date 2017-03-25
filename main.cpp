@@ -14,15 +14,15 @@ int main() {
 
     // Load scene
     cv::Mat scene;
-    cv::Mat sceneColor = cv::imread("data/scene_01/rgb/0428.png", CV_LOAD_IMAGE_COLOR);
-    cv::Mat sceneDepth = cv::imread("data/scene_01/depth/0428.png", CV_LOAD_IMAGE_UNCHANGED);
+    cv::Mat sceneColor = cv::imread("data/scene_01/rgb/0000.png", CV_LOAD_IMAGE_COLOR);
+    cv::Mat sceneDepth = cv::imread("data/scene_01/depth/0000.png", CV_LOAD_IMAGE_UNCHANGED);
 
     // Convect to grayscale
     cv::cvtColor(sceneColor, scene, CV_BGR2GRAY);
 
     // Convert to double
-    scene.convertTo(scene, CV_64FC1, 1.0f / 255.0f);
-    sceneDepth.convertTo(sceneDepth, CV_64FC1, 1.0f / 65536.0f);
+    scene.convertTo(scene, CV_32FC1, 1.0f / 255.0f);
+    sceneDepth.convertTo(sceneDepth, CV_32FC1, 1.0f / 65536.0f);
 
     /// ***** PREPARATION STAGE - START *****
     // Parse templates (groups)
@@ -71,6 +71,7 @@ int main() {
     // Edge based objectness
     cv::Rect objectsRoi;
     objectsRoi = objectness(scene, sceneDepth, sceneColor, minEdgels);
+    return 0;
 
     // Match templates
     std::vector<cv::Rect> matchBB;

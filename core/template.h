@@ -16,7 +16,7 @@ public:
     cv::Rect objBB; // Object bounding box
     cv::Mat camK; // Intrinsic camera matrix K
     cv::Mat camRm2c; // Rotation matrix R_m2c
-    cv::Vec3d camTm2c; // Translation vector t_m2c
+    cv::Vec3f camTm2c; // Translation vector t_m2c
     int elev;
     int mode;
 

@@ -83,7 +83,7 @@ void TemplateParser::parseTemplate(std::vector<Template> &templates, std::string
 
 Template TemplateParser::parseGt(int index, std::string path, cv::FileNode &gtNode) {
     // Init template param matrices
-    std::vector<double> vCamRm2c, vCamTm2c;
+    std::vector<float> vCamRm2c, vCamTm2c;
     std::vector<int> vObjBB;
 
     // Nodes containing matrices and vectors to parseTemplate
@@ -107,21 +107,21 @@ Template TemplateParser::parseGt(int index, std::string path, cv::FileNode &gtNo
     src = src(objBB);
     srcDepth = srcDepth(objBB);
 
-    // Convert to double
-    src.convertTo(src, CV_64FC1, 1.0 / 255.0);
-    srcDepth.convertTo(srcDepth, CV_64FC1, 1.0 / 65536.0); // 16-bit
+    // Convert to float
+    src.convertTo(src, CV_32FC1, 1.0f / 255.0f);
+    srcDepth.convertTo(srcDepth, CV_32FC1, 1.0f / 65536.0f); // 16-bit
 //    srcDepth.convertTo(srcDepth, CV_32FC1); // because of surface normal calculation, don't doo normalization
 
     return Template(
         this->idCounter, fileName, src, srcDepth, objBB,
-        cv::Mat(3, 3, CV_64FC1, vCamRm2c.data()).clone(),
+        cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone(),
         cv::Vec3d(vCamTm2c[0], vCamTm2c[1], vCamTm2c[2])
     );
 }
 
 void TemplateParser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
     // Init template param matrices
-    std::vector<double> vCamK;
+    std::vector<float> vCamK;
     int elev, mode;
 
     // Parse params contained in info.yml
@@ -132,7 +132,7 @@ void TemplateParser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
     // Assign new params to template
     tpl.elev = elev;
     tpl.mode = mode;
-    tpl.camK = cv::Mat(3, 3, CV_64FC1, vCamK.data()).clone();
+    tpl.camK = cv::Mat(3, 3, CV_32FC1, vCamK.data()).clone();
 }
 
 void TemplateParser::setBasePath(std::string path) {

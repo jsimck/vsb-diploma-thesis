@@ -21,10 +21,10 @@ void filterSobel(cv::Mat &src, cv::Mat &dst) {
     for (int y = 1; y < rows - 1; y++) {
         for (int x = 1; x < cols - 1; x++) {
             int i = 0;
-            double sumX = 0.0, sumY = 0.0;
+            float sumX = 0, sumY = 0;
             for (int yy = 0; yy < 3; yy++) {
                 for (int xx = 0; xx < 3; xx++) {
-                    double px = src.at<double>(yy + y - 1, x + xx - 1);
+                    float px = src.at<float>(yy + y - 1, x + xx - 1);
                     sumX += px * filterX[i];
                     sumY += px * filterY[i];
                     i++;
@@ -32,28 +32,28 @@ void filterSobel(cv::Mat &src, cv::Mat &dst) {
             }
 
             // Add sum of x and y derivatives
-            dst.at<double>(y, x) = sqrt(SQR(sumX) + SQR(sumY));
+            dst.at<float>(y, x) = sqrt(SQR(sumX) + SQR(sumY));
         }
     }
 }
 
-void thresholdMinMax(cv::Mat &src, cv::Mat &dst, double min, double max) {
+void thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float max) {
     // Both matrices should not be empty
     assert(!src.empty());
     assert(!dst.empty());
 
     for (int y = 0; y < src.rows; y++) {
         for (int x = 0; x < src.cols; x++) {
-            if (src.at<double>(y, x) >= min && src.at<double>(y, x) <= max) {
-                dst.at<double>(y, x) = 1.0;
+            if (src.at<float>(y, x) >= min && src.at<float>(y, x) <= max) {
+                dst.at<float>(y, x) = 1.0;
             } else {
-                dst.at<double>(y, x) = 0.0;
+                dst.at<float>(y, x) = 0.0;
             }
         }
     }
 }
 
-cv::Vec3i extractMinEdgels(std::vector<TemplateGroup> &templateGroups, double minThresh, double maxThresh) {
+cv::Vec3i extractMinEdgels(std::vector<TemplateGroup> &templateGroups, float minThresh, float maxThresh) {
     assert(!templateGroups.empty());
     assert(minThresh >= 0);
     assert(maxThresh >= 0);
@@ -66,8 +66,8 @@ cv::Vec3i extractMinEdgels(std::vector<TemplateGroup> &templateGroups, double mi
         for (auto &t : group.templates) {
             filterSobel(t.srcDepth, tplSobel);
             thresholdMinMax(tplSobel, tplSobel, minThresh, maxThresh);
-            cv::integral(t.srcDepth, tplIntegral, CV_64F);
-            edgels = static_cast<int>(tplIntegral.at<double>(tplIntegral.rows - 1, tplIntegral.cols - 1));
+            cv::integral(t.srcDepth, tplIntegral, CV_32F);
+            edgels = static_cast<int>(tplIntegral.at<float>(tplIntegral.rows - 1, tplIntegral.cols - 1));
 
             if (edgels < output[0]) {
                 output[0] = edgels;
@@ -80,7 +80,7 @@ cv::Vec3i extractMinEdgels(std::vector<TemplateGroup> &templateGroups, double mi
     return output;
 }
 
-cv::Rect objectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &sceneColor, cv::Vec3i minEdgels, double minThresh, double maxThresh) {
+cv::Rect objectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &sceneColor, cv::Vec3i minEdgels, float minThresh, float maxThresh) {
     // Edgels count and template bounding box should be greater than 0
     assert(minEdgels[0] > 0);
     assert(minEdgels[1] > 0);
@@ -102,7 +102,7 @@ cv::Rect objectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &sceneColor, cv
 
     // Calculate image integral
     cv::Mat sceneIntegral;
-    cv::integral(sceneSobel, sceneIntegral, CV_64F);
+    cv::integral(sceneSobel, sceneIntegral, CV_32F);
 
     // Set min number of edgels to 30% of original
     minEdgels[0] *= 0.30;
@@ -117,10 +117,10 @@ cv::Rect objectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &sceneColor, cv
         for (int x = 0; x < sceneSobel.cols - sizeX; x += stepX) {
 
             // Calc edgel value in current sliding window with help of image integral
-            double sceneEdgels = sceneIntegral.at<double>(y + sizeY, x + sizeX)
-                - sceneIntegral.at<double>(y, x + sizeX)
-                - sceneIntegral.at<double>(y + sizeY, x)
-                + sceneIntegral.at<double>(y, x);
+            float sceneEdgels = sceneIntegral.at<float>(y + sizeY, x + sizeX)
+                - sceneIntegral.at<float>(y, x + sizeX)
+                - sceneIntegral.at<float>(y + sizeY, x)
+                + sceneIntegral.at<float>(y, x);
 
             // Check if current window contains at least 30% of tpl edgels, if yes, save window variables
             if (sceneEdgels >= minEdgels[0]) {
@@ -130,7 +130,7 @@ cv::Rect objectness(cv::Mat &scene, cv::Mat &sceneDepth, cv::Mat &sceneColor, cv
 
             // Draw text into corresponding rect with edgel count
             std::stringstream ss;
-            ss << "T: " << minEdgels;
+            ss << "T: " << minEdgels[0];
             cv::putText(sceneColor, ss.str(), cv::Point(x + 3, y + sizeY - 20), CV_FONT_HERSHEY_SIMPLEX, 0.45, cv::Vec3b(190, 190, 190));
             ss.str("");
             ss << "S: " << sceneEdgels;
