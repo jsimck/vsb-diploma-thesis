@@ -11,10 +11,11 @@ private:
     cv::Vec3f minEdgels;
     std::string basePath;
     std::string scenePath;
+    std::string sceneName;
     std::vector<std::string> templateFolders;
 
     cv::Mat scene;
-    cv::Mat sceneColor;
+    cv::Mat sceneGrayscale;
     cv::Mat sceneDepth;
     cv::Mat sceneDepthNormalized;
 
@@ -28,10 +29,13 @@ private:
     void parseTemplates();
     void extractMinEdgels();
     void trainHashTables();
+    void loadScene();
 public:
+    // Constructors
     Classifier();
     Classifier(std::string basePath, std::vector<std::string> templateFolders);
     Classifier(std::string basePath, std::vector<std::string> templateFolders, std::string scenePath);
+    Classifier(std::string basePath, std::vector<std::string> templateFolders, std::string scenePath, std::string sceneName);
 
     // Methods
     void classify();
@@ -39,23 +43,25 @@ public:
 
     // Getters
     const cv::Vec3f &getMinEdgels() const;
-    const std::vector<HashTable> &getHashTables() const;
     const std::string &getBasePath() const;
-    const std::vector<TemplateGroup> &getTemplateGroups() const;
-    const std::string &getScenePath() const;
     const std::vector<std::string> &getTemplateFolders() const;
-    const cv::Mat &getSceneDepthNormalized() const;
-    const cv::Mat &getSceneDepth() const;
-    const cv::Mat &getSceneColor() const;
+    const std::string &getScenePath() const;
+    const std::string &getSceneName() const;
     const cv::Mat &getScene() const;
+    const cv::Mat &getSceneGrayscale() const;
+    const cv::Mat &getSceneDepth() const;
+    const cv::Mat &getSceneDepthNormalized() const;
+    const std::vector<TemplateGroup> &getTemplateGroups() const;
+    const std::vector<HashTable> &getHashTables() const;
 
     // Setters
     void setMinEdgels(const cv::Vec3f &minEdgels);
     void setBasePath(const std::string &basePath);
-    void setScenePath(const std::string &scenePath);
     void setTemplateFolders(const std::vector<std::string> &templateFolders);
+    void setScenePath(const std::string &scenePath);
+    void setSceneName(const std::string &sceneName);
     void setScene(const cv::Mat &scene);
-    void setSceneColor(const cv::Mat &sceneColor);
+    void setSceneGrayscale(const cv::Mat &sceneGrayscale);
     void setSceneDepth(const cv::Mat &sceneDepth);
     void setSceneDepthNormalized(const cv::Mat &sceneDepthNormalized);
     void setTemplateGroups(const std::vector<TemplateGroup> &templateGroups);

@@ -12,6 +12,10 @@ public:
     Triplet triplet;
     std::unordered_map<HashKey, std::vector<Template>, HashKeyHasher> templates;
 
+    // Constructors
+    HashTable() {}
+
+    // Operators
     friend std::ostream &operator<<(std::ostream &os, const HashTable &table);
 };
 

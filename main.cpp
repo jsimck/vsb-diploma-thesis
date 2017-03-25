@@ -1,7 +1,5 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include <opencv2/saliency.hpp>
-#include "utils/template_parser.h"
 #include "objdetect/matching.h"
 #include "objdetect/objectness.h"
 #include "utils/timer.h"
@@ -11,7 +9,7 @@
 int main() {
     // Init classifier
     const std::vector<std::string> tplNames = { "02", "25", "29", "30" };
-    Classifier classifier("data/", tplNames, "scene_01/");
+    Classifier classifier("data/", tplNames, "scene_01/", "0368.png");
 
     // Init indices
     std::unique_ptr<std::vector<int>> indices { new std::vector<int>() };
@@ -20,8 +18,8 @@ int main() {
     std::copy(&indiciesData[0], &indiciesData[indiciesDataSize], std::back_inserter(*indices));
 
     // Run classifier
-//    classifier.classify();
-    classifier.classifyTest(indices);
+    classifier.classify();
+//    classifier.classifyTest(indices);
 
     return 0;
 //    std::vector<TemplateGroup> templateGroups;

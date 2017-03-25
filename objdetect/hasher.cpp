@@ -2,6 +2,9 @@
 #include "hasher.h"
 
 cv::Vec3d Hasher::extractSurfaceNormal(const cv::Mat &src, cv::Point c) {
+    // Checks
+    assert(!src.empty());
+
     float dzdx = (src.at<float>(c.y, c.x + 1) - src.at<float>(c.y, c.x - 1)) / 2.0f;
     float dzdy = (src.at<float>(c.y + 1, c.x) - src.at<float>(c.y - 1, c.x)) / 2.0f;
     cv::Vec3f d(-dzdy, -dzdx, 1.0f);
@@ -10,10 +13,8 @@ cv::Vec3d Hasher::extractSurfaceNormal(const cv::Mat &src, cv::Point c) {
 }
 
 int Hasher::quantizeSurfaceNormals(cv::Vec3f normal) {
-    // Normal should not be === 0, always at least z > 2
-    if (normal[0] < 0 && normal[1] < 0 && normal[2] < 0) {
-        std::cout << normal << std::endl;
-    }
+    // Normal z coordinate should not be > 0
+    assert(normal[2] >= 0);
 
     // For quantization of surface normals into 8 bins
     // in our case z is always positive, that's why we're using
@@ -50,6 +51,9 @@ int Hasher::quantizeSurfaceNormals(cv::Vec3f normal) {
 }
 
 int Hasher::quantizeDepths(float depth) {
+    // Depth should have max value of <-65536, +65536>
+    assert(depth >= -65536 && depth <= 65536);
+
     // TODO WRONG - relative depths can have <-65k, +65k> values
     if (depth <= 13107) {
         return 0; // 1. bin
@@ -67,6 +71,7 @@ int Hasher::quantizeDepths(float depth) {
 void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables, unsigned int numberOfHashTables) {
     // Checks
     assert(groups.size() > 0);
+    assert(numberOfHashTables > 0);
 
     // Init hash tables
     hashTables.reserve(numberOfHashTables);
@@ -82,7 +87,7 @@ void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTab
             for (auto &t : group.templates) {
                 // Generate triplet params
                 float stepX = t.srcDepth.cols / static_cast<float>(this->featurePointsGrid.width);
-                float stepY = t.srcDepth.cols / static_cast<float>(this->featurePointsGrid.height);
+                float stepY = t.srcDepth.rows / static_cast<float>(this->featurePointsGrid.height);
                 float offsetX = stepX / 2.0f;
                 float offsetY = stepY / 2.0f;
 
@@ -90,6 +95,14 @@ void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTab
                 cv::Point p1 = hashTable.triplet.getP1Coords(offsetX, stepX, offsetY, stepY);
                 cv::Point p2 = hashTable.triplet.getP2Coords(offsetX, stepX, offsetY, stepY);
                 cv::Point p3 = hashTable.triplet.getP3Coords(offsetX, stepX, offsetY, stepY);
+
+                // Check if we're not out of bounds
+                assert(p1.x > 0 && p1.x < t.srcDepth.cols);
+                assert(p1.y > 0 && p1.y < t.srcDepth.rows);
+                assert(p2.x > 0 && p2.x < t.srcDepth.cols);
+                assert(p2.y > 0 && p2.y < t.srcDepth.rows);
+                assert(p3.x > 0 && p3.x < t.srcDepth.cols);
+                assert(p3.y > 0 && p3.y < t.srcDepth.rows);
 
                 // Relative depths
                 float d1 = t.srcDepth.at<float>(p2) - t.srcDepth.at<float>(p1);
@@ -128,5 +141,6 @@ const cv::Size Hasher::getFeaturePointsGrid() {
 }
 
 void Hasher::setFeaturePointsGrid(cv::Size featurePointsGrid) {
+    assert(featurePointsGrid.height > 0 && featurePointsGrid.width > 0);
     this->featurePointsGrid = featurePointsGrid;
 }

@@ -24,6 +24,7 @@ public:
     void parse(std::vector<TemplateGroup> &groups);
     void parseTemplate(std::vector<Template> &templates, std::string tplName);
     void parseTemplate(std::vector<Template> &templates, std::string tplName, std::unique_ptr<std::vector<int>> &indices);
+    void clearIndices();
 
     // Getters
     static int getIdCounter();

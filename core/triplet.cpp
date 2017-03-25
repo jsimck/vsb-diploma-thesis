@@ -58,8 +58,8 @@ float Triplet::random(const float rangeMin, const float rangeMax) {
 
 cv::Point Triplet::randomPoint(const cv::Size referencePointsGrid) {
     return cv::Point(
-        static_cast<int>(random(0, referencePointsGrid.width)),
-        static_cast<int>(random(0, referencePointsGrid.height))
+        static_cast<int>(random(0, referencePointsGrid.width - 1)),
+        static_cast<int>(random(0, referencePointsGrid.height - 1))
     );
 }
 

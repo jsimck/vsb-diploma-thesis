@@ -18,8 +18,10 @@ public:
         int key[5];
     };
 
+    // Constructors
     HashKey(int d1, int d2, int n1, int n2, int n3) : d1(d1), d2(d2), n1(n1), n2(n2), n3(n3) {}
 
+    // Operators
     bool operator==(const HashKey &rhs) const;
     bool operator!=(const HashKey &rhs) const;
     friend std::ostream &operator<<(std::ostream &os, const HashKey &key);

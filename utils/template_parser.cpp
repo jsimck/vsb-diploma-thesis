@@ -4,6 +4,10 @@
 int TemplateParser::idCounter = 0;
 
 void TemplateParser::parse(std::vector<TemplateGroup> &groups) {
+    // Checks
+    assert(this->templateFolders.size() > 0);
+
+    // Parse
     for (auto &&tplName : this->templateFolders) {
         std::vector<Template> templates;
 
@@ -109,8 +113,19 @@ Template TemplateParser::parseGt(int index, std::string path, cv::FileNode &gtNo
     srcDepth = srcDepth(objBB);
 
     // Convert to float
-    src.convertTo(src, CV_32FC1, 1.0f / 255.0f);
-    srcDepth.convertTo(srcDepth, CV_32FC1); // because of surface normal calculation, don't doo normalization
+    src.convertTo(src, CV_32F, 1.0f / 255.0f);
+    srcDepth.convertTo(srcDepth, CV_32F); // because of surface normal calculation, don't doo normalization
+
+    // Checks
+    assert(!vObjBB.empty());
+    assert(!vCamRm2c.empty());
+    assert(!vCamTm2c.empty());
+    assert(!src.empty());
+    assert(!srcDepth.empty());
+
+    // Matrix type checks
+    assert(src.type() == 5); // CV_32FC1
+    assert(srcDepth.type() == 5); // CV_32FC1
 
     return Template(
         this->idCounter, fileName, src, srcDepth, objBB,
@@ -129,17 +144,26 @@ void TemplateParser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
     infoNode["elev"] >> elev;
     infoNode["mode"] >> mode;
 
+    // Checks
+    assert(!vCamK.empty());
+
     // Assign new params to template
     tpl.elev = elev;
     tpl.mode = mode;
     tpl.camK = cv::Mat(3, 3, CV_32FC1, vCamK.data()).clone();
 }
 
-void TemplateParser::setBasePath(std::string path) {
-    if (path.compare(path.size() - 1, 1, "/") != 0) {
-        path = path + "/";
-    }
+void TemplateParser::clearIndices() {
+    this->indices = nullptr;
+}
 
+int TemplateParser::getIdCounter() {
+    return idCounter;
+}
+
+void TemplateParser::setBasePath(std::string path) {
+    assert(path.length() > 0);
+    assert(path[path.length() - 1] == '/');
     this->basePath = path;
 }
 
@@ -148,6 +172,7 @@ std::string TemplateParser::getBasePath() const {
 }
 
 void TemplateParser::setTplCount(unsigned int tplCount) {
+    assert(tplCount > 0);
     this->tplCount = tplCount;
 }
 
@@ -155,23 +180,19 @@ unsigned int TemplateParser::getTplCount() const {
     return this->tplCount;
 }
 
-const std::vector<std::string> &TemplateParser::getTemplateFolders() const {
-    return this->templateFolders;
-}
-
 void TemplateParser::setTemplateFolders(const std::vector<std::string> &templateFolders) {
     this->templateFolders = templateFolders;
 }
 
-int TemplateParser::getIdCounter() {
-    return idCounter;
+const std::vector<std::string> &TemplateParser::getTemplateFolders() const {
+    return this->templateFolders;
+}
+
+void TemplateParser::setIndices(std::unique_ptr<std::vector<int>> &indices) {
+    assert(indices->size() > 0);
+    this->indices.swap(indices);
 }
 
 const std::unique_ptr<std::vector<int>> &TemplateParser::getIndices() const {
     return this->indices;
 }
-
-void TemplateParser::setIndices(std::unique_ptr<std::vector<int>> &indices) {
-    this->indices.swap(indices);
-}
-
