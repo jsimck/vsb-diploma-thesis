@@ -24,34 +24,34 @@ int main() {
 
     /// ***** PREPARATION STAGE - START *****
     // Parse templates (groups)
-//    std::cout << "Parsing... " << std::endl;
-//    std::vector<std::string> tplNames = { "02", "25", "29", "30" };
-//    parser.parse(templateGroups, tplNames);
-//    std::cout << "DONE! " << templateGroups.size() << " template groups parsed" << std::endl << std::endl;
-//
-//    // Get number of edgels of template containing least amount of them
-//    std::cout << "Extracting minimum of template edgels... " << std::endl;
-//    cv::Vec3i minEdgels = extractMinEdgels(templateGroups);
-//    std::cout << "DONE! " << minEdgels << " minimum found" <<std::endl << std::endl;
-    /// ***** PREPARATION STAGE - END *****
-
-
-    /// Test DATA - START
-    std::vector<int> indices = { 0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478 };
-
-    std::vector<Template> templatesObj1, templatesObj9;
-    parser.parseTemplate(templatesObj1, "02", indices);
-    parser.parseTemplate(templatesObj9, "25", indices);
-
-    TemplateGroup group1("02", templatesObj1);
-    TemplateGroup group2("25", templatesObj9);
-
-    templateGroups.push_back(group1);
-    templateGroups.push_back(group2);
+    std::cout << "Parsing... " << std::endl;
+    std::vector<std::string> tplNames = { "02", "25", "29", "30" };
+    parser.parse(templateGroups, tplNames);
+    std::cout << "DONE! " << templateGroups.size() << " template groups parsed" << std::endl << std::endl;
 
     // Get number of edgels of template containing least amount of them
     std::cout << "Extracting minimum of template edgels... " << std::endl;
     cv::Vec3i minEdgels = extractMinEdgels(templateGroups);
+    std::cout << "DONE! " << minEdgels << " minimum found" <<std::endl << std::endl;
+    /// ***** PREPARATION STAGE - END *****
+
+
+    /// Test DATA - START
+//    std::vector<int> indices = { 0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478 };
+//
+//    std::vector<Template> templatesObj1, templatesObj9;
+//    parser.parseTemplate(templatesObj1, "02", indices);
+//    parser.parseTemplate(templatesObj9, "25", indices);
+//
+//    TemplateGroup group1("02", templatesObj1);
+//    TemplateGroup group2("25", templatesObj9);
+//
+//    templateGroups.push_back(group1);
+//    templateGroups.push_back(group2);
+//
+//    // Get number of edgels of template containing least amount of them
+//    std::cout << "Extracting minimum of template edgels... " << std::endl;
+//    cv::Vec3i minEdgels = extractMinEdgels(templateGroups);
     /// Test DATA - END
 
 
