@@ -13,8 +13,8 @@ int main() {
 
     // Init indices
     std::unique_ptr<std::vector<int>> indices { new std::vector<int>() };
-    const int indiciesDataSize = 15;
-    int indiciesData[] = { 0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478, 1095, 1015, 0072 };
+    const int indiciesDataSize = 14;
+    int indiciesData[] = { 0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478, 1095, 1015, 72 };
     std::copy(&indiciesData[0], &indiciesData[indiciesDataSize], std::back_inserter(*indices));
 
     // Run classifier

@@ -69,13 +69,114 @@ int Hasher::quantizeDepths(float depth) {
     }
 }
 
-void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables, unsigned int numberOfHashTables) {
+void Hasher::generateTriplets(std::vector<HashTable> &hashTables) {
+    // Generate triplets
+    for (int i = 0; i < hashTableCount; ++i) {
+        HashTable h(Triplet::createRandomTriplet(featurePointsGrid));
+        hashTables.push_back(h);
+    }
+
+    // TODO - joint entropy of 5k templates, instead of 100 templates
+    // Check for unique triplets, and regenerate duplicates
+    bool duplicate;
+    do {
+        duplicate = false;
+        for (int i = 0; i < hashTables.size(); ++i) {
+            for (int j = 0; j < hashTables.size(); ++j) {
+                // Don't compare same triplets
+                if (i == j) continue;
+                if (hashTables[i].triplet == hashTables[j].triplet) {
+                    // Duplicate generate new triplet
+                    duplicate = true;
+                    hashTables[j].triplet = Triplet::createRandomTriplet(featurePointsGrid);
+                }
+            }
+        }
+    } while (duplicate);
+}
+
+void Hasher::calculateDepthBins(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables) {
+    // Histogram values <-65535, +65535> possible values
+    const int valuesDepth = 65536;
+    int histogramValues[2 * valuesDepth - 1]; // one zero
+
+    // Calculate histogram values, using generated triplets and relative depths calculation
+    for (int i = 0; i < hashTables.size(); ++i) {
+        for (auto &&group : groups) {
+            for (auto &&t : group.templates) {
+                // Checks
+                assert(!t.srcDepth.empty());
+
+                // Generate triplet params
+                float stepX = t.srcDepth.cols / static_cast<float>(featurePointsGrid.width);
+                float stepY = t.srcDepth.rows / static_cast<float>(featurePointsGrid.height);
+                float offsetX = stepX / 2.0f;
+                float offsetY = stepY / 2.0f;
+
+                // Get triplet points
+                cv::Point p1 = hashTables[i].triplet.getP1Coords(offsetX, stepX, offsetY, stepY);
+                cv::Point p2 = hashTables[i].triplet.getP2Coords(offsetX, stepX, offsetY, stepY);
+                cv::Point p3 = hashTables[i].triplet.getP3Coords(offsetX, stepX, offsetY, stepY);
+
+                // Check if we're not out of bounds
+                assert(p1.x >= 0 && p1.x < t.srcDepth.cols);
+                assert(p1.y >= 0 && p1.y < t.srcDepth.rows);
+                assert(p2.x >= 0 && p2.x < t.srcDepth.cols);
+                assert(p2.y >= 0 && p2.y < t.srcDepth.rows);
+                assert(p3.x >= 0 && p3.x < t.srcDepth.cols);
+                assert(p3.y >= 0 && p3.y < t.srcDepth.rows);
+
+                // Relative depths
+                int d1 = static_cast<int>(t.srcDepth.at<float>(p2) - t.srcDepth.at<float>(p1));
+                int d2 = static_cast<int>(t.srcDepth.at<float>(p3) - t.srcDepth.at<float>(p1));
+
+                // Add offset and count given values
+                histogramValues[d1 + valuesDepth] += 1;
+                histogramValues[d2 + valuesDepth] += 1;
+            }
+        }
+    }
+
+    // Print values in 2 intervals
+    int negSum = 0, posSum = 0;
+    std::cout << "NEGATIVE" << std::endl;
+    for(int i = 0; i < valuesDepth; i++) {
+        // Negative
+        if (histogramValues[i] > 0) {
+            negSum += histogramValues[i];
+        }
+    }
+
+    std::cout << "POSITIVE" << std::endl;
+    for(int j = valuesDepth; j < (valuesDepth * 2 - 1); j++) {
+        // Positive
+        if (histogramValues[j] > 0) {
+            posSum += histogramValues[j];
+        }
+    }
+
+    std::cout << "NegSum: " << negSum << std::endl;
+    std::cout << "PosSum: " << posSum << std::endl;
+}
+
+void Hasher::initialize(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables) {
     // Checks
     assert(groups.size() > 0);
-    assert(numberOfHashTables > 0);
+    assert(hashTableCount > 0);
+    assert(featurePointsGrid.width > 0);
+    assert(featurePointsGrid.height > 0);
 
     // Init hash tables
-    hashTables.reserve(numberOfHashTables);
+    hashTables.reserve(hashTableCount);
+    generateTriplets(hashTables);
+
+    // Calculate ranges of depth bins for training
+    calculateDepthBins(groups, hashTables);
+}
+
+void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables) {
+    // Prepare hash tables
+    initialize(groups, hashTables);
 
     // Generate triplets
     for (int i = 0; i < 100; ++i) {
@@ -86,6 +187,9 @@ void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTab
 
         for (auto &group : groups) {
             for (auto &t : group.templates) {
+                // Checks
+                assert(!t.srcDepth.empty());
+
                 // Generate triplet params
                 float stepX = t.srcDepth.cols / static_cast<float>(featurePointsGrid.width);
                 float stepY = t.srcDepth.rows / static_cast<float>(featurePointsGrid.height);
@@ -243,7 +347,16 @@ const cv::Size Hasher::getFeaturePointsGrid() {
     return featurePointsGrid;
 }
 
+unsigned int Hasher::getHashTableCount() const {
+    return hashTableCount;
+}
+
 void Hasher::setFeaturePointsGrid(cv::Size featurePointsGrid) {
     assert(featurePointsGrid.height > 0 && featurePointsGrid.width > 0);
     this->featurePointsGrid = featurePointsGrid;
+}
+
+void Hasher::setHashTableCount(unsigned int hashTableCount) {
+    assert(hashTableCount > 0);
+    this->hashTableCount = hashTableCount;
 }

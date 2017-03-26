@@ -1,6 +1,7 @@
 #include <random>
 #include <functional>
 #include <iostream>
+#include <cassert>
 #include "triplet.h"
 
 // Init uniform distribution engine
@@ -63,7 +64,12 @@ cv::Point Triplet::randomPoint(const cv::Size referencePointsGrid) {
     );
 }
 
-Triplet Triplet::createRandomTriplet(cv::Size referencePointsGrid) {
+Triplet Triplet::createRandomTriplet(const cv::Size &referencePointsGrid) {
+    // Checks
+    assert(referencePointsGrid.width > 0);
+    assert(referencePointsGrid.height > 0);
+
+    // Generate points
     cv::Point c(randomPoint(referencePointsGrid));
     cv::Point p1(randomPoint(referencePointsGrid));
     cv::Point p2(randomPoint(referencePointsGrid));
@@ -87,4 +93,15 @@ std::ostream &operator<<(std::ostream &os, const Triplet &triplet) {
     os << "p1(" << triplet.p2.x  << ", " << triplet.p2.y << "), ";
     os << "p2(" << triplet.p3.x  << ", " << triplet.p3.y << ") ";
     return os;
+}
+
+bool Triplet::operator==(const Triplet &rhs) const {
+    // We ignore order of points
+    return (p1 == rhs.p1 || p1 == rhs.p2 || p1 == rhs.p3) &&
+        (p2 == rhs.p1 || p2 == rhs.p2 || p2 == rhs.p3) &&
+        (p3 == rhs.p1 || p3 == rhs.p2 || p3 == rhs.p3);
+}
+
+bool Triplet::operator!=(const Triplet &rhs) const {
+    return !(rhs == *this);
 }

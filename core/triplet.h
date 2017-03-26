@@ -21,7 +21,7 @@ public:
 
     // Statics
     static float random(const float rangeMin = 0.0f, const float rangeMax = 1.0f);
-    static Triplet createRandomTriplet(const cv::Size referencePointsGrid);
+    static Triplet createRandomTriplet(const cv::Size &referencePointsGrid);
 
     // Constructors
     Triplet() {}
@@ -35,6 +35,8 @@ public:
 
     // Operators
     friend std::ostream &operator<<(std::ostream &os, const Triplet &triplet);
+    bool operator==(const Triplet &rhs) const;
+    bool operator!=(const Triplet &rhs) const;
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_TRIPLET_H

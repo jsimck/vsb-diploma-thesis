@@ -20,6 +20,7 @@ public:
 
     // Constructors
     HashTable() {}
+    HashTable(Triplet triplet) : triplet(triplet){}
 
     // Operators
     friend std::ostream &operator<<(std::ostream &os, const HashTable &table);
