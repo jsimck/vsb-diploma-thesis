@@ -16,6 +16,7 @@ public:
     std::vector<Template> templates;
 
     // Constructors
+    TemplateGroup() {}
     TemplateGroup(std::string folderName, std::vector<Template> templates)
             : folderName(folderName), templates(templates) {}
 };

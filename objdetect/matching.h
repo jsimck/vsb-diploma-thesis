@@ -16,6 +16,6 @@ std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::
 cv::Scalar matRoiMean(cv::Size maskSize, cv::Rect roi);
 
 // Concludes template matching using CROSS CORRELATION function on given template groups and input image
-std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vector<TemplateGroup> &groups);
+std::vector<cv::Rect> matchTemplate(const cv::Mat &input, cv::Rect inputRoi, std::vector<TemplateGroup> &groups);
 
 #endif //VSB_SEMESTRAL_PROJECT_MATCHING_H

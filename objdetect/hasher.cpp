@@ -1,5 +1,6 @@
 #include <unordered_set>
 #include "hasher.h"
+#include "matching.h"
 
 cv::Vec3d Hasher::extractSurfaceNormal(const cv::Mat &src, cv::Point c) {
     // Checks
@@ -55,13 +56,13 @@ int Hasher::quantizeDepths(float depth) {
     assert(depth >= -65536 && depth <= 65536);
 
     // TODO WRONG - relative depths can have <-65k, +65k> values
-    if (depth <= 13107) {
+    if (depth >= -500 && depth <= 500) {
         return 0; // 1. bin
-    } else if (depth > 13107 && depth <= 26214) {
+    } else if (depth >= -1000 && depth <= 1000) {
         return 1; // 2. bin
-    } else if (depth > 26214 && depth <= 39321) {
+    } else if (depth >= -3000 && depth <= 3000) {
         return 2; // 3. bin
-    } else if (depth > 39321 && depth <= 52428) {
+    } else if (depth >= -6000 && depth <= 6000) {
         return 3; // 4. bin
     } else {
         return 4; // 5. bin
@@ -117,6 +118,7 @@ void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTab
                     quantizeSurfaceNormals(extractSurfaceNormal(t.srcDepth, p3))
                 );
 
+                // TODO - maybe can be done better
                 // Check if key exists, if not initialize it
                 if (hashTable.templates.find(key) == hashTable.templates.end()) {
                     std::vector<Template> hashTemplates;
@@ -134,6 +136,87 @@ void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTab
         // Push hash table to list
         hashTables.push_back(hashTable);
     }
+}
+
+void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, cv::Rect &objectnessROI, std::vector<HashTable> &hashTables) {
+    // Sliding window - fixed WIDTH
+    cv::Size w(120, 120);
+    cv::Mat s = sceneGrayscale.clone();
+    int step = 5;
+    
+    // Passed templates
+    std::vector<Template> templates;
+    const int v = 3;
+
+    for (int y = objectnessROI.y; y < (objectnessROI.y + objectnessROI.height) - w.height; y += step) {
+        for (int x = objectnessROI.x; x < (objectnessROI.x + objectnessROI.width) - w.width; x += step) {
+            s = sceneGrayscale.clone();
+            cv::rectangle(s, cv::Point(x, y), cv::Point(x + w.width, y + w.height), cv::Scalar(1.0f));
+
+            for (auto &hashTable : hashTables) {
+                // Generate triplet params
+                float stepX = w.width / static_cast<float>(featurePointsGrid.width);
+                float stepY = w.height / static_cast<float>(featurePointsGrid.height);
+                float offsetX = stepX / 2.0f;
+                float offsetY = stepY / 2.0f;
+
+                // Get triplet points
+                cv::Point p1 = hashTable.triplet.getP1Coords(offsetX, stepX, offsetY, stepY);
+                cv::Point p2 = hashTable.triplet.getP2Coords(offsetX, stepX, offsetY, stepY);
+                cv::Point p3 = hashTable.triplet.getP3Coords(offsetX, stepX, offsetY, stepY);
+
+                // Check if we're not out of bounds
+                assert(p1.x >= 0 && p1.x < t.srcDepth.cols);
+                assert(p1.y >= 0 && p1.y < t.srcDepth.rows);
+                assert(p2.x >= 0 && p2.x < t.srcDepth.cols);
+                assert(p2.y >= 0 && p2.y < t.srcDepth.rows);
+                assert(p3.x >= 0 && p3.x < t.srcDepth.cols);
+                assert(p3.y >= 0 && p3.y < t.srcDepth.rows);
+
+                // Relative depths
+                float d1 = s.at<float>(p2) - s.at<float>(p1);
+                float d2 = s.at<float>(p3) - s.at<float>(p1);
+
+                // Generate hash key
+                HashKey key(
+                    quantizeDepths(d1),
+                    quantizeDepths(d2),
+                    quantizeSurfaceNormals(extractSurfaceNormal(s, p1)),
+                    quantizeSurfaceNormals(extractSurfaceNormal(s, p2)),
+                    quantizeSurfaceNormals(extractSurfaceNormal(s, p3))
+                );
+
+                // Up votes
+                for (auto &entry : hashTable.templates[key]) {
+                    entry.voteUp();
+                    if (entry.votes > v) {
+                        // Check if it is not yet in templates
+                        if (std::find(templates.begin(), templates.end(), entry) == templates.end()) {
+                            templates.push_back(entry);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Print filtered size
+    std::cout << "Number of templates after filter applied: " << templates.size() << std::endl;
+    std::vector<TemplateGroup> groups;
+    TemplateGroup g1("obj222", templates);
+    groups.push_back(g1);
+
+    // Run matching for found templates
+    std::vector<cv::Rect> resultBBs = matchTemplate(sceneGrayscale, objectnessROI, groups);
+
+    // Show results
+    s = sceneGrayscale.clone();
+    for (int i = 0; i < resultBBs.size(); i++) {
+        cv::rectangle(s, resultBBs[i], cv::Scalar(1.0f), 1);
+    }
+
+    cv::imshow("Hasher, test after filtered templates", s);
+    cv::waitKey(0);
 }
 
 const cv::Size Hasher::getFeaturePointsGrid() {

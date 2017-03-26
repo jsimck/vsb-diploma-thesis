@@ -27,6 +27,7 @@ public:
 
     // Methods
     void train(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables, unsigned int numberOfHashTables = 100);
+    void verifyTemplateCandidates(const cv::Mat &scene, cv::Rect &objectnessROI, std::vector<HashTable> &hashTables);
 
     // Getters
     const cv::Size getFeaturePointsGrid();

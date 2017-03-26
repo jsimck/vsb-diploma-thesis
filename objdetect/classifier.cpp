@@ -111,6 +111,12 @@ void Classifier::detectObjectness() {
     std::cout << "DONE! " << objectnessROI << " bounding box extracted" <<std::endl << std::endl;
 }
 
+void Classifier::verifyTemplateCandidates() {
+    // Verification started
+    std::cout << "Verification of template candidates, using trained HashTable started... " << std::endl;
+    hasher.verifyTemplateCandidates(sceneGrayscale, objectnessROI, hashTables);
+}
+
 void Classifier::classify() {
     // Load scene images
     loadScene();
@@ -127,6 +133,9 @@ void Classifier::classify() {
 
     // Objectness detection
     detectObjectness();
+
+    // Verification and filtering of template candidates
+    verifyTemplateCandidates();
 }
 
 void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
@@ -146,6 +155,9 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
 
     // Objectness detection
     detectObjectness();
+
+    // Verification and filtering of template candidates
+    verifyTemplateCandidates();
 }
 
 // Getters and setters

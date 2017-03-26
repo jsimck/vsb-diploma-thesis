@@ -10,7 +10,8 @@ std::ostream &operator<<(std::ostream &os, const Template &t) {
        << "camRm2c: " << t.camRm2c << std::endl
        << "camTm2c: " << t.camTm2c  << std::endl
        << "elev: " << t.elev  << std::endl
-       << "mode: " << t.mode;
+       << "mode: " << t.mode << std::endl
+       << "votes: " << t.votes;
 
     return os;
 }
@@ -24,4 +25,8 @@ bool Template::operator==(const Template &rhs) const {
 
 bool Template::operator!=(const Template &rhs) const {
     return !(rhs == *this);
+}
+
+void Template::voteUp() {
+    this->votes++;
 }

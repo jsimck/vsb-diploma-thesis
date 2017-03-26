@@ -100,7 +100,7 @@ cv::Scalar matRoiMean(cv::Size maskSize, cv::Rect roi) {
     return cv::mean(maskRoi);
 }
 
-std::vector<cv::Rect> matchTemplate(cv::Mat &input, cv::Rect inputRoi, std::vector<TemplateGroup> &groups) {
+std::vector<cv::Rect> matchTemplate(const cv::Mat &input, cv::Rect inputRoi, std::vector<TemplateGroup> &groups) {
     // Checks
     assert(!input.empty());
     assert(inputRoi.area() > 0);

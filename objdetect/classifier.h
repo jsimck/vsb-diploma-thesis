@@ -42,6 +42,7 @@ private:
     void trainHashTables();
     void initObjectness();
     void detectObjectness();
+    void verifyTemplateCandidates();
     void loadScene();
 public:
     // Constructors
