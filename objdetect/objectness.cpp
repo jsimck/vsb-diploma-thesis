@@ -125,6 +125,10 @@ cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv
     assert(sceneDepthNormalized.type() == 5); // CV_32FC1
     assert(sceneColor.type() == 16); // CV_8UC3
 
+#ifndef NDEBUG
+    cv::Mat resultScene = sceneColor.clone();
+#endif
+
     // Apply sobel filter and thresholding on normalized Depth scene (<0, 1> px values)
     cv::Mat sceneSobel;
     filterSobel(sceneDepthNormalized, sceneSobel);
@@ -153,14 +157,14 @@ cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv
             if (sceneEdgels >= minEdgels[0]) {
                 windows.push_back(cv::Vec4i(x, y, x + sizeX, y + sizeY));
 #ifndef NDEBUG
-            cv::rectangle(sceneColor, cv::Point(x, y), cv::Point(x + sizeX, y + sizeY), cv::Vec3b(190, 190, 190));
+            cv::rectangle(resultScene, cv::Point(x, y), cv::Point(x + sizeX, y + sizeY), cv::Vec3b(190, 190, 190));
 
             std::stringstream ss;
             ss << "T: " << minEdgels[0];
-            cv::putText(sceneColor, ss.str(), cv::Point(x + 3, y + sizeY - 15), CV_FONT_HERSHEY_SIMPLEX, 0.3, cv::Vec3b(255, 255, 255));
+            cv::putText(resultScene, ss.str(), cv::Point(x + 3, y + sizeY - 15), CV_FONT_HERSHEY_SIMPLEX, 0.3, cv::Vec3b(255, 255, 255));
             ss.str("");
             ss << "S: " << sceneEdgels;
-            cv::putText(sceneColor, ss.str(), cv::Point(x + 3, y + sizeY - 5), CV_FONT_HERSHEY_SIMPLEX, 0.3, cv::Vec3b(255, 255, 255));
+            cv::putText(resultScene, ss.str(), cv::Point(x + 3, y + sizeY - 5), CV_FONT_HERSHEY_SIMPLEX, 0.3, cv::Vec3b(255, 255, 255));
 #endif
             }
         }
@@ -182,9 +186,10 @@ cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv
 
 #ifndef NDEBUG
     // Draw outer BB based on max/min values of all smaller boxes
-    cv::rectangle(sceneColor, cv::Point(minX, minY), cv::Point(maxX, maxY), cv::Vec3b(0, 255, 0), 2);
+    cv::rectangle(resultScene, cv::Point(minX, minY), cv::Point(maxX, maxY), cv::Vec3b(0, 255, 0), 2);
 
     // Show results
+    cv::imshow("Objectness::Result", resultScene);
     cv::imshow("Objectness::Depth Scene", sceneDepthNormalized);
     cv::imshow("Objectness::Sobel Scene", sceneSobel);
     cv::imshow("Objectness::Scene", sceneColor);
