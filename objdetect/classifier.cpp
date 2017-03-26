@@ -114,7 +114,7 @@ void Classifier::detectObjectness() {
 void Classifier::verifyTemplateCandidates() {
     // Verification started
     std::cout << "Verification of template candidates, using trained HashTable started... " << std::endl;
-    hasher.verifyTemplateCandidates(sceneGrayscale, objectnessROI, hashTables);
+    hasher.verifyTemplateCandidates(sceneGrayscale, objectnessROI, hashTables, templateGroups);
 }
 
 void Classifier::classify() {
@@ -154,7 +154,8 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
     trainHashTables();
 
     // Objectness detection
-    detectObjectness();
+//    detectObjectness();
+    setObjectnessROI(cv::Rect(155, 60, 419, 407));
 
     // Verification and filtering of template candidates
     verifyTemplateCandidates();

@@ -138,20 +138,24 @@ void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTab
     }
 }
 
-void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, cv::Rect &objectnessROI, std::vector<HashTable> &hashTables) {
+void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, cv::Rect &objectnessROI, std::vector<HashTable> &hashTables, std::vector<TemplateGroup> &groups) {
     // Sliding window - fixed WIDTH
     cv::Size w(120, 120);
     cv::Mat s = sceneGrayscale.clone();
     int step = 5;
     
     // Passed templates
-    std::vector<Template> templates;
+    std::vector<std::vector<Template*>> windowTemplates; // Each window can receive up to N templates
     const int v = 3;
+    int templatesPassedCount = 0;
 
     for (int y = objectnessROI.y; y < (objectnessROI.y + objectnessROI.height) - w.height; y += step) {
         for (int x = objectnessROI.x; x < (objectnessROI.x + objectnessROI.width) - w.width; x += step) {
             s = sceneGrayscale.clone();
             cv::rectangle(s, cv::Point(x, y), cv::Point(x + w.width, y + w.height), cv::Scalar(1.0f));
+
+            // Init templates for this window
+            std::vector<Template*> templates;
 
             for (auto &hashTable : hashTables) {
                 // Generate triplet params
@@ -166,12 +170,12 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, cv::Rect &o
                 cv::Point p3 = hashTable.triplet.getP3Coords(offsetX, stepX, offsetY, stepY);
 
                 // Check if we're not out of bounds
-                assert(p1.x >= 0 && p1.x < t.srcDepth.cols);
-                assert(p1.y >= 0 && p1.y < t.srcDepth.rows);
-                assert(p2.x >= 0 && p2.x < t.srcDepth.cols);
-                assert(p2.y >= 0 && p2.y < t.srcDepth.rows);
-                assert(p3.x >= 0 && p3.x < t.srcDepth.cols);
-                assert(p3.y >= 0 && p3.y < t.srcDepth.rows);
+                assert(p1.x >= 0 && p1.x < s.cols);
+                assert(p1.y >= 0 && p1.y < s.rows);
+                assert(p2.x >= 0 && p2.x < s.cols);
+                assert(p2.y >= 0 && p2.y < s.rows);
+                assert(p3.x >= 0 && p3.x < s.cols);
+                assert(p3.y >= 0 && p3.y < s.rows);
 
                 // Relative depths
                 float d1 = s.at<float>(p2) - s.at<float>(p1);
@@ -187,36 +191,33 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, cv::Rect &o
                 );
 
                 // Up votes
-                for (auto &entry : hashTable.templates[key]) {
+                for (auto &&entry : hashTable.templates[key]) {
                     entry.voteUp();
-                    if (entry.votes > v) {
+                    if (entry.votes >= v) {
                         // Check if it is not yet in templates
-                        if (std::find(templates.begin(), templates.end(), entry) == templates.end()) {
-                            templates.push_back(entry);
+                        if (std::find(templates.begin(), templates.end(), &entry) == templates.end()) {
+                            templates.push_back(&entry);
                         }
                     }
                 }
             }
+
+            // Reset votes for templates for each new sliding window TODO - not ideal
+            for (auto &&t : templates) {
+                t->resetVotes();
+            }
+
+            // Push filtered templates for this window to new array
+            windowTemplates.push_back(templates);
+            templatesPassedCount += templates.size();
         }
     }
 
     // Print filtered size
-    std::cout << "Number of templates after filter applied: " << templates.size() << std::endl;
-    std::vector<TemplateGroup> groups;
-    TemplateGroup g1("obj222", templates);
-    groups.push_back(g1);
+    std::cout << "Total number of templates passed: " << templatesPassedCount << std::endl;
+    std::cout << "Total number of windows: " << windowTemplates.size() << std::endl;
 
-    // Run matching for found templates
-    std::vector<cv::Rect> resultBBs = matchTemplate(sceneGrayscale, objectnessROI, groups);
-
-    // Show results
-    s = sceneGrayscale.clone();
-    for (int i = 0; i < resultBBs.size(); i++) {
-        cv::rectangle(s, resultBBs[i], cv::Scalar(1.0f), 1);
-    }
-
-    cv::imshow("Hasher, test after filtered templates", s);
-    cv::waitKey(0);
+    // Todo pass window locations with template candidates to template matching
 }
 
 const cv::Size Hasher::getFeaturePointsGrid() {

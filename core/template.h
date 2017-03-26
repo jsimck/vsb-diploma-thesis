@@ -37,6 +37,9 @@ public:
 
     // Methods
     void voteUp();
+    void resetVotes();
+    void applyROI();
+    void resetROI();
 
     // Operators
     bool operator==(const Template &rhs) const;

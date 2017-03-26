@@ -28,5 +28,26 @@ bool Template::operator!=(const Template &rhs) const {
 }
 
 void Template::voteUp() {
-    this->votes++;
+    votes++;
+}
+
+void Template::resetVotes() {
+    votes = 0;
+}
+
+void Template::applyROI() {
+    // Apply roi to both sources
+    src = src(objBB);
+    srcDepth = srcDepth(objBB);
+}
+
+void Template::resetROI() {
+    // Locate ROI
+    cv::Point offset;
+    cv::Size size;
+    src.locateROI(size, offset);
+
+    // Set to original [disable ROI]
+    src.adjustROI(offset.y, size.height - src.rows, offset.x, size.width - src.cols);
+    srcDepth.adjustROI(offset.y, size.height - src.rows, offset.x, size.width - src.cols);
 }
