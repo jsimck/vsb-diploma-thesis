@@ -53,7 +53,7 @@ int Hasher::quantizeSurfaceNormals(cv::Vec3f normal) {
 
 int Hasher::quantizeDepths(float depth) {
     // Depth should have max value of <-65536, +65536>
-    assert(depth >= -65536 && depth <= 65536);
+    assert(depth >= -65535 && depth <= 65535);
 
     // TODO WRONG - relative depths can have <-65k, +65k> values
     if (depth >= -500 && depth <= 500) {
@@ -98,7 +98,13 @@ void Hasher::generateTriplets(std::vector<HashTable> &hashTables) {
 void Hasher::calculateDepthBins(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables) {
     // Histogram values <-65535, +65535> possible values
     const int valuesDepth = 65536;
-    int histogramValues[2 * valuesDepth - 1]; // one zero
+    unsigned long histogramValues[2 * valuesDepth - 1]; // one zero
+    unsigned long histogramSum = 0;
+
+    // Reset histogram values
+    for (int i = 0; i < (2 * valuesDepth) - 1; i++) {
+        histogramValues[i] = 0;
+    }
 
     // Calculate histogram values, using generated triplets and relative depths calculation
     for (int i = 0; i < hashTables.size(); ++i) {
@@ -133,30 +139,46 @@ void Hasher::calculateDepthBins(const std::vector<TemplateGroup> &groups, std::v
                 // Add offset and count given values
                 histogramValues[d1 + valuesDepth] += 1;
                 histogramValues[d2 + valuesDepth] += 1;
+                histogramSum += 2; // Add 2 to sum of histogram
             }
         }
     }
 
-    // Print values in 2 intervals
-    int negSum = 0, posSum = 0;
-    std::cout << "NEGATIVE" << std::endl;
-    for(int i = 0; i < valuesDepth; i++) {
-        // Negative
+    // Calculate approximate count of values contained in every bin (with bin size of 5)
+    std::vector<cv::Range> ranges;
+    const unsigned long binCount = histogramSum / histogramBinCount;
+    unsigned long tmpBinCount = 0;
+    int rangeStart = 0, binsCreated = 0;
+
+    // Loop trough histogram and determine ranges
+    for (int i = 0; i < (2 * valuesDepth) - 1; i++) {
         if (histogramValues[i] > 0) {
-            negSum += histogramValues[i];
+            tmpBinCount += histogramValues[i];
+        }
+
+        // Check if we filled one bin, if yes, save range and reset tmpBinCount
+        if (tmpBinCount >= binCount) {
+            tmpBinCount = 0;
+            ranges.push_back(cv::Range(rangeStart - valuesDepth, i - valuesDepth));
+            rangeStart = i;
+            binsCreated++;
+            i--;
+        }
+
+        // Define last range to end
+        if ((binsCreated + 1) >= histogramBinCount) {
+            ranges.push_back(cv::Range(i - valuesDepth + 1, valuesDepth));
+            break;
         }
     }
 
-    std::cout << "POSITIVE" << std::endl;
-    for(int j = valuesDepth; j < (valuesDepth * 2 - 1); j++) {
-        // Positive
-        if (histogramValues[j] > 0) {
-            posSum += histogramValues[j];
-        }
+    // Print values in 2 intervals
+    std::cout << "RANGES" << std::endl;
+    for (auto &&range : ranges) {
+        std::cout << "<" << range.start << ", " << range.end << ">" << std::endl;
     }
 
-    std::cout << "NegSum: " << negSum << std::endl;
-    std::cout << "PosSum: " << posSum << std::endl;
+    setHistogramBinRanges(ranges);
 }
 
 void Hasher::initialize(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables) {
@@ -177,6 +199,8 @@ void Hasher::initialize(const std::vector<TemplateGroup> &groups, std::vector<Ha
 void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables) {
     // Prepare hash tables
     initialize(groups, hashTables);
+
+    return;
 
     // Generate triplets
     for (int i = 0; i < 100; ++i) {
@@ -351,6 +375,10 @@ unsigned int Hasher::getHashTableCount() const {
     return hashTableCount;
 }
 
+const std::vector<cv::Range> &Hasher::getHistogramBinRanges() const {
+    return histogramBinRanges;
+}
+
 void Hasher::setFeaturePointsGrid(cv::Size featurePointsGrid) {
     assert(featurePointsGrid.height > 0 && featurePointsGrid.width > 0);
     this->featurePointsGrid = featurePointsGrid;
@@ -359,4 +387,18 @@ void Hasher::setFeaturePointsGrid(cv::Size featurePointsGrid) {
 void Hasher::setHashTableCount(unsigned int hashTableCount) {
     assert(hashTableCount > 0);
     this->hashTableCount = hashTableCount;
+}
+
+void Hasher::setHistogramBinRanges(const std::vector<cv::Range> &histogramBinRanges) {
+    assert(histogramBinRanges.size() == 5);
+    this->histogramBinRanges = histogramBinRanges;
+}
+
+unsigned int Hasher::getHistogramBinCount() const {
+    return histogramBinCount;
+}
+
+void Hasher::setHistogramBinCount(unsigned int histogramBinCount) {
+    assert(histogramBinCount > 0);
+    this->histogramBinCount = histogramBinCount;
 }

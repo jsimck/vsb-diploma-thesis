@@ -16,6 +16,8 @@ class Hasher {
 private:
     cv::Size featurePointsGrid;
     unsigned int hashTableCount;
+    unsigned int histogramBinCount;
+    std::vector<cv::Range> histogramBinRanges;
 
     // Methods
     cv::Vec3d extractSurfaceNormal(const cv::Mat &src, cv::Point c);
@@ -36,10 +38,14 @@ public:
     // Getters
     const cv::Size getFeaturePointsGrid();
     unsigned int getHashTableCount() const;
+    const std::vector<cv::Range> &getHistogramBinRanges() const;
+    unsigned int getHistogramBinCount() const;
 
     // Setters
     void setFeaturePointsGrid(cv::Size featurePointsGrid);
     void setHashTableCount(unsigned int hashTableCount);
+    void setHistogramBinRanges(const std::vector<cv::Range> &histogramBinRanges);
+    void setHistogramBinCount(unsigned int histogramBinCount);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_HASHING_H

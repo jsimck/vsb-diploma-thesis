@@ -68,6 +68,7 @@ void Classifier::trainHashTables() {
     std::cout << "Training hash tables... " << std::endl;
     hasher.setFeaturePointsGrid(cv::Size(12, 12)); // Grid of 12x12 feature points
     hasher.setHashTableCount(100);
+    hasher.setHistogramBinCount(5);
     hasher.train(templateGroups, hashTables);
     assert(hashTables.size() > 0);
     std::cout << "DONE! " << hashTables.size() << " hash tables generated" <<std::endl << std::endl;
