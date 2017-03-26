@@ -2,7 +2,10 @@
 #include "hasher.h"
 #include "matching.h"
 
-cv::Vec3d Hasher::extractSurfaceNormal(const cv::Mat &src, cv::Point c) {
+const int Hasher::IMG_16BIT_VALUE_MAX = 65535; // <0, 65535> => 65536 values
+const int Hasher::IMG_16BIT_VALUES_RANGE = (IMG_16BIT_VALUE_MAX * 2) + 1; // <-65535, 65535> => 131071 values + (one zero)
+
+cv::Vec3d Hasher::extractSurfaceNormal(const cv::Mat &src, const cv::Point c) {
     // Checks
     assert(!src.empty());
 
@@ -11,6 +14,13 @@ cv::Vec3d Hasher::extractSurfaceNormal(const cv::Mat &src, cv::Point c) {
     cv::Vec3f d(-dzdy, -dzdx, 1.0f);
 
     return cv::normalize(d);
+}
+
+cv::Vec2i Hasher::extractRelativeDepths(const cv::Mat &src, const cv::Point p1, const cv::Point p2, const cv::Point p3) {
+    return cv::Vec2i(
+        static_cast<int>(src.at<float>(p2) - src.at<float>(p1)),
+        static_cast<int>(src.at<float>(p3) - src.at<float>(p1))
+    );
 }
 
 int Hasher::quantizeSurfaceNormals(cv::Vec3f normal) {
@@ -53,20 +63,18 @@ int Hasher::quantizeSurfaceNormals(cv::Vec3f normal) {
 
 int Hasher::quantizeDepths(float depth) {
     // Depth should have max value of <-65536, +65536>
-    assert(depth >= -65535 && depth <= 65535);
+    assert(depth >= -IMG_16BIT_VALUE_MAX && depth <= IMG_16BIT_VALUE_MAX);
+    assert(histogramBinRanges.size() > 0);
 
-    // TODO WRONG - relative depths can have <-65k, +65k> values
-    if (depth >= -500 && depth <= 500) {
-        return 0; // 1. bin
-    } else if (depth >= -1000 && depth <= 1000) {
-        return 1; // 2. bin
-    } else if (depth >= -3000 && depth <= 3000) {
-        return 2; // 3. bin
-    } else if (depth >= -6000 && depth <= 6000) {
-        return 3; // 4. bin
-    } else {
-        return 4; // 5. bin
+    // Loop through histogram ranges and return quantized index
+    for (int i = 0; i < histogramBinRanges.size(); i++) {
+        if (histogramBinRanges[i].start >= depth && depth < histogramBinRanges[i].end) {
+            return i;
+        }
     }
+
+    // If value is IMG_16BIT_VALUE_MAX it belongs to last bin
+    return (int) histogramBinRanges.size() - 1;
 }
 
 void Hasher::generateTriplets(std::vector<HashTable> &hashTables) {
@@ -95,34 +103,73 @@ void Hasher::generateTriplets(std::vector<HashTable> &hashTables) {
     } while (duplicate);
 }
 
-void Hasher::calculateDepthBins(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables) {
+void Hasher::calculateDepthHistogramRanges(unsigned long histogramSum, unsigned long *histogramValues) {
+    // Checks
+    assert(histogramSum > 0);
+
+    std::vector<cv::Range> ranges;
+    unsigned long tmpBinCount = 0;
+    int rangeStart = 0, binsCreated = 0;
+
+    // Calculate approximate size of every bin
+    const unsigned long binCount = histogramSum / histogramBinCount;
+
+    // Loop trough histogram and determine ranges
+    for (int i = 0; i < IMG_16BIT_VALUES_RANGE; i++) {
+        if (histogramValues[i] > 0) {
+            tmpBinCount += histogramValues[i];
+        }
+
+        // Check if we filled one bin, if yes, save range and reset tmpBinCount
+        if (tmpBinCount >= binCount) {
+            tmpBinCount = 0;
+            ranges.push_back(cv::Range(rangeStart - IMG_16BIT_VALUE_MAX, i - IMG_16BIT_VALUE_MAX));
+            rangeStart = i;
+            binsCreated++;
+            i--;
+        }
+
+        // Define last range from current i to end [IMG_16BIT_VALUE_MAX]
+        if ((binsCreated + 1) >= histogramBinCount) {
+            ranges.push_back(cv::Range(i - IMG_16BIT_VALUE_MAX + 1, IMG_16BIT_VALUE_MAX));
+            break;
+        }
+    }
+
+#ifndef NDEBUG
+    // Print results
+    std::cout << "DONE! Approximate " << binCount << " values per bin" << std::endl;
+    for (int i = 0; i < ranges.size(); i++) {
+        std::cout << "       |_ " << i << ". <" << ranges[i].start << ", " << ranges[i].end << (i + 1 == ranges.size() ? ">" : ")") << std::endl;
+    }
+#endif
+
+    // Set histogram ranges
+    setHistogramBinRanges(ranges);
+}
+
+void Hasher::calculateDepthBinRanges(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables) {
     // Histogram values <-65535, +65535> possible values
-    const int valuesDepth = 65536;
-    unsigned long histogramValues[2 * valuesDepth - 1]; // one zero
+    unsigned long histogramValues[IMG_16BIT_VALUES_RANGE];
     unsigned long histogramSum = 0;
 
     // Reset histogram values
-    for (int i = 0; i < (2 * valuesDepth) - 1; i++) {
+    for (int i = 0; i < IMG_16BIT_VALUES_RANGE; i++) {
         histogramValues[i] = 0;
     }
 
     // Calculate histogram values, using generated triplets and relative depths calculation
-    for (int i = 0; i < hashTables.size(); ++i) {
-        for (auto &&group : groups) {
-            for (auto &&t : group.templates) {
+    for (auto &hashTable : hashTables) {
+        for (auto &group : groups) {
+            for (auto &t : group.templates) {
                 // Checks
                 assert(!t.srcDepth.empty());
 
-                // Generate triplet params
-                float stepX = t.srcDepth.cols / static_cast<float>(featurePointsGrid.width);
-                float stepY = t.srcDepth.rows / static_cast<float>(featurePointsGrid.height);
-                float offsetX = stepX / 2.0f;
-                float offsetY = stepY / 2.0f;
-
                 // Get triplet points
-                cv::Point p1 = hashTables[i].triplet.getP1Coords(offsetX, stepX, offsetY, stepY);
-                cv::Point p2 = hashTables[i].triplet.getP2Coords(offsetX, stepX, offsetY, stepY);
-                cv::Point p3 = hashTables[i].triplet.getP3Coords(offsetX, stepX, offsetY, stepY);
+                cv::Vec4f coordParams = Triplet::getCoordParams(t.srcDepth.cols, t.srcDepth.rows, featurePointsGrid);
+                cv::Point p1 = hashTable.triplet.getP1Coords(coordParams);
+                cv::Point p2 = hashTable.triplet.getP2Coords(coordParams);
+                cv::Point p3 = hashTable.triplet.getP3Coords(coordParams);
 
                 // Check if we're not out of bounds
                 assert(p1.x >= 0 && p1.x < t.srcDepth.cols);
@@ -133,52 +180,18 @@ void Hasher::calculateDepthBins(const std::vector<TemplateGroup> &groups, std::v
                 assert(p3.y >= 0 && p3.y < t.srcDepth.rows);
 
                 // Relative depths
-                int d1 = static_cast<int>(t.srcDepth.at<float>(p2) - t.srcDepth.at<float>(p1));
-                int d2 = static_cast<int>(t.srcDepth.at<float>(p3) - t.srcDepth.at<float>(p1));
+                cv::Vec2i relativeDepths = extractRelativeDepths(t.srcDepth, p1, p2, p3);
 
                 // Add offset and count given values
-                histogramValues[d1 + valuesDepth] += 1;
-                histogramValues[d2 + valuesDepth] += 1;
-                histogramSum += 2; // Add 2 to sum of histogram
+                histogramValues[relativeDepths[0] + IMG_16BIT_VALUE_MAX] += 1;
+                histogramValues[relativeDepths[1] + IMG_16BIT_VALUE_MAX] += 1;
+                histogramSum += 2; // Add 2 to sum of histogram values
             }
         }
     }
 
-    // Calculate approximate count of values contained in every bin (with bin size of 5)
-    std::vector<cv::Range> ranges;
-    const unsigned long binCount = histogramSum / histogramBinCount;
-    unsigned long tmpBinCount = 0;
-    int rangeStart = 0, binsCreated = 0;
-
-    // Loop trough histogram and determine ranges
-    for (int i = 0; i < (2 * valuesDepth) - 1; i++) {
-        if (histogramValues[i] > 0) {
-            tmpBinCount += histogramValues[i];
-        }
-
-        // Check if we filled one bin, if yes, save range and reset tmpBinCount
-        if (tmpBinCount >= binCount) {
-            tmpBinCount = 0;
-            ranges.push_back(cv::Range(rangeStart - valuesDepth, i - valuesDepth));
-            rangeStart = i;
-            binsCreated++;
-            i--;
-        }
-
-        // Define last range to end
-        if ((binsCreated + 1) >= histogramBinCount) {
-            ranges.push_back(cv::Range(i - valuesDepth + 1, valuesDepth));
-            break;
-        }
-    }
-
-    // Print values in 2 intervals
-    std::cout << "RANGES" << std::endl;
-    for (auto &&range : ranges) {
-        std::cout << "<" << range.start << ", " << range.end << ">" << std::endl;
-    }
-
-    setHistogramBinRanges(ranges);
+    // Calculate ranges from retrieved data
+    calculateDepthHistogramRanges(histogramSum, histogramValues);
 }
 
 void Hasher::initialize(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables) {
@@ -193,37 +206,28 @@ void Hasher::initialize(const std::vector<TemplateGroup> &groups, std::vector<Ha
     generateTriplets(hashTables);
 
     // Calculate ranges of depth bins for training
-    calculateDepthBins(groups, hashTables);
+#ifndef NDEBUG
+    std::cout << "  |_ Calculating depth bin ranges... ";
+#endif
+    calculateDepthBinRanges(groups, hashTables);
 }
 
 void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables) {
-    // Prepare hash tables
+    // Prepare hash tables and histogram bin ranges
     initialize(groups, hashTables);
 
-    return;
-
-    // Generate triplets
-    for (int i = 0; i < 100; ++i) {
-        // Init hash table
-        HashTable hashTable;
-        // TODO - make sure triplets are different for each table
-        hashTable.triplet = Triplet::createRandomTriplet(featurePointsGrid); // one per hash table
-
+    // Fill hash tables with templates and keys quantizied from measured values
+    for (auto &hashTable : hashTables) {
         for (auto &group : groups) {
             for (auto &t : group.templates) {
                 // Checks
                 assert(!t.srcDepth.empty());
 
-                // Generate triplet params
-                float stepX = t.srcDepth.cols / static_cast<float>(featurePointsGrid.width);
-                float stepY = t.srcDepth.rows / static_cast<float>(featurePointsGrid.height);
-                float offsetX = stepX / 2.0f;
-                float offsetY = stepY / 2.0f;
-
                 // Get triplet points
-                cv::Point p1 = hashTable.triplet.getP1Coords(offsetX, stepX, offsetY, stepY);
-                cv::Point p2 = hashTable.triplet.getP2Coords(offsetX, stepX, offsetY, stepY);
-                cv::Point p3 = hashTable.triplet.getP3Coords(offsetX, stepX, offsetY, stepY);
+                cv::Vec4f coordParams = Triplet::getCoordParams(t.srcDepth.cols, t.srcDepth.rows, featurePointsGrid);
+                cv::Point p1 = hashTable.triplet.getP1Coords(coordParams);
+                cv::Point p2 = hashTable.triplet.getP2Coords(coordParams);
+                cv::Point p3 = hashTable.triplet.getP3Coords(coordParams);
 
                 // Check if we're not out of bounds
                 assert(p1.x >= 0 && p1.x < t.srcDepth.cols);
@@ -234,13 +238,12 @@ void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTab
                 assert(p3.y >= 0 && p3.y < t.srcDepth.rows);
 
                 // Relative depths
-                float d1 = t.srcDepth.at<float>(p2) - t.srcDepth.at<float>(p1);
-                float d2 = t.srcDepth.at<float>(p3) - t.srcDepth.at<float>(p1);
+                cv::Vec2i relativeDepths = extractRelativeDepths(t.srcDepth, p1, p2, p3);
 
                 // Generate hash key
                 HashKey key(
-                    quantizeDepths(d1),
-                    quantizeDepths(d2),
+                    quantizeDepths(relativeDepths[0]),
+                    quantizeDepths(relativeDepths[1]),
                     quantizeSurfaceNormals(extractSurfaceNormal(t.srcDepth, p1)),
                     quantizeSurfaceNormals(extractSurfaceNormal(t.srcDepth, p2)),
                     quantizeSurfaceNormals(extractSurfaceNormal(t.srcDepth, p3))
@@ -260,9 +263,6 @@ void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTab
                 }
             }
         }
-
-        // Push hash table to list
-        hashTables.push_back(hashTable);
     }
 }
 
@@ -286,16 +286,11 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, cv::Rect &o
             std::vector<Template*> templates;
 
             for (auto &hashTable : hashTables) {
-                // Generate triplet params
-                float stepX = w.width / static_cast<float>(featurePointsGrid.width);
-                float stepY = w.height / static_cast<float>(featurePointsGrid.height);
-                float offsetX = stepX / 2.0f;
-                float offsetY = stepY / 2.0f;
-
                 // Get triplet points
-                cv::Point p1 = hashTable.triplet.getP1Coords(offsetX, stepX, offsetY, stepY);
-                cv::Point p2 = hashTable.triplet.getP2Coords(offsetX, stepX, offsetY, stepY);
-                cv::Point p3 = hashTable.triplet.getP3Coords(offsetX, stepX, offsetY, stepY);
+                cv::Vec4f coordParams = Triplet::getCoordParams(w.width, w.height, featurePointsGrid);
+                cv::Point p1 = hashTable.triplet.getP1Coords(coordParams);
+                cv::Point p2 = hashTable.triplet.getP2Coords(coordParams);
+                cv::Point p3 = hashTable.triplet.getP3Coords(coordParams);
 
                 // Check if we're not out of bounds
                 assert(p1.x >= 0 && p1.x < s.cols);
@@ -306,13 +301,12 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, cv::Rect &o
                 assert(p3.y >= 0 && p3.y < s.rows);
 
                 // Relative depths
-                float d1 = s.at<float>(p2) - s.at<float>(p1);
-                float d2 = s.at<float>(p3) - s.at<float>(p1);
+                cv::Vec2i relativeDepths = extractRelativeDepths(s, p1, p2, p3);
 
                 // Generate hash key
                 HashKey key(
-                    quantizeDepths(d1),
-                    quantizeDepths(d2),
+                    quantizeDepths(relativeDepths[0]),
+                    quantizeDepths(relativeDepths[1]),
                     quantizeSurfaceNormals(extractSurfaceNormal(s, p1)),
                     quantizeSurfaceNormals(extractSurfaceNormal(s, p2)),
                     quantizeSurfaceNormals(extractSurfaceNormal(s, p3))

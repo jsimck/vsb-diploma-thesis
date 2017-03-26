@@ -2,6 +2,7 @@
 #include <functional>
 #include <iostream>
 #include <cassert>
+#include <opencv2/core/mat.hpp>
 #include "triplet.h"
 
 // Init uniform distribution engine
@@ -34,17 +35,34 @@ cv::Point Triplet::getCoords(int pointNum, float offsetX, float stepX, float off
     );
 }
 
+cv::Point Triplet::getCoords(int index, const cv::Vec4f &coordinateParams) {
+    return getCoords(index, coordinateParams[0], coordinateParams[1], coordinateParams[2], coordinateParams[3]);
+}
+
 cv::Point Triplet::getP1Coords(float offsetX, float stepX, float offsetY, float stepY) {
     return getCoords(1, offsetX, stepX, offsetY, stepY);
+}
+
+cv::Point Triplet::getP1Coords(const cv::Vec4f &coordinateParams) {
+    return getCoords(1, coordinateParams);
 }
 
 cv::Point Triplet::getP2Coords(float offsetX, float stepX, float offsetY, float stepY) {
     return getCoords(2, offsetX, stepX, offsetY, stepY);
 }
 
+cv::Point Triplet::getP2Coords(const cv::Vec4f &coordinateParams) {
+    return getCoords(2, coordinateParams);
+}
+
 cv::Point Triplet::getP3Coords(float offsetX, float stepX, float offsetY, float stepY) {
     return getCoords(3, offsetX, stepX, offsetY, stepY);
 }
+
+cv::Point Triplet::getP3Coords(const cv::Vec4f &coordinateParams) {
+    return getCoords(3, coordinateParams);
+}
+
 
 float Triplet::random(const float rangeMin, const float rangeMax) {
     float rnd;
@@ -74,7 +92,6 @@ Triplet Triplet::createRandomTriplet(const cv::Size &referencePointsGrid) {
     cv::Point p1(randomPoint(referencePointsGrid));
     cv::Point p2(randomPoint(referencePointsGrid));
 
-    // TODO - not ideal, maybe add fixed offset
     // Check if p1 == c -> generate new
     while (c == p1) {
         p1 = randomPoint(referencePointsGrid);
@@ -86,6 +103,17 @@ Triplet Triplet::createRandomTriplet(const cv::Size &referencePointsGrid) {
     }
 
     return Triplet(c, p1, p2);
+}
+
+cv::Vec4f Triplet::getCoordParams(const int width, const int height, const cv::Size &referencePointsGrid) {
+    // Calculate offsets and steps
+    float stepX = width / static_cast<float>(referencePointsGrid.width);
+    float stepY = height / static_cast<float>(referencePointsGrid.height);
+    float offsetX = stepX / 2.0f;
+    float offsetY = stepY / 2.0f;
+
+    // Form final vector [offsetX, stepX, offsetY, stepY]
+    return cv::Vec4f(offsetX, stepX, offsetY, stepY);
 }
 
 std::ostream &operator<<(std::ostream &os, const Triplet &triplet) {

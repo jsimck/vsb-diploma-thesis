@@ -22,10 +22,10 @@ void TemplateParser::parse(std::vector<TemplateGroup> &groups) {
         // Push to groups vector
         groups.push_back(TemplateGroup(tplName, templates));
         parsedTemplatesCount += templates.size();
-        std::cout << "Parsed: " << tplName << ", templates size: " << templates.size() << std::endl;
+        std::cout << "  |_ Parsed: " << tplName << ", templates size: " << templates.size() << std::endl;
     }
 
-    std::cout << "Parsed total: " << parsedTemplatesCount << " templates" << std::endl;
+    std::cout << "  |_ Parsed total: " << parsedTemplatesCount << " templates" << std::endl;
 }
 
 void TemplateParser::parseTemplate(std::vector<Template> &templates, std::string tplName) {

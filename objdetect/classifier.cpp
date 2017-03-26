@@ -133,6 +133,9 @@ void Classifier::classify() {
     // Train hash tables
     trainHashTables();
 
+    // Print hashtables (first since it's long)
+    std::cout << hashTables[0] << std::endl;
+
     // Objectness detection
 //    detectObjectness();
 //    setObjectnessROI(cv::Rect(155, 60, 419, 407));
@@ -167,23 +170,28 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
     // Train hash tables
     trainHashTables();
 
+    // Print hashtables
+    for (auto &&table : hashTables) {
+        std::cout << table << std::endl;
+    }
+
     // Objectness detection
-//    detectObjectness();
+    detectObjectness();
 //    setObjectnessROI(cv::Rect(155, 60, 419, 407));
 
     // Verification and filtering of template candidates
 //    verifyTemplateCandidates();
 
     // Template Matching
-//    std::vector<cv::Rect> matchBBs = matchTemplate(sceneGrayscale, objectnessROI, templateGroups);
-//    cv::Mat sceneCopy = scene.clone();
-//    for (auto &&bB : matchBBs) {
-//        cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
-//    }
-//
-//    // Show matched template results
-//    cv::imshow("Match template result", sceneCopy);
-//    cv::waitKey(0);
+    std::vector<cv::Rect> matchBBs = matchTemplate(sceneGrayscale, objectnessROI, templateGroups);
+    cv::Mat sceneCopy = scene.clone();
+    for (auto &&bB : matchBBs) {
+        cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
+    }
+
+    // Show matched template results
+    cv::imshow("Match template result", sceneCopy);
+    cv::waitKey(0);
 }
 
 // Getters and setters

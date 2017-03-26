@@ -20,12 +20,18 @@ private:
     std::vector<cv::Range> histogramBinRanges;
 
     // Methods
-    cv::Vec3d extractSurfaceNormal(const cv::Mat &src, cv::Point c);
+    cv::Vec3d extractSurfaceNormal(const cv::Mat &src, const cv::Point c);
+    cv::Vec2i extractRelativeDepths(const cv::Mat &src, const cv::Point p1, const cv::Point p2, const cv::Point p3);
     int quantizeSurfaceNormals(cv::Vec3f normal);
     int quantizeDepths(float depth);
     void generateTriplets(std::vector<HashTable> &hashTables);
-    void calculateDepthBins(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables);
+    void calculateDepthHistogramRanges(unsigned long histogramSum, unsigned long histogramValues[]);
+    void calculateDepthBinRanges(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables);
 public:
+    // Statics
+    static const int IMG_16BIT_VALUE_MAX;
+    static const int IMG_16BIT_VALUES_RANGE;
+
     // Constructors
     Hasher() {}
     Hasher(cv::Size referencePointsGrid, unsigned int hashTableCount) : featurePointsGrid(referencePointsGrid), hashTableCount(hashTableCount) {}

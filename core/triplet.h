@@ -22,6 +22,7 @@ public:
     // Statics
     static float random(const float rangeMin = 0.0f, const float rangeMax = 1.0f);
     static Triplet createRandomTriplet(const cv::Size &referencePointsGrid);
+    static cv::Vec4f getCoordParams(const int width, const int height, const cv::Size &referencePointsGrid);
 
     // Constructors
     Triplet() {}
@@ -29,9 +30,13 @@ public:
 
     // Methods
     cv::Point getCoords(int index, float offsetX, float stepX, float offsetY, float stepY);
+    cv::Point getCoords(int index, const cv::Vec4f &coordinateParams);
     cv::Point getP1Coords(float offsetX, float stepX, float offsetY, float stepY);
+    cv::Point getP1Coords(const cv::Vec4f &coordinateParams);
     cv::Point getP2Coords(float offsetX, float stepX, float offsetY, float stepY);
+    cv::Point getP2Coords(const cv::Vec4f &coordinateParams);
     cv::Point getP3Coords(float offsetX, float stepX, float offsetY, float stepY);
+    cv::Point getP3Coords(const cv::Vec4f &coordinateParams);
 
     // Operators
     friend std::ostream &operator<<(std::ostream &os, const Triplet &triplet);
