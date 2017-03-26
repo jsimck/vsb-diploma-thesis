@@ -16,17 +16,6 @@ std::ostream &operator<<(std::ostream &os, const Template &t) {
     return os;
 }
 
-bool Template::operator==(const Template &rhs) const {
-    return id == rhs.id &&
-           fileName == rhs.fileName &&
-           elev == rhs.elev &&
-           mode == rhs.mode;
-}
-
-bool Template::operator!=(const Template &rhs) const {
-    return !(rhs == *this);
-}
-
 void Template::voteUp() {
     votes++;
 }
@@ -50,4 +39,15 @@ void Template::resetROI() {
     // Set to original [disable ROI]
     src.adjustROI(offset.y, size.height - src.rows, offset.x, size.width - src.cols);
     srcDepth.adjustROI(offset.y, size.height - src.rows, offset.x, size.width - src.cols);
+}
+
+bool Template::operator==(const Template &rhs) const {
+    return id == rhs.id &&
+           fileName == rhs.fileName &&
+           elev == rhs.elev &&
+           mode == rhs.mode;
+}
+
+bool Template::operator!=(const Template &rhs) const {
+    return !(rhs == *this);
 }

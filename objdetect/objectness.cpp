@@ -105,6 +105,7 @@ cv::Vec3f Objectness::extractMinEdgels(std::vector<TemplateGroup> &templateGroup
     return output;
 }
 
+// TODO - we should sent only the specific window locations for further matching
 cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, cv::Vec3f minEdgels) {
     // Check thresholds and min edgels
     assert(minEdgels[0] > 0);

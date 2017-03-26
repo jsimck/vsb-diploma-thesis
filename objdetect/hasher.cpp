@@ -191,18 +191,37 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, cv::Rect &o
                 );
 
                 // Up votes
-                for (auto &&entry : hashTable.templates[key]) {
+                // TODO - we should probably use only up to N templates with highest votes
+                for (auto &entry : hashTable.templates[key]) {
                     entry.voteUp();
-                    if (entry.votes >= v) {
-                        // Check if it is not yet in templates
-                        if (std::find(templates.begin(), templates.end(), &entry) == templates.end()) {
-                            templates.push_back(&entry);
-                        }
-                    }
+//                    if (entry.votes >= v) {
+//                        // Check if it is not yet in templates
+//                        if (std::find(templates.begin(), templates.end(), &entry) == templates.end()) {
+//                            templates.push_back(&entry);
+//                        }
+//                    }
                 }
             }
 
-            // Reset votes for templates for each new sliding window TODO - not ideal
+            for (auto &&group : groups) {
+                for (auto &&gt : group.templates) {
+                    std::cout << gt.votes << std::endl;
+                }
+            }
+
+
+            std::cout << "Templates size for current window: " << templates.size() << std::endl;
+
+            // Sort by votes and
+            std::sort(templates.begin(), templates.end(), [](const Template* lhs, const Template *rhs) {
+                return lhs->votes < rhs->votes;
+            });
+
+            for (auto && t : templates) {
+                std::cout << t->votes << std::endl;
+            }
+
+            // Reset votes for templates for each new sliding window
             for (auto &&t : templates) {
                 t->resetVotes();
             }

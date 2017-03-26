@@ -132,7 +132,8 @@ void Classifier::classify() {
     trainHashTables();
 
     // Objectness detection
-    detectObjectness();
+//    detectObjectness();
+    setObjectnessROI(cv::Rect(155, 60, 419, 407));
 
     // Verification and filtering of template candidates
     verifyTemplateCandidates();
