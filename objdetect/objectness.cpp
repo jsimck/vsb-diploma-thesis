@@ -194,23 +194,23 @@ cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv
 }
 
 float Objectness::getMinThreshold() const {
-    return this->minThreshold;
+    return minThreshold;
 }
 
 float Objectness::getMaxThreshold() const {
-    return this->maxThreshold;
+    return maxThreshold;
 }
 
 float Objectness::getMatchThresholdFactor() const {
-    return this->matchThresholdFactor;
+    return matchThresholdFactor;
 }
 
 float Objectness::getSlidingWindowSizeFactor() const {
-    return this->slidingWindowSizeFactor;
+    return slidingWindowSizeFactor;
 }
 
 float Objectness::getSlidingWindowStepFactor() const {
-    return this->slidingWindowStepFactor;
+    return slidingWindowStepFactor;
 }
 
 void Objectness::setMinThreshold(float minThreshold) {

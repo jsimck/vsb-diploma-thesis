@@ -5,6 +5,12 @@
 #include <opencv2/opencv.hpp>
 #include <ostream>
 
+/**
+ * struct Template
+ *
+ * Template parse and downloaded from dataset http://cmp.felk.cvut.cz/t-less/
+ * used across all matching process at all sorts of places
+ */
 struct Template {
 public:
     int id;

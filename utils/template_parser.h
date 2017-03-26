@@ -5,6 +5,12 @@
 #include "../core/template.h"
 #include "../core/template_group.h"
 
+/**
+ * class TemplateParser
+ *
+ * Utility class used to parse images downloaded from http://cmp.felk.cvut.cz/t-less/
+ * into form which can be then modified and further used in the code.
+ */
 class TemplateParser {
 private:
     std::string basePath;

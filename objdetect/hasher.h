@@ -5,6 +5,13 @@
 #include "../core/hash_table.h"
 #include "../core/template_group.h"
 
+/**
+ * class Hasher
+ *
+ * Class used to train templates and sliding windows, to prefilter
+ * number of templates needed to be template matched in other stages of
+ * template matching.
+ */
 class Hasher {
 private:
     cv::Size featurePointsGrid;

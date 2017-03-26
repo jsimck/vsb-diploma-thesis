@@ -4,9 +4,10 @@
 #include <opencv2/core/types.hpp>
 #include <ostream>
 
-/*
+/**
  * struct Triplet
- * all points are stored in relative locations, we use 12x12 reference points, so every
+ *
+ * All generated points are stored in relative locations, we use 12x12 reference points, so every
  * point has x and y coordinates in interval <0, 11>. This allows to adapt reference point locations
  * to each template bounding box.
  */

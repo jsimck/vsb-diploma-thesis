@@ -81,13 +81,13 @@ void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTab
         // Init hash table
         HashTable hashTable;
         // TODO - make sure triplets are different for each table
-        hashTable.triplet = Triplet::createRandomTriplet(this->featurePointsGrid); // one per hash table
+        hashTable.triplet = Triplet::createRandomTriplet(featurePointsGrid); // one per hash table
 
         for (auto &group : groups) {
             for (auto &t : group.templates) {
                 // Generate triplet params
-                float stepX = t.srcDepth.cols / static_cast<float>(this->featurePointsGrid.width);
-                float stepY = t.srcDepth.rows / static_cast<float>(this->featurePointsGrid.height);
+                float stepX = t.srcDepth.cols / static_cast<float>(featurePointsGrid.width);
+                float stepY = t.srcDepth.rows / static_cast<float>(featurePointsGrid.height);
                 float offsetX = stepX / 2.0f;
                 float offsetY = stepY / 2.0f;
 
@@ -137,7 +137,7 @@ void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTab
 }
 
 const cv::Size Hasher::getFeaturePointsGrid() {
-    return this->featurePointsGrid;
+    return featurePointsGrid;
 }
 
 void Hasher::setFeaturePointsGrid(cv::Size featurePointsGrid) {

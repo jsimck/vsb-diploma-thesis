@@ -7,6 +7,12 @@
 #include <unordered_map>
 #include <ostream>
 
+/**
+ * struct HashTable
+ *
+ * Hash table used to store trained templates with discretizied values into
+ * coresponding bins, forming hash key of (d1, d2, n1, n2, n3)
+ */
 struct HashTable {
 public:
     Triplet triplet;

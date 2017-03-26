@@ -4,6 +4,12 @@
 #include <string>
 #include "template.h"
 
+/**
+ * struct TemplateGroup
+ *
+ * Simple structure, served only for purpose of separating each parsed template
+ * into it's own group
+ */
 struct TemplateGroup {
 public:
     std::string folderName;

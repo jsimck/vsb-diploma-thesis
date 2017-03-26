@@ -7,6 +7,14 @@
 #include "hasher.h"
 #include "objectness.h"
 
+/**
+ * class Classifier
+ *
+ * Main class which runs all other classifiers and template parsers in the correct order.
+ * In this class it's also possible to fine-tune the resulted parameters of each verification stage
+ * which can in the end produce different results. These params can be adapted to processed templates
+ * and scenes.
+ */
 class Classifier {
 private:
     cv::Vec3f minEdgels;

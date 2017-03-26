@@ -12,15 +12,15 @@ cv::Point Triplet::getCoords(int pointNum, float offsetX, float stepX, float off
     cv::Point p;
     switch (pointNum) {
         case 1:
-            p = this->p1;
+            p = p1;
             break;
 
         case 2:
-            p = this->p2;
+            p = p2;
             break;
 
         case 3:
-            p = this->p3;
+            p = p3;
             break;
 
         default:
