@@ -103,8 +103,6 @@ cv::Scalar matRoiMean(cv::Size maskSize, cv::Rect roi) {
 std::vector<cv::Rect> matchTemplate(const cv::Mat &input, std::vector<Window> &windows) {
     // Checks
     assert(!input.empty());
-    assert(inputRoi.area() > 0);
-    assert(groups.size() > 0);
 
     // Vector of matched bounding boxes and their score
     std::vector<cv::Rect> matchBB;
@@ -179,8 +177,7 @@ std::vector<cv::Rect> matchTemplate(const cv::Mat &input, std::vector<Window> &w
 
 
 
-    return matchBB;
-//    return nonMaximaSuppression(matchBB, scoreBB);
+    return nonMaximaSuppression(matchBB, scoreBB);
 
     /*
     // Match configuration
