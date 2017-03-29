@@ -16,7 +16,7 @@
 struct HashTable {
 public:
     Triplet triplet;
-    std::unordered_map<HashKey, std::vector<Template>, HashKeyHasher> templates;
+    std::unordered_map<HashKey, std::vector<Template *>, HashKeyHasher> templates;
 
     // Constructors
     HashTable() {}

@@ -166,7 +166,7 @@ void Hasher::calculateDepthBinRanges(const std::vector<TemplateGroup> &groups, s
                 assert(!t.srcDepth.empty());
 
                 // Get triplet points
-                cv::Vec4f coordParams = Triplet::getCoordParams(t.srcDepth.cols, t.srcDepth.rows, featurePointsGrid);
+                TripletCoords coordParams = Triplet::getCoordParams(t.srcDepth.cols, t.srcDepth.rows, featurePointsGrid);
                 cv::Point p1 = hashTable.triplet.getP1Coords(coordParams);
                 cv::Point p2 = hashTable.triplet.getP2Coords(coordParams);
                 cv::Point p3 = hashTable.triplet.getP3Coords(coordParams);
@@ -212,7 +212,7 @@ void Hasher::initialize(const std::vector<TemplateGroup> &groups, std::vector<Ha
     calculateDepthBinRanges(groups, hashTables);
 }
 
-void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables) {
+void Hasher::train(std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables) {
     // Prepare hash tables and histogram bin ranges
     initialize(groups, hashTables);
 
@@ -224,7 +224,7 @@ void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTab
                 assert(!t.srcDepth.empty());
 
                 // Get triplet points
-                cv::Vec4f coordParams = Triplet::getCoordParams(t.srcDepth.cols, t.srcDepth.rows, featurePointsGrid);
+                TripletCoords coordParams = Triplet::getCoordParams(t.srcDepth.cols, t.srcDepth.rows, featurePointsGrid);
                 cv::Point p1 = hashTable.triplet.getP1Coords(coordParams);
                 cv::Point p2 = hashTable.triplet.getP2Coords(coordParams);
                 cv::Point p3 = hashTable.triplet.getP3Coords(coordParams);
@@ -249,116 +249,89 @@ void Hasher::train(const std::vector<TemplateGroup> &groups, std::vector<HashTab
                     quantizeSurfaceNormals(extractSurfaceNormal(t.srcDepth, p3))
                 );
 
-                // TODO - maybe can be done better
                 // Check if key exists, if not initialize it
                 if (hashTable.templates.find(key) == hashTable.templates.end()) {
-                    std::vector<Template> hashTemplates;
+                    std::vector<Template *> hashTemplates;
                     hashTable.templates[key] = hashTemplates;
                 }
 
-                // Get reference to entry and check for duplicates, if it passes, insert
-                auto &entry = hashTable.templates.at(key);
-                if (std::find(entry.begin(), entry.end(), t) == entry.end()) {
-                    entry.push_back(t);
+                // Check for duplicates in hash table and push unique
+                auto found = std::find_if(hashTable.templates[key].begin(), hashTable.templates[key].end(), [&t](const Template* tt) { return t == *tt; });
+                if (found == hashTable.templates[key].end()) {
+                    hashTable.templates[key].push_back(&t);
                 }
             }
         }
     }
 }
 
-void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, cv::Rect &objectnessROI, std::vector<HashTable> &hashTables, std::vector<TemplateGroup> &groups) {
-    // Sliding window - fixed WIDTH
-    cv::Size w(120, 120);
-    cv::Mat s = sceneGrayscale.clone();
-    int step = 5;
-    
-    // Passed templates
-    std::vector<std::vector<Template*>> windowTemplates; // Each window can receive up to N templates
-    const int v = 3;
-    int templatesPassedCount = 0;
+void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, std::vector<Window> &windows, std::vector<HashTable> &hashTables, std::vector<TemplateGroup> &groups) {
+    // Checks
+    assert(!sceneGrayscale.empty());
+    assert(windows.size() > 0);
+    assert(hashTables.size() > 0);
+    assert(groups.size() > 0);
 
-    for (int y = objectnessROI.y; y < (objectnessROI.y + objectnessROI.height) - w.height; y += step) {
-        for (int x = objectnessROI.x; x < (objectnessROI.x + objectnessROI.width) - w.width; x += step) {
-            s = sceneGrayscale.clone();
-            cv::rectangle(s, cv::Point(x, y), cv::Point(x + w.width, y + w.height), cv::Scalar(1.0f));
+#ifndef NDEBUG
+    unsigned long reduced = 0;
+#endif
 
-            // Init templates for this window
-            std::vector<Template*> templates;
+    const int v = 3, N = 100;
+    std::vector<Template *> usedTemplates;
 
-            for (auto &hashTable : hashTables) {
-                // Get triplet points
-                cv::Vec4f coordParams = Triplet::getCoordParams(w.width, w.height, featurePointsGrid);
-                cv::Point p1 = hashTable.triplet.getP1Coords(coordParams);
-                cv::Point p2 = hashTable.triplet.getP2Coords(coordParams);
-                cv::Point p3 = hashTable.triplet.getP3Coords(coordParams);
+    for (auto &&window : windows) {
+        for (auto &&table : hashTables) {
+            // Get triplet points
+            TripletCoords coordParams = Triplet::getCoordParams(window.size.width, window.size.height, featurePointsGrid, window.tl().x, window.tl().y);
+            cv::Point p1 = table.triplet.getP1Coords(coordParams);
+            cv::Point p2 = table.triplet.getP2Coords(coordParams);
+            cv::Point p3 = table.triplet.getP3Coords(coordParams);
 
-                // Check if we're not out of bounds
-                assert(p1.x >= 0 && p1.x < s.cols);
-                assert(p1.y >= 0 && p1.y < s.rows);
-                assert(p2.x >= 0 && p2.x < s.cols);
-                assert(p2.y >= 0 && p2.y < s.rows);
-                assert(p3.x >= 0 && p3.x < s.cols);
-                assert(p3.y >= 0 && p3.y < s.rows);
+            // Check if we're not out of bounds
+            assert(p1.x >= 0 && p1.x < sceneGrayscale.cols);
+            assert(p1.y >= 0 && p1.y < sceneGrayscale.rows);
+            assert(p2.x >= 0 && p2.x < sceneGrayscale.cols);
+            assert(p2.y >= 0 && p2.y < sceneGrayscale.rows);
+            assert(p3.x >= 0 && p3.x < sceneGrayscale.cols);
+            assert(p3.y >= 0 && p3.y < sceneGrayscale.rows);
 
-                // Relative depths
-                cv::Vec2i relativeDepths = extractRelativeDepths(s, p1, p2, p3);
+            // Relative depths
+            cv::Vec2i relativeDepths = extractRelativeDepths(sceneGrayscale, p1, p2, p3);
 
-                // Generate hash key
-                HashKey key(
-                    quantizeDepths(relativeDepths[0]),
-                    quantizeDepths(relativeDepths[1]),
-                    quantizeSurfaceNormals(extractSurfaceNormal(s, p1)),
-                    quantizeSurfaceNormals(extractSurfaceNormal(s, p2)),
-                    quantizeSurfaceNormals(extractSurfaceNormal(s, p3))
-                );
+            // Generate hash key
+            HashKey key(
+                quantizeDepths(relativeDepths[0]),
+                quantizeDepths(relativeDepths[1]),
+                quantizeSurfaceNormals(extractSurfaceNormal(sceneGrayscale, p1)),
+                quantizeSurfaceNormals(extractSurfaceNormal(sceneGrayscale, p2)),
+                quantizeSurfaceNormals(extractSurfaceNormal(sceneGrayscale, p3))
+            );
 
-                // Up votes
-                // TODO - we should probably use only up to N templates with highest votes
-                for (auto &entry : hashTable.templates[key]) {
-                    entry.voteUp();
-//                    if (entry.votes >= v) {
-//                        // Check if it is not yet in templates
-//                        if (std::find(templates.begin(), templates.end(), &entry) == templates.end()) {
-//                            templates.push_back(&entry);
-//                        }
-//                    }
-                }
+            // Vote for each template in hash table at specific key and push unique to window candidates
+            for (auto &entry : table.templates[key]) {
+                entry->voteUp();
+
+                // automatically pushes only unique templates with minimum of v votes and up to N of templates
+                window.pushUnique(entry, N, v);
+                usedTemplates.push_back(entry);
             }
-
-            for (auto &&group : groups) {
-                for (auto &&gt : group.templates) {
-                    std::cout << gt.votes << std::endl;
-                }
-            }
-
-
-            std::cout << "Templates size for current window: " << templates.size() << std::endl;
-
-            // Sort by votes and
-            std::sort(templates.begin(), templates.end(), [](const Template* lhs, const Template *rhs) {
-                return lhs->votes < rhs->votes;
-            });
-
-            for (auto && t : templates) {
-                std::cout << t->votes << std::endl;
-            }
-
-            // Reset votes for templates for each new sliding window
-            for (auto &&t : templates) {
-                t->resetVotes();
-            }
-
-            // Push filtered templates for this window to new array
-            windowTemplates.push_back(templates);
-            templatesPassedCount += templates.size();
+#ifndef NDEBUG
+            reduced += window.candidatesSize();
+#endif
         }
+
+        // Reset votes for all used templates
+        for (auto &&t : usedTemplates) {
+            t->resetVotes();
+        }
+
+        // Clear used templates vector
+        usedTemplates.clear();
     }
 
-    // Print filtered size
-    std::cout << "Total number of templates passed: " << templatesPassedCount << std::endl;
-    std::cout << "Total number of windows: " << windowTemplates.size() << std::endl;
-
-    // Todo pass window locations with template candidates to template matching
+#ifndef NDEBUG
+    std::cout << "  |_ total number of templates in windows reduced to approx: " << reduced / windows.size() << std::endl;
+#endif
 }
 
 const cv::Size Hasher::getFeaturePointsGrid() {

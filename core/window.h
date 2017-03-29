@@ -22,8 +22,8 @@ public:
     cv::Point bl();
     cv::Point br();
     bool hasCandidates();
-    void pushUnique(Template *t);
-    unsigned long candidatesCount();
+    void pushUnique(Template *t, unsigned int N = 100, int v = 3);
+    unsigned long candidatesSize();
 
     // Friends
     friend std::ostream &operator<<(std::ostream &os, const Window &w);

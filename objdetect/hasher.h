@@ -4,6 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include "../core/hash_table.h"
 #include "../core/template_group.h"
+#include "../core/window.h"
 
 /**
  * class Hasher
@@ -38,8 +39,8 @@ public:
 
     // Methods
     void initialize(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables);
-    void train(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables);
-    void verifyTemplateCandidates(const cv::Mat &scene, cv::Rect &objectnessROI, std::vector<HashTable> &hashTables, std::vector<TemplateGroup> &groups);
+    void train(std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables);
+    void verifyTemplateCandidates(const cv::Mat &scene, std::vector<Window> &windows, std::vector<HashTable> &hashTables, std::vector<TemplateGroup> &groups);
 
     // Getters
     const cv::Size getFeaturePointsGrid();

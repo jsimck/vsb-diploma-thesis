@@ -10,7 +10,7 @@ typedef std::mt19937 Engine;
 typedef std::uniform_real_distribution<float> Distribution;
 auto uniformGenerator = std::bind(Distribution(0.0f, 1.0f), Engine(1));
 
-cv::Point Triplet::getCoords(int pointNum, float offsetX, float stepX, float offsetY, float stepY) {
+cv::Point Triplet::getCoords(int pointNum, float offsetX, float stepX, float offsetY, float stepY, int sceneOffsetX, int sceneOffsetY) {
     cv::Point p;
     switch (pointNum) {
         case 1:
@@ -30,36 +30,37 @@ cv::Point Triplet::getCoords(int pointNum, float offsetX, float stepX, float off
     }
 
     return cv::Point(
-        static_cast<int>(offsetX + (p.x * stepX)),
-        static_cast<int>(offsetY + (p.y * stepY))
+        static_cast<int>(sceneOffsetX + offsetX + (p.x * stepX)),
+        static_cast<int>(sceneOffsetY + offsetY + (p.y * stepY))
     );
 }
 
-cv::Point Triplet::getCoords(int index, const cv::Vec4f &coordinateParams) {
-    return getCoords(index, coordinateParams[0], coordinateParams[1], coordinateParams[2], coordinateParams[3]);
+cv::Point Triplet::getCoords(int index, const TripletCoords &coordinateParams) {
+    return getCoords(index, coordinateParams.offsetX, coordinateParams.stepX, coordinateParams.offsetY,
+                     coordinateParams.stepY, coordinateParams.sceneOffsetX, coordinateParams.sceneOffsetY);
 }
 
-cv::Point Triplet::getP1Coords(float offsetX, float stepX, float offsetY, float stepY) {
-    return getCoords(1, offsetX, stepX, offsetY, stepY);
+cv::Point Triplet::getP1Coords(float offsetX, float stepX, float offsetY, float stepY, int sceneOffsetX, int sceneOffsetY) {
+    return getCoords(1, offsetX, stepX, offsetY, stepY, sceneOffsetX, sceneOffsetY);
 }
 
-cv::Point Triplet::getP1Coords(const cv::Vec4f &coordinateParams) {
+cv::Point Triplet::getP1Coords(const TripletCoords &coordinateParams) {
     return getCoords(1, coordinateParams);
 }
 
-cv::Point Triplet::getP2Coords(float offsetX, float stepX, float offsetY, float stepY) {
-    return getCoords(2, offsetX, stepX, offsetY, stepY);
+cv::Point Triplet::getP2Coords(float offsetX, float stepX, float offsetY, float stepY, int sceneOffsetX, int sceneOffsetY) {
+    return getCoords(2, offsetX, stepX, offsetY, stepY, sceneOffsetX, sceneOffsetY);
 }
 
-cv::Point Triplet::getP2Coords(const cv::Vec4f &coordinateParams) {
+cv::Point Triplet::getP2Coords(const TripletCoords &coordinateParams) {
     return getCoords(2, coordinateParams);
 }
 
-cv::Point Triplet::getP3Coords(float offsetX, float stepX, float offsetY, float stepY) {
-    return getCoords(3, offsetX, stepX, offsetY, stepY);
+cv::Point Triplet::getP3Coords(float offsetX, float stepX, float offsetY, float stepY, int sceneOffsetX, int sceneOffsetY) {
+    return getCoords(3, offsetX, stepX, offsetY, stepY, sceneOffsetX, sceneOffsetY);
 }
 
-cv::Point Triplet::getP3Coords(const cv::Vec4f &coordinateParams) {
+cv::Point Triplet::getP3Coords(const TripletCoords &coordinateParams) {
     return getCoords(3, coordinateParams);
 }
 
@@ -105,15 +106,14 @@ Triplet Triplet::createRandomTriplet(const cv::Size &referencePointsGrid) {
     return Triplet(c, p1, p2);
 }
 
-cv::Vec4f Triplet::getCoordParams(const int width, const int height, const cv::Size &referencePointsGrid) {
-    // Calculate offsets and steps
+TripletCoords Triplet::getCoordParams(const int width, const int height, const cv::Size &referencePointsGrid, int sceneOffsetX, int sceneOffsetY) {
+    // Calculate offsets and steps for relative grid
     float stepX = width / static_cast<float>(referencePointsGrid.width);
     float stepY = height / static_cast<float>(referencePointsGrid.height);
     float offsetX = stepX / 2.0f;
     float offsetY = stepY / 2.0f;
 
-    // Form final vector [offsetX, stepX, offsetY, stepY]
-    return cv::Vec4f(offsetX, stepX, offsetY, stepY);
+    return TripletCoords(offsetX, stepX, offsetY, stepY, sceneOffsetX, sceneOffsetY);
 }
 
 std::ostream &operator<<(std::ostream &os, const Triplet &triplet) {

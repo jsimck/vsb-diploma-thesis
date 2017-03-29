@@ -108,7 +108,7 @@ void Classifier::detectObjectness() {
     assert(minEdgels[0] > 0 && minEdgels[1] > 0 && minEdgels[2] > 0);
 
     // Objectness detection
-    std::cout << "Objectness detection started... " << std::endl;
+    std::cout << "Objectness detection started... ";
     setObjectnessROI(objectness.objectness(sceneGrayscale, scene, sceneDepthNormalized, windows, minEdgels));
     std::cout << "DONE! " << std::endl;
     std::cout << "  |_ Bounding box extracted: " << objectnessROI << std::endl;
@@ -117,8 +117,9 @@ void Classifier::detectObjectness() {
 
 void Classifier::verifyTemplateCandidates() {
     // Verification started
-    std::cout << "Verification of template candidates, using trained HashTable started... " << std::endl;
-    hasher.verifyTemplateCandidates(sceneGrayscale, objectnessROI, hashTables, templateGroups);
+    std::cout << "Verification of template candidates, using trained HashTables started... " << std::endl;
+    hasher.verifyTemplateCandidates(sceneGrayscale, windows, hashTables, templateGroups);
+    std::cout << "DONE!" << std::endl << std::endl;
 }
 
 void Classifier::classify() {
@@ -139,11 +140,14 @@ void Classifier::classify() {
     std::cout << hashTables[0] << std::endl;
 
     // Objectness detection
-//    detectObjectness();
-//    setObjectnessROI(cv::Rect(155, 60, 419, 407));
+    detectObjectness();
+    setObjectnessROI(cv::Rect(155, 60, 419, 407));
 
-    // Verification and filtering of template candidates
-//    verifyTemplateCandidates();
+//     Verification and filtering of template candidates
+    verifyTemplateCandidates();
+    for (const auto &window : windows) {
+        std::cout << window << std::endl;
+    }
 
     // Template Matching
 //    std::vector<cv::Rect> matchBBs = matchTemplate(sceneGrayscale, objectnessROI, templateGroups);
@@ -173,27 +177,30 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
     trainHashTables();
 
     // Print hashtables
-    for (auto &&table : hashTables) {
-        std::cout << table << std::endl;
-    }
+//    for (const auto &table : hashTables) {
+//        std::cout << table << std::endl;
+//    }
 
     // Objectness detection
-    detectObjectness();
 //    setObjectnessROI(cv::Rect(155, 60, 419, 407));
+    detectObjectness();
 
     // Verification and filtering of template candidates
-//    verifyTemplateCandidates();
-
-    // Template Matching
-    std::vector<cv::Rect> matchBBs = matchTemplate(sceneGrayscale, objectnessROI, templateGroups);
-    cv::Mat sceneCopy = scene.clone();
-    for (auto &&bB : matchBBs) {
-        cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
+    verifyTemplateCandidates();
+    for (const auto &window : windows) {
+        std::cout << window << std::endl;
     }
 
-    // Show matched template results
-    cv::imshow("Match template result", sceneCopy);
-    cv::waitKey(0);
+    // Template Matching
+//    std::vector<cv::Rect> matchBBs = matchTemplate(sceneGrayscale, objectnessROI, templateGroups);
+//    cv::Mat sceneCopy = scene.clone();
+//    for (auto &&bB : matchBBs) {
+//        cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
+//    }
+//
+//    // Show matched template results
+//    cv::imshow("Match template result", sceneCopy);
+//    cv::waitKey(0);
 }
 
 // Getters and setters

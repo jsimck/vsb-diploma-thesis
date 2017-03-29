@@ -5,7 +5,7 @@ std::ostream &operator<<(std::ostream &os, const HashTable &table) {
     for (const auto &entry : table.templates) {
         os << entry.first << " : (";
         for (const auto &item : entry.second) {
-            os << item.id << ", ";
+            os << item->id << ", ";
         }
         os << ")" << std::endl;
     }
