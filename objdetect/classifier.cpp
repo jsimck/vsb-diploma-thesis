@@ -149,8 +149,8 @@ void Classifier::classify() {
     // Template Matching
     std::vector<cv::Rect> matchBBs = matchTemplate(sceneGrayscale, windows);
     cv::Mat sceneCopy = scene.clone();
-    for (auto &&bB : matchBBs) {
-        cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
+    for (int i = 0; i < matchBBs.size(); i++) {
+        cv::rectangle(sceneCopy, cv::Point(matchBBs[i].x, matchBBs[i].y), cv::Point(matchBBs[i].x + matchBBs[i].width, matchBBs[i].y + matchBBs[i].height), cv::Scalar(0, 255, 0));
     }
 
     // Show matched template results
@@ -191,9 +191,10 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
     // Template Matching
     std::vector<cv::Rect> matchBBs = matchTemplate(sceneGrayscale, windows);
     cv::Mat sceneCopy = scene.clone();
-    for (auto &&bB : matchBBs) {
-        cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
-    }
+    // for (auto &&bB : matchBBs) {
+    //     cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
+    // }
+     cv::rectangle(sceneCopy, cv::Point(matchBBs[0].x, matchBBs[0].y), cv::Point(matchBBs[0].x + matchBBs[0].width, matchBBs[0].y + matchBBs[0].height), cv::Scalar(0, 255, 0));
 
     // Show matched template results
     cv::imshow("Match template result", sceneCopy);

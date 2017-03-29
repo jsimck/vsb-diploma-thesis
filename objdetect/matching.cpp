@@ -119,6 +119,7 @@ std::vector<cv::Rect> matchTemplate(const cv::Mat &input, std::vector<Window> &w
         // Go through all candidates and take one with biggest score ?
         for (int i = 0; i < window.candidatesSize(); i++) {
             // TODO - Asserts
+            Template *t = window.candidates[i];
 #ifndef NDEBUG
             cv::Mat inputClone = input.clone();
             cv::rectangle(inputClone, window.tl(), cv::Point(window.tl().x + t->src.cols, window.tl().y + t->src.rows), cv::Scalar(1.0f));
@@ -126,7 +127,6 @@ std::vector<cv::Rect> matchTemplate(const cv::Mat &input, std::vector<Window> &w
             cv::imshow("matching::Template matching with filtered windows and templates (template)", t->src);
             cv::waitKey(0);
 #endif
-            Template *t = window.candidates[i];
 
             // Set default helper variables for matching
             bool matchFound = false;
@@ -137,7 +137,7 @@ std::vector<cv::Rect> matchTemplate(const cv::Mat &input, std::vector<Window> &w
 
             // Loop through template
             for (int ty = 0; ty < t->src.rows; ty++) {
-                for (int tx = 0; tx < t->src.rows; tx++) {
+                for (int tx = 0; tx < t->src.cols; tx++) {
                     float Ti = t->src.at<float>(ty, tx);
 
                     // Ignore black pixels
