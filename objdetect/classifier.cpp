@@ -43,9 +43,9 @@ void Classifier::parseTemplates() {
 }
 
 void Classifier::initObjectness() {
+    objectness.setStep(5);
     objectness.setMinThreshold(0.01f);
     objectness.setMaxThreshold(0.1f);
-    objectness.setSlidingWindowStepFactor(0.4f);
     objectness.setSlidingWindowSizeFactor(1.0f);
     objectness.setMatchThresholdFactor(0.3f);
 }
@@ -109,8 +109,10 @@ void Classifier::detectObjectness() {
 
     // Objectness detection
     std::cout << "Objectness detection started... " << std::endl;
-    setObjectnessROI(objectness.objectness(sceneGrayscale, scene, sceneDepthNormalized, minEdgels));
-    std::cout << "DONE! " << objectnessROI << " bounding box extracted" <<std::endl << std::endl;
+    setObjectnessROI(objectness.objectness(sceneGrayscale, scene, sceneDepthNormalized, windows, minEdgels));
+    std::cout << "DONE! " << std::endl;
+    std::cout << "  |_ Bounding box extracted: " << objectnessROI << std::endl;
+    std::cout << "  |_ Windows classified as containing object extracted: " << windows.size() << std::endl << std::endl;
 }
 
 void Classifier::verifyTemplateCandidates() {
@@ -243,6 +245,10 @@ const cv::Rect &Classifier::getObjectnessROI() const {
     return objectnessROI;
 }
 
+const std::vector<Window> &Classifier::getWindows() const {
+    return windows;
+}
+
 void Classifier::setMinEdgels(const cv::Vec3f &minEdgels) {
     assert(minEdgels[0] > 0 && minEdgels[1] > 0 && minEdgels[2] > 0);
     this->minEdgels = minEdgels;
@@ -305,4 +311,9 @@ void Classifier::setObjectnessROI(const cv::Rect &objectnessROI) {
     assert(objectnessROI.x >= 0 && objectnessROI.x < scene.cols);
     assert(objectnessROI.y >= 0 && objectnessROI.y < scene.rows);
     Classifier::objectnessROI = objectnessROI;
+}
+
+void Classifier::setWindows(const std::vector<Window> &windows) {
+    assert(windows.size() > 0);
+    this->windows = windows;
 }

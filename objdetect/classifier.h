@@ -6,6 +6,7 @@
 #include "../utils/template_parser.h"
 #include "hasher.h"
 #include "objectness.h"
+#include "../core/window.h"
 
 /**
  * class Classifier
@@ -31,6 +32,7 @@ private:
     cv::Rect objectnessROI;
     std::vector<TemplateGroup> templateGroups;
     std::vector<HashTable> hashTables;
+    std::vector<Window> windows;
 
     TemplateParser parser;
     Hasher hasher;
@@ -68,6 +70,7 @@ public:
     const std::vector<TemplateGroup> &getTemplateGroups() const;
     const std::vector<HashTable> &getHashTables() const;
     const cv::Rect &getObjectnessROI() const;
+    const std::vector<Window> &getWindows() const;
 
     // Setters
     void setMinEdgels(const cv::Vec3f &minEdgels);
@@ -82,6 +85,7 @@ public:
     void setTemplateGroups(const std::vector<TemplateGroup> &templateGroups);
     void setHashTables(const std::vector<HashTable> &hashTables);
     void setObjectnessROI(const cv::Rect &objectnessROI);
+    void setWindows(const std::vector<Window> &windows);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_CLASSIFICATOR_H

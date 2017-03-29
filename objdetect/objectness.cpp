@@ -2,14 +2,6 @@
 #include <cassert>
 #include "../utils/utils.h"
 
-Objectness::Objectness() {
-    setMatchThresholdFactor(0.3f);
-    setMaxThreshold(0.1f);
-    setMinThreshold(0.01f);
-    setSlidingWindowSizeFactor(1.0f);
-    setSlidingWindowStepFactor(0.4f);
-}
-
 void Objectness::filterSobel(cv::Mat &src, cv::Mat &dst) {
     // Src should not be empty
     assert(!src.empty());
@@ -106,14 +98,13 @@ cv::Vec3f Objectness::extractMinEdgels(std::vector<TemplateGroup> &templateGroup
 }
 
 // TODO - we should sent only the specific window locations for further matching
-cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, cv::Vec3f minEdgels) {
+cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, std::vector<Window> &windows, cv::Vec3f minEdgels) {
     // Check thresholds and min edgels
     assert(minEdgels[0] > 0);
     assert(minEdgels[1] > 0);
     assert(minEdgels[2] > 0);
     assert(matchThresholdFactor > 0);
     assert(slidingWindowSizeFactor > 0);
-    assert(slidingWindowStepFactor > 0);
 
     // Matrices should not be empty
     assert(!sceneGrayscale.empty());
@@ -139,32 +130,27 @@ cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv
     cv::integral(sceneSobel, sceneIntegral, CV_32F);
 
     // Init helper variables
-    std::vector<cv::Vec4i> windows;
+    std::vector<cv::Vec4i> windowBBs;
     minEdgels[0] *= matchThresholdFactor;
     int sizeX = static_cast<int>(minEdgels[1] * slidingWindowSizeFactor), sizeY = static_cast<int>(minEdgels[2] * slidingWindowSizeFactor);
-    int stepX = static_cast<int>(sizeX * slidingWindowStepFactor), stepY = static_cast<int>(sizeY * slidingWindowStepFactor);
 
     // Slide window over scene and calculate edgel count for each overlap
-    for (int y = 0; y < sceneSobel.rows - sizeY; y += stepY) {
-        for (int x = 0; x < sceneSobel.cols - sizeX; x += stepX) {
+    for (int y = 0; y < sceneSobel.rows - sizeY; y += step) {
+        for (int x = 0; x < sceneSobel.cols - sizeX; x += step) {
 
             // Calc edgel value in current sliding window with help of image integral
-            float sceneEdgels = sceneIntegral.at<float>(y + sizeY, x + sizeX)
+            unsigned int sceneEdgels = static_cast<unsigned int>(
+                sceneIntegral.at<float>(y + sizeY, x + sizeX)
                 - sceneIntegral.at<float>(y, x + sizeX)
                 - sceneIntegral.at<float>(y + sizeY, x)
-                + sceneIntegral.at<float>(y, x);
+                + sceneIntegral.at<float>(y, x)
+            );
 
             if (sceneEdgels >= minEdgels[0]) {
-                windows.push_back(cv::Vec4i(x, y, x + sizeX, y + sizeY));
+                windowBBs.push_back(cv::Vec4i(x, y, x + sizeX, y + sizeY));
+                windows.push_back(Window(cv::Point(x, y), cv::Size(sizeX, sizeY), sceneEdgels));
 #ifndef NDEBUG
             cv::rectangle(resultScene, cv::Point(x, y), cv::Point(x + sizeX, y + sizeY), cv::Vec3b(190, 190, 190));
-
-            std::stringstream ss;
-            ss << "T: " << minEdgels[0];
-            cv::putText(resultScene, ss.str(), cv::Point(x + 3, y + sizeY - 15), CV_FONT_HERSHEY_SIMPLEX, 0.3, cv::Vec3b(255, 255, 255));
-            ss.str("");
-            ss << "S: " << sceneEdgels;
-            cv::putText(resultScene, ss.str(), cv::Point(x + 3, y + sizeY - 5), CV_FONT_HERSHEY_SIMPLEX, 0.3, cv::Vec3b(255, 255, 255));
 #endif
             }
         }
@@ -173,11 +159,11 @@ cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv
     // Calculate coordinates of outer BB
     int minX = sceneSobel.cols, maxX = 0;
     int minY = sceneSobel.rows, maxY = 0;
-    for (int i = 0; i < windows.size(); i++) {
-        minX = std::min(minX, windows[i][0]);
-        minY = std::min(minY, windows[i][1]);
-        maxX = std::max(maxX, windows[i][2]);
-        maxY = std::max(maxY, windows[i][3]);
+    for (int i = 0; i < windowBBs.size(); i++) {
+        minX = std::min(minX, windowBBs[i][0]);
+        minY = std::min(minY, windowBBs[i][1]);
+        maxX = std::max(maxX, windowBBs[i][2]);
+        maxY = std::max(maxY, windowBBs[i][3]);
     }
 
     // Create outer BB
@@ -215,8 +201,8 @@ float Objectness::getSlidingWindowSizeFactor() const {
     return slidingWindowSizeFactor;
 }
 
-float Objectness::getSlidingWindowStepFactor() const {
-    return slidingWindowStepFactor;
+unsigned int Objectness::getStep() const {
+    return step;
 }
 
 void Objectness::setMinThreshold(float minThreshold) {
@@ -238,8 +224,7 @@ void Objectness::setSlidingWindowSizeFactor(float slidingWindowSizeFactor) {
     assert(slidingWindowSizeFactor > 0);
     this->slidingWindowSizeFactor = slidingWindowSizeFactor;
 }
-
-void Objectness::setSlidingWindowStepFactor(float slidingWindowStepFactor) {
-    assert(slidingWindowStepFactor > 0);
-    this->slidingWindowStepFactor = slidingWindowStepFactor;
+void Objectness::setStep(unsigned int step) {
+    assert(step > 0);
+    this->step = step;
 }
