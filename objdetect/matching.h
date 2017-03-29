@@ -4,6 +4,8 @@
 #include <opencv2/opencv.hpp>
 #include "../core/template.h"
 #include "../core/template_group.h"
+#include "../core/hash_table.h"
+#include "../core/window.h"
 
 #define MATCH_NORMED_CROSS_CORRELATION
 // #define MATCH_NORMED_CORRELATION_COEF
@@ -16,6 +18,6 @@ std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::
 cv::Scalar matRoiMean(cv::Size maskSize, cv::Rect roi);
 
 // Concludes template matching using CROSS CORRELATION function on given template groups and input image
-std::vector<cv::Rect> matchTemplate(const cv::Mat &input, cv::Rect inputRoi, std::vector<TemplateGroup> &groups);
+std::vector<cv::Rect> matchTemplate(const cv::Mat &input, std::vector<Window> &windows);
 
 #endif //VSB_SEMESTRAL_PROJECT_MATCHING_H

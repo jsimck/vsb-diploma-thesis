@@ -1,5 +1,6 @@
 #include "classifier.h"
 #include "matching.h"
+#include "../utils/timer.h"
 
 Classifier::Classifier() {
     setBasePath("data/");
@@ -136,29 +137,26 @@ void Classifier::classify() {
     // Train hash tables
     trainHashTables();
 
-    // Print hashtables (first since it's long)
-    std::cout << hashTables[0] << std::endl;
+    // Start stopwatch
+    Timer t;
 
     // Objectness detection
     detectObjectness();
-    setObjectnessROI(cv::Rect(155, 60, 419, 407));
 
-//     Verification and filtering of template candidates
+    // Verification and filtering of template candidates
     verifyTemplateCandidates();
-    for (const auto &window : windows) {
-        std::cout << window << std::endl;
-    }
 
     // Template Matching
-//    std::vector<cv::Rect> matchBBs = matchTemplate(sceneGrayscale, objectnessROI, templateGroups);
-//    cv::Mat sceneCopy = scene.clone();
-//    for (auto &&bB : matchBBs) {
-//        cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
-//    }
-//
-//    // Show matched template results
-//    cv::imshow("Match template result", sceneCopy);
-//    cv::waitKey(0);
+    std::vector<cv::Rect> matchBBs = matchTemplate(sceneGrayscale, windows);
+    cv::Mat sceneCopy = scene.clone();
+    for (auto &&bB : matchBBs) {
+        cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
+    }
+
+    // Show matched template results
+    std::cout << "Classification took: " << t.elapsed() << "s" << std::endl;
+    cv::imshow("Match template result", sceneCopy);
+    cv::waitKey(0);
 }
 
 void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
@@ -182,7 +180,6 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
 //    }
 
     // Objectness detection
-//    setObjectnessROI(cv::Rect(155, 60, 419, 407));
     detectObjectness();
 
     // Verification and filtering of template candidates
@@ -192,15 +189,15 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
     }
 
     // Template Matching
-//    std::vector<cv::Rect> matchBBs = matchTemplate(sceneGrayscale, objectnessROI, templateGroups);
-//    cv::Mat sceneCopy = scene.clone();
-//    for (auto &&bB : matchBBs) {
-//        cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
-//    }
-//
-//    // Show matched template results
-//    cv::imshow("Match template result", sceneCopy);
-//    cv::waitKey(0);
+    std::vector<cv::Rect> matchBBs = matchTemplate(sceneGrayscale, windows);
+    cv::Mat sceneCopy = scene.clone();
+    for (auto &&bB : matchBBs) {
+        cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
+    }
+
+    // Show matched template results
+    cv::imshow("Match template result", sceneCopy);
+    cv::waitKey(0);
 }
 
 // Getters and setters

@@ -100,7 +100,7 @@ cv::Scalar matRoiMean(cv::Size maskSize, cv::Rect roi) {
     return cv::mean(maskRoi);
 }
 
-std::vector<cv::Rect> matchTemplate(const cv::Mat &input, cv::Rect inputRoi, std::vector<TemplateGroup> &groups) {
+std::vector<cv::Rect> matchTemplate(const cv::Mat &input, std::vector<Window> &windows) {
     // Checks
     assert(!input.empty());
     assert(inputRoi.area() > 0);
@@ -109,32 +109,96 @@ std::vector<cv::Rect> matchTemplate(const cv::Mat &input, cv::Rect inputRoi, std
     // Vector of matched bounding boxes and their score
     std::vector<cv::Rect> matchBB;
     std::vector<float> scoreBB;
+    const float minCorrelation = 0.5;
 
+    // Loop through each window
+    for (auto &&window : windows) {
+        // Skip windows with no candidates
+        if (!window.hasCandidates()) {
+            continue;
+        }
+
+        // Go through all candidates and take one with biggest score ?
+        for (int i = 0; i < window.candidatesSize(); i++) {
+            // TODO - Asserts
+#ifndef NDEBUG
+            cv::Mat inputClone = input.clone();
+            cv::rectangle(inputClone, window.tl(), cv::Point(window.tl().x + t->src.cols, window.tl().y + t->src.rows), cv::Scalar(1.0f));
+            cv::imshow("matching::Template matching with filtered windows and templates (scene)", inputClone);
+            cv::imshow("matching::Template matching with filtered windows and templates (template)", t->src);
+            cv::waitKey(0);
+#endif
+            Template *t = window.candidates[i];
+
+            // Set default helper variables for matching
+            bool matchFound = false;
+            float maxScore = minCorrelation;
+            cv::Rect maxRect;
+
+            float sum = 0, sumNormT = 0, sumNormI = 0;
+
+            // Loop through template
+            for (int ty = 0; ty < t->src.rows; ty++) {
+                for (int tx = 0; tx < t->src.rows; tx++) {
+                    float Ti = t->src.at<float>(ty, tx);
+
+                    // Ignore black pixels
+                    if (Ti == 0) continue;
+
+                    // Get input image value
+                    float Ii = input.at<float>(window.p.y + ty, window.p.x + tx);
+
+                    // Calculate sums for normalized cross correlation method
+                    sum += ((Ii) * (Ti));
+                    sumNormI += SQR(Ii);
+                    sumNormT += SQR(Ti);
+                }
+            }
+
+            // Calculate correlation using NORMED_CROSS_CORRELATION / NORMED_CORRELATION_COEF method
+            float crossSum = sum / sqrt(sumNormI * sumNormT);
+
+            // Check if we found new max scoreBB, if yes -> save roi location + scoreBB
+            if (crossSum > maxScore) {
+                maxRect = cv::Rect(window.p.x, window.p.y, t->src.cols, t->src.rows);
+                maxScore = crossSum;
+                matchFound = true;
+            }
+
+            // If we found match over given threshold, push it into BB array
+            if (matchFound) {
+                // Return best match rectangle position and BB
+                matchBB.push_back(maxRect);
+                scoreBB.push_back(maxScore);
+
+                // Correct way, but not working in my implementation due to use of different matching algorithm
+                // scoreBB.push_back(maxScore * maxRect.area());
+            }
+        }
+    }
+
+
+
+    return matchBB;
+//    return nonMaximaSuppression(matchBB, scoreBB);
+
+    /*
     // Match configuration
     const int step = 5;
     const float minCorrelation = 0.5;
 
-    for (auto &g : groups) {
-        std::vector<Template> &templates = g.templates;
+    for (auto &&window : windows) {
+        auto templates = window.candidates;
 
-        // Skip empty groups
+        // Skip windows with no candidates
         if (templates.size() <= 0) {
             continue;
         }
 
         #pragma omp parallel for schedule(dynamic) shared(input, inputRoi, matchBB)
         for (int i = 0; i < templates.size(); i++) {
-            // Calculate final size of inputRoi, if possible we extend it's height by the half height of match template
-            // since objectness measure can ignore bottom edges that are not visible on depth maps
-            if (inputRoi.br().y + templates[i].objBB.height / 2 < input.rows) {
-                inputRoi.height += templates[i].objBB.height / 2;
-            }
-
-            // Get area of interest from input image using input ROI rectr
-            cv::Mat croppedInput(input, inputRoi);
-
             // Get match template from templateFolders
-            cv::Mat tpl = templates[i].src;
+            cv::Mat tpl = templates[i]->src;
             cv::Size wSize = tpl.size();
 
             // Set default helper variables for matching
@@ -142,57 +206,34 @@ std::vector<cv::Rect> matchTemplate(const cv::Mat &input, cv::Rect inputRoi, std
             float maxScore = minCorrelation;
             cv::Rect maxRect;
 
-    #ifdef MATCH_NORMED_CORRELATION_COEF
-            // Get template mean
-            cv::Scalar meanT = cv::mean(tpl);
-    #endif
+            float sum = 0, sumNormT = 0, sumNormI = 0;
 
-            for (int y = 0; y < croppedInput.rows - wSize.height; y += step) {
-                for (int x = 0; x < croppedInput.cols - wSize.width; x += step) {
-                    float sum = 0, sumNormT = 0, sumNormI = 0;
+            // Loop through template
+            for (int ty = 0; ty < wSize.height; ty++) {
+                for (int tx = 0; tx < wSize.width; tx++) {
+                    float Ti = tpl.at<float>(ty, tx);
 
-    #ifdef MATCH_NORMED_CORRELATION_COEF
-                    // Get mean of input image processed area
-                    cv::Scalar meanI = matRoiMean(croppedInput.size(), cv::Rect(x, y, wSize.width, wSize.height));
-    #endif
+                    // Ignore black pixels
+                    if (Ti == 0) continue;
 
-                    // Loop through template
-                    for (int ty = 0; ty < wSize.height; ty++) {
-                        for (int tx = 0; tx < wSize.width; tx++) {
-                            float Ti = tpl.at<float>(ty, tx);
+                    // Get input image value
+                    float Ii = input.at<float>(window.p.y + ty, window.p.x + tx);
 
-                            // Ignore black pixels
-                            if (Ti == 0) continue;
-
-                            // Get input image value
-                            float Ii = croppedInput.at<float>(y + ty, x + tx);
-
-    #ifdef MATCH_NORMED_CORRELATION_COEF
-                            // Calculate sums for normalized correlation coefficient method
-                            sum += ((Ii - meanI.val[0]) * (Ti - meanT.val[0]));
-                            sumNormI += SQR(Ii - meanI.val[0]);
-                            sumNormT += SQR(Ti - meanT.val[0]);
-    #endif
-
-    #ifdef MATCH_NORMED_CROSS_CORRELATION
-                            // Calculate sums for normalized cross correlation method
-                            sum += ((Ii) * (Ti));
-                            sumNormI += SQR(Ii);
-                            sumNormT += SQR(Ti);
-    #endif
-                        }
-                    }
-
-                    // Calculate correlation using NORMED_CROSS_CORRELATION / NORMED_CORRELATION_COEF method
-                    float crossSum = sum / sqrt(sumNormI * sumNormT);
-
-                    // Check if we found new max scoreBB, if yes -> save roi location + scoreBB
-                    if (crossSum > maxScore) {
-                        maxRect = cv::Rect(x, y, wSize.width, wSize.height);
-                        maxScore = crossSum;
-                        matchFound = true;
-                    }
+                    // Calculate sums for normalized cross correlation method
+                    sum += ((Ii) * (Ti));
+                    sumNormI += SQR(Ii);
+                    sumNormT += SQR(Ti);
                 }
+            }
+
+            // Calculate correlation using NORMED_CROSS_CORRELATION / NORMED_CORRELATION_COEF method
+            float crossSum = sum / sqrt(sumNormI * sumNormT);
+
+            // Check if we found new max scoreBB, if yes -> save roi location + scoreBB
+            if (crossSum > maxScore) {
+                maxRect = cv::Rect(window.p.x, window.p.y, wSize.width, wSize.height);
+                maxScore = crossSum;
+                matchFound = true;
             }
 
             // If we found match over given threshold, push it into BB array
@@ -213,4 +254,5 @@ std::vector<cv::Rect> matchTemplate(const cv::Mat &input, cv::Rect inputRoi, std
 
     // Call non maxima suppression on result BBoxes
     return nonMaximaSuppression(matchBB, scoreBB);
+     */
 }
