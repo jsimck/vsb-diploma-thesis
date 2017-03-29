@@ -34,24 +34,21 @@ private:
     std::vector<HashTable> hashTables;
     std::vector<Window> windows;
 
-    TemplateParser parser;
-    Hasher hasher;
-    Objectness objectness;
-
     // Methods
     void parseTemplates();
     void extractMinEdgels();
     void trainHashTables();
-    void initObjectness();
     void detectObjectness();
     void verifyTemplateCandidates();
     void loadScene();
 public:
+    // Classifiers
+    TemplateParser parser;
+    Hasher hasher;
+    Objectness objectness;
+
     // Constructors
-    Classifier();
-    Classifier(std::string basePath, std::vector<std::string> templateFolders);
-    Classifier(std::string basePath, std::vector<std::string> templateFolders, std::string scenePath);
-    Classifier(std::string basePath, std::vector<std::string> templateFolders, std::string scenePath, std::string sceneName);
+    Classifier(std::string basePath = "data/", std::vector<std::string> templateFolders = {}, std::string scenePath = "scene_01/", std::string sceneName = "0000.png");
 
     // Methods
     void classify();

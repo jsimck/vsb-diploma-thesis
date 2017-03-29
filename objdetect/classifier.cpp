@@ -2,30 +2,31 @@
 #include "matching.h"
 #include "../utils/timer.h"
 
-Classifier::Classifier() {
-    setBasePath("data/");
-    setTemplateFolders({
-        "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
-        "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30"
-    });
-}
-
-Classifier::Classifier(std::string basePath, std::vector<std::string> templateFolders) {
-    setBasePath(basePath);
-    setTemplateFolders(templateFolders);
-}
-
-Classifier::Classifier(std::string basePath, std::vector<std::string> templateFolders, std::string scenePath) {
-    setBasePath(basePath);
-    setTemplateFolders(templateFolders);
-    setScenePath(scenePath);
-}
 
 Classifier::Classifier(std::string basePath, std::vector<std::string> templateFolders, std::string scenePath, std::string sceneName) {
+    // Init properties
     setBasePath(basePath);
     setTemplateFolders(templateFolders);
     setScenePath(scenePath);
     setSceneName(sceneName);
+
+    // Init parser
+    parser.setBasePath(basePath);
+    parser.setTemplateFolders(templateFolders);
+    parser.setTplCount(1296);
+
+    // Init objectness
+    objectness.setStep(5);
+    objectness.setMinThreshold(0.01f);
+    objectness.setMaxThreshold(0.1f);
+    objectness.setSlidingWindowSizeFactor(1.0f);
+    objectness.setMatchThresholdFactor(0.3f);
+
+    // Init hasher
+    hasher.setReferencePointsGrid(cv::Size(12, 12));
+    hasher.setHashTableCount(100);
+    hasher.setHistogramBinCount(5);
+    hasher.setMinVotesPerTemplate(3);
 }
 
 void Classifier::parseTemplates() {
@@ -35,20 +36,9 @@ void Classifier::parseTemplates() {
 
     // Parse
     std::cout << "Parsing... " << std::endl;
-    parser.setTplCount(1296);
-    parser.setBasePath(basePath);
-    parser.setTemplateFolders(templateFolders);
     parser.parse(templateGroups);
     assert(templateGroups.size() > 0);
     std::cout << "DONE! " << templateGroups.size() << " template groups parsed" << std::endl << std::endl;
-}
-
-void Classifier::initObjectness() {
-    objectness.setStep(5);
-    objectness.setMinThreshold(0.01f);
-    objectness.setMaxThreshold(0.1f);
-    objectness.setSlidingWindowSizeFactor(1.0f);
-    objectness.setMatchThresholdFactor(0.3f);
 }
 
 void Classifier::extractMinEdgels() {
@@ -67,9 +57,6 @@ void Classifier::trainHashTables() {
 
     // Train hash tables
     std::cout << "Training hash tables... " << std::endl;
-    hasher.setFeaturePointsGrid(cv::Size(12, 12)); // Grid of 12x12 feature points
-    hasher.setHashTableCount(100);
-    hasher.setHistogramBinCount(5);
     hasher.train(templateGroups, hashTables);
     assert(hashTables.size() > 0);
     std::cout << "DONE! " << hashTables.size() << " hash tables generated" <<std::endl << std::endl;
@@ -131,7 +118,6 @@ void Classifier::classify() {
     parseTemplates();
 
     // Extract min edgels
-    initObjectness();
     extractMinEdgels();
 
     // Train hash tables
@@ -149,8 +135,8 @@ void Classifier::classify() {
     // Template Matching
     std::vector<cv::Rect> matchBBs = matchTemplate(sceneGrayscale, windows);
     cv::Mat sceneCopy = scene.clone();
-    for (int i = 0; i < matchBBs.size(); i++) {
-        cv::rectangle(sceneCopy, cv::Point(matchBBs[i].x, matchBBs[i].y), cv::Point(matchBBs[i].x + matchBBs[i].width, matchBBs[i].y + matchBBs[i].height), cv::Scalar(0, 255, 0));
+    for (auto &&bB : matchBBs) {
+        cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
     }
 
     // Show matched template results
@@ -168,35 +154,29 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
     parseTemplates();
 
     // Extract min edgels
-    initObjectness();
     extractMinEdgels();
 
     // Train hash tables
     trainHashTables();
 
-    // Print hashtables
-//    for (const auto &table : hashTables) {
-//        std::cout << table << std::endl;
-//    }
+    // Start stopwatch
+    Timer t;
 
     // Objectness detection
     detectObjectness();
 
     // Verification and filtering of template candidates
     verifyTemplateCandidates();
-    for (const auto &window : windows) {
-        std::cout << window << std::endl;
-    }
 
     // Template Matching
     std::vector<cv::Rect> matchBBs = matchTemplate(sceneGrayscale, windows);
     cv::Mat sceneCopy = scene.clone();
-    // for (auto &&bB : matchBBs) {
-    //     cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
-    // }
-     cv::rectangle(sceneCopy, cv::Point(matchBBs[0].x, matchBBs[0].y), cv::Point(matchBBs[0].x + matchBBs[0].width, matchBBs[0].y + matchBBs[0].height), cv::Scalar(0, 255, 0));
+    for (auto &&bB : matchBBs) {
+        cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
+    }
 
     // Show matched template results
+    std::cout << "Classification took: " << t.elapsed() << "s" << std::endl;
     cv::imshow("Match template result", sceneCopy);
     cv::waitKey(0);
 }

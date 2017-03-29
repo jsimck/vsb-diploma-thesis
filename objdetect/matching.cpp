@@ -144,7 +144,7 @@ std::vector<cv::Rect> matchTemplate(const cv::Mat &input, std::vector<Window> &w
                     if (Ti == 0) continue;
 
                     // Get input image value
-                    float Ii = input.at<float>(window.p.y + ty, window.p.x + tx);
+                    float Ii = input.at<float>(window.y + ty, window.x + tx);
 
                     // Calculate sums for normalized cross correlation method
                     sum += ((Ii) * (Ti));
@@ -158,7 +158,7 @@ std::vector<cv::Rect> matchTemplate(const cv::Mat &input, std::vector<Window> &w
 
             // Check if we found new max scoreBB, if yes -> save roi location + scoreBB
             if (crossSum > maxScore) {
-                maxRect = cv::Rect(window.p.x, window.p.y, t->src.cols, t->src.rows);
+                maxRect = cv::Rect(window.x, window.y, t->src.cols, t->src.rows);
                 maxScore = crossSum;
                 matchFound = true;
             }

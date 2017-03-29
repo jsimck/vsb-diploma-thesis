@@ -32,8 +32,6 @@ public:
     // Constructors
     Template(int id, std::string fileName, cv::Mat src, cv::Mat srcDepth, cv::Rect objBB, cv::Mat camRm2c, cv::Vec3d camTm2c)
             : votes(0), id(id), fileName(fileName), src(src), srcDepth(srcDepth), objBB(objBB), camRm2c(camRm2c), camTm2c(camTm2c) {}
-    Template(int id, std::string fileName, cv::Mat src, cv::Mat srcDepth, cv::Rect objBB, cv::Mat camK, cv::Mat camRm2c, cv::Vec3d camTm2c, int elev, int mode)
-            : votes(0), id(id), fileName(fileName), src(src), srcDepth(srcDepth), objBB(objBB), camK(camK), camRm2c(camRm2c), camTm2c(camTm2c), elev(elev), mode(mode) {}
 
     // Methods
     void voteUp();

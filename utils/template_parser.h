@@ -23,8 +23,7 @@ private:
 public:
     static int idCounter;
 
-    TemplateParser() {}
-    TemplateParser(const std::string basePath, std::vector<std::string> templateFolders, unsigned int tplCount = 1296)
+    TemplateParser(const std::string basePath = "/data", std::vector<std::string> templateFolders = {}, unsigned int tplCount = 1296)
         : basePath(basePath), templateFolders(templateFolders), tplCount(tplCount) {}
 
     void parse(std::vector<TemplateGroup> &groups);

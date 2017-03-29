@@ -148,7 +148,7 @@ cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv
 
             if (sceneEdgels >= minEdgels[0]) {
                 windowBBs.push_back(cv::Vec4i(x, y, x + sizeX, y + sizeY));
-                windows.push_back(Window(cv::Point(x, y), cv::Size(sizeX, sizeY), sceneEdgels));
+                windows.push_back(Window(x, y, sizeX, sizeY, sceneEdgels));
 #ifndef NDEBUG
             cv::rectangle(resultScene, cv::Point(x, y), cv::Point(x + sizeX, y + sizeY), cv::Vec3b(190, 190, 190));
 #endif

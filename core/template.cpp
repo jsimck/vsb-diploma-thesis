@@ -11,7 +11,7 @@ std::ostream &operator<<(std::ostream &os, const Template &t) {
        << "camTm2c: " << t.camTm2c  << std::endl
        << "elev: " << t.elev  << std::endl
        << "mode: " << t.mode << std::endl
-       << "votes: " << t.votes;
+       << "minVotesPerTemplate: " << t.votes;
 
     return os;
 }

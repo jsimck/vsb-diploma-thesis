@@ -80,11 +80,11 @@ int Hasher::quantizeDepths(float depth) {
 void Hasher::generateTriplets(std::vector<HashTable> &hashTables) {
     // Generate triplets
     for (int i = 0; i < hashTableCount; ++i) {
-        HashTable h(Triplet::createRandomTriplet(featurePointsGrid));
+        HashTable h(Triplet::createRandomTriplet(referencePointsGrid));
         hashTables.push_back(h);
     }
 
-    // TODO - joint entropy of 5k templates, instead of 100 templates
+    // TODO - joint entropy of 5k triplets, instead of 100 random triplets
     // Check for unique triplets, and regenerate duplicates
     bool duplicate;
     do {
@@ -96,7 +96,7 @@ void Hasher::generateTriplets(std::vector<HashTable> &hashTables) {
                 if (hashTables[i].triplet == hashTables[j].triplet) {
                     // Duplicate generate new triplet
                     duplicate = true;
-                    hashTables[j].triplet = Triplet::createRandomTriplet(featurePointsGrid);
+                    hashTables[j].triplet = Triplet::createRandomTriplet(referencePointsGrid);
                 }
             }
         }
@@ -166,7 +166,7 @@ void Hasher::calculateDepthBinRanges(const std::vector<TemplateGroup> &groups, s
                 assert(!t.srcDepth.empty());
 
                 // Get triplet points
-                TripletCoords coordParams = Triplet::getCoordParams(t.srcDepth.cols, t.srcDepth.rows, featurePointsGrid);
+                TripletCoords coordParams = Triplet::getCoordParams(t.srcDepth.cols, t.srcDepth.rows, referencePointsGrid);
                 cv::Point p1 = hashTable.triplet.getP1Coords(coordParams);
                 cv::Point p2 = hashTable.triplet.getP2Coords(coordParams);
                 cv::Point p3 = hashTable.triplet.getP3Coords(coordParams);
@@ -198,8 +198,8 @@ void Hasher::initialize(const std::vector<TemplateGroup> &groups, std::vector<Ha
     // Checks
     assert(groups.size() > 0);
     assert(hashTableCount > 0);
-    assert(featurePointsGrid.width > 0);
-    assert(featurePointsGrid.height > 0);
+    assert(referencePointsGrid.width > 0);
+    assert(referencePointsGrid.height > 0);
 
     // Init hash tables
     hashTables.reserve(hashTableCount);
@@ -224,7 +224,7 @@ void Hasher::train(std::vector<TemplateGroup> &groups, std::vector<HashTable> &h
                 assert(!t.srcDepth.empty());
 
                 // Get triplet points
-                TripletCoords coordParams = Triplet::getCoordParams(t.srcDepth.cols, t.srcDepth.rows, featurePointsGrid);
+                TripletCoords coordParams = Triplet::getCoordParams(t.srcDepth.cols, t.srcDepth.rows, referencePointsGrid);
                 cv::Point p1 = hashTable.triplet.getP1Coords(coordParams);
                 cv::Point p2 = hashTable.triplet.getP2Coords(coordParams);
                 cv::Point p3 = hashTable.triplet.getP3Coords(coordParams);
@@ -276,13 +276,12 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, std::vector
     unsigned long reduced = 0;
 #endif
 
-    const int v = 3, N = 100;
     std::vector<Template *> usedTemplates;
 
     for (auto &&window : windows) {
         for (auto &&table : hashTables) {
             // Get triplet points
-            TripletCoords coordParams = Triplet::getCoordParams(window.size.width, window.size.height, featurePointsGrid, window.tl().x, window.tl().y);
+            TripletCoords coordParams = Triplet::getCoordParams(window.width, window.height, referencePointsGrid, window.tl().x, window.tl().y);
             cv::Point p1 = table.triplet.getP1Coords(coordParams);
             cv::Point p2 = table.triplet.getP2Coords(coordParams);
             cv::Point p3 = table.triplet.getP3Coords(coordParams);
@@ -311,8 +310,8 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, std::vector
             for (auto &entry : table.templates[key]) {
                 entry->voteUp();
 
-                // automatically pushes only unique templates with minimum of v votes and up to N of templates
-                window.pushUnique(entry, N, v);
+                // automatically pushes only unique templates with minimum of v minVotesPerTemplate and up to N of templates
+                window.pushUnique(entry, hashTableCount, minVotesPerTemplate);
                 usedTemplates.push_back(entry);
             }
 #ifndef NDEBUG
@@ -320,7 +319,7 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, std::vector
 #endif
         }
 
-        // Reset votes for all used templates
+        // Reset minVotesPerTemplate for all used templates
         for (auto &&t : usedTemplates) {
             t->resetVotes();
         }
@@ -334,8 +333,8 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, std::vector
 #endif
 }
 
-const cv::Size Hasher::getFeaturePointsGrid() {
-    return featurePointsGrid;
+const cv::Size Hasher::getReferencePointsGrid() {
+    return referencePointsGrid;
 }
 
 unsigned int Hasher::getHashTableCount() const {
@@ -346,9 +345,13 @@ const std::vector<cv::Range> &Hasher::getHistogramBinRanges() const {
     return histogramBinRanges;
 }
 
-void Hasher::setFeaturePointsGrid(cv::Size featurePointsGrid) {
+int Hasher::getMinVotesPerTemplate() const {
+    return minVotesPerTemplate;
+}
+
+void Hasher::setReferencePointsGrid(cv::Size featurePointsGrid) {
     assert(featurePointsGrid.height > 0 && featurePointsGrid.width > 0);
-    this->featurePointsGrid = featurePointsGrid;
+    this->referencePointsGrid = featurePointsGrid;
 }
 
 void Hasher::setHashTableCount(unsigned int hashTableCount) {
@@ -368,4 +371,8 @@ unsigned int Hasher::getHistogramBinCount() const {
 void Hasher::setHistogramBinCount(unsigned int histogramBinCount) {
     assert(histogramBinCount > 0);
     this->histogramBinCount = histogramBinCount;
+}
+
+void Hasher::setMinVotesPerTemplate(int votes) {
+    this->minVotesPerTemplate = votes;
 }

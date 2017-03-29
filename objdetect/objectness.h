@@ -18,7 +18,7 @@
  */
 class Objectness {
 private:
-    unsigned int step;
+    unsigned int step; // Stepping for sliding window [5]
     float minThreshold; // Min threshold applied in sobel filtered image thresholding [0.01f]
     float maxThreshold; // Max threshold applied in sobel filtered image thresholding [0.1f]
     float matchThresholdFactor; // Factor used to reduce minEdge for objectness detection to improve occlusion/noise matching [30% -> 0.3f]
