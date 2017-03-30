@@ -16,10 +16,10 @@ cv::Vec3d Hasher::extractSurfaceNormal(const cv::Mat &src, const cv::Point c) {
     return cv::normalize(d);
 }
 
-cv::Vec2i Hasher::extractRelativeDepths(const cv::Mat &src, const cv::Point p1, const cv::Point p2, const cv::Point p3) {
+cv::Vec2i Hasher::extractRelativeDepths(const cv::Mat &src, const cv::Point c, const cv::Point p1, const cv::Point p2) {
     return cv::Vec2i(
-        static_cast<int>(src.at<float>(p2) - src.at<float>(p1)),
-        static_cast<int>(src.at<float>(p3) - src.at<float>(p1))
+        static_cast<int>(src.at<float>(p1) - src.at<float>(c)),
+        static_cast<int>(src.at<float>(p2) - src.at<float>(c))
     );
 }
 
@@ -167,20 +167,20 @@ void Hasher::calculateDepthBinRanges(const std::vector<TemplateGroup> &groups, s
 
                 // Get triplet points
                 TripletCoords coordParams = Triplet::getCoordParams(t.srcDepth.cols, t.srcDepth.rows, referencePointsGrid);
+                cv::Point c = hashTable.triplet.getCenterCoords(coordParams);
                 cv::Point p1 = hashTable.triplet.getP1Coords(coordParams);
                 cv::Point p2 = hashTable.triplet.getP2Coords(coordParams);
-                cv::Point p3 = hashTable.triplet.getP3Coords(coordParams);
 
                 // Check if we're not out of bounds
+                assert(c.x >= 0 && c.x < t.srcDepth.cols);
+                assert(c.y >= 0 && c.y < t.srcDepth.rows);
                 assert(p1.x >= 0 && p1.x < t.srcDepth.cols);
                 assert(p1.y >= 0 && p1.y < t.srcDepth.rows);
                 assert(p2.x >= 0 && p2.x < t.srcDepth.cols);
                 assert(p2.y >= 0 && p2.y < t.srcDepth.rows);
-                assert(p3.x >= 0 && p3.x < t.srcDepth.cols);
-                assert(p3.y >= 0 && p3.y < t.srcDepth.rows);
 
                 // Relative depths
-                cv::Vec2i relativeDepths = extractRelativeDepths(t.srcDepth, p1, p2, p3);
+                cv::Vec2i relativeDepths = extractRelativeDepths(t.srcDepth, c, p1, p2);
 
                 // Add offset and count given values
                 histogramValues[relativeDepths[0] + IMG_16BIT_VALUE_MAX] += 1;
@@ -225,28 +225,28 @@ void Hasher::train(std::vector<TemplateGroup> &groups, std::vector<HashTable> &h
 
                 // Get triplet points
                 TripletCoords coordParams = Triplet::getCoordParams(t.srcDepth.cols, t.srcDepth.rows, referencePointsGrid);
+                cv::Point c = hashTable.triplet.getCenterCoords(coordParams);
                 cv::Point p1 = hashTable.triplet.getP1Coords(coordParams);
                 cv::Point p2 = hashTable.triplet.getP2Coords(coordParams);
-                cv::Point p3 = hashTable.triplet.getP3Coords(coordParams);
 
                 // Check if we're not out of bounds
+                assert(c.x >= 0 && c.x < t.srcDepth.cols);
+                assert(c.y >= 0 && c.y < t.srcDepth.rows);
                 assert(p1.x >= 0 && p1.x < t.srcDepth.cols);
                 assert(p1.y >= 0 && p1.y < t.srcDepth.rows);
                 assert(p2.x >= 0 && p2.x < t.srcDepth.cols);
                 assert(p2.y >= 0 && p2.y < t.srcDepth.rows);
-                assert(p3.x >= 0 && p3.x < t.srcDepth.cols);
-                assert(p3.y >= 0 && p3.y < t.srcDepth.rows);
 
                 // Relative depths
-                cv::Vec2i relativeDepths = extractRelativeDepths(t.srcDepth, p1, p2, p3);
+                cv::Vec2i relativeDepths = extractRelativeDepths(t.srcDepth, c, p1, p2);
 
                 // Generate hash key
                 HashKey key(
                     quantizeDepths(relativeDepths[0]),
                     quantizeDepths(relativeDepths[1]),
+                    quantizeSurfaceNormals(extractSurfaceNormal(t.srcDepth, c)),
                     quantizeSurfaceNormals(extractSurfaceNormal(t.srcDepth, p1)),
-                    quantizeSurfaceNormals(extractSurfaceNormal(t.srcDepth, p2)),
-                    quantizeSurfaceNormals(extractSurfaceNormal(t.srcDepth, p3))
+                    quantizeSurfaceNormals(extractSurfaceNormal(t.srcDepth, p2))
                 );
 
                 // Check if key exists, if not initialize it
@@ -282,28 +282,28 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, std::vector
         for (auto &&table : hashTables) {
             // Get triplet points
             TripletCoords coordParams = Triplet::getCoordParams(window.width, window.height, referencePointsGrid, window.tl().x, window.tl().y);
+            cv::Point c = table.triplet.getCenterCoords(coordParams);
             cv::Point p1 = table.triplet.getP1Coords(coordParams);
             cv::Point p2 = table.triplet.getP2Coords(coordParams);
-            cv::Point p3 = table.triplet.getP3Coords(coordParams);
 
             // Check if we're not out of bounds
+            assert(c.x >= 0 && c.x < sceneGrayscale.cols);
+            assert(c.y >= 0 && c.y < sceneGrayscale.rows);
             assert(p1.x >= 0 && p1.x < sceneGrayscale.cols);
             assert(p1.y >= 0 && p1.y < sceneGrayscale.rows);
             assert(p2.x >= 0 && p2.x < sceneGrayscale.cols);
             assert(p2.y >= 0 && p2.y < sceneGrayscale.rows);
-            assert(p3.x >= 0 && p3.x < sceneGrayscale.cols);
-            assert(p3.y >= 0 && p3.y < sceneGrayscale.rows);
 
             // Relative depths
-            cv::Vec2i relativeDepths = extractRelativeDepths(sceneGrayscale, p1, p2, p3);
+            cv::Vec2i relativeDepths = extractRelativeDepths(sceneGrayscale, c, p1, p2);
 
             // Generate hash key
             HashKey key(
                 quantizeDepths(relativeDepths[0]),
                 quantizeDepths(relativeDepths[1]),
+                quantizeSurfaceNormals(extractSurfaceNormal(sceneGrayscale, c)),
                 quantizeSurfaceNormals(extractSurfaceNormal(sceneGrayscale, p1)),
-                quantizeSurfaceNormals(extractSurfaceNormal(sceneGrayscale, p2)),
-                quantizeSurfaceNormals(extractSurfaceNormal(sceneGrayscale, p3))
+                quantizeSurfaceNormals(extractSurfaceNormal(sceneGrayscale, p2))
             );
 
             // Vote for each template in hash table at specific key and push unique to window candidates

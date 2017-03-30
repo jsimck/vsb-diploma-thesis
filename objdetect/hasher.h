@@ -23,7 +23,7 @@ private:
 
     // Methods
     cv::Vec3d extractSurfaceNormal(const cv::Mat &src, const cv::Point c);
-    cv::Vec2i extractRelativeDepths(const cv::Mat &src, const cv::Point p1, const cv::Point p2, const cv::Point p3);
+    cv::Vec2i extractRelativeDepths(const cv::Mat &src, const cv::Point c, const cv::Point p1, const cv::Point p2);
 
     int quantizeSurfaceNormals(cv::Vec3f normal);
     int quantizeDepths(float depth);

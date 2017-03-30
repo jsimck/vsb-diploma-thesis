@@ -34,29 +34,33 @@ public:
 struct Triplet {
 private:
     inline static cv::Point randomPoint(const cv::Size referencePointsGrid);
+    inline static cv::Point randomPointBoundaries(int min = -4, int max = 4);
 public:
+    cv::Point c;
     cv::Point p1;
     cv::Point p2;
-    cv::Point p3;
 
     // Statics
     static float random(const float rangeMin = 0.0f, const float rangeMax = 1.0f);
-    static Triplet createRandomTriplet(const cv::Size &referencePointsGrid);
+    static Triplet createRandomTriplet(const cv::Size &referencePointsGrid, int maxNeighbourhood = 3);
     static TripletCoords getCoordParams(const int width, const int height, const cv::Size &referencePointsGrid, int sceneOffsetX = 0, int sceneOffsetY = 0);
 
     // Constructors
     Triplet() {}
-    Triplet(const cv::Point p1, const cv::Point p2, const cv::Point p3) : p1(p1), p2(p2), p3(p3) {}
+    Triplet(const cv::Point c, const cv::Point p1, const cv::Point p2) : c(c), p1(p1), p2(p2) {}
 
     // Methods
+    cv::Point getPoint(int x, int y, float offsetX, float stepX, float offsetY, float stepY, int sceneOffsetX = 0, int sceneOffsetY = 0);
+    cv::Point getPoint(int x, int y, const TripletCoords &coordinateParams);
     cv::Point getCoords(int index, float offsetX, float stepX, float offsetY, float stepY, int sceneOffsetX = 0, int sceneOffsetY = 0);
     cv::Point getCoords(int index, const TripletCoords &coordinateParams);
+    cv::Point getCenterCoords(float offsetX, float stepX, float offsetY, float stepY, int sceneOffsetX = 0, int sceneOffsetY = 0);
+    cv::Point getCenterCoords(const TripletCoords &coordinateParams);
     cv::Point getP1Coords(float offsetX, float stepX, float offsetY, float stepY, int sceneOffsetX = 0, int sceneOffsetY = 0);
     cv::Point getP1Coords(const TripletCoords &coordinateParams);
     cv::Point getP2Coords(float offsetX, float stepX, float offsetY, float stepY, int sceneOffsetX = 0, int sceneOffsetY = 0);
     cv::Point getP2Coords(const TripletCoords &coordinateParams);
-    cv::Point getP3Coords(float offsetX, float stepX, float offsetY, float stepY, int sceneOffsetX = 0, int sceneOffsetY = 0);
-    cv::Point getP3Coords(const TripletCoords &coordinateParams);
+    void visualize(const cv::Mat &src, const cv::Size &referencePointsGrid, bool grid = true);
 
     // Operators
     friend std::ostream &operator<<(std::ostream &os, const Triplet &triplet);
