@@ -42,8 +42,8 @@ Triplet Triplet::createRandomTriplet(const cv::Size &referencePointsGrid, int ma
     // Generate other 2 random points within boundaries to the center
     // and check for duplicates and valid coordinates
     do {
-        p1 = cv::Point(c + randomPointBoundaries(-4, 4));
-        p2 = cv::Point(c + randomPointBoundaries(-4, 4));
+        p1 = cv::Point(c + randomPointBoundaries(-maxNeighbourhood, maxNeighbourhood));
+        p2 = cv::Point(c + randomPointBoundaries(-maxNeighbourhood, maxNeighbourhood));
 
         // Check for negative values (simply multiply by -1 to get positive)
         if (p1.x < 0) p1.x *= -1;
@@ -169,8 +169,8 @@ void Triplet::visualize(const cv::Mat &src, const cv::Size &referencePointsGrid,
     }
 
     // Draw triplets
-    cv::line(src, getCenterCoords(coordParams), getP1Coords(coordParams), cv::Scalar(0, 1, 0));
-    cv::line(src, getCenterCoords(coordParams), getP2Coords(coordParams), cv::Scalar(0, 1, 0));
+    cv::line(src, getCenterCoords(coordParams), getP1Coords(coordParams), cv::Scalar(0, 0.5f, 0));
+    cv::line(src, getCenterCoords(coordParams), getP2Coords(coordParams), cv::Scalar(0, 0.5f, 0));
     cv::circle(src, getCenterCoords(coordParams), 3, cv::Scalar(0, 0, 1), -1);
     cv::circle(src, getP1Coords(coordParams), 2, cv::Scalar(0, 1, 0), -1);
     cv::circle(src, getP2Coords(coordParams), 2, cv::Scalar(0, 1, 0), -1);

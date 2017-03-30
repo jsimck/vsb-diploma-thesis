@@ -26,6 +26,7 @@ Classifier::Classifier(std::string basePath, std::vector<std::string> templateFo
     hasher.setHashTableCount(100);
     hasher.setHistogramBinCount(5);
     hasher.setMinVotesPerTemplate(3);
+    hasher.setMaxTripletDistance(4);
 }
 
 void Classifier::parseTemplates() {
@@ -161,21 +162,6 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
 
     // Train hash tables
     trainHashTables();
-
-#ifndef NDEBUG
-    // Visualize triplets
-    cv::Mat triplet, triplets = cv::Mat::zeros(400, 400, CV_32FC3);
-    hashTables[0].triplet.visualize(triplets, hasher.getReferencePointsGrid()); // generate grid
-    for (auto &&table : hashTables) {
-        std::cout << table << std::endl;
-        triplet = cv::Mat::zeros(400, 400, CV_32FC3);
-        table.triplet.visualize(triplets, hasher.getReferencePointsGrid(), false);
-        table.triplet.visualize(triplet, hasher.getReferencePointsGrid(), true);
-        cv::imshow("Classifier::Hash table triplets", triplets);
-        cv::imshow("Classifier::Hash table triplet", triplet);
-        cv::waitKey(0);
-    }
-#endif
 
     // Start stopwatch
     Timer t;

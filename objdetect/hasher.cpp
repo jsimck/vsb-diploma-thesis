@@ -80,7 +80,7 @@ int Hasher::quantizeDepths(float depth) {
 void Hasher::generateTriplets(std::vector<HashTable> &hashTables) {
     // Generate triplets
     for (int i = 0; i < hashTableCount; ++i) {
-        HashTable h(Triplet::createRandomTriplet(referencePointsGrid));
+        HashTable h(Triplet::createRandomTriplet(referencePointsGrid, maxTripletDistance));
         hashTables.push_back(h);
     }
 
@@ -263,6 +263,26 @@ void Hasher::train(std::vector<TemplateGroup> &groups, std::vector<HashTable> &h
             }
         }
     }
+
+#ifndef NDEBUG
+    // Visualize triplets
+    cv::Mat triplet = cv::Mat::zeros(400, 400, CV_32FC3), triplets = cv::Mat::zeros(400, 400, CV_32FC3);
+    hashTables[0].triplet.visualize(triplet, getReferencePointsGrid()); // generate grid
+    hashTables[0].triplet.visualize(triplets, getReferencePointsGrid()); // generate grid
+    cv::imshow("Classifier::Hash table triplets", triplets);
+    cv::imshow("Classifier::Hash table triplet", triplet);
+    cv::waitKey(0);
+
+    for (auto &&table : hashTables) {
+        std::cout << table << std::endl;
+        triplet = cv::Mat::zeros(400, 400, CV_32FC3);
+        table.triplet.visualize(triplets, getReferencePointsGrid(), false);
+        table.triplet.visualize(triplet, getReferencePointsGrid(), true);
+        cv::imshow("Classifier::Hash table triplets", triplets);
+        cv::imshow("Classifier::Hash table triplet", triplet);
+        cv::waitKey(1);
+    }
+#endif
 }
 
 void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, std::vector<Window> &windows, std::vector<HashTable> &hashTables, std::vector<TemplateGroup> &groups) {
@@ -345,8 +365,20 @@ const std::vector<cv::Range> &Hasher::getHistogramBinRanges() const {
     return histogramBinRanges;
 }
 
+unsigned int Hasher::getHistogramBinCount() const {
+    return histogramBinCount;
+}
+
 int Hasher::getMinVotesPerTemplate() const {
     return minVotesPerTemplate;
+}
+
+void Hasher::setMinVotesPerTemplate(int votes) {
+    this->minVotesPerTemplate = votes;
+}
+
+unsigned int Hasher::getMaxTripletDistance() const {
+    return maxTripletDistance;
 }
 
 void Hasher::setReferencePointsGrid(cv::Size featurePointsGrid) {
@@ -364,15 +396,12 @@ void Hasher::setHistogramBinRanges(const std::vector<cv::Range> &histogramBinRan
     this->histogramBinRanges = histogramBinRanges;
 }
 
-unsigned int Hasher::getHistogramBinCount() const {
-    return histogramBinCount;
-}
-
 void Hasher::setHistogramBinCount(unsigned int histogramBinCount) {
     assert(histogramBinCount > 0);
     this->histogramBinCount = histogramBinCount;
 }
 
-void Hasher::setMinVotesPerTemplate(int votes) {
-    this->minVotesPerTemplate = votes;
+void Hasher::setMaxTripletDistance(unsigned int maxTripletDistance) {
+    assert(maxTripletDistance > 1);
+    this->maxTripletDistance = maxTripletDistance;
 }

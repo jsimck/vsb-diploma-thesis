@@ -68,7 +68,7 @@ cv::Vec3f Objectness::extractMinEdgels(std::vector<TemplateGroup> &templateGroup
 
     // Extract edgels
     int edgels = 0;
-    cv::Vec3i output(INT_MAX, 0, 0);
+    cv::Vec3i output(INT_MAX, 1000, 1000);
     cv::Mat tplSobel, tplIntegral, tplNormalized;
 
     // Find template which contains least amount of the edgels and get his bounding box
@@ -85,8 +85,14 @@ cv::Vec3f Objectness::extractMinEdgels(std::vector<TemplateGroup> &templateGroup
             cv::integral(tplNormalized, tplIntegral, CV_32F);
             edgels = static_cast<int>(tplIntegral.at<float>(tplIntegral.rows - 1, tplIntegral.cols - 1));
 
+            // Save minimum edgels
             if (edgels < output[0]) {
                 output[0] = edgels;
+            }
+
+            // TODO use smallest for objectness detection
+            // Save smallest object
+            if (t.srcDepth.cols * t.srcDepth.rows < output[1] * output[2]) {
                 output[1] = t.srcDepth.cols;
                 output[2] = t.srcDepth.rows;
             }

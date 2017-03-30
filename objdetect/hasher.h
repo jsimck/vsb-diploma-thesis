@@ -17,6 +17,7 @@ class Hasher {
 private:
     int minVotesPerTemplate;
     cv::Size referencePointsGrid;
+    unsigned int maxTripletDistance;
     unsigned int hashTableCount;
     unsigned int histogramBinCount;
     std::vector<cv::Range> histogramBinRanges;
@@ -37,8 +38,10 @@ public:
     static const int IMG_16BIT_VALUES_RANGE;
 
     // Constructors
-    Hasher(int minVotesPerTemplate = 3, cv::Size referencePointsGrid = cv::Size(12, 12), unsigned int hashTableCount = 100, unsigned int histogramBinCount = 5)
-        : minVotesPerTemplate(minVotesPerTemplate), referencePointsGrid(referencePointsGrid), hashTableCount(hashTableCount), histogramBinCount(histogramBinCount) {}
+    Hasher(int minVotesPerTemplate = 3, cv::Size referencePointsGrid = cv::Size(12, 12),
+           unsigned int hashTableCount = 100, unsigned int histogramBinCount = 5, unsigned int maxTripletDistance = 3)
+        : minVotesPerTemplate(minVotesPerTemplate), referencePointsGrid(referencePointsGrid),
+          hashTableCount(hashTableCount), histogramBinCount(histogramBinCount), maxTripletDistance(maxTripletDistance) {}
 
     // Methods
     void initialize(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables);
@@ -51,6 +54,7 @@ public:
     const std::vector<cv::Range> &getHistogramBinRanges() const;
     unsigned int getHistogramBinCount() const;
     int getMinVotesPerTemplate() const;
+    unsigned int getMaxTripletDistance() const;
 
     // Setters
     void setReferencePointsGrid(cv::Size referencePointsGrid);
@@ -58,6 +62,7 @@ public:
     void setHistogramBinRanges(const std::vector<cv::Range> &histogramBinRanges);
     void setHistogramBinCount(unsigned int histogramBinCount);
     void setMinVotesPerTemplate(int minVotesPerTemplate);
+    void setMaxTripletDistance(unsigned int maxTripletDistance);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_HASHING_H
