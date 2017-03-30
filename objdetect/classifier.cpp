@@ -57,9 +57,10 @@ void Classifier::trainHashTables() {
 
     // Train hash tables
     std::cout << "Training hash tables... " << std::endl;
+    Timer t;
     hasher.train(templateGroups, hashTables);
     assert(hashTables.size() > 0);
-    std::cout << "DONE! " << hashTables.size() << " hash tables generated" <<std::endl << std::endl;
+    std::cout << "DONE! took: " << t.elapsed() << "s, " << hashTables.size() << " hash tables generated" <<std::endl << std::endl;
 }
 
 void Classifier::loadScene() {
@@ -88,7 +89,6 @@ void Classifier::loadScene() {
     assert(sceneGrayscale.type() == 5); // CV_32FC1
     assert(sceneDepth.type() == 5); // CV_32FC1
     assert(sceneDepthNormalized.type() == 5); // CV_32FC1
-    std::cout << "DONE!" << std::endl << std::endl;
 }
 
 void Classifier::detectObjectness() {
@@ -96,18 +96,20 @@ void Classifier::detectObjectness() {
     assert(minEdgels[0] > 0 && minEdgels[1] > 0 && minEdgels[2] > 0);
 
     // Objectness detection
-    std::cout << "Objectness detection started... ";
+    std::cout << "Objectness detection started... " << std::endl;
+    Timer t;
     setObjectnessROI(objectness.objectness(sceneGrayscale, scene, sceneDepthNormalized, windows, minEdgels));
-    std::cout << "DONE! " << std::endl;
     std::cout << "  |_ Bounding box extracted: " << objectnessROI << std::endl;
-    std::cout << "  |_ Windows classified as containing object extracted: " << windows.size() << std::endl << std::endl;
+    std::cout << "  |_ Windows classified as containing object extracted: " << windows.size() << std::endl;
+    std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 }
 
 void Classifier::verifyTemplateCandidates() {
     // Verification started
     std::cout << "Verification of template candidates, using trained HashTables started... " << std::endl;
+    Timer t;
     hasher.verifyTemplateCandidates(sceneGrayscale, windows, hashTables, templateGroups);
-    std::cout << "DONE!" << std::endl << std::endl;
+    std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 }
 
 void Classifier::classify() {
@@ -124,15 +126,17 @@ void Classifier::classify() {
     trainHashTables();
 
     // Start stopwatch
-    Timer t;
+    Timer tTotal;
 
     // Objectness detection
     detectObjectness();
 
     // Verification and filtering of template candidates
+    Timer tVerification;
     verifyTemplateCandidates();
 
     // Template Matching
+    Timer tMatching;
     std::vector<cv::Rect> matchBBs = matchTemplate(sceneGrayscale, windows);
     cv::Mat sceneCopy = scene.clone();
     for (auto &&bB : matchBBs) {
@@ -140,7 +144,7 @@ void Classifier::classify() {
     }
 
     // Show matched template results
-    std::cout << "Classification took: " << t.elapsed() << "s" << std::endl;
+    std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
     cv::imshow("Match template result", sceneCopy);
     cv::waitKey(0);
 }
@@ -158,6 +162,9 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
 
     // Train hash tables
     trainHashTables();
+    for (auto &&table : hashTables) {
+        std::cout << table << std::endl;
+    }
 
     // Start stopwatch
     Timer t;
