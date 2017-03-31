@@ -26,7 +26,7 @@ Classifier::Classifier(std::string basePath, std::vector<std::string> templateFo
     hasher.setHashTableCount(100);
     hasher.setHistogramBinCount(5);
     hasher.setMinVotesPerTemplate(3);
-    hasher.setMaxTripletDistance(4);
+    hasher.setMaxTripletDistance(2);
 }
 
 void Classifier::parseTemplates() {

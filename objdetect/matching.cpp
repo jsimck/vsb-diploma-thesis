@@ -109,10 +109,6 @@ std::vector<cv::Rect> matchTemplate(const cv::Mat &input, std::vector<Window> &w
     std::vector<float> scoreBB;
     const float minCorrelation = 0.5;
 
-#ifndef NDEBUG
-    cv::waitKey(0);
-#endif
-
     // Loop through each window
     for (auto &&window : windows) {
         // Skip windows with no candidates
@@ -124,13 +120,6 @@ std::vector<cv::Rect> matchTemplate(const cv::Mat &input, std::vector<Window> &w
         for (int i = 0; i < window.candidatesSize(); i++) {
             // TODO - Asserts
             Template *t = window.candidates[i];
-#ifndef NDEBUG
-            cv::Mat inputClone = input.clone();
-            cv::rectangle(inputClone, window.tl(), cv::Point(window.tl().x + t->src.cols, window.tl().y + t->src.rows), cv::Scalar(1.0f));
-            cv::imshow("matching::Template matching with filtered windows and templates (scene)", inputClone);
-            cv::imshow("matching::Template matching with filtered windows and templates (template)", t->src);
-            cv::waitKey(1);
-#endif
 
             // Set default helper variables for matching
             bool matchFound = false;
