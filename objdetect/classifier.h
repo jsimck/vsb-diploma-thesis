@@ -2,11 +2,13 @@
 #define VSB_SEMESTRAL_PROJECT_CLASSIFICATOR_H
 
 #include "../core/template_group.h"
+#include "../core/template_match.h"
 #include "../core/hash_table.h"
 #include "../utils/template_parser.h"
 #include "hasher.h"
 #include "objectness.h"
 #include "../core/window.h"
+#include "template_matcher.h"
 
 /**
  * class Classifier
@@ -33,19 +35,22 @@ private:
     std::vector<TemplateGroup> templateGroups;
     std::vector<HashTable> hashTables;
     std::vector<Window> windows;
+    std::vector<TemplateMatch> matches;
 
     // Methods
     void parseTemplates();
+    void loadScene();
     void extractMinEdgels();
     void trainHashTables();
     void detectObjectness();
     void verifyTemplateCandidates();
-    void loadScene();
+    void matchTemplates();
 public:
     // Classifiers
     TemplateParser parser;
-    Hasher hasher;
     Objectness objectness;
+    Hasher hasher;
+    TemplateMatcher templateMatcher;
 
     // Constructors
     Classifier(std::string basePath = "data/", std::vector<std::string> templateFolders = {}, std::string scenePath = "scene_01/", std::string sceneName = "0000.png");
@@ -68,6 +73,7 @@ public:
     const std::vector<HashTable> &getHashTables() const;
     const cv::Rect &getObjectnessROI() const;
     const std::vector<Window> &getWindows() const;
+    const std::vector<TemplateMatch> &getMatches() const;
 
     // Setters
     void setMinEdgels(const cv::Vec3f &minEdgels);
@@ -83,6 +89,7 @@ public:
     void setHashTables(const std::vector<HashTable> &hashTables);
     void setObjectnessROI(const cv::Rect &objectnessROI);
     void setWindows(const std::vector<Window> &windows);
+    void setMatches(const std::vector<TemplateMatch> &matches);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_CLASSIFICATOR_H

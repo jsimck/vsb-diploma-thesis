@@ -46,7 +46,7 @@ public:
     // Methods
     void initialize(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables);
     void train(std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables);
-    void verifyTemplateCandidates(const cv::Mat &scene, std::vector<Window> &windows, std::vector<HashTable> &hashTables, std::vector<TemplateGroup> &groups);
+    void verifyTemplateCandidates(const cv::Mat &sceneDepth, std::vector<HashTable> &hashTables, std::vector<Window> &windows);
 
     // Getters
     const cv::Size getReferencePointsGrid();

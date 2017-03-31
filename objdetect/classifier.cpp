@@ -26,7 +26,10 @@ Classifier::Classifier(std::string basePath, std::vector<std::string> templateFo
     hasher.setHashTableCount(100);
     hasher.setHistogramBinCount(5);
     hasher.setMinVotesPerTemplate(3);
-    hasher.setMaxTripletDistance(2);
+    hasher.setMaxTripletDistance(3);
+
+    // Init template matcher
+    templateMatcher.setFeaturePointsCount(100);
 }
 
 void Classifier::parseTemplates() {
@@ -89,6 +92,8 @@ void Classifier::loadScene() {
     assert(sceneGrayscale.type() == 5); // CV_32FC1
     assert(sceneDepth.type() == 5); // CV_32FC1
     assert(sceneDepthNormalized.type() == 5); // CV_32FC1
+
+    std::cout << "DONE!" << std::endl << std::endl;
 }
 
 void Classifier::detectObjectness() {
@@ -105,11 +110,18 @@ void Classifier::detectObjectness() {
 }
 
 void Classifier::verifyTemplateCandidates() {
+    // Checks
+    assert(hashTables.size() > 0);
+
     // Verification started
     std::cout << "Verification of template candidates, using trained HashTables started... " << std::endl;
     Timer t;
-    hasher.verifyTemplateCandidates(sceneGrayscale, windows, hashTables, templateGroups);
+    hasher.verifyTemplateCandidates(sceneDepth, hashTables, windows);
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
+}
+
+void Classifier::matchTemplates() {
+
 }
 
 void Classifier::classify() {
@@ -137,9 +149,9 @@ void Classifier::classify() {
     Timer tVerification;
     verifyTemplateCandidates();
 
-    // Template Matching
+    // Template TemplateMatcher
     Timer tMatching;
-    std::vector<cv::Rect> matchBBs = matchTemplate(sceneGrayscale, windows);
+    std::vector<cv::Rect> matchBBs = matcher_deprecated::matchTemplate(sceneGrayscale, windows);
     cv::Mat sceneCopy = scene.clone();
     for (auto &&bB : matchBBs) {
         cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
@@ -176,8 +188,8 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
     // Verification and filtering of template candidates
     verifyTemplateCandidates();
 
-    // Template Matching
-    std::vector<cv::Rect> matchBBs = matchTemplate(sceneGrayscale, windows);
+    // Template TemplateMatcher
+    std::vector<cv::Rect> matchBBs = matcher_deprecated::matchTemplate(sceneGrayscale, windows);
     cv::Mat sceneCopy = scene.clone();
     for (auto &&bB : matchBBs) {
         cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
@@ -240,6 +252,10 @@ const cv::Rect &Classifier::getObjectnessROI() const {
 
 const std::vector<Window> &Classifier::getWindows() const {
     return windows;
+}
+
+const std::vector<TemplateMatch> &Classifier::getMatches() const {
+    return matches;
 }
 
 void Classifier::setMinEdgels(const cv::Vec3f &minEdgels) {
@@ -309,4 +325,9 @@ void Classifier::setObjectnessROI(const cv::Rect &objectnessROI) {
 void Classifier::setWindows(const std::vector<Window> &windows) {
     assert(windows.size() > 0);
     this->windows = windows;
+}
+
+void Classifier::setMatches(const std::vector<TemplateMatch> &matches) {
+    assert(matches.size() > 0);
+    this->matches = matches;
 }

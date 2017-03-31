@@ -136,13 +136,11 @@ void Hasher::calculateDepthHistogramRanges(unsigned long histogramSum, unsigned 
         }
     }
 
-#ifndef NDEBUG
     // Print results
     std::cout << "DONE! Approximate " << binCount << " values per bin" << std::endl;
     for (int i = 0; i < ranges.size(); i++) {
         std::cout << "       |_ " << i << ". <" << ranges[i].start << ", " << ranges[i].end << (i + 1 == ranges.size() ? ">" : ")") << std::endl;
     }
-#endif
 
     // Set histogram ranges
     setHistogramBinRanges(ranges);
@@ -206,9 +204,7 @@ void Hasher::initialize(const std::vector<TemplateGroup> &groups, std::vector<Ha
     generateTriplets(hashTables);
 
     // Calculate ranges of depth bins for training
-#ifndef NDEBUG
     std::cout << "  |_ Calculating depth bin ranges... ";
-#endif
     calculateDepthBinRanges(groups, hashTables);
 }
 
@@ -285,17 +281,13 @@ void Hasher::train(std::vector<TemplateGroup> &groups, std::vector<HashTable> &h
 #endif
 }
 
-void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, std::vector<Window> &windows, std::vector<HashTable> &hashTables, std::vector<TemplateGroup> &groups) {
+void Hasher::verifyTemplateCandidates(const cv::Mat &sceneDepth, std::vector<HashTable> &hashTables, std::vector<Window> &windows) {
     // Checks
-    assert(!sceneGrayscale.empty());
+    assert(!sceneDepth.empty());
     assert(windows.size() > 0);
     assert(hashTables.size() > 0);
-    assert(groups.size() > 0);
 
-#ifndef NDEBUG
     unsigned long reduced = 0;
-#endif
-
     std::vector<Template *> usedTemplates;
 
     for (auto &&window : windows) {
@@ -307,23 +299,23 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, std::vector
             cv::Point p2 = table.triplet.getP2Coords(coordParams);
 
             // Check if we're not out of bounds
-            assert(c.x >= 0 && c.x < sceneGrayscale.cols);
-            assert(c.y >= 0 && c.y < sceneGrayscale.rows);
-            assert(p1.x >= 0 && p1.x < sceneGrayscale.cols);
-            assert(p1.y >= 0 && p1.y < sceneGrayscale.rows);
-            assert(p2.x >= 0 && p2.x < sceneGrayscale.cols);
-            assert(p2.y >= 0 && p2.y < sceneGrayscale.rows);
+            assert(c.x >= 0 && c.x < sceneDepth.cols);
+            assert(c.y >= 0 && c.y < sceneDepth.rows);
+            assert(p1.x >= 0 && p1.x < sceneDepth.cols);
+            assert(p1.y >= 0 && p1.y < sceneDepth.rows);
+            assert(p2.x >= 0 && p2.x < sceneDepth.cols);
+            assert(p2.y >= 0 && p2.y < sceneDepth.rows);
 
             // Relative depths
-            cv::Vec2i relativeDepths = extractRelativeDepths(sceneGrayscale, c, p1, p2);
+            cv::Vec2i relativeDepths = extractRelativeDepths(sceneDepth, c, p1, p2);
 
             // Generate hash key
             HashKey key(
                 quantizeDepths(relativeDepths[0]),
                 quantizeDepths(relativeDepths[1]),
-                quantizeSurfaceNormals(extractSurfaceNormal(sceneGrayscale, c)),
-                quantizeSurfaceNormals(extractSurfaceNormal(sceneGrayscale, p1)),
-                quantizeSurfaceNormals(extractSurfaceNormal(sceneGrayscale, p2))
+                quantizeSurfaceNormals(extractSurfaceNormal(sceneDepth, c)),
+                quantizeSurfaceNormals(extractSurfaceNormal(sceneDepth, p1)),
+                quantizeSurfaceNormals(extractSurfaceNormal(sceneDepth, p2))
             );
 
             // Vote for each template in hash table at specific key and push unique to window candidates
@@ -334,9 +326,7 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, std::vector
                 window.pushUnique(entry, hashTableCount, minVotesPerTemplate);
                 usedTemplates.push_back(entry);
             }
-#ifndef NDEBUG
             reduced += window.candidatesSize();
-#endif
         }
 
         // Reset minVotesPerTemplate for all used templates
@@ -348,9 +338,7 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneGrayscale, std::vector
         usedTemplates.clear();
     }
 
-#ifndef NDEBUG
     std::cout << "  |_ total number of templates in windows reduced to approx: " << reduced / windows.size() << std::endl;
-#endif
 }
 
 const cv::Size Hasher::getReferencePointsGrid() {

@@ -2,7 +2,7 @@
 #include <numeric>
 #include "../utils/utils.h"
 
-void sortBBByScore(std::vector<cv::Rect> &matchBB, std::vector<float> &scoreBB) {
+void matcher_deprecated::sortBBByScore(std::vector<cv::Rect> &matchBB, std::vector<float> &scoreBB) {
     // Checks
     assert(matchBB.size() > 0);
     assert(scoreBB.size() > 0);
@@ -25,7 +25,7 @@ void sortBBByScore(std::vector<cv::Rect> &matchBB, std::vector<float> &scoreBB) 
     }
 }
 
-std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::vector<float> &scoreBB, float overlapThresh) {
+std::vector<cv::Rect> matcher_deprecated::nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::vector<float> &scoreBB, float overlapThresh) {
     // Checks
     assert(matchBB.size() > 0);
     assert(scoreBB.size() > 0);
@@ -92,7 +92,7 @@ std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::
     return pick;
 }
 
-cv::Scalar matRoiMean(cv::Size maskSize, cv::Rect roi) {
+cv::Scalar matcher_deprecated::matRoiMean(cv::Size maskSize, cv::Rect roi) {
     cv::Mat mask(maskSize, CV_32F, cv::Scalar(0));
     cv::Mat maskRoi(mask, roi);
     maskRoi = cv::Scalar(1.0);
@@ -100,7 +100,7 @@ cv::Scalar matRoiMean(cv::Size maskSize, cv::Rect roi) {
     return cv::mean(maskRoi);
 }
 
-std::vector<cv::Rect> matchTemplate(const cv::Mat &input, std::vector<Window> &windows) {
+std::vector<cv::Rect> matcher_deprecated::matchTemplate(const cv::Mat &input, std::vector<Window> &windows) {
     // Checks
     assert(!input.empty());
 
