@@ -1,23 +1,32 @@
 #ifndef VSB_SEMESTRAL_PROJECT_MATCHING_H
 #define VSB_SEMESTRAL_PROJECT_MATCHING_H
 
-#include <opencv2/opencv.hpp>
-#include "../core/template.h"
-#include "../core/template_group.h"
-#include "../core/hash_table.h"
+#include <opencv2/core/hal/interface.h>
+#include <opencv2/core/mat.hpp>
 #include "../core/window.h"
 
-#define MATCH_NORMED_CROSS_CORRELATION
-// #define MATCH_NORMED_CORRELATION_COEF
+class Matching {
+private:
+    uint featurePointsCount;
 
-// Sort bounding boxes by their matching score (DESC)
-void sortBBByScore(std::vector<cv::Rect> &matchBB, std::vector<float> &scoreBB);
-// Suppresses matched bounding boxes which are overlapped by given threshold,
-std::vector<cv::Rect> nonMaximaSuppression(std::vector<cv::Rect> &matchBB, std::vector<float> &scoreBB, float overlapThresh = 0.1f);
-// Calculates mean of given image ROI
-cv::Scalar matRoiMean(cv::Size maskSize, cv::Rect roi);
+    // Tests
+    void objectSize(); // Test I
+    void surfaceNormalOrientation(); // Test II
+    void intensityGradients(); // Test III
+    void depth(); // Test IV
+    void color(); // Test V
+public:
+    // Constructor
+    Matching(uint featurePointsCount = 100) : featurePointsCount(featurePointsCount) {}
 
-// Concludes template matching using CROSS CORRELATION function on given template groups and input image
-std::vector<cv::Rect> matchTemplate(const cv::Mat &input, std::vector<Window> &windows);
+    // Methods
+    void match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth, const std::vector<Window> &windows);
+
+    // Getters
+    uint getFeaturePointsCount() const;
+
+    // Setters
+    void setFeaturePointsCount(uint featurePointsCount);
+};
 
 #endif //VSB_SEMESTRAL_PROJECT_MATCHING_H

@@ -1,5 +1,5 @@
 #include "classifier.h"
-#include "matching.h"
+#include "matching_deprecated.h"
 #include "../utils/timer.h"
 
 Classifier::Classifier(std::string basePath, std::vector<std::string> templateFolders, std::string scenePath, std::string sceneName) {
@@ -113,6 +113,7 @@ void Classifier::verifyTemplateCandidates() {
 }
 
 void Classifier::classify() {
+    /// Hypothesis generation
     // Load scene images
     loadScene();
 
@@ -125,6 +126,7 @@ void Classifier::classify() {
     // Train hash tables
     trainHashTables();
 
+    /// Hypothesis verification
     // Start stopwatch
     Timer tTotal;
 
@@ -150,6 +152,7 @@ void Classifier::classify() {
 }
 
 void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
+    /// Hypothesis generation
     // Load scene images
     loadScene();
 
@@ -163,6 +166,7 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
     // Train hash tables
     trainHashTables();
 
+    /// Hypothesis verification
     // Start stopwatch
     Timer t;
 

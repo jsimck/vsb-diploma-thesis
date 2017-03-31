@@ -1,6 +1,6 @@
 #include <unordered_set>
 #include "hasher.h"
-#include "matching.h"
+#include "matching_deprecated.h"
 
 const int Hasher::IMG_16BIT_VALUE_MAX = 65535; // <0, 65535> => 65536 values
 const int Hasher::IMG_16BIT_VALUES_RANGE = (IMG_16BIT_VALUE_MAX * 2) + 1; // <-65535, 65535> => 131071 values + (one zero)

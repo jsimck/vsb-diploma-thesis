@@ -1,6 +1,6 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include "objdetect/matching.h"
+#include "objdetect/matching_deprecated.h"
 #include "objdetect/objectness.h"
 #include "utils/timer.h"
 #include "objdetect/hasher.h"
@@ -8,7 +8,7 @@
 
 int main() {
     // Init classifier
-    const std::vector<std::string> tplNames = { "02" };
+    const std::vector<std::string> tplNames = { "02", "25", "29", "30" };
     Classifier classifier("data/", tplNames, "scene_01/", "0000.png");
 
     // Init indices
@@ -18,8 +18,8 @@ int main() {
     std::copy(&indiciesData[0], &indiciesData[indiciesDataSize], std::back_inserter(*indices));
 
     // Run classifier
-    classifier.classify();
-//    classifier.classifyTest(indices);
+//    classifier.classify();
+    classifier.classifyTest(indices);
 
     return 0;
 }
