@@ -26,7 +26,7 @@ Classifier::Classifier(std::string basePath, std::vector<std::string> templateFo
     hasher.setHashTableCount(100);
     hasher.setHistogramBinCount(5);
     hasher.setMinVotesPerTemplate(3);
-    hasher.setMaxTripletDistance(3);
+    hasher.setMaxTripletDistance(5);
 
     // Init template matcher
     templateMatcher.setFeaturePointsCount(100);
@@ -118,6 +118,18 @@ void Classifier::verifyTemplateCandidates() {
     Timer t;
     hasher.verifyTemplateCandidates(sceneDepth, hashTables, windows);
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
+
+#ifndef NDEBUG
+    // Show results
+    cv::Mat filteredLocations = scene.clone();
+    for (auto &&window : windows) {
+        if (window.hasCandidates()) {
+            cv::rectangle(filteredLocations, window.tl(), window.br(), cv::Scalar(190, 190, 190));
+        }
+    }
+    cv::imshow("Filtered locations:", filteredLocations);
+    cv::waitKey(0);
+#endif
 }
 
 void Classifier::matchTemplates() {
@@ -146,7 +158,6 @@ void Classifier::classify() {
     detectObjectness();
 
     // Verification and filtering of template candidates
-    Timer tVerification;
     verifyTemplateCandidates();
 
     // Template TemplateMatcher

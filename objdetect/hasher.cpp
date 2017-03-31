@@ -287,6 +287,7 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneDepth, std::vector<Has
     assert(windows.size() > 0);
     assert(hashTables.size() > 0);
 
+    int notEmptyWindows = 0;
     unsigned long reduced = 0;
     std::vector<Template *> usedTemplates;
 
@@ -336,9 +337,15 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneDepth, std::vector<Has
 
         // Clear used templates vector
         usedTemplates.clear();
+
+        // TODO pass only windows with candidates
+        if (window.hasCandidates()) {
+            notEmptyWindows++;
+        }
     }
 
-    std::cout << "  |_ total number of templates in windows reduced to approx: " << reduced / windows.size() << std::endl;
+    std::cout << "  |_ Number of windows pass to next stage: " << notEmptyWindows << std::endl;
+    std::cout << "  |_ Total number of templates in windows reduced to approx: " << reduced / windows.size() << std::endl;
 }
 
 const cv::Size Hasher::getReferencePointsGrid() {
