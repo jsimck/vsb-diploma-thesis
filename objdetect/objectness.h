@@ -33,7 +33,7 @@ public:
 
     // Methods
     cv::Vec3f extractMinEdgels(std::vector<TemplateGroup> &templateGroups);
-    cv::Rect objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, std::vector<Window> &windows, cv::Vec3f minEdgels);
+    void objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, std::vector<Window> &windows, cv::Vec3f minEdgels);
 
     // Getters
     unsigned int getStep() const;

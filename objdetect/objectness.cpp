@@ -103,7 +103,7 @@ cv::Vec3f Objectness::extractMinEdgels(std::vector<TemplateGroup> &templateGroup
 }
 
 // TODO - we should sent only the specific window locations for further matching
-cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, std::vector<Window> &windows, cv::Vec3f minEdgels) {
+void Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, std::vector<Window> &windows, cv::Vec3f minEdgels) {
     // Check thresholds and min edgels
     assert(minEdgels[0] > 0);
     assert(minEdgels[1] > 0);
@@ -122,6 +122,7 @@ cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv
     assert(sceneColor.type() == 16); // CV_8UC3
 
 #ifndef NDEBUG
+    std::vector<cv::Vec4i> windowBBs;
     cv::Mat resultScene = sceneColor.clone();
 #endif
 
@@ -135,7 +136,6 @@ cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv
     cv::integral(sceneSobel, sceneIntegral, CV_32F);
 
     // Init helper variables
-    std::vector<cv::Vec4i> windowBBs;
     minEdgels[0] *= matchThresholdFactor;
     int sizeX = static_cast<int>(minEdgels[1] * slidingWindowSizeFactor), sizeY = static_cast<int>(minEdgels[2] * slidingWindowSizeFactor);
 
@@ -152,15 +152,16 @@ cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv
             );
 
             if (sceneEdgels >= minEdgels[0]) {
-                windowBBs.push_back(cv::Vec4i(x, y, x + sizeX, y + sizeY));
                 windows.push_back(Window(x, y, sizeX, sizeY, sceneEdgels));
 #ifndef NDEBUG
-            cv::rectangle(resultScene, cv::Point(x, y), cv::Point(x + sizeX, y + sizeY), cv::Vec3b(190, 190, 190));
+                windowBBs.push_back(cv::Vec4i(x, y, x + sizeX, y + sizeY));
+                cv::rectangle(resultScene, cv::Point(x, y), cv::Point(x + sizeX, y + sizeY), cv::Vec3b(190, 190, 190));
 #endif
             }
         }
     }
 
+#ifndef NDEBUG
     // Calculate coordinates of outer BB
     int minX = sceneSobel.cols, maxX = 0;
     int minY = sceneSobel.rows, maxY = 0;
@@ -175,7 +176,6 @@ cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv
     cv::Rect outerBB(minX, minY, maxX - minX, maxY - minY);
     assert(outerBB.width > 0 && outerBB.height > 0);
 
-#ifndef NDEBUG
     // Draw outer BB based on max/min values of all smaller boxes
     cv::rectangle(resultScene, cv::Point(minX, minY), cv::Point(maxX, maxY), cv::Vec3b(0, 255, 0), 2);
 
@@ -186,8 +186,6 @@ cv::Rect Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv
     cv::imshow("Objectness::Scene", sceneColor);
     cv::waitKey(0);
 #endif
-
-    return outerBB;
 }
 
 float Objectness::getMinThreshold() const {

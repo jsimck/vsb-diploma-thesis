@@ -103,8 +103,7 @@ void Classifier::detectObjectness() {
     // Objectness detection
     std::cout << "Objectness detection started... " << std::endl;
     Timer t;
-    setObjectnessROI(objectness.objectness(sceneGrayscale, scene, sceneDepthNormalized, windows, minEdgels));
-    std::cout << "  |_ Bounding box extracted: " << objectnessROI << std::endl;
+    objectness.objectness(sceneGrayscale, scene, sceneDepthNormalized, windows, minEdgels);
     std::cout << "  |_ Windows classified as containing object extracted: " << windows.size() << std::endl;
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 }
@@ -257,10 +256,6 @@ const std::vector<TemplateGroup> &Classifier::getTemplateGroups() const {
     return templateGroups;
 }
 
-const cv::Rect &Classifier::getObjectnessROI() const {
-    return objectnessROI;
-}
-
 const std::vector<Window> &Classifier::getWindows() const {
     return windows;
 }
@@ -324,13 +319,6 @@ void Classifier::setSceneName(const std::string &sceneName) {
 void Classifier::setSceneGrayscale(const cv::Mat &sceneGrayscale) {
     assert(!sceneGrayscale.empty());
     this->sceneGrayscale = sceneGrayscale;
-}
-
-void Classifier::setObjectnessROI(const cv::Rect &objectnessROI) {
-    assert(objectnessROI.width > 0 && objectnessROI.height > 0);
-    assert(objectnessROI.x >= 0 && objectnessROI.x < scene.cols);
-    assert(objectnessROI.y >= 0 && objectnessROI.y < scene.rows);
-    Classifier::objectnessROI = objectnessROI;
 }
 
 void Classifier::setWindows(const std::vector<Window> &windows) {
