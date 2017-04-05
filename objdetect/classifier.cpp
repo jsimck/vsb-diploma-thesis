@@ -182,6 +182,10 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
     parser.setIndices(indices);
     parseTemplates();
 
+    // Template matching testing
+    templateMatcher.train(templateGroups);
+    return;
+
     // Extract min edgels
     extractMinEdgels();
 

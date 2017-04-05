@@ -23,10 +23,11 @@ private:
     float maxThreshold; // Max threshold applied in sobel filtered image thresholding [0.1f]
     float matchThresholdFactor; // Factor used to reduce minEdge for objectness detection to improve occlusion/noise matching [30% -> 0.3f]
     float slidingWindowSizeFactor; // Reduces sliding window size to improve edge detection [1.0f]
-
-    void filterSobel(cv::Mat &src, cv::Mat &dst);
-    void thresholdMinMax(cv::Mat &src, cv::Mat &dst, float minThreshold, float maxThreshold);
 public:
+    // Statics
+    static void filterSobel(cv::Mat &src, cv::Mat &dst);
+    static void thresholdMinMax(cv::Mat &src, cv::Mat &dst, float minThreshold, float maxThreshold);
+
     // Constructors
     Objectness(unsigned int step = 5, float minThreshold = 0.01f, float maxThreshold = 0.1f, float matchThresholdFactor = 0.3f, float slidingWindowSizeFactor = 1.0f)
         : step(step), minThreshold(minThreshold), maxThreshold(maxThreshold), matchThresholdFactor(matchThresholdFactor), slidingWindowSizeFactor(slidingWindowSizeFactor) {}

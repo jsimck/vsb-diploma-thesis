@@ -5,13 +5,14 @@
 #include <opencv2/core/mat.hpp>
 #include "../core/window.h"
 #include "../core/template_match.h"
+#include "../core/template_group.h"
 
 class TemplateMatcher {
 private:
     uint featurePointsCount;
 
     // Tests
-    inline bool testObjectSize(); // Test I
+    inline bool testObjectSize(float scale); // Test I
     inline float testSurfaceNormalOrientation(); // Test II
     inline float testIntensityGradients(); // Test III
     inline float testDepth(); // Test IV
@@ -23,6 +24,7 @@ public:
     // Methods
     void match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
                std::vector<Window> &windows, std::vector<TemplateMatch> &matches);
+    void train(std::vector<TemplateGroup> &groups);
 
     // Getters
     uint getFeaturePointsCount() const;
