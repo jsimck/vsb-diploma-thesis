@@ -11,6 +11,14 @@ class TemplateMatcher {
 private:
     uint featurePointsCount;
 
+    // Train thresholds
+    uchar cannyThreshold1;
+    uchar cannyThreshold2;
+    uchar sobelMaxThreshold;
+    uchar grayscaleMinThreshold;
+
+    void generateFeaturePoints(std::vector<TemplateGroup> &groups);
+
     // Tests
     inline bool testObjectSize(float scale); // Test I
     inline float testSurfaceNormalOrientation(); // Test II
@@ -19,7 +27,10 @@ private:
     inline float testColor(); // Test V
 public:
     // Constructor
-    TemplateMatcher(uint featurePointsCount = 100) : featurePointsCount(featurePointsCount) {}
+    TemplateMatcher(uint featurePointsCount = 100, uchar cannyThreshold1 = 100, uchar cannyThreshold2 = 200,
+                    uchar sobelMaxThreshold = 50, uchar grayscaleMinThreshold = 50)
+        : featurePointsCount(featurePointsCount), cannyThreshold1(cannyThreshold1), cannyThreshold2(cannyThreshold2),
+          sobelMaxThreshold(sobelMaxThreshold), grayscaleMinThreshold(grayscaleMinThreshold) {}
 
     // Methods
     void match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,

@@ -8,7 +8,7 @@
 
 typedef std::mt19937 Engine;
 typedef std::uniform_real_distribution<float> Distribution;
-auto uniformGenerator = std::bind(Distribution(0.0f, 1.0f), Engine(1));
+static auto uniformGenerator = std::bind(Distribution(0.0f, 1.0f), Engine(1));
 
 cv::Point Triplet::randomPoint(const cv::Size referencePointsGrid) {
     return cv::Point(

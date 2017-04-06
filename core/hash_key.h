@@ -2,7 +2,6 @@
 #define VSB_SEMESTRAL_PROJECT_HASHKEY_H
 
 #include <ostream>
-#include <boost/functional/hash.hpp>
 
 /**
  * struct HashKey
@@ -39,15 +38,8 @@ public:
 
 struct HashKeyHasher {
     std::size_t operator()(const HashKey& k) const {
-        std::size_t seed = 0;
-
-        boost::hash_combine(seed, k.d1);
-        boost::hash_combine(seed, k.d2);
-        boost::hash_combine(seed, k.n1);
-        boost::hash_combine(seed, k.n2);
-        boost::hash_combine(seed, k.n3);
-
-        return seed;
+        std::hash<int> h;
+        return h(h(k.d1) ^ h(k.d2) ^ h(k.n1) ^ h(k.n2) ^ h(k.n3));
     }
 };
 

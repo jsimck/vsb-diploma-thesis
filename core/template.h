@@ -18,6 +18,10 @@ public:
     cv::Mat src;
     cv::Mat srcDepth;
 
+    // Template matching feature points
+    std::vector<cv::Point> edgePoints;
+    std::vector<cv::Point> stablePoints;
+
     // Template .yml parameters
     cv::Rect objBB; // Object bounding box
     cv::Mat camK; // Intrinsic camera matrix K
