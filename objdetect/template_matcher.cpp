@@ -1,10 +1,7 @@
 #include <random>
 #include "template_matcher.h"
-#include "../utils/utils.h"
-#include "objectness.h"
 #include "../core/triplet.h"
 #include "hasher.h"
-#include "../core/template.h"
 
 float TemplateMatcher::extractGradientOrientation(cv::Mat &src, cv::Point &point) {
     assert(!src.empty());
@@ -15,17 +12,26 @@ float TemplateMatcher::extractGradientOrientation(cv::Mat &src, cv::Point &point
     return cv::fastAtan2(dy, dx);
 }
 
-void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
-                     std::vector<Window> &windows, std::vector<TemplateMatch> &matches) {
+int TemplateMatcher::quantizeOrientationGradients(float deg) {
+    // Checks
+    assert(deg >= 0);
+    assert(deg <= 360);
 
-}
+    // We work only in first 2 quadrants
+    int degNormalized = static_cast<int>(deg) % 180;
 
-void TemplateMatcher::train(std::vector<TemplateGroup> &groups) {
-    // Generate canny and stable feature points
-    generateFeaturePoints(groups);
-
-    // Extract gradient orientations
-    extractGradientOrientations(groups);
+    // Quantize
+    if (degNormalized >= 0 && degNormalized < 36) {
+        return 0;
+    } else if (degNormalized >= 36 && degNormalized < 72) {
+        return 1;
+    } else if (degNormalized >= 72 && degNormalized < 108) {
+        return 2;
+    } else if (degNormalized >= 108 && degNormalized < 144) {
+        return 3;
+    } else {
+        return 4;
+    }
 }
 
 void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) {
@@ -100,7 +106,7 @@ void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) 
     }
 }
 
-void TemplateMatcher::extractGradientOrientations(std::vector<TemplateGroup> &groups) {
+void TemplateMatcher::extractTemplateFeatures(std::vector<TemplateGroup> &groups) {
     // Checks
     assert(groups.size() > 0);
 
@@ -113,6 +119,7 @@ void TemplateMatcher::extractGradientOrientations(std::vector<TemplateGroup> &gr
                 assert(!t.srcHSV.empty());
                 assert(!t.srcDepth.empty());
 
+                // TODO - consider refactoring the code to work with sources in original 400x400 size (so without bounding box mask applied)
                 // Check points are either on template edge in which case surface normal and gradient orientation
                 // extraction would fail due to central derivation -> reset roi applied on template and restore it after
                 // feature has been extracted
@@ -153,26 +160,17 @@ void TemplateMatcher::extractGradientOrientations(std::vector<TemplateGroup> &gr
     }
 }
 
-int TemplateMatcher::quantizeOrientationGradients(float deg) {
-    // Checks
-    assert(deg >= 0);
-    assert(deg <= 360);
+void TemplateMatcher::train(std::vector<TemplateGroup> &groups) {
+    // Generate edge and stable points for features extraction
+    generateFeaturePoints(groups);
 
-    // We work only in first 2 quadrants
-    int degNormalized = static_cast<int>(deg) % 180;
+    // Extract features for all templates in template group
+    extractTemplateFeatures(groups);
+}
 
-    // Quantize
-    if (degNormalized >= 0 && degNormalized < 36) {
-        return 0;
-    } else if (degNormalized >= 36 && degNormalized < 72) {
-        return 1;
-    } else if (degNormalized >= 72 && degNormalized < 108) {
-        return 2;
-    } else if (degNormalized >= 108 && degNormalized < 144) {
-        return 3;
-    } else {
-        return 4;
-    }
+void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
+                            std::vector<Window> &windows, std::vector<TemplateMatch> &matches) {
+
 }
 
 uint TemplateMatcher::getFeaturePointsCount() const {

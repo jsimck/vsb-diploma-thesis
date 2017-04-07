@@ -66,6 +66,17 @@ void Classifier::trainHashTables() {
     std::cout << "DONE! took: " << t.elapsed() << "s, " << hashTables.size() << " hash tables generated" <<std::endl << std::endl;
 }
 
+void Classifier::trainTemplates() {
+    // Checks
+    assert(templateGroups.size() > 0);
+
+    // Train hash tables
+    std::cout << "Training templates for template matching... " << std::endl;
+    Timer t;
+    templateMatcher.train(templateGroups);
+    std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
+}
+
 void Classifier::loadScene() {
     // Checks
     assert(basePath.length() > 0);
@@ -142,15 +153,15 @@ void Classifier::classify() {
 
     // Parse templates
     parseTemplates();
-    // Train templates for template matching
-    templateMatcher.train(templateGroups);
-    return;
 
     // Extract min edgels
     extractMinEdgels();
 
     // Train hash tables
     trainHashTables();
+
+    // Train templates for template matching
+    trainTemplates();
 
     /// Hypothesis verification
     // Start stopwatch
@@ -185,15 +196,14 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
     parser.setIndices(indices);
     parseTemplates();
 
-    // Train templates for template matching
-    templateMatcher.train(templateGroups);
-    return;
-
     // Extract min edgels
     extractMinEdgels();
 
     // Train hash tables
     trainHashTables();
+
+    // Train templates for template matching
+    trainTemplates();
 
     /// Hypothesis verification
     // Start stopwatch

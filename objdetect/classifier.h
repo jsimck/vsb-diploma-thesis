@@ -41,6 +41,7 @@ private:
     void loadScene();
     void extractMinEdgels();
     void trainHashTables();
+    void trainTemplates();
     void detectObjectness();
     void verifyTemplateCandidates();
     void matchTemplates();

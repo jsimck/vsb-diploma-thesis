@@ -270,7 +270,6 @@ void Hasher::train(std::vector<TemplateGroup> &groups, std::vector<HashTable> &h
     cv::waitKey(0);
 
     for (auto &&table : hashTables) {
-        std::cout << table << std::endl;
         triplet = cv::Mat::zeros(400, 400, CV_32FC3);
         table.triplet.visualize(triplets, getReferencePointsGrid(), false);
         table.triplet.visualize(triplet, getReferencePointsGrid(), true);

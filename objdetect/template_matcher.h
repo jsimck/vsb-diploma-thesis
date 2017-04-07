@@ -18,7 +18,7 @@ private:
     uchar grayscaleMinThreshold;
 
     // Methods
-    inline void extractGradientOrientations(std::vector<TemplateGroup> &groups);
+    inline void extractTemplateFeatures(std::vector<TemplateGroup> &groups);
     inline void generateFeaturePoints(std::vector<TemplateGroup> &groups);
     inline int quantizeOrientationGradients(float deg);
 
