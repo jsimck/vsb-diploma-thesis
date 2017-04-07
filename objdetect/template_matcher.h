@@ -17,6 +17,7 @@ private:
     uchar sobelMaxThreshold;
     uchar grayscaleMinThreshold;
 
+    void extractGradientOrientations(std::vector<TemplateGroup> &groups);
     void generateFeaturePoints(std::vector<TemplateGroup> &groups);
 
     // Tests
@@ -26,6 +27,8 @@ private:
     inline float testDepth(); // Test IV
     inline float testColor(); // Test V
 public:
+    static float extractGradientOrientation(cv::Mat &src, cv::Point &point);
+
     // Constructor
     TemplateMatcher(uint featurePointsCount = 100, uchar cannyThreshold1 = 100, uchar cannyThreshold2 = 200,
                     uchar sobelMaxThreshold = 50, uchar grayscaleMinThreshold = 50)

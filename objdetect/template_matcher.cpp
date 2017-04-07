@@ -3,14 +3,13 @@
 #include "../utils/utils.h"
 #include "objectness.h"
 #include "../core/triplet.h"
+#include "hasher.h"
 
-uint TemplateMatcher::getFeaturePointsCount() const {
-    return featurePointsCount;
-}
+float TemplateMatcher::extractGradientOrientation(cv::Mat &src, cv::Point &point) {
+    float dx = (src.at<float>(point.y, point.x - 1) - src.at<float>(point.y, point.x + 1)) / 2.0f;
+    float dy = (src.at<float>(point.y - 1, point.x) - src.at<float>(point.y + 1, point.x)) / 2.0f;
 
-void TemplateMatcher::setFeaturePointsCount(uint featurePointsCount) {
-    assert(featurePointsCount > 0);
-    this->featurePointsCount = featurePointsCount;
+    return cv::fastAtan2(dy, dx);
 }
 
 void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
@@ -21,6 +20,9 @@ void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale
 void TemplateMatcher::train(std::vector<TemplateGroup> &groups) {
     // Generate canny and stable feature points
     generateFeaturePoints(groups);
+
+    // Extract gradient orientations
+    extractGradientOrientations(groups);
 }
 
 void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) {
@@ -89,8 +91,33 @@ void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) 
             cv::imshow("TemplateMatcher::train Sobel", sobel);
             cv::imshow("TemplateMatcher::train Canny", canny);
             cv::imshow("TemplateMatcher::train Feature points", visualizationMat);
-            cv::waitKey(0);
+            cv::waitKey(1);
 #endif
         }
     }
+}
+
+void TemplateMatcher::extractGradientOrientations(std::vector<TemplateGroup> &groups) {
+    for (auto &group : groups) {
+        for (auto &t : group.templates) {
+            for (auto &p : t.edgePoints) {
+                // Print orientation
+                std::cout << extractGradientOrientation(t.src, p) << " deg" << std::endl;
+            }
+
+            for (auto &p : t.stablePoints) {
+                // Print orientation
+                std::cout << Hasher::extractSurfaceNormal(t.srcDepth, p) << " normal" << std::endl;
+            }
+        }
+    }
+}
+
+uint TemplateMatcher::getFeaturePointsCount() const {
+    return featurePointsCount;
+}
+
+void TemplateMatcher::setFeaturePointsCount(uint featurePointsCount) {
+    assert(featurePointsCount > 0);
+    this->featurePointsCount = featurePointsCount;
 }

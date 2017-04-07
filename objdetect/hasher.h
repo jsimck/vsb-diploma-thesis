@@ -22,10 +22,6 @@ private:
     unsigned int histogramBinCount;
     std::vector<cv::Range> histogramBinRanges;
 
-    // Methods
-    cv::Vec3d extractSurfaceNormal(const cv::Mat &src, const cv::Point c);
-    cv::Vec2i extractRelativeDepths(const cv::Mat &src, const cv::Point c, const cv::Point p1, const cv::Point p2);
-
     int quantizeSurfaceNormals(cv::Vec3f normal);
     int quantizeDepths(float depth);
 
@@ -36,6 +32,10 @@ public:
     // Statics
     static const int IMG_16BIT_VALUE_MAX;
     static const int IMG_16BIT_VALUES_RANGE;
+
+    // Static methods
+    static cv::Vec3f extractSurfaceNormal(const cv::Mat &src, const cv::Point c);
+    static cv::Vec2i extractRelativeDepths(const cv::Mat &src, const cv::Point c, const cv::Point p1, const cv::Point p2);
 
     // Constructors
     Hasher(int minVotesPerTemplate = 3, cv::Size referencePointsGrid = cv::Size(12, 12),

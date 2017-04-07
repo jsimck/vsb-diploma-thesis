@@ -5,7 +5,7 @@
 const int Hasher::IMG_16BIT_VALUE_MAX = 65535; // <0, 65535> => 65536 values
 const int Hasher::IMG_16BIT_VALUES_RANGE = (IMG_16BIT_VALUE_MAX * 2) + 1; // <-65535, 65535> => 131071 values + (one zero)
 
-cv::Vec3d Hasher::extractSurfaceNormal(const cv::Mat &src, const cv::Point c) {
+cv::Vec3f Hasher::extractSurfaceNormal(const cv::Mat &src, const cv::Point c) {
     // Checks
     assert(!src.empty());
 
