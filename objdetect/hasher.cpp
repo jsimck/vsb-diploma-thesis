@@ -212,7 +212,7 @@ void Hasher::train(std::vector<TemplateGroup> &groups, std::vector<HashTable> &h
     // Prepare hash tables and histogram bin ranges
     initialize(groups, hashTables);
 
-    // Fill hash tables with templates and keys quantizied from measured values
+    // Fill hash tables with templates and keys quantized from measured values
     for (auto &hashTable : hashTables) {
         for (auto &group : groups) {
             for (auto &t : group.templates) {

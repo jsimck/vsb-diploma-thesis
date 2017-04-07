@@ -182,7 +182,7 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
     parser.setIndices(indices);
     parseTemplates();
 
-    // Template matching testing
+    // Train templates for template matching
     templateMatcher.train(templateGroups);
     return;
 

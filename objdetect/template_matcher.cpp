@@ -4,6 +4,7 @@
 #include "objectness.h"
 #include "../core/triplet.h"
 #include "hasher.h"
+#include "../core/template.h"
 
 float TemplateMatcher::extractGradientOrientation(cv::Mat &src, cv::Point &point) {
     float dx = (src.at<float>(point.y, point.x - 1) - src.at<float>(point.y, point.x + 1)) / 2.0f;
@@ -79,37 +80,72 @@ void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) 
             }
 
 #ifndef NDEBUG
-            // Visualize extracted features
-            cv::Mat visualizationMat;
-            cv::cvtColor(t.src, visualizationMat, CV_GRAY2BGR);
-
-            for (int i = 0; i < featurePointsCount; ++i) {
-                cv::circle(visualizationMat, t.edgePoints[i], 1, cv::Scalar(0, 0, 255), -1);
-                cv::circle(visualizationMat, t.stablePoints[i], 1, cv::Scalar(0, 255, 0), -1);
-            }
-
-            cv::imshow("TemplateMatcher::train Sobel", sobel);
-            cv::imshow("TemplateMatcher::train Canny", canny);
-            cv::imshow("TemplateMatcher::train Feature points", visualizationMat);
-            cv::waitKey(1);
+//            // Visualize extracted features
+//            cv::Mat visualizationMat;
+//            cv::cvtColor(t.src, visualizationMat, CV_GRAY2BGR);
+//
+//            for (int i = 0; i < featurePointsCount; ++i) {
+//                cv::circle(visualizationMat, t.edgePoints[i], 1, cv::Scalar(0, 0, 255), -1);
+//                cv::circle(visualizationMat, t.stablePoints[i], 1, cv::Scalar(0, 255, 0), -1);
+//            }
+//
+//            cv::imshow("TemplateMatcher::train Sobel", sobel);
+//            cv::imshow("TemplateMatcher::train Canny", canny);
+//            cv::imshow("TemplateMatcher::train Feature points", visualizationMat);
+//            cv::waitKey(0);
 #endif
         }
     }
 }
 
 void TemplateMatcher::extractGradientOrientations(std::vector<TemplateGroup> &groups) {
+    // Checks
+    assert(groups.size() > 0);
+
     for (auto &group : groups) {
         for (auto &t : group.templates) {
-            for (auto &p : t.edgePoints) {
-                // Print orientation
-                std::cout << extractGradientOrientation(t.src, p) << " deg" << std::endl;
-            }
+            // Quantize surface normal and gradient orientations and extract other features
+            for (int i = 0; i < featurePointsCount; i++) {
+                // Checks
+                assert(!t.src.empty());
+                assert(!t.srcHSV.empty());
+                assert(!t.srcDepth.empty());
 
-            for (auto &p : t.stablePoints) {
-                // Print orientation
-                std::cout << Hasher::extractSurfaceNormal(t.srcDepth, p) << " normal" << std::endl;
+                // Save features to template
+                t.features.orientationGradients[i] = quantizeOrientationGradients(extractGradientOrientation(t.src, t.edgePoints[i]));
+                t.features.surfaceNormals[i] = Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(t.srcDepth, t.stablePoints[i]));
+                t.features.depth[i] = t.srcDepth.at<float>(t.stablePoints[i]);
+                t.features.color[i] = t.srcHSV.at<cv::Vec3b>(t.stablePoints[i]);
+
+                // Checks
+                assert(t.features.orientationGradients[i] >= 0);
+                assert(t.features.orientationGradients[i] < 5);
+                assert(t.features.surfaceNormals[i] >= 0);
+                assert(t.features.surfaceNormals[i] < 8);
             }
         }
+    }
+}
+
+int TemplateMatcher::quantizeOrientationGradients(float deg) {
+    // Checks
+    assert(deg >= 0);
+    assert(deg <= 360);
+
+    // We work only in first 2 quadrants
+    int degNormalized = static_cast<int>(deg) % 180;
+
+    // Quantize
+    if (degNormalized >= 0 && degNormalized < 36) {
+        return 0;
+    } else if (degNormalized >= 36 && degNormalized < 72) {
+        return 1;
+    } else if (degNormalized >= 72 && degNormalized < 108) {
+        return 2;
+    } else if (degNormalized >= 108 && degNormalized < 144) {
+        return 3;
+    } else {
+        return 4;
     }
 }
 
@@ -117,7 +153,47 @@ uint TemplateMatcher::getFeaturePointsCount() const {
     return featurePointsCount;
 }
 
+uchar TemplateMatcher::getCannyThreshold1() const {
+    return cannyThreshold1;
+}
+
+uchar TemplateMatcher::getCannyThreshold2() const {
+    return cannyThreshold2;
+}
+
+uchar TemplateMatcher::getSobelMaxThreshold() const {
+    return sobelMaxThreshold;
+}
+
+uchar TemplateMatcher::getGrayscaleMinThreshold() const {
+    return grayscaleMinThreshold;
+}
+
 void TemplateMatcher::setFeaturePointsCount(uint featurePointsCount) {
     assert(featurePointsCount > 0);
     this->featurePointsCount = featurePointsCount;
+}
+
+void TemplateMatcher::setCannyThreshold1(uchar cannyThreshold1) {
+    assert(featurePointsCount > 0);
+    assert(featurePointsCount < 256);
+    this->cannyThreshold1 = cannyThreshold1;
+}
+
+void TemplateMatcher::setCannyThreshold2(uchar cannyThreshold2) {
+    assert(featurePointsCount > 0);
+    assert(featurePointsCount < 256);
+    this->cannyThreshold2 = cannyThreshold2;
+}
+
+void TemplateMatcher::setSobelMaxThreshold(uchar sobelMaxThreshold) {
+    assert(featurePointsCount > 0);
+    assert(featurePointsCount < 256);
+    this->sobelMaxThreshold = sobelMaxThreshold;
+}
+
+void TemplateMatcher::setGrayscaleMinThreshold(uchar grayscaleMinThreshold) {
+    assert(featurePointsCount > 0);
+    assert(featurePointsCount < 256);
+    this->grayscaleMinThreshold = grayscaleMinThreshold;
 }

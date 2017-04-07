@@ -109,12 +109,17 @@ Template TemplateParser::parseGt(int index, std::string path, cv::FileNode &gtNo
     std::string fileName = ss.str();
 
     // Load image
-    cv::Mat src = cv::imread(path + "/rgb/" + fileName + ".png", CV_LOAD_IMAGE_GRAYSCALE);
+    cv::Mat srcHSV;
+    cv::Mat src = cv::imread(path + "/rgb/" + fileName + ".png", CV_LOAD_IMAGE_COLOR);
     cv::Mat srcDepth = cv::imread(path + "/depth/" + fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
 
     // Crop image using objBB
     src = src(objBB);
     srcDepth = srcDepth(objBB);
+
+    // Convert to grayscale and HSV
+    cv::cvtColor(src, srcHSV, CV_BGR2HSV);
+    cv::cvtColor(src, src, CV_BGR2GRAY);
 
     // Convert to float
     src.convertTo(src, CV_32F, 1.0f / 255.0f);
@@ -125,6 +130,7 @@ Template TemplateParser::parseGt(int index, std::string path, cv::FileNode &gtNo
     assert(!vCamRm2c.empty());
     assert(!vCamTm2c.empty());
     assert(!src.empty());
+    assert(!srcHSV.empty());
     assert(!srcDepth.empty());
 
     // Matrix type checks
@@ -132,7 +138,7 @@ Template TemplateParser::parseGt(int index, std::string path, cv::FileNode &gtNo
     assert(srcDepth.type() == 5); // CV_32FC1
 
     return Template(
-        this->idCounter, fileName, src, srcDepth, objBB,
+        this->idCounter, fileName, src, srcHSV, srcDepth, objBB,
         cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone(),
         cv::Vec3d(vCamTm2c[0], vCamTm2c[1], vCamTm2c[2])
     );

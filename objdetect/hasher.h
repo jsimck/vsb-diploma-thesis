@@ -22,7 +22,6 @@ private:
     unsigned int histogramBinCount;
     std::vector<cv::Range> histogramBinRanges;
 
-    int quantizeSurfaceNormals(cv::Vec3f normal);
     int quantizeDepths(float depth);
 
     void generateTriplets(std::vector<HashTable> &hashTables);
@@ -34,6 +33,7 @@ public:
     static const int IMG_16BIT_VALUES_RANGE;
 
     // Static methods
+    static int quantizeSurfaceNormals(cv::Vec3f normal);
     static cv::Vec3f extractSurfaceNormal(const cv::Mat &src, const cv::Point c);
     static cv::Vec2i extractRelativeDepths(const cv::Mat &src, const cv::Point c, const cv::Point p1, const cv::Point p2);
 

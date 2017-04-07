@@ -8,10 +8,10 @@ struct TemplateMatch {
 public:
     cv::Point tl;
     Template *t;
-    uint score;
+    float score;
 
     // Constructors
-    TemplateMatch(cv::Point tl, Template *t, uint score = 0) : tl(tl), t(t), score(score) {}
+    TemplateMatch(cv::Point tl, Template *t, float score = 0) : tl(tl), t(t), score(score) {}
 
     // Friends
     bool operator==(const TemplateMatch &rhs) const;

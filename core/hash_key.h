@@ -9,7 +9,7 @@
  * Custom hash key used in hash table to separate trained images into
  * it's own bins. There can be max 12800 different hash keyes, consisting of
  * (d1, d2, n1, n2, n3) where d1, d2 are depth relative depths (p2 - p1, p3 - p1)
- * and n1, n2, n3 quantizied surface normals (into 8 bins) at each point of learned triplets
+ * and n1, n2, n3 quantized surface normals (into 8 bins) at each point of learned triplets
  * this gives 5 * 5 * 8 * 8 * 8 = 12800 possible different keys, where each key contains
  * list of templates corresponding to discretizied values of hash key.
  */

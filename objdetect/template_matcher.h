@@ -17,8 +17,10 @@ private:
     uchar sobelMaxThreshold;
     uchar grayscaleMinThreshold;
 
-    void extractGradientOrientations(std::vector<TemplateGroup> &groups);
-    void generateFeaturePoints(std::vector<TemplateGroup> &groups);
+    // Methods
+    inline void extractGradientOrientations(std::vector<TemplateGroup> &groups);
+    inline void generateFeaturePoints(std::vector<TemplateGroup> &groups);
+    inline int quantizeOrientationGradients(float deg);
 
     // Tests
     inline bool testObjectSize(float scale); // Test I
@@ -27,6 +29,7 @@ private:
     inline float testDepth(); // Test IV
     inline float testColor(); // Test V
 public:
+    // Static methods
     static float extractGradientOrientation(cv::Mat &src, cv::Point &point);
 
     // Constructor
@@ -42,9 +45,17 @@ public:
 
     // Getters
     uint getFeaturePointsCount() const;
+    uchar getCannyThreshold1() const;
+    uchar getCannyThreshold2() const;
+    uchar getSobelMaxThreshold() const;
+    uchar getGrayscaleMinThreshold() const;
 
     // Setters
     void setFeaturePointsCount(uint featurePointsCount);
+    void setCannyThreshold1(uchar cannyThreshold1);
+    void setCannyThreshold2(uchar cannyThreshold2);
+    void setSobelMaxThreshold(uchar sobelMaxThreshold);
+    void setGrayscaleMinThreshold(uchar grayscaleMinThreshold);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_TEMPLATE_MATCHER_H
