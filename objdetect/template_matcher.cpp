@@ -7,6 +7,8 @@
 #include "../core/template.h"
 
 float TemplateMatcher::extractGradientOrientation(cv::Mat &src, cv::Point &point) {
+    assert(!src.empty());
+
     float dx = (src.at<float>(point.y, point.x - 1) - src.at<float>(point.y, point.x + 1)) / 2.0f;
     float dy = (src.at<float>(point.y - 1, point.x) - src.at<float>(point.y + 1, point.x)) / 2.0f;
 
@@ -111,6 +113,21 @@ void TemplateMatcher::extractGradientOrientations(std::vector<TemplateGroup> &gr
                 assert(!t.srcHSV.empty());
                 assert(!t.srcDepth.empty());
 
+                // Check points are either on template edge in which case surface normal and gradient orientation
+                // extraction would fail due to central derivation -> reset roi applied on template and restore it after
+                // feature has been extracted
+                bool edgePoint = false;
+                if ((t.edgePoints[i].x == 0 || t.edgePoints[i].y == 0 || t.edgePoints[i].x == t.objBB.width - 1 || t.edgePoints[i].y == t.objBB.height - 1) ||
+                 (t.stablePoints[i].x == 0 || t.stablePoints[i].y == 0 || t.stablePoints[i].x == t.objBB.width - 1 || t.stablePoints[i].y == t.objBB.height - 1)) {
+                    t.resetROI();
+                    t.edgePoints[i].x += t.objBB.x;
+                    t.edgePoints[i].y += t.objBB.y;
+                    t.stablePoints[i].x += t.objBB.x;
+                    t.stablePoints[i].y += t.objBB.y;
+
+                    edgePoint = true;
+                }
+
                 // Save features to template
                 t.features.orientationGradients[i] = quantizeOrientationGradients(extractGradientOrientation(t.src, t.edgePoints[i]));
                 t.features.surfaceNormals[i] = Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(t.srcDepth, t.stablePoints[i]));
@@ -122,6 +139,15 @@ void TemplateMatcher::extractGradientOrientations(std::vector<TemplateGroup> &gr
                 assert(t.features.orientationGradients[i] < 5);
                 assert(t.features.surfaceNormals[i] >= 0);
                 assert(t.features.surfaceNormals[i] < 8);
+
+                // Restore matrix roi and delete offsets on feature points
+                if (edgePoint) {
+                    t.applyROI();
+                    t.edgePoints[i].x -= t.objBB.x;
+                    t.edgePoints[i].y -= t.objBB.y;
+                    t.stablePoints[i].x -= t.objBB.x;
+                    t.stablePoints[i].y -= t.objBB.y;
+                }
             }
         }
     }

@@ -142,6 +142,9 @@ void Classifier::classify() {
 
     // Parse templates
     parseTemplates();
+    // Train templates for template matching
+    templateMatcher.train(templateGroups);
+    return;
 
     // Extract min edgels
     extractMinEdgels();

@@ -1,5 +1,21 @@
 #include "template.h"
 
+//Template::Template(int id, std::string fileName, cv::Mat src, cv::Mat srcHSV, cv::Mat srcDepth, cv::Rect objBB,
+//                   cv::Mat camRm2c, cv::Vec3d camTm2c) {
+//    votes = 0;
+//    this->id = id;
+//    this->fileName = fileName;
+//    this->src = src;
+//    this->srcHSV = srcHSV;
+//    this->srcDepth = srcDepth;
+//    this->objBB = objBB;
+//    this->camRm2c = camRm2c;
+//    this->camTm2c = camTm2c;
+//
+//    // Apply ROI on sources
+//    applyROI();
+//}
+
 void Template::voteUp() {
     votes++;
 }
@@ -22,9 +38,9 @@ void Template::resetROI() {
     src.locateROI(size, offset);
 
     // Set to original [disable ROI]
-    src.adjustROI(offset.y, size.height - src.rows, offset.x, size.width - src.cols);
-    srcDepth.adjustROI(offset.y, size.height - src.rows, offset.x, size.width - src.cols);
-    srcHSV.adjustROI(offset.y, size.height - src.rows, offset.x, size.width - src.cols);
+    src.adjustROI(offset.y, size.height, offset.x, size.width);
+    srcDepth.adjustROI(offset.y, size.height, offset.x, size.width);
+    srcHSV.adjustROI(offset.y, size.height, offset.x, size.width);
 }
 
 bool Template::operator==(const Template &rhs) const {

@@ -113,10 +113,6 @@ Template TemplateParser::parseGt(int index, std::string path, cv::FileNode &gtNo
     cv::Mat src = cv::imread(path + "/rgb/" + fileName + ".png", CV_LOAD_IMAGE_COLOR);
     cv::Mat srcDepth = cv::imread(path + "/depth/" + fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
 
-    // Crop image using objBB
-    src = src(objBB);
-    srcDepth = srcDepth(objBB);
-
     // Convert to grayscale and HSV
     cv::cvtColor(src, srcHSV, CV_BGR2HSV);
     cv::cvtColor(src, src, CV_BGR2GRAY);
@@ -137,11 +133,17 @@ Template TemplateParser::parseGt(int index, std::string path, cv::FileNode &gtNo
     assert(src.type() == 5); // CV_32FC1
     assert(srcDepth.type() == 5); // CV_32FC1
 
-    return Template(
+    Template t = Template(
         this->idCounter, fileName, src, srcHSV, srcDepth, objBB,
         cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone(),
         cv::Vec3d(vCamTm2c[0], vCamTm2c[1], vCamTm2c[2])
     );
+
+    t.src = t.src(t.objBB);
+    t.srcHSV = t.srcHSV(t.objBB);
+    t.srcDepth = t.srcDepth(t.objBB);
+
+    return t;
 }
 
 void TemplateParser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
