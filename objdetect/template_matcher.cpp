@@ -1,7 +1,9 @@
 #include <random>
+#include <algorithm>
 #include "template_matcher.h"
 #include "../core/triplet.h"
 #include "hasher.h"
+#include "../core/template.h"
 
 float TemplateMatcher::extractGradientOrientation(cv::Mat &src, cv::Point &point) {
     assert(!src.empty());
@@ -79,16 +81,37 @@ void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) 
 
             // Save random points into the template arrays
             for (int i = 0; i < featurePointsCount; i++) {
-                int ri = (int) Triplet::random(0, stablePoints.size() - 1);
-                t.stablePoints.push_back(stablePoints[ri]);
+                int ri;
+                // If points extracted are on the part of depth image corrupted by noise (black spots)
+                // regenerate new points, until
+                bool falseStablePointGenerated;
+                do {
+                    falseStablePointGenerated = false;
+                    ri = (int) Triplet::random(0, stablePoints.size() - 1);
+                    cv::Point stablePoint = stablePoints[ri];
+
+                    // Check if point is at black spot
+                    if (t.srcDepth.at<float>(stablePoint) <= 0) {
+                        falseStablePointGenerated = true;
+                    } else {
+                        t.stablePoints.push_back(stablePoint);
+                    }
+
+                    stablePoints.erase(stablePoints.begin() + ri - 1); // Remove from array of points
+                } while (falseStablePointGenerated);
 
                 // Randomize once more
                 ri = (int) Triplet::random(0, cannyPoints.size() - 1);
-                t.edgePoints.push_back(cannyPoints[ri]);
+                cv::Point edgePoint = cannyPoints[ri];
+                t.edgePoints.push_back(edgePoint);
+                cannyPoints.erase(cannyPoints.begin() + ri - 1); // Remove from array of points
             }
 
+            assert(t.stablePoints.size() == featurePointsCount);
+            assert(t.edgePoints.size() == featurePointsCount);
+
 #ifndef NDEBUG
-//            // Visualize extracted features
+            // Visualize extracted features
 //            cv::Mat visualizationMat;
 //            cv::cvtColor(t.src, visualizationMat, CV_GRAY2BGR);
 //
@@ -112,6 +135,9 @@ void TemplateMatcher::extractTemplateFeatures(std::vector<TemplateGroup> &groups
 
     for (auto &group : groups) {
         for (auto &t : group.templates) {
+            // Init tmp array to store depth values to compute median
+            std::vector<int> depthArray;
+
             // Quantize surface normal and gradient orientations and extract other features
             for (int i = 0; i < featurePointsCount; i++) {
                 // Checks
@@ -124,6 +150,7 @@ void TemplateMatcher::extractTemplateFeatures(std::vector<TemplateGroup> &groups
                 // extraction would fail due to central derivation -> reset roi applied on template and restore it after
                 // feature has been extracted
                 bool edgePoint = false;
+
                 if ((t.edgePoints[i].x == 0 || t.edgePoints[i].y == 0 || t.edgePoints[i].x == t.objBB.width - 1 || t.edgePoints[i].y == t.objBB.height - 1) ||
                  (t.stablePoints[i].x == 0 || t.stablePoints[i].y == 0 || t.stablePoints[i].x == t.objBB.width - 1 || t.stablePoints[i].y == t.objBB.height - 1)) {
                     t.resetROI();
@@ -131,7 +158,6 @@ void TemplateMatcher::extractTemplateFeatures(std::vector<TemplateGroup> &groups
                     t.edgePoints[i].y += t.objBB.y;
                     t.stablePoints[i].x += t.objBB.x;
                     t.stablePoints[i].y += t.objBB.y;
-
                     edgePoint = true;
                 }
 
@@ -140,6 +166,7 @@ void TemplateMatcher::extractTemplateFeatures(std::vector<TemplateGroup> &groups
                 t.features.surfaceNormals[i] = Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(t.srcDepth, t.stablePoints[i]));
                 t.features.depth[i] = t.srcDepth.at<float>(t.stablePoints[i]);
                 t.features.color[i] = t.srcHSV.at<cv::Vec3b>(t.stablePoints[i]);
+                depthArray.push_back(static_cast<int>(t.features.depth[i]));
 
                 // Checks
                 assert(t.features.orientationGradients[i] >= 0);
@@ -156,6 +183,14 @@ void TemplateMatcher::extractTemplateFeatures(std::vector<TemplateGroup> &groups
                     t.stablePoints[i].y -= t.objBB.y;
                 }
             }
+
+            // Save median value
+            t.features.depthMedian = static_cast<uint>(extractMedian(depthArray));
+            for (auto &item : depthArray) {
+                std::cout << item << ", ";
+            }
+            std::cout << std::endl;
+            std::cout << t.features.depthMedian << std::endl << std::endl;
         }
     }
 }
@@ -168,9 +203,44 @@ void TemplateMatcher::train(std::vector<TemplateGroup> &groups) {
     extractTemplateFeatures(groups);
 }
 
+bool TemplateMatcher::testObjectSize(float scale) {
+    return true; // TODO implement object size test
+}
+
+float TemplateMatcher::testSurfaceNormalOrientation() {
+    return 0;
+}
+
+float TemplateMatcher::testIntensityGradients() {
+    return 0;
+}
+
+float TemplateMatcher::testDepth() {
+    return 0;
+}
+
+float TemplateMatcher::testColor() {
+    return 0;
+}
+
 void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
                             std::vector<Window> &windows, std::vector<TemplateMatch> &matches) {
+    const float minThreshold = 0.6f; // 60%
 
+    for (auto &window : windows) {
+        // Skip empty windows
+        if (!window.hasCandidates()) continue;
+
+        for (auto &candidate : window.candidates) {
+            // TODO implement 5x5 local neighbourhood
+            // Do template matching
+
+            // Test I. object size
+            if (!testObjectSize(1.0f)) continue;
+
+            // Test II.
+        }
+    }
 }
 
 uint TemplateMatcher::getFeaturePointsCount() const {
@@ -220,4 +290,9 @@ void TemplateMatcher::setGrayscaleMinThreshold(uchar grayscaleMinThreshold) {
     assert(featurePointsCount > 0);
     assert(featurePointsCount < 256);
     this->grayscaleMinThreshold = grayscaleMinThreshold;
+}
+
+int TemplateMatcher::extractMedian(std::vector<int> &depths) {
+    std::nth_element(depths.begin(), depths.begin() + depths.size() / 2, depths.end());
+    return depths[depths.size() / 2];
 }

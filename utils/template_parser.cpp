@@ -119,6 +119,7 @@ Template TemplateParser::parseGt(int index, std::string path, cv::FileNode &gtNo
 
     // Convert to float
     src.convertTo(src, CV_32F, 1.0f / 255.0f);
+    // TODO use CV_32S rather than floats
     srcDepth.convertTo(srcDepth, CV_32F); // because of surface normal calculation, don't doo normalization
 
     // Checks
