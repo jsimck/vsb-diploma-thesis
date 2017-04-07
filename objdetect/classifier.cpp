@@ -173,6 +173,11 @@ void Classifier::classify() {
     // Verification and filtering of template candidates
     verifyTemplateCandidates();
 
+    // Match templates
+    Timer templateMatcherTimer;
+    templateMatcher.match(scene, sceneGrayscale, sceneDepth, windows, matches);
+    std::cout << "Template matching took: " << templateMatcherTimer.elapsed() << "s" << std::endl;
+
     // Template TemplateMatcher
     Timer tMatching;
     std::vector<cv::Rect> matchBBs = matcher_deprecated::matchTemplate(sceneGrayscale, windows);
@@ -214,6 +219,11 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
 
     // Verification and filtering of template candidates
     verifyTemplateCandidates();
+
+    // Match templates
+    Timer templateMatcherTimer;
+    templateMatcher.match(scene, sceneGrayscale, sceneDepth, windows, matches);
+    std::cout << "Template matching took: " << templateMatcherTimer.elapsed() << "s" << std::endl;
 
     // Template TemplateMatcher
     std::vector<cv::Rect> matchBBs = matcher_deprecated::matchTemplate(sceneGrayscale, windows);

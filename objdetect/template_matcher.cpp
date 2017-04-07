@@ -5,7 +5,7 @@
 #include "hasher.h"
 #include "../core/template.h"
 
-float TemplateMatcher::extractGradientOrientation(cv::Mat &src, cv::Point &point) {
+float TemplateMatcher::extractOrientationGradient(const cv::Mat &src, cv::Point &point) {
     assert(!src.empty());
 
     float dx = (src.at<float>(point.y, point.x - 1) - src.at<float>(point.y, point.x + 1)) / 2.0f;
@@ -14,7 +14,7 @@ float TemplateMatcher::extractGradientOrientation(cv::Mat &src, cv::Point &point
     return cv::fastAtan2(dy, dx);
 }
 
-int TemplateMatcher::quantizeOrientationGradients(float deg) {
+int TemplateMatcher::quantizeOrientationGradient(float deg) {
     // Checks
     assert(deg >= 0);
     assert(deg <= 360);
@@ -162,7 +162,7 @@ void TemplateMatcher::extractTemplateFeatures(std::vector<TemplateGroup> &groups
                 }
 
                 // Save features to template
-                t.features.orientationGradients[i] = quantizeOrientationGradients(extractGradientOrientation(t.src, t.edgePoints[i]));
+                t.features.orientationGradients[i] = quantizeOrientationGradient(extractOrientationGradient(t.src, t.edgePoints[i]));
                 t.features.surfaceNormals[i] = Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(t.srcDepth, t.stablePoints[i]));
                 t.features.depth[i] = t.srcDepth.at<float>(t.stablePoints[i]);
                 t.features.color[i] = t.srcHSV.at<cv::Vec3b>(t.stablePoints[i]);
@@ -186,11 +186,6 @@ void TemplateMatcher::extractTemplateFeatures(std::vector<TemplateGroup> &groups
 
             // Save median value
             t.features.depthMedian = static_cast<uint>(extractMedian(depthArray));
-            for (auto &item : depthArray) {
-                std::cout << item << ", ";
-            }
-            std::cout << std::endl;
-            std::cout << t.features.depthMedian << std::endl << std::endl;
         }
     }
 }
@@ -207,19 +202,25 @@ bool TemplateMatcher::testObjectSize(float scale) {
     return true; // TODO implement object size test
 }
 
-float TemplateMatcher::testSurfaceNormalOrientation() {
-    return 0;
+int TemplateMatcher::testSurfaceNormalOrientation(int tSurfaceNormalBin, const cv::Mat &srcDepth, cv::Point &c) {
+    int scene = Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(srcDepth, c));
+    return (Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(srcDepth, c)) == tSurfaceNormalBin) ? 1 : 0;
 }
 
-float TemplateMatcher::testIntensityGradients() {
-    return 0;
+int TemplateMatcher::testIntensityGradients(int tOrientationGradientBin, const cv::Mat &srcGrayscale, cv::Point &c) {
+    int scene = quantizeOrientationGradient(extractOrientationGradient(srcGrayscale, c));
+    return (quantizeOrientationGradient(extractOrientationGradient(srcGrayscale, c)) == tOrientationGradientBin) ? 1 : 0;
 }
 
-float TemplateMatcher::testDepth() {
-    return 0;
+// TODO discover what physical meter means (width?)
+int TemplateMatcher::testDepth(int depthMedian, int physicalDiameter, const cv::Mat &srcDepth, cv::Point &c) {
+    const float k = 0.05f;
+    int depthRozdil = static_cast<int>(srcDepth.at<float>(c)) - depthMedian;
+    float mensiNezmusibyt = k * physicalDiameter;
+    return (std::abs(static_cast<int>(srcDepth.at<float>(c)) - depthMedian) < k * physicalDiameter) ? 1 : 0;
 }
 
-float TemplateMatcher::testColor() {
+int TemplateMatcher::testColor() {
     return 0;
 }
 
@@ -234,11 +235,22 @@ void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale
         for (auto &candidate : window.candidates) {
             // TODO implement 5x5 local neighbourhood
             // Do template matching
+            int scoreII = 0, scoreIII = 0, scoreIV = 0, scoreV = 0;
 
             // Test I. object size
             if (!testObjectSize(1.0f)) continue;
 
-            // Test II.
+            // Test II - IV
+            for (int i = 0; i < featurePointsCount; i++) {
+                // Create points that are offset to match location on the scene
+                cv::Point stablePointOffset(candidate->stablePoints[i].x + window.tl().x, candidate->stablePoints[i].y + window.tl().y);
+                cv::Point edgePointOffset(candidate->edgePoints[i].x + window.tl().x, candidate->edgePoints[i].y + window.tl().y);
+
+                // Run tests and sum score
+                scoreII += testSurfaceNormalOrientation(candidate->features.surfaceNormals[i], srcDepth, stablePointOffset);
+                scoreIII += testIntensityGradients(candidate->features.orientationGradients[i], srcGrayscale, edgePointOffset);
+//                scoreIV += testDepth(candidate->features.depthMedian, candidate->src.cols, srcDepth, stablePointOffset);
+            }
         }
     }
 }

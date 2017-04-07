@@ -21,17 +21,17 @@ private:
     inline int extractMedian(std::vector<int> &depths);
     inline void extractTemplateFeatures(std::vector<TemplateGroup> &groups);
     inline void generateFeaturePoints(std::vector<TemplateGroup> &groups);
-    inline int quantizeOrientationGradients(float deg);
+    inline int quantizeOrientationGradient(float deg);
 
     // Tests
     inline bool testObjectSize(float scale); // Test I
-    inline float testSurfaceNormalOrientation(); // Test II
-    inline float testIntensityGradients(); // Test III
-    inline float testDepth(); // Test IV
-    inline float testColor(); // Test V
+    inline int testSurfaceNormalOrientation(int tSurfaceNormal, const cv::Mat &srcDepth, cv::Point &c); // Test II
+    inline int testIntensityGradients(int tOrientationGradientBin, const cv::Mat &srcGrayscale, cv::Point &c); // Test III
+    inline int testDepth(int depthMedian, int physicalDiameter, const cv::Mat &srcDepth, cv::Point &c); // Test IV
+    inline int testColor(); // Test V
 public:
     // Static methods
-    static float extractGradientOrientation(cv::Mat &src, cv::Point &point);
+    static float extractOrientationGradient(const cv::Mat &src, cv::Point &point);
 
     // Constructor
     TemplateMatcher(uint featurePointsCount = 100, uchar cannyThreshold1 = 100, uchar cannyThreshold2 = 200,
