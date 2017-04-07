@@ -1,14 +1,16 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <boost/functional/hash.hpp>
 #include "objdetect/matching_deprecated.h"
 #include "objdetect/objectness.h"
 #include "utils/timer.h"
 #include "objdetect/hasher.h"
 #include "objdetect/classifier.h"
 
+
 int main() {
     // Init classifier
-    const std::vector<std::string> tplNames = { "02" };
+    const std::vector<std::string> tplNames = { "02", "25", "29", "30" };
     Classifier classifier("data/", tplNames, "scene_01/", "0000.png");
 
     // Init indices

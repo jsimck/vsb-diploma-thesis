@@ -39,7 +39,7 @@ public:
 struct HashKeyHasher {
     std::size_t operator()(const HashKey& k) const {
         std::hash<int> h;
-        return h(h(k.d1) ^ h(k.d2) ^ h(k.n1) ^ h(k.n2) ^ h(k.n3));
+        return h(k.d1 << 0 | k.d2 << 3 | k.n1 << 6 | k.n2 << 9 | k.n3 << 12);
     }
 };
 

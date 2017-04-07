@@ -393,6 +393,7 @@ void Hasher::setHistogramBinRanges(const std::vector<cv::Range> &histogramBinRan
 
 void Hasher::setHistogramBinCount(unsigned int histogramBinCount) {
     assert(histogramBinCount > 0);
+    assert(histogramBinCount < 8); // Max due to hasher function
     this->histogramBinCount = histogramBinCount;
 }
 
