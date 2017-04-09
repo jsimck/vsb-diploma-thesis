@@ -14,9 +14,7 @@ public:
     std::vector<Template *> candidates;
 
     // Constructors
-    Window(int x, int y, int width, int height) : x(x), y(y), width(width), height(height) {}
-    Window(int x, int y, int width, int height, unsigned int edgels) : x(x), y(y), width(width), height(height), edgels(edgels) {}
-    Window(int x, int y, int width, int height, std::vector<Template *> candidates, unsigned int edgels) : x(x), y(y), width(width), height(height), candidates(candidates), edgels(edgels) {}
+    Window(int x = 0, int y = 0, int width = 0, int height = 0, unsigned int edgels = 0, std::vector<Template *> candidates = {}) : x(x), y(y), width(width), height(height), candidates(candidates), edgels(edgels) {}
 
     // Methods
     cv::Point tl();

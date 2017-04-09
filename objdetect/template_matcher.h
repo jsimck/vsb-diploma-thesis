@@ -18,19 +18,19 @@ private:
     uchar grayscaleMinThreshold;
 
     // Methods
-    inline int extractMedian(std::vector<int> &depths);
     inline void extractTemplateFeatures(std::vector<TemplateGroup> &groups);
     inline void generateFeaturePoints(std::vector<TemplateGroup> &groups);
     inline int quantizeOrientationGradient(float deg);
 
     // Tests
     inline bool testObjectSize(float scale); // Test I
-    inline int testSurfaceNormalOrientation(int tSurfaceNormal, const cv::Mat &srcDepth, cv::Point &c); // Test II
-    inline int testIntensityGradients(int tOrientationGradientBin, const cv::Mat &srcGrayscale, cv::Point &c); // Test III
-    inline int testDepth(int depthMedian, int physicalDiameter, const cv::Mat &srcDepth, cv::Point &c); // Test IV
+    inline int testSurfaceNormalOrientation(int tNormal, Window &window, const cv::Mat &srcDepth, cv::Point &featurePoint); // Test II
+    inline int testIntensityGradients(int tOrientationGradientBin, const cv::Mat &srcGrayscale, cv::Point &&c); // Test III
+    inline int testDepth(int physicalDiameter, std::vector<int> &depths); // Test IV
     inline int testColor(); // Test V
 public:
     // Static methods
+    static int median(std::vector<int> &values);
     static float extractOrientationGradient(const cv::Mat &src, cv::Point &point);
 
     // Constructor

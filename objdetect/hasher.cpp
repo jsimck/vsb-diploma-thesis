@@ -1,6 +1,6 @@
 #include <unordered_set>
 #include "hasher.h"
-#include "matching_deprecated.h"
+#include "../utils/utils.h"
 
 const int Hasher::IMG_16BIT_VALUE_MAX = 65535; // <0, 65535> => 65536 values
 const int Hasher::IMG_16BIT_VALUES_RANGE = (IMG_16BIT_VALUE_MAX * 2) + 1; // <-65535, 65535> => 131071 values + (one zero)
@@ -261,22 +261,22 @@ void Hasher::train(std::vector<TemplateGroup> &groups, std::vector<HashTable> &h
     }
 
 #ifndef NDEBUG
-    // Visualize triplets
-    cv::Mat triplet = cv::Mat::zeros(400, 400, CV_32FC3), triplets = cv::Mat::zeros(400, 400, CV_32FC3);
-    hashTables[0].triplet.visualize(triplet, getReferencePointsGrid()); // generate grid
-    hashTables[0].triplet.visualize(triplets, getReferencePointsGrid()); // generate grid
-    cv::imshow("Classifier::Hash table triplets", triplets);
-    cv::imshow("Classifier::Hash table triplet", triplet);
-    cv::waitKey(0);
-
-    for (auto &&table : hashTables) {
-        triplet = cv::Mat::zeros(400, 400, CV_32FC3);
-        table.triplet.visualize(triplets, getReferencePointsGrid(), false);
-        table.triplet.visualize(triplet, getReferencePointsGrid(), true);
-        cv::imshow("Classifier::Hash table triplets", triplets);
-        cv::imshow("Classifier::Hash table triplet", triplet);
-        cv::waitKey(1);
-    }
+//    // Visualize triplets
+//    cv::Mat triplet = cv::Mat::zeros(400, 400, CV_32FC3), triplets = cv::Mat::zeros(400, 400, CV_32FC3);
+//    hashTables[0].triplet.visualize(triplet, getReferencePointsGrid()); // generate grid
+//    hashTables[0].triplet.visualize(triplets, getReferencePointsGrid()); // generate grid
+//    cv::imshow("Classifier::Hash table triplets", triplets);
+//    cv::imshow("Classifier::Hash table triplet", triplet);
+//    cv::waitKey(0);
+//
+//    for (auto &&table : hashTables) {
+//        triplet = cv::Mat::zeros(400, 400, CV_32FC3);
+//        table.triplet.visualize(triplets, getReferencePointsGrid(), false);
+//        table.triplet.visualize(triplet, getReferencePointsGrid(), true);
+//        cv::imshow("Classifier::Hash table triplets", triplets);
+//        cv::imshow("Classifier::Hash table triplet", triplet);
+//        cv::waitKey(1);
+//    }
 #endif
 }
 
@@ -286,14 +286,14 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneDepth, std::vector<Has
     assert(windows.size() > 0);
     assert(hashTables.size() > 0);
 
-    int notEmptyWindows = 0;
     unsigned long reduced = 0;
     std::vector<Template *> usedTemplates;
+    std::vector<int> emptyIndexes;
 
-    for (auto &&window : windows) {
-        for (auto &&table : hashTables) {
+    for (int i = 0; i < windows.size(); ++i) {
+        for (auto &table : hashTables) {
             // Get triplet points
-            TripletCoords coordParams = Triplet::getCoordParams(window.width, window.height, referencePointsGrid, window.tl().x, window.tl().y);
+            TripletCoords coordParams = Triplet::getCoordParams(windows[i].width, windows[i].height, referencePointsGrid, windows[i].tl().x, windows[i].tl().y);
             cv::Point c = table.triplet.getCenterCoords(coordParams);
             cv::Point p1 = table.triplet.getP1Coords(coordParams);
             cv::Point p2 = table.triplet.getP2Coords(coordParams);
@@ -323,10 +323,11 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneDepth, std::vector<Has
                 entry->voteUp();
 
                 // automatically pushes only unique templates with minimum of v minVotesPerTemplate and up to N of templates
-                window.pushUnique(entry, hashTableCount, minVotesPerTemplate);
+                windows[i].pushUnique(entry, hashTableCount, minVotesPerTemplate);
                 usedTemplates.push_back(entry);
             }
-            reduced += window.candidatesSize();
+
+            reduced += windows[i].candidatesSize();
         }
 
         // Reset minVotesPerTemplate for all used templates
@@ -337,13 +338,15 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneDepth, std::vector<Has
         // Clear used templates vector
         usedTemplates.clear();
 
-        // TODO pass only windows with candidates
-        if (window.hasCandidates()) {
-            notEmptyWindows++;
+        if (!windows[i].hasCandidates()) {
+            emptyIndexes.push_back(i);
         }
     }
 
-    std::cout << "  |_ Number of windows pass to next stage: " << notEmptyWindows << std::endl;
+    // Remove empty windows
+    utils::removeIndex<Window>(windows, emptyIndexes);
+
+    std::cout << "  |_ Number of windows pass to next stage: " << windows.size() << std::endl;
     std::cout << "  |_ Total number of templates in windows reduced to approx: " << reduced / windows.size() << std::endl;
 }
 

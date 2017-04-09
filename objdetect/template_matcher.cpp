@@ -14,6 +14,11 @@ float TemplateMatcher::extractOrientationGradient(const cv::Mat &src, cv::Point 
     return cv::fastAtan2(dy, dx);
 }
 
+int TemplateMatcher::median(std::vector<int> &values) {
+    std::nth_element(values.begin(), values.begin() + values.size() / 2, values.end());
+    return values[values.size() / 2];
+}
+
 int TemplateMatcher::quantizeOrientationGradient(float deg) {
     // Checks
     assert(deg >= 0);
@@ -185,7 +190,7 @@ void TemplateMatcher::extractTemplateFeatures(std::vector<TemplateGroup> &groups
             }
 
             // Save median value
-            t.features.depthMedian = static_cast<uint>(extractMedian(depthArray));
+            t.features.depthMedian = static_cast<uint>(median(depthArray));
         }
     }
 }
@@ -202,22 +207,46 @@ bool TemplateMatcher::testObjectSize(float scale) {
     return true; // TODO implement object size test
 }
 
-int TemplateMatcher::testSurfaceNormalOrientation(int tSurfaceNormalBin, const cv::Mat &srcDepth, cv::Point &c) {
-    int scene = Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(srcDepth, c));
-    return (Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(srcDepth, c)) == tSurfaceNormalBin) ? 1 : 0;
+//int TemplateMatcher::testSurfaceNormalOrientation(int tSurfaceNormalBin, const cv::Mat &srcDepth, cv::Point &c) {
+//    return (Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(srcDepth, c)) == tSurfaceNormalBin) ? 1 : 0;
+//}
+
+int TemplateMatcher::testSurfaceNormalOrientation(int tNormal, Window &window, const cv::Mat &srcDepth, cv::Point &featurePoint) {
+    // Check for matches in local neighbourhood 5x5 for each point
+    for (int offsetY = -5; offsetY <= 5; ++offsetY) {
+        for (int offsetX = -5; offsetX <= 5; ++offsetX) {
+            // Apply needed offsets to stable point
+            cv::Point stablePoint(featurePoint.x + window.tl().x + offsetX, featurePoint.y + window.tl().y + offsetY);
+
+            // Checks
+            assert(stablePoint.x >= 0);
+            assert(stablePoint.y >= 0);
+            assert(stablePoint.x < srcDepth.cols);
+            assert(stablePoint.y < srcDepth.rows);
+
+            if ((Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(srcDepth, stablePoint)) == tNormal)) {
+                return 1;
+            }
+        }
+    }
+
+    return 0;
 }
 
-int TemplateMatcher::testIntensityGradients(int tOrientationGradientBin, const cv::Mat &srcGrayscale, cv::Point &c) {
-    int scene = quantizeOrientationGradient(extractOrientationGradient(srcGrayscale, c));
+int TemplateMatcher::testIntensityGradients(int tOrientationGradientBin, const cv::Mat &srcGrayscale, cv::Point &&c) {
     return (quantizeOrientationGradient(extractOrientationGradient(srcGrayscale, c)) == tOrientationGradientBin) ? 1 : 0;
 }
 
-// TODO discover what physical meter means (width?)
-int TemplateMatcher::testDepth(int depthMedian, int physicalDiameter, const cv::Mat &srcDepth, cv::Point &c) {
-    const float k = 0.05f;
-    int depthRozdil = static_cast<int>(srcDepth.at<float>(c)) - depthMedian;
-    float mensiNezmusibyt = k * physicalDiameter;
-    return (std::abs(static_cast<int>(srcDepth.at<float>(c)) - depthMedian) < k * physicalDiameter) ? 1 : 0;
+int TemplateMatcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
+    const float k = 1.0f;
+    int dm = median(depths), score = 0;
+
+    for (int i = 0; i < depths.size(); ++i) {
+        std::cout << std::abs(depths[i] - dm) << std::endl;
+        score += (std::abs(depths[i] - dm) < k * physicalDiameter) ? 1 : 0;
+    }
+
+    return score;
 }
 
 int TemplateMatcher::testColor() {
@@ -226,31 +255,60 @@ int TemplateMatcher::testColor() {
 
 void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
                             std::vector<Window> &windows, std::vector<TemplateMatch> &matches) {
-    const float minThreshold = 0.6f; // 60%
+    // Checks
+    assert(!srcColor.empty());
+    assert(!srcGrayscale.empty());
+    assert(!srcDepth.empty());
+    assert(windows.size() > 0);
 
-    for (auto &window : windows) {
-        // Skip empty windows
-        if (!window.hasCandidates()) continue;
+    // Thresholds
+    const int minThreshold = static_cast<int>(featurePointsCount * 0.6f); // 60%
 
-        for (auto &candidate : window.candidates) {
-            // TODO implement 5x5 local neighbourhood
+    for (int l = 0; l < windows.size(); l++) {
+        for (auto &candidate : windows[l].candidates) {
             // Do template matching
             int scoreII = 0, scoreIII = 0, scoreIV = 0, scoreV = 0;
+            std::vector<int> ds;
 
-            // Test I. object size
-            if (!testObjectSize(1.0f)) continue;
-
-            // Test II - IV
-            for (int i = 0; i < featurePointsCount; i++) {
-                // Create points that are offset to match location on the scene
-                cv::Point stablePointOffset(candidate->stablePoints[i].x + window.tl().x, candidate->stablePoints[i].y + window.tl().y);
-                cv::Point edgePointOffset(candidate->edgePoints[i].x + window.tl().x, candidate->edgePoints[i].y + window.tl().y);
-
-                // Run tests and sum score
-                scoreII += testSurfaceNormalOrientation(candidate->features.surfaceNormals[i], srcDepth, stablePointOffset);
-                scoreIII += testIntensityGradients(candidate->features.orientationGradients[i], srcGrayscale, edgePointOffset);
-//                scoreIV += testDepth(candidate->features.depthMedian, candidate->src.cols, srcDepth, stablePointOffset);
+            // Test II
+            for (int i = 0; i < candidate->stablePoints.size(); ++i) {
+                scoreII += testSurfaceNormalOrientation(candidate->features.surfaceNormals[i], windows[l], srcDepth, candidate->stablePoints[i]);
             }
+
+            // Test III
+
+            if (scoreII >= minThreshold) {
+                std::cout
+                    << "score II: " << scoreII
+                    << std::endl;
+            }
+
+//                    // Test II - IV
+//                    for (int i = 0; i < featurePointsCount; i++) {
+//                        // Create points that are offset to match location on the scene
+//                        cv::Point stablePointOffset(candidate->stablePoints[i].x + windows[l].tl().x + offsetX, candidate->stablePoints[i].y + windows[l].tl().y + offsetY);
+//                        cv::Point edgePointOffset(candidate->edgePoints[i].x + windows[l].tl().x + offsetX, candidate->edgePoints[i].y + windows[l].tl().y + offsetY);
+//
+//                        // TODO come up with better solution
+//                        // Save scene, template and Ds to calculate depth test
+//                        ds.push_back(static_cast<int>(srcDepth.at<float>(stablePointOffset) - (*candidate).srcDepth.at<float>(candidate->stablePoints[i])));
+//
+//                        // Run tests and sum score
+//                        scoreII += testSurfaceNormalOrientation(candidate->features.surfaceNormals[i], srcDepth, stablePointOffset);
+//                        scoreIII += testIntensityGradients(candidate->features.orientationGradients[i], srcGrayscale, edgePointOffset);
+//                    }
+//
+//                    cv::Mat sceneCopy = srcColor.clone();
+//                    cv::Mat srcCopy;
+//                    cv::cvtColor(candidate->srcHSV, srcCopy, CV_HSV2BGR);
+//                    cv::rectangle(sceneCopy, cv::Point(windows[l].tl().x + offsetX, windows[l].tl().y + offsetY), cv::Point(windows[l].tl().x + candidate->src.cols + offsetX, windows[l].tl().y + candidate->src.rows + offsetY), cv::Scalar(0, 255, 0));
+//                    cv::imshow("Scene Copy window sliding src", srcCopy);
+//                    cv::imshow("Scene Copy window sliding", sceneCopy);
+//                    cv::waitKey(0);
+//
+//                    // Save ds
+//                    scoreIV += testDepth(candidate->src.cols, ds);
+//                    std::cout << std::endl << "ScoreIV: " << testDepth(candidate->src.cols, ds) << std::endl;
         }
     }
 }
@@ -302,9 +360,4 @@ void TemplateMatcher::setGrayscaleMinThreshold(uchar grayscaleMinThreshold) {
     assert(featurePointsCount > 0);
     assert(featurePointsCount < 256);
     this->grayscaleMinThreshold = grayscaleMinThreshold;
-}
-
-int TemplateMatcher::extractMedian(std::vector<int> &depths) {
-    std::nth_element(depths.begin(), depths.begin() + depths.size() / 2, depths.end());
-    return depths[depths.size() / 2];
 }

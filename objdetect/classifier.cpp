@@ -130,15 +130,15 @@ void Classifier::verifyTemplateCandidates() {
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
 #ifndef NDEBUG
-    // Show results
-    cv::Mat filteredLocations = scene.clone();
-    for (auto &&window : windows) {
-        if (window.hasCandidates()) {
-            cv::rectangle(filteredLocations, window.tl(), window.br(), cv::Scalar(190, 190, 190));
-        }
-    }
-    cv::imshow("Filtered locations:", filteredLocations);
-    cv::waitKey(0);
+//    // Show results
+//    cv::Mat filteredLocations = scene.clone();
+//    for (auto &&window : windows) {
+//        if (window.hasCandidates()) {
+//            cv::rectangle(filteredLocations, window.tl(), window.br(), cv::Scalar(190, 190, 190));
+//        }
+//    }
+//    cv::imshow("Filtered locations:", filteredLocations);
+//    cv::waitKey(0);
 #endif
 }
 

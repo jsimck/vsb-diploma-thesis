@@ -162,29 +162,29 @@ void Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Ma
     }
 
 #ifndef NDEBUG
-    // Calculate coordinates of outer BB
-    int minX = sceneSobel.cols, maxX = 0;
-    int minY = sceneSobel.rows, maxY = 0;
-    for (int i = 0; i < windowBBs.size(); i++) {
-        minX = std::min(minX, windowBBs[i][0]);
-        minY = std::min(minY, windowBBs[i][1]);
-        maxX = std::max(maxX, windowBBs[i][2]);
-        maxY = std::max(maxY, windowBBs[i][3]);
-    }
-
-    // Create outer BB
-    cv::Rect outerBB(minX, minY, maxX - minX, maxY - minY);
-    assert(outerBB.width > 0 && outerBB.height > 0);
-
-    // Draw outer BB based on max/min values of all smaller boxes
-    cv::rectangle(resultScene, cv::Point(minX, minY), cv::Point(maxX, maxY), cv::Vec3b(0, 255, 0), 2);
-
-    // Show results
-    cv::imshow("Objectness::Result", resultScene);
-    cv::imshow("Objectness::Depth Scene", sceneDepthNormalized);
-    cv::imshow("Objectness::Sobel Scene", sceneSobel);
-    cv::imshow("Objectness::Scene", sceneColor);
-    cv::waitKey(0);
+//    // Calculate coordinates of outer BB
+//    int minX = sceneSobel.cols, maxX = 0;
+//    int minY = sceneSobel.rows, maxY = 0;
+//    for (int i = 0; i < windowBBs.size(); i++) {
+//        minX = std::min(minX, windowBBs[i][0]);
+//        minY = std::min(minY, windowBBs[i][1]);
+//        maxX = std::max(maxX, windowBBs[i][2]);
+//        maxY = std::max(maxY, windowBBs[i][3]);
+//    }
+//
+//    // Create outer BB
+//    cv::Rect outerBB(minX, minY, maxX - minX, maxY - minY);
+//    assert(outerBB.width > 0 && outerBB.height > 0);
+//
+//    // Draw outer BB based on max/min values of all smaller boxes
+//    cv::rectangle(resultScene, cv::Point(minX, minY), cv::Point(maxX, maxY), cv::Vec3b(0, 255, 0), 2);
+//
+//    // Show results
+//    cv::imshow("Objectness::Result", resultScene);
+//    cv::imshow("Objectness::Depth Scene", sceneDepthNormalized);
+//    cv::imshow("Objectness::Sobel Scene", sceneSobel);
+//    cv::imshow("Objectness::Scene", sceneColor);
+//    cv::waitKey(0);
 #endif
 }
 

@@ -1,7 +1,7 @@
 #include "utils.h"
 #include <opencv2/core/hal/interface.h>
 
-std::string matType2Str(int type) {
+std::string utils::matType2Str(int type) {
     std::string r;
 
     uchar depth = type & CV_MAT_DEPTH_MASK;
