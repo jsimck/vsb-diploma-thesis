@@ -24,8 +24,8 @@ private:
 
     // Tests
     inline bool testObjectSize(float scale); // Test I
-    inline int testSurfaceNormalOrientation(int tNormal, Window &window, const cv::Mat &srcDepth, cv::Point &featurePoint, cv::Size &neighbourhood); // Test II
-    inline int testIntensityGradients(int tOrientation, Window &window, const cv::Mat &srcGrayscale, cv::Point &featurePoint, cv::Size &neighbourhood); // Test III
+    inline int testSurfaceNormalOrientation(Template *t, Window &window, const cv::Mat &srcDepth, cv::Point &offset); // Test II
+    inline int testIntensityGradients(Template *t, Window &window, const cv::Mat &srcGrayscale, cv::Point &offset); // Test III
     inline int testDepth(int physicalDiameter, std::vector<int> &depths); // Test IV
     inline int testColor(); // Test V
 public:

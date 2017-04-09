@@ -212,48 +212,46 @@ bool TemplateMatcher::testObjectSize(float scale) {
 //    return (Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(srcDepth, c)) == tSurfaceNormalBin) ? 1 : 0;
 //}
 
-int TemplateMatcher::testSurfaceNormalOrientation(int tNormal, Window &window, const cv::Mat &srcDepth, cv::Point &featurePoint, cv::Size &neighbourhood) {
-    // Check for matches in local neighbourhood 5x5 for each point
-    for (int offsetY = -neighbourhood.height; offsetY <= neighbourhood.height; ++offsetY) {
-        for (int offsetX = -neighbourhood.width; offsetX <= neighbourhood.width; ++offsetX) {
-            // Apply needed offsets to stable point
-            cv::Point stablePoint(featurePoint.x + window.tl().x + offsetX, featurePoint.y + window.tl().y + offsetY);
+int TemplateMatcher::testSurfaceNormalOrientation(Template *t, Window &window, const cv::Mat &srcDepth, cv::Point &offset) {
+    int score = 0;
 
-            // Checks
-            assert(stablePoint.x >= 0);
-            assert(stablePoint.y >= 0);
-            assert(stablePoint.x < srcDepth.cols);
-            assert(stablePoint.y < srcDepth.rows);
+    for (int i = 0; i < t->stablePoints.size(); i++) {
+        // Apply needed offsets to feature point
+        cv::Point stablePoint(t->stablePoints[i].x + window.tl().x + offset.x, t->stablePoints[i].y + window.tl().y + offset.y);
 
-            if (Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(srcDepth, stablePoint)) == tNormal) {
-                return 1;
-            }
+        // Checks
+        assert(stablePoint.x >= 0);
+        assert(stablePoint.y >= 0);
+        assert(stablePoint.x < srcDepth.cols);
+        assert(stablePoint.y < srcDepth.rows);
+
+        if (Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(srcDepth, stablePoint)) == (*t).features.surfaceNormals[i]) {
+            score++;
         }
     }
 
-    return 0;
+    return score;
 }
 
-int TemplateMatcher::testIntensityGradients(int tOrientation, Window &window, const cv::Mat &srcGrayscale, cv::Point &featurePoint, cv::Size &neighbourhood) {
-    // Check for matches in local neighbourhood 5x5 for each point
-    for (int offsetY = -neighbourhood.height; offsetY <= neighbourhood.height; ++offsetY) {
-        for (int offsetX = -neighbourhood.width; offsetX <= neighbourhood.width; ++offsetX) {
-            // Apply needed offsets to edge point
-            cv::Point edgePoint(featurePoint.x + window.tl().x + offsetX, featurePoint.y + window.tl().y + offsetY);
+int TemplateMatcher::testIntensityGradients(Template *t, Window &window, const cv::Mat &srcGrayscale, cv::Point &offset) {
+    int score = 0;
 
-            // Checks
-            assert(edgePoint.x >= 0);
-            assert(edgePoint.y >= 0);
-            assert(edgePoint.x < srcGrayscale.cols);
-            assert(edgePoint.y < srcGrayscale.rows);
+    for (int i = 0; i < t->edgePoints.size(); i++) {
+        // Apply needed offsets to feature point
+        cv::Point edgePoint(t->edgePoints[i].x + window.tl().x + offset.x, t->edgePoints[i].y + window.tl().y + offset.y);
 
-            if (quantizeOrientationGradient(extractOrientationGradient(srcGrayscale, edgePoint)) == tOrientation) {
-                return 1;
-            }
+        // Checks
+        assert(edgePoint.x >= 0);
+        assert(edgePoint.y >= 0);
+        assert(edgePoint.x < srcGrayscale.cols);
+        assert(edgePoint.y < srcGrayscale.rows);
+
+        if (quantizeOrientationGradient(extractOrientationGradient(srcGrayscale, edgePoint)) == (*t).features.orientationGradients[i]) {
+            score++;
         }
     }
 
-    return 0;
+    return score;
 }
 
 int TemplateMatcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
@@ -281,42 +279,60 @@ void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale
     assert(windows.size() > 0);
 
     // Thresholds
-    const int minThreshold = static_cast<int>(featurePointsCount * 0.6f); // 60%
-    cv::Size localNeigbourhood(5, 5);
+    const int minThreshold = static_cast<int>(featurePointsCount * 0.4f); // 60%
+    cv::Size localNeighbourhood(5, 5);
     std::vector<int> removeIndex;
 
     for (int l = 0; l < windows.size(); l++) {
         for (auto &candidate : windows[l].candidates) {
+            // Checks
+            assert(candidate != nullptr);
+
             // Do template matching, if any of the test fails in the cascade, matching is template is discarted
             int scoreII = 0, scoreIII = 0, scoreIV = 0, scoreV = 0;
             std::vector<int> ds;
+            bool testLopCont = true;
 
-            // Test II
-            for (int i = 0; i < candidate->stablePoints.size(); ++i) {
-                scoreII += testSurfaceNormalOrientation(candidate->features.surfaceNormals[i], windows[l], srcDepth, candidate->stablePoints[i], localNeigbourhood);
+            // Check in local neighbourhood
+            for (int offsetY = -localNeighbourhood.height; offsetY <= localNeighbourhood.height && testLopCont; ++offsetY) {
+                for (int offsetX = -localNeighbourhood.width; offsetX <= localNeighbourhood.width && testLopCont; ++offsetX) {
+                    cv::Point p(offsetX, offsetY);
+                    candidate->votes = 0; // TODO - remove, for testing only
+
+                    // Test I
+                    if (!testObjectSize(1.0f)) continue;
+
+                    // Test II
+                    if ((scoreII = testSurfaceNormalOrientation(candidate, windows[l], srcDepth, p)) < minThreshold) {
+                        candidate->votes = -1; // TODO - remove, for testing only
+                        continue;
+                    }
+
+                    // Test III
+                    if ((scoreIII = testIntensityGradients(candidate, windows[l], srcDepth, p)) < minThreshold) {
+                        candidate->votes = -1; // TODO - remove, for testing only
+                        continue;
+                    }
+
+//                    std::cout
+//                        << "id: " << candidate->id
+//                        << ", window: " << l
+//                        << ", score II: " << scoreII
+//                        << ", score III: " << scoreIII
+//                        << std::endl;
+                    testLopCont = false;
+                }
             }
 
-            if (scoreII < minThreshold) {
-                candidate->votes = -1;
-                break;
-            };
-
-            // Test III
-            for (int i = 0; i < candidate->stablePoints.size(); ++i) {
-                scoreIII += testIntensityGradients(candidate->features.orientationGradients[i], windows[l], srcDepth, candidate->edgePoints[i], localNeigbourhood);
-            }
-
-            if (scoreIII < minThreshold) {
-                candidate->votes = -1;
-                break;
-            };
-
-            std::cout
-                << "id: " << candidate->id
-                << ", window: " << l
-                << ", score II: " << scoreII
-                << ", score III: " << scoreIII
-                << std::endl;
+            // Test IV - we need to precalculate, depth differences
+//            for (int i = 0; i < candidate->stablePoints.size(); ++i) {
+//                scoreIII += testIntensityGradients(candidate->features.orientationGradients[i], windows[l], srcDepth, candidate->stablePoints[i], localNeigbourhood);
+//            }
+//
+//            if (scoreIV < minThreshold) {
+//                candidate->votes = -1; // TODO - remove, for testing only
+//                break;
+//            };
 
 //                    // Test II - IV
 //                    for (int i = 0; i < featurePointsCount; i++) {
@@ -346,7 +362,7 @@ void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale
 //                    std::cout << std::endl << "ScoreIV: " << testDepth(candidate->src.cols, ds) << std::endl;
         }
 
-        // TODO - remove, only for testing
+        // TODO - remove, only for testing --->>>
         // Check if there are any more candidates with positive votes
         bool candidatesLeft = false;
         for (auto &candidate : windows[l].candidates) {
@@ -357,13 +373,12 @@ void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale
         }
 
         if (!candidatesLeft) {
-            std::cout << "FOUND" << std::endl;
             removeIndex.push_back(l);
         }
+        // TODO - remove, only for testing ^^^^
     }
 
-    std::cout << removeIndex.size() << " ----- ";
-
+    std::cout << windows.size() << " ----- ";
     // Remove empty windows
     utils::removeIndex<Window>(windows, removeIndex);
     std::cout << windows.size() << std::endl;
