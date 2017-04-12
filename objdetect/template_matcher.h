@@ -5,11 +5,13 @@
 #include <opencv2/core/mat.hpp>
 #include "../core/window.h"
 #include "../core/template_match.h"
+#include "../core/neighbourhood.h"
 #include "../core/template_group.h"
 
 class TemplateMatcher {
 private:
     uint featurePointsCount;
+    cv::Size matchNeighbourhood;
 
     // Train thresholds
     uchar cannyThreshold1;
@@ -24,8 +26,8 @@ private:
 
     // Tests
     inline bool testObjectSize(float scale); // Test I
-    inline int testSurfaceNormalOrientation(Template *t, Window &window, const cv::Mat &srcDepth, cv::Point &offset); // Test II
-    inline int testIntensityGradients(Template *t, Window &window, const cv::Mat &srcGrayscale, cv::Point &offset); // Test III
+    inline int testSurfaceNormalOrientation(const int tNormal, Window &w, const cv::Mat &srcDepth, const cv::Point &featurePoint, const Neighbourhood &n); // Test II
+    inline int testIntensityGradients(const int tOrientation, Window &w, const cv::Mat &srcGrayscale, const cv::Point &featurePoint, const Neighbourhood &n); // Test III
     inline int testDepth(int physicalDiameter, std::vector<int> &depths); // Test IV
     inline int testColor(); // Test V
 public:

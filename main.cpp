@@ -1,10 +1,5 @@
 #include <iostream>
-#include <opencv2/opencv.hpp>
-#include <boost/functional/hash.hpp>
-#include "objdetect/matching_deprecated.h"
-#include "objdetect/objectness.h"
 #include "utils/timer.h"
-#include "objdetect/hasher.h"
 #include "objdetect/classifier.h"
 
 
@@ -20,8 +15,8 @@ int main() {
     std::copy(&indiciesData[0], &indiciesData[indiciesDataSize], std::back_inserter(*indices));
 
     // Run classifier
-    classifier.classify();
-//    classifier.classifyTest(indices);
+//    classifier.classify();
+    classifier.classifyTest(indices);
 
     return 0;
 }
