@@ -15,8 +15,8 @@ int main() {
     std::copy(&indiciesData[0], &indiciesData[indiciesDataSize], std::back_inserter(*indices));
 
     // Run classifier
-//    classifier.classify();
-    classifier.classifyTest(indices);
+    classifier.classify();
+//    classifier.classifyTest(indices);
 
     return 0;
 }

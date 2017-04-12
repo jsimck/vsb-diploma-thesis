@@ -5,13 +5,13 @@
 #include <opencv2/core/mat.hpp>
 #include "../core/window.h"
 #include "../core/template_match.h"
-#include "../core/neighbourhood.h"
 #include "../core/template_group.h"
 
 class TemplateMatcher {
 private:
     uint featurePointsCount;
-    cv::Size matchNeighbourhood;
+    float matchThreshold;
+    cv::Range matchNeighbourhood;
 
     // Train thresholds
     uchar cannyThreshold1;
@@ -26,8 +26,8 @@ private:
 
     // Tests
     inline bool testObjectSize(float scale); // Test I
-    inline int testSurfaceNormalOrientation(const int tNormal, Window &w, const cv::Mat &srcDepth, const cv::Point &featurePoint, const Neighbourhood &n); // Test II
-    inline int testIntensityGradients(const int tOrientation, Window &w, const cv::Mat &srcGrayscale, const cv::Point &featurePoint, const Neighbourhood &n); // Test III
+    inline int testSurfaceNormalOrientation(const int tNormal, Window &w, const cv::Mat &srcDepth, const cv::Point &featurePoint, const cv::Range &n); // Test II
+    inline int testIntensityGradients(const int tOrientation, Window &w, const cv::Mat &srcGrayscale, const cv::Point &featurePoint, const cv::Range &n); // Test III
     inline int testDepth(int physicalDiameter, std::vector<int> &depths); // Test IV
     inline int testColor(); // Test V
 public:
@@ -36,10 +36,10 @@ public:
     static float extractOrientationGradient(const cv::Mat &src, cv::Point &point);
 
     // Constructor
-    TemplateMatcher(uint featurePointsCount = 100, uchar cannyThreshold1 = 100, uchar cannyThreshold2 = 200,
-                    uchar sobelMaxThreshold = 50, uchar grayscaleMinThreshold = 50)
-        : featurePointsCount(featurePointsCount), cannyThreshold1(cannyThreshold1), cannyThreshold2(cannyThreshold2),
-          sobelMaxThreshold(sobelMaxThreshold), grayscaleMinThreshold(grayscaleMinThreshold) {}
+    TemplateMatcher(uint featurePointsCount = 100, float matchThreshold = 0.6f, uchar cannyThreshold1 = 100, uchar cannyThreshold2 = 200,
+                    uchar sobelMaxThreshold = 50, uchar grayscaleMinThreshold = 50, cv::Range matchNeighbourhood = cv::Range(5, 5))
+        : featurePointsCount(featurePointsCount), matchThreshold(matchThreshold), cannyThreshold1(cannyThreshold1), cannyThreshold2(cannyThreshold2),
+          sobelMaxThreshold(sobelMaxThreshold), grayscaleMinThreshold(grayscaleMinThreshold), matchNeighbourhood(matchNeighbourhood) {}
 
     // Methods
     void match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
@@ -52,6 +52,8 @@ public:
     uchar getCannyThreshold2() const;
     uchar getSobelMaxThreshold() const;
     uchar getGrayscaleMinThreshold() const;
+    float getMatchThreshold() const;
+    const cv::Range &getMatchNeighbourhood() const;
 
     // Setters
     void setFeaturePointsCount(uint featurePointsCount);
@@ -59,6 +61,8 @@ public:
     void setCannyThreshold2(uchar cannyThreshold2);
     void setSobelMaxThreshold(uchar sobelMaxThreshold);
     void setGrayscaleMinThreshold(uchar grayscaleMinThreshold);
+    void setMatchThreshold(float matchThreshold);
+    void setMatchNeighbourhood(cv::Range matchNeighbourhood);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_TEMPLATE_MATCHER_H

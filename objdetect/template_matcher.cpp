@@ -206,9 +206,9 @@ bool TemplateMatcher::testObjectSize(float scale) {
 }
 
 
-int TemplateMatcher::testSurfaceNormalOrientation(const int tNormal, Window &w, const cv::Mat &srcDepth, const cv::Point &featurePoint, const Neighbourhood &n) {
-    for (int offsetY = -n.offsetY; offsetY <= n.offsetY; ++offsetY) {
-        for (int offsetX = -n.offsetX; offsetX <= n.offsetX; ++offsetX) {
+int TemplateMatcher::testSurfaceNormalOrientation(const int tNormal, Window &w, const cv::Mat &srcDepth, const cv::Point &featurePoint, const cv::Range &n) {
+    for (int offsetY = n.start; offsetY <= n.end; ++offsetY) {
+        for (int offsetX = n.start; offsetX <= n.end; ++offsetX) {
             // Apply needed offsets to stable point
             cv::Point stablePoint(featurePoint.x + w.tl().x + offsetX, featurePoint.y + w.tl().y + offsetY);
 
@@ -227,9 +227,9 @@ int TemplateMatcher::testSurfaceNormalOrientation(const int tNormal, Window &w, 
     return 0;
 }
 
-int TemplateMatcher::testIntensityGradients(const int tOrientation, Window &w, const cv::Mat &srcGrayscale, const cv::Point &featurePoint, const Neighbourhood &n) {
-    for (int offsetY = -n.offsetY; offsetY <= n.offsetY; ++offsetY) {
-        for (int offsetX = -n.offsetX; offsetX <= n.offsetX; ++offsetX) {
+int TemplateMatcher::testIntensityGradients(const int tOrientation, Window &w, const cv::Mat &srcGrayscale, const cv::Point &featurePoint, const cv::Range &n) {
+    for (int offsetY = n.start; offsetY <= n.end; ++offsetY) {
+        for (int offsetX = n.start; offsetX <= n.end; ++offsetX) {
             // Apply needed offsets to edge point
             cv::Point edgePoint(featurePoint.x + w.tl().x + offsetX, featurePoint.y + w.tl().y + offsetY);
 
@@ -276,8 +276,7 @@ void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale
     assert(windows.size() > 0);
 
     // Thresholds
-    const int minThreshold = static_cast<int>(featurePointsCount * 0.6f); // 60%
-    Neighbourhood localNeighbourhood(5, 5);
+    const int minThreshold = static_cast<int>(featurePointsCount * matchThreshold); // 60%
     std::vector<int> removeIndex;
 
     for (int l = 0; l < windows.size(); l++) {
@@ -296,7 +295,7 @@ void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale
             // Test II
             for (int i = 0; i < candidate->stablePoints.size(); i++) {
                 scoreII += testSurfaceNormalOrientation((*candidate).features.surfaceNormals[i], windows[l], srcDepth,
-                                                        candidate->stablePoints[i], localNeighbourhood);
+                                                        candidate->stablePoints[i], matchNeighbourhood);
             }
 
             if (scoreII < minThreshold) {
@@ -307,7 +306,7 @@ void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale
             // Test III
             for (int i = 0; i < candidate->edgePoints.size(); i++) {
                 scoreIII += testIntensityGradients((*candidate).features.orientationGradients[i], windows[l],
-                                                         srcDepth, candidate->edgePoints[i], localNeighbourhood);
+                                                         srcDepth, candidate->edgePoints[i], matchNeighbourhood);
             }
 
             if (scoreIII < minThreshold) {
@@ -315,12 +314,14 @@ void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale
                 continue;
             }
 
+#ifndef NDEBUG
             std::cout
                 << "id: " << candidate->id
                 << ", window: " << l
                 << ", score II: " << scoreII
                 << ", score III: " << scoreIII
                 << std::endl;
+#endif
         }
 
         // TODO - remove, only for testing --->>>
@@ -367,6 +368,14 @@ uchar TemplateMatcher::getGrayscaleMinThreshold() const {
     return grayscaleMinThreshold;
 }
 
+float TemplateMatcher::getMatchThreshold() const {
+    return matchThreshold;
+}
+
+const cv::Range &TemplateMatcher::getMatchNeighbourhood() const {
+    return matchNeighbourhood;
+}
+
 void TemplateMatcher::setFeaturePointsCount(uint featurePointsCount) {
     assert(featurePointsCount > 0);
     this->featurePointsCount = featurePointsCount;
@@ -394,4 +403,15 @@ void TemplateMatcher::setGrayscaleMinThreshold(uchar grayscaleMinThreshold) {
     assert(featurePointsCount > 0);
     assert(featurePointsCount < 256);
     this->grayscaleMinThreshold = grayscaleMinThreshold;
+}
+
+void TemplateMatcher::setMatchThreshold(float matchThreshold) {
+    assert(matchThreshold > 0);
+    assert(matchThreshold <= 1.0f);
+    this->matchThreshold = matchThreshold;
+}
+
+void TemplateMatcher::setMatchNeighbourhood(cv::Range matchNeighbourhood) {
+    assert(matchNeighbourhood.start <= matchNeighbourhood.end);
+    this->matchNeighbourhood = matchNeighbourhood;
 }

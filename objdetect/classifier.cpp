@@ -30,6 +30,13 @@ Classifier::Classifier(std::string basePath, std::vector<std::string> templateFo
 
     // Init template matcher
     templateMatcher.setFeaturePointsCount(100);
+    templateMatcher.setMatchThreshold(0.6f);
+    templateMatcher.setMatchNeighbourhood(cv::Range(-2, 2)); // 5x5 -> [-2, -1, 0, 1, 2]
+    // Training constants
+    templateMatcher.setCannyThreshold1(100);
+    templateMatcher.setCannyThreshold2(200);
+    templateMatcher.setSobelMaxThreshold(50);
+    templateMatcher.setGrayscaleMinThreshold(50);
 }
 
 void Classifier::parseTemplates() {
