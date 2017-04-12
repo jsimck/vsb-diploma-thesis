@@ -306,7 +306,7 @@ void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale
 
             // Test III
             for (int i = 0; i < candidate->edgePoints.size(); i++) {
-                scoreIII += testSurfaceNormalOrientation((*candidate).features.orientationGradients[i], windows[l],
+                scoreIII += testIntensityGradients((*candidate).features.orientationGradients[i], windows[l],
                                                          srcDepth, candidate->edgePoints[i], localNeighbourhood);
             }
 
@@ -321,7 +321,6 @@ void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale
                 << ", score II: " << scoreII
                 << ", score III: " << scoreIII
                 << std::endl;
-
         }
 
         // TODO - remove, only for testing --->>>
