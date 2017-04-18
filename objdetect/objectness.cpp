@@ -66,10 +66,6 @@ void Objectness::extractMinEdgels(std::vector<TemplateGroup> &templateGroups, Da
     // Checks
     assert(!templateGroups.empty());
 
-    // Reset size in smallest template in dataset info (there are not images larger than 400x400)
-    info.smallestTemplateSize.width = 5000;
-    info.smallestTemplateSize.height = 5000;
-
     // Extract edgels
     int edgels = 0;
     cv::Mat tplSobel, tplIntegral, tplNormalized;

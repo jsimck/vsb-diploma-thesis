@@ -8,7 +8,7 @@
 
 int main() {
     // Init classifier
-    const std::vector<std::string> tplNames = { "02", "25", "29", "30" };
+    const std::vector<std::string> tplNames = { "02", "25" };
     Classifier classifier("data/", tplNames, "scene_01/", "0000.png");
 
     // Init indices
@@ -18,8 +18,8 @@ int main() {
     std::copy(&indiciesData[0], &indiciesData[indiciesDataSize], std::back_inserter(*indices));
 
     // Run classifier
-//    classifier.classify();
-    classifier.classifyTest(indices);
+    classifier.classify();
+//    classifier.classifyTest(indices);
 
     return 0;
 }

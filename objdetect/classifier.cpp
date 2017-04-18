@@ -42,7 +42,7 @@ void Classifier::parseTemplates() {
     parser.parse(templateGroups, info);
     assert(templateGroups.size() > 0);
     std::cout << "  |_ Smallest template found: " << info.smallestTemplateSize << std::endl;
-    std::cout << "  |_ Largest template found: " << info.largestTemplateSize << std::endl << std::endl;
+    std::cout << "  |_ Largest template found: " << info.maxTemplateSize << std::endl << std::endl;
     std::cout << "DONE! " << templateGroups.size() << " template groups parsed" << std::endl;
 }
 
@@ -64,7 +64,7 @@ void Classifier::trainHashTables() {
     // Train hash tables
     std::cout << "Training hash tables... " << std::endl;
     Timer t;
-    hasher.train(templateGroups, hashTables);
+    hasher.train(templateGroups, hashTables, info);
     assert(hashTables.size() > 0);
     std::cout << "DONE! took: " << t.elapsed() << "s, " << hashTables.size() << " hash tables generated" <<std::endl << std::endl;
 }
@@ -119,7 +119,7 @@ void Classifier::verifyTemplateCandidates() {
     // Verification started
     std::cout << "Verification of template candidates, using trained HashTables started... " << std::endl;
     Timer t;
-    hasher.verifyTemplateCandidates(sceneDepth, hashTables, windows);
+    hasher.verifyTemplateCandidates(sceneDepth, hashTables, windows, info);
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
 #ifndef NDEBUG

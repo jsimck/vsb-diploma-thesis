@@ -8,7 +8,7 @@ struct DatasetInfo {
 public:
     int minEdgels;
     cv::Size smallestTemplateSize;
-    cv::Size largestTemplateSize;
+    cv::Size maxTemplateSize;
 
     // Constructors
     DatasetInfo();

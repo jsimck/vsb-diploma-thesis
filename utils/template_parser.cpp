@@ -130,9 +130,11 @@ Template TemplateParser::parseGt(int index, std::string path, cv::FileNode &gtNo
     }
 
     // Find largest object
-    if (src.cols * src.rows >= info.largestTemplateSize.area()) {
-        info.largestTemplateSize.width = src.cols;
-        info.largestTemplateSize.height = src.rows;
+    if (src.cols >= info.maxTemplateSize.width) {
+        info.maxTemplateSize.width = src.cols;
+    }
+    if (src.rows >= info.maxTemplateSize.height) {
+        info.maxTemplateSize.height = src.rows;
     }
 
     // Checks
