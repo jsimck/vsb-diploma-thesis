@@ -5,6 +5,7 @@
 #include "../core/template.h"
 #include "../core/template_group.h"
 #include "../core/window.h"
+#include "../core/dataset_info.h"
 
 /**
  * class Objetness
@@ -33,8 +34,8 @@ public:
         : step(step), minThreshold(minThreshold), maxThreshold(maxThreshold), matchThresholdFactor(matchThresholdFactor), slidingWindowSizeFactor(slidingWindowSizeFactor) {}
 
     // Methods
-    cv::Vec3f extractMinEdgels(std::vector<TemplateGroup> &templateGroups);
-    void objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, std::vector<Window> &windows, cv::Vec3f minEdgels);
+    void extractMinEdgels(std::vector<TemplateGroup> &templateGroups, DatasetInfo &info);
+    void objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, std::vector<Window> &windows, DatasetInfo &info);
 
     // Getters
     unsigned int getStep() const;

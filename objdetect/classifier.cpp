@@ -46,9 +46,11 @@ void Classifier::parseTemplates() {
 
     // Parse
     std::cout << "Parsing... " << std::endl;
-    parser.parse(templateGroups);
+    parser.parse(templateGroups, info);
     assert(templateGroups.size() > 0);
-    std::cout << "DONE! " << templateGroups.size() << " template groups parsed" << std::endl << std::endl;
+    std::cout << "  |_ Smallest template found: " << info.smallestTemplateSize << std::endl;
+    std::cout << "  |_ Largest template found: " << info.maxTemplateSize << std::endl << std::endl;
+    std::cout << "DONE! " << templateGroups.size() << " template groups parsed" << std::endl;
 }
 
 void Classifier::extractMinEdgels() {
@@ -56,9 +58,10 @@ void Classifier::extractMinEdgels() {
     assert(templateGroups.size() > 0);
 
     // Extract min edgels
-    std::cout << "Extracting min edgels... " << std::endl;
-    setMinEdgels(objectness.extractMinEdgels(templateGroups));
-    std::cout << "DONE! " << minEdgels << " minimum found" <<std::endl << std::endl;
+    std::cout << "Extracting min edgels... ";
+    objectness.extractMinEdgels(templateGroups, info);
+    std::cout << "DONE! " << std::endl;
+    std::cout << "  |_ Minimum edgels found: " << info.minEdgels << std::endl;
 }
 
 void Classifier::trainHashTables() {
@@ -68,7 +71,7 @@ void Classifier::trainHashTables() {
     // Train hash tables
     std::cout << "Training hash tables... " << std::endl;
     Timer t;
-    hasher.train(templateGroups, hashTables);
+    hasher.train(templateGroups, hashTables, info);
     assert(hashTables.size() > 0);
     std::cout << "DONE! took: " << t.elapsed() << "s, " << hashTables.size() << " hash tables generated" <<std::endl << std::endl;
 }
@@ -116,12 +119,13 @@ void Classifier::loadScene() {
 
 void Classifier::detectObjectness() {
     // Checks
-    assert(minEdgels[0] > 0 && minEdgels[1] > 0 && minEdgels[2] > 0);
+    assert(info.smallestTemplateSize.area() > 0);
+    assert(info.minEdgels > 0);
 
     // Objectness detection
     std::cout << "Objectness detection started... " << std::endl;
     Timer t;
-    objectness.objectness(sceneGrayscale, scene, sceneDepthNormalized, windows, minEdgels);
+    objectness.objectness(sceneGrayscale, scene, sceneDepthNormalized, windows, info);
     std::cout << "  |_ Windows classified as containing object extracted: " << windows.size() << std::endl;
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 }
@@ -133,7 +137,7 @@ void Classifier::verifyTemplateCandidates() {
     // Verification started
     std::cout << "Verification of template candidates, using trained HashTables started... " << std::endl;
     Timer t;
-    hasher.verifyTemplateCandidates(sceneDepth, hashTables, windows);
+    hasher.verifyTemplateCandidates(sceneDepth, hashTables, windows, info);
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
 #ifndef NDEBUG
@@ -246,10 +250,6 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
 }
 
 // Getters and setters
-const cv::Vec3f &Classifier::getMinEdgels() const {
-    return minEdgels;
-}
-
 const std::string &Classifier::getBasePath() const {
     return basePath;
 }
@@ -296,11 +296,6 @@ const std::vector<Window> &Classifier::getWindows() const {
 
 const std::vector<TemplateMatch> &Classifier::getMatches() const {
     return matches;
-}
-
-void Classifier::setMinEdgels(const cv::Vec3f &minEdgels) {
-    assert(minEdgels[0] > 0 && minEdgels[1] > 0 && minEdgels[2] > 0);
-    this->minEdgels = minEdgels;
 }
 
 void Classifier::setBasePath(const std::string &basePath) {

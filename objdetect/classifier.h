@@ -9,6 +9,7 @@
 #include "objectness.h"
 #include "../core/window.h"
 #include "template_matcher.h"
+#include "../core/dataset_info.h"
 
 /**
  * class Classifier
@@ -20,7 +21,6 @@
  */
 class Classifier {
 private:
-    cv::Vec3f minEdgels;
     std::string basePath;
     std::string scenePath;
     std::string sceneName;
@@ -31,6 +31,7 @@ private:
     cv::Mat sceneDepth;
     cv::Mat sceneDepthNormalized;
 
+    DatasetInfo info;
     std::vector<TemplateGroup> templateGroups;
     std::vector<HashTable> hashTables;
     std::vector<Window> windows;
@@ -60,7 +61,6 @@ public:
     void classifyTest(std::unique_ptr<std::vector<int>> &indices);
 
     // Getters
-    const cv::Vec3f &getMinEdgels() const;
     const std::string &getBasePath() const;
     const std::vector<std::string> &getTemplateFolders() const;
     const std::string &getScenePath() const;
@@ -75,7 +75,6 @@ public:
     const std::vector<TemplateMatch> &getMatches() const;
 
     // Setters
-    void setMinEdgels(const cv::Vec3f &minEdgels);
     void setBasePath(const std::string &basePath);
     void setTemplateFolders(const std::vector<std::string> &templateFolders);
     void setScenePath(const std::string &scenePath);

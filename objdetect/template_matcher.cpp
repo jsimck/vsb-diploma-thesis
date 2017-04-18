@@ -45,6 +45,7 @@ void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) 
     // Init engine
     typedef std::mt19937 engine;
 
+    // TODO - better generation of feature points
     for (auto &group : groups) {
         for (auto &t : group.templates) {
             std::vector<cv::Point> cannyPoints;
@@ -98,7 +99,8 @@ void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) 
                     if (t.srcDepth.at<float>(stablePoints[ri]) <= 0) {
                         falseStablePointGenerated = true;
                     } else {
-                        t.stablePoints.push_back(stablePoints[ri]);
+                        // Remove offset so the feature point locations are relative to template BB
+                        t.stablePoints.push_back(cv::Point(stablePoints[ri].x - t.objBB.tl().x, stablePoints[ri].y - t.objBB.tl().y));
                     }
 
                     stablePoints.erase(stablePoints.begin() + ri - 1); // Remove from array of points
@@ -106,7 +108,9 @@ void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) 
 
                 // Randomize once more
                 ri = (int) Triplet::random(0, cannyPoints.size() - 1);
-                t.edgePoints.push_back(cannyPoints[ri]);
+
+                // Push to feature points array
+                t.edgePoints.push_back(cv::Point(cannyPoints[ri].x - t.objBB.tl().x, cannyPoints[ri].y - t.objBB.tl().y));
                 cannyPoints.erase(cannyPoints.begin() + ri - 1); // Remove from array of points
             }
 
@@ -115,18 +119,20 @@ void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) 
 
 #ifndef NDEBUG
             // Visualize extracted features
-//            cv::Mat visualizationMat;
-//            cv::cvtColor(t.src, visualizationMat, CV_GRAY2BGR);
-//
-//            for (int i = 0; i < featurePointsCount; ++i) {
-//                cv::circle(visualizationMat, t.edgePoints[i], 1, cv::Scalar(0, 0, 255), -1);
-//                cv::circle(visualizationMat, t.stablePoints[i], 1, cv::Scalar(0, 255, 0), -1);
-//            }
-//
-//            cv::imshow("TemplateMatcher::train Sobel", sobel);
-//            cv::imshow("TemplateMatcher::train Canny", canny);
-//            cv::imshow("TemplateMatcher::train Feature points", visualizationMat);
-//            cv::waitKey(0);
+            cv::Mat visualizationMat;
+            cv::cvtColor(t.src, visualizationMat, CV_GRAY2BGR);
+
+            for (int i = 0; i < featurePointsCount; ++i) {
+                cv::Point ePOffset(t.edgePoints[i].x + t.objBB.tl().x, t.edgePoints[i].y + t.objBB.tl().y);
+                cv::Point sPOffset(t.stablePoints[i].x + t.objBB.tl().x, t.stablePoints[i].y + t.objBB.tl().y);
+                cv::circle(visualizationMat, ePOffset, 1, cv::Scalar(0, 0, 255), -1);
+                cv::circle(visualizationMat, sPOffset, 1, cv::Scalar(0, 255, 0), -1);
+            }
+
+            cv::imshow("TemplateMatcher::train Sobel", sobel);
+            cv::imshow("TemplateMatcher::train Canny", canny);
+            cv::imshow("TemplateMatcher::train Feature points", visualizationMat);
+            cv::waitKey(0);
 #endif
         }
     }
@@ -148,27 +154,15 @@ void TemplateMatcher::extractTemplateFeatures(std::vector<TemplateGroup> &groups
                 assert(!t.srcHSV.empty());
                 assert(!t.srcDepth.empty());
 
-                // TODO - consider refactoring the code to work with sources in original 400x400 size (so without bounding box mask applied)
-                // Check points are either on template edge in which case surface normal and gradient orientation
-                // extraction would fail due to central derivation -> reset roi applied on template and restore it after
-                // feature has been extracted
-                bool edgePoint = false;
-
-                if ((t.edgePoints[i].x == 0 || t.edgePoints[i].y == 0 || t.edgePoints[i].x == t.objBB.width - 1 || t.edgePoints[i].y == t.objBB.height - 1) ||
-                 (t.stablePoints[i].x == 0 || t.stablePoints[i].y == 0 || t.stablePoints[i].x == t.objBB.width - 1 || t.stablePoints[i].y == t.objBB.height - 1)) {
-                    t.resetROI();
-                    t.edgePoints[i].x += t.objBB.x;
-                    t.edgePoints[i].y += t.objBB.y;
-                    t.stablePoints[i].x += t.objBB.x;
-                    t.stablePoints[i].y += t.objBB.y;
-                    edgePoint = true;
-                }
+                // Create offset points to work with uncropped templates
+                cv::Point stablePOff(t.stablePoints[i].x + t.objBB.x, t.stablePoints[i].y + t.objBB.y);
+                cv::Point edgePOff(t.edgePoints[i].x + t.objBB.x, t.edgePoints[i].y + t.objBB.y);
 
                 // Save features to template
-                t.features.orientationGradients[i] = quantizeOrientationGradient(extractOrientationGradient(t.src, t.edgePoints[i]));
-                t.features.surfaceNormals[i] = Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(t.srcDepth, t.stablePoints[i]));
-                t.features.depth[i] = t.srcDepth.at<float>(t.stablePoints[i]);
-                t.features.color[i] = t.srcHSV.at<cv::Vec3b>(t.stablePoints[i]);
+                t.features.orientationGradients[i] = quantizeOrientationGradient(extractOrientationGradient(t.src, edgePOff));
+                t.features.surfaceNormals[i] = Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(t.srcDepth, stablePOff));
+                t.features.depth[i] = t.srcDepth.at<float>(stablePOff);
+                t.features.color[i] = t.srcHSV.at<cv::Vec3b>(stablePOff);
                 depthArray.push_back(static_cast<int>(t.features.depth[i]));
 
                 // Checks
@@ -176,15 +170,6 @@ void TemplateMatcher::extractTemplateFeatures(std::vector<TemplateGroup> &groups
                 assert(t.features.orientationGradients[i] < 5);
                 assert(t.features.surfaceNormals[i] >= 0);
                 assert(t.features.surfaceNormals[i] < 8);
-
-                // Restore matrix roi and delete offsets on feature points
-                if (edgePoint) {
-                    t.applyROI();
-                    t.edgePoints[i].x -= t.objBB.x;
-                    t.edgePoints[i].y -= t.objBB.y;
-                    t.stablePoints[i].x -= t.objBB.x;
-                    t.stablePoints[i].y -= t.objBB.y;
-                }
             }
 
             // Save median value

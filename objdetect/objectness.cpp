@@ -62,20 +62,20 @@ void Objectness::thresholdMinMax(cv::Mat &src, cv::Mat &dst, float minThreshold,
     }
 }
 
-cv::Vec3f Objectness::extractMinEdgels(std::vector<TemplateGroup> &templateGroups) {
+void Objectness::extractMinEdgels(std::vector<TemplateGroup> &templateGroups, DatasetInfo &info) {
     // Checks
     assert(!templateGroups.empty());
 
     // Extract edgels
     int edgels = 0;
-    cv::Vec3i output(INT_MAX, templateGroups[0].templates[0].src.cols, templateGroups[0].templates[0].src.rows);
     cv::Mat tplSobel, tplIntegral, tplNormalized;
 
     // Find template which contains least amount of the edgels and get his bounding box
     for (auto &group : templateGroups) {
         for (auto &t : group.templates) {
-            // Normalize input image into <0, 1> values
+            // Normalize input image into <0, 1> values and crop it
             t.srcDepth.convertTo(tplNormalized, CV_32F, 1.0f / 65536.0f);
+            tplNormalized = tplNormalized(t.objBB);
 
             // Apply sobel filter and thresholding
             filterSobel(tplNormalized, tplSobel);
@@ -86,28 +86,18 @@ cv::Vec3f Objectness::extractMinEdgels(std::vector<TemplateGroup> &templateGroup
             edgels = static_cast<int>(tplIntegral.at<float>(tplIntegral.rows - 1, tplIntegral.cols - 1));
 
             // Save minimum edgels
-            if (edgels < output[0]) {
-                output[0] = edgels;
-            }
-
-            // Save smallest object
-            if (t.srcDepth.cols * t.srcDepth.rows < output[1] * output[2]) {
-                output[1] = t.srcDepth.cols;
-                output[2] = t.srcDepth.rows;
+            if (edgels < info.minEdgels) {
+                info.minEdgels = edgels;
             }
         }
     }
-
-    // Save output
-    return output;
 }
 
 // TODO - we should sent only the specific window locations for further matching
-void Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, std::vector<Window> &windows, cv::Vec3f minEdgels) {
+void Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, std::vector<Window> &windows, DatasetInfo &info) {
     // Check thresholds and min edgels
-    assert(minEdgels[0] > 0);
-    assert(minEdgels[1] > 0);
-    assert(minEdgels[2] > 0);
+    assert(info.smallestTemplateSize.area() > 0);
+    assert(info.minEdgels > 0);
     assert(matchThresholdFactor > 0);
     assert(slidingWindowSizeFactor > 0);
 
@@ -136,8 +126,9 @@ void Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Ma
     cv::integral(sceneSobel, sceneIntegral, CV_32F);
 
     // Init helper variables
-    minEdgels[0] *= matchThresholdFactor;
-    int sizeX = static_cast<int>(minEdgels[1] * slidingWindowSizeFactor), sizeY = static_cast<int>(minEdgels[2] * slidingWindowSizeFactor);
+    int minEdgels = static_cast<int>(info.minEdgels * matchThresholdFactor);
+    int sizeX = static_cast<int>(info.smallestTemplateSize.width * slidingWindowSizeFactor);
+    int sizeY = static_cast<int>(info.smallestTemplateSize.height * slidingWindowSizeFactor);
 
     // Slide window over scene and calculate edgel count for each overlap
     for (int y = 0; y < sceneSobel.rows - sizeY; y += step) {
@@ -151,7 +142,7 @@ void Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Ma
                 + sceneIntegral.at<float>(y, x)
             );
 
-            if (sceneEdgels >= minEdgels[0]) {
+            if (sceneEdgels >= minEdgels) {
                 windows.push_back(Window(x, y, sizeX, sizeY, sceneEdgels));
 #ifndef NDEBUG
                 windowBBs.push_back(cv::Vec4i(x, y, x + sizeX, y + sizeY));

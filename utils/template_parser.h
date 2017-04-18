@@ -4,6 +4,7 @@
 #include <string>
 #include "../core/template.h"
 #include "../core/template_group.h"
+#include "../core/dataset_info.h"
 
 /**
  * class TemplateParser
@@ -18,17 +19,17 @@ private:
     std::vector<std::string> templateFolders;
     std::unique_ptr<std::vector<int>> indices;
 
-    Template parseGt(int index, std::string path, cv::FileNode &gtNode);
     void parseInfo(Template &tpl, cv::FileNode &infoNode);
+    Template parseGt(int index, std::string path, cv::FileNode &gtNode, DatasetInfo &info);
+    void parseTemplate(std::vector<Template> &templates, DatasetInfo &info, std::string tplName);
+    void parseTemplate(std::vector<Template> &templates, DatasetInfo &info, std::string tplName, std::unique_ptr<std::vector<int>> &indices);
 public:
     static int idCounter;
 
     TemplateParser(const std::string basePath = "/data", std::vector<std::string> templateFolders = {}, unsigned int tplCount = 1296)
         : basePath(basePath), templateFolders(templateFolders), tplCount(tplCount) {}
 
-    void parse(std::vector<TemplateGroup> &groups);
-    void parseTemplate(std::vector<Template> &templates, std::string tplName);
-    void parseTemplate(std::vector<Template> &templates, std::string tplName, std::unique_ptr<std::vector<int>> &indices);
+    void parse(std::vector<TemplateGroup> &groups, DatasetInfo &info);
     void clearIndices();
 
     // Getters
