@@ -6,14 +6,6 @@ const int Hasher::IMG_16BIT_VALUE_MAX = 65535; // <0, 65535> => 65536 values
 const int Hasher::IMG_16BIT_VALUES_RANGE = (IMG_16BIT_VALUE_MAX * 2) + 1; // <-65535, 65535> => 131071 values + (one zero)
 
 cv::Vec3d Hasher::extractSurfaceNormal(const cv::Mat &src, const cv::Point c) {
-    // Checks
-    assert(!src.empty());
-
-    // TODO better handling
-    if (c.x < 0 || c.y < 0) {
-        cv::Vec3f d(0, 0, 1.0f);
-    }
-
     float dzdx = (src.at<float>(c.y, c.x + 1) - src.at<float>(c.y, c.x - 1)) / 2.0f;
     float dzdy = (src.at<float>(c.y + 1, c.x) - src.at<float>(c.y - 1, c.x)) / 2.0f;
     cv::Vec3f d(-dzdy, -dzdx, 1.0f);
@@ -22,33 +14,10 @@ cv::Vec3d Hasher::extractSurfaceNormal(const cv::Mat &src, const cv::Point c) {
 }
 
 cv::Vec2i Hasher::extractRelativeDepths(const cv::Mat &src, const cv::Point c, const cv::Point p1, const cv::Point p2) {
-    // TODO better handling
-    int p1d = 0;
-    if (p1.x < 0 || p1.y < 0) {
-        p1d = 0;
-    } else {
-        p1d = static_cast<int>(src.at<float>(p1));
-    }
-
-    int p2d = 0;
-    if (p2.x < 0 || p2.y < 0) {
-        p2d = 0;
-    } else {
-        p2d = static_cast<int>(src.at<float>(p2));
-    }
-
-    int cd = 0;
-    if (c.x < 0 || c.y < 0) {
-        cd = 0;
-    } else {
-        cd = static_cast<int>(src.at<float>(c));
-    }
-
-    return cv::Vec2i(p1d - cd, p2d - cd);
-//    return cv::Vec2i(
-//        static_cast<int>(src.at<float>(p1) - src.at<float>(c)),
-//        static_cast<int>(src.at<float>(p2) - src.at<float>(c))
-//    );
+    return cv::Vec2i(
+        static_cast<int>(src.at<float>(p1)) - static_cast<int>(src.at<float>(c)),
+        static_cast<int>(src.at<float>(p2)) - static_cast<int>(src.at<float>(c))
+    );
 }
 
 int Hasher::quantizeSurfaceNormals(cv::Vec3f normal) {
@@ -327,6 +296,7 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneDepth, std::vector<Has
     assert(!sceneDepth.empty());
     assert(windows.size() > 0);
     assert(hashTables.size() > 0);
+    assert(info.maxTemplateSize.area() > 0);
 
     int notEmptyWindows = 0;
     unsigned long reduced = 0;
@@ -355,13 +325,18 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneDepth, std::vector<Has
             cv::Point p1 = table.triplet.getP1Coords(coordParams);
             cv::Point p2 = table.triplet.getP2Coords(coordParams);
 
+            // If any point of triplet is out of scene boundaries, ignore it
+            if ((c.x < 0 || c.x >= sceneDepth.cols || c.y < 0 || c.y >= sceneDepth.rows) ||
+                (p1.x < 0 || p1.x >= sceneDepth.cols || p1.y < 0 || p1.y >= sceneDepth.rows) ||
+                (p2.x < 0 || p2.x >= sceneDepth.cols || p2.y < 0 || p2.y >= sceneDepth.rows)) continue;
+
             // Check if we're not out of bounds
-//            assert(c.x >= 0 && c.x < sceneDepth.cols);
-//            assert(c.y >= 0 && c.y < sceneDepth.rows);
-//            assert(p1.x >= 0 && p1.x < sceneDepth.cols);
-//            assert(p1.y >= 0 && p1.y < sceneDepth.rows);
-//            assert(p2.x >= 0 && p2.x < sceneDepth.cols);
-//            assert(p2.y >= 0 && p2.y < sceneDepth.rows);
+            assert(c.x >= 0 && c.x < sceneDepth.cols);
+            assert(c.y >= 0 && c.y < sceneDepth.rows);
+            assert(p1.x >= 0 && p1.x < sceneDepth.cols);
+            assert(p1.y >= 0 && p1.y < sceneDepth.rows);
+            assert(p2.x >= 0 && p2.x < sceneDepth.cols);
+            assert(p2.y >= 0 && p2.y < sceneDepth.rows);
 
             // Relative depths
             cv::Vec2i relativeDepths = extractRelativeDepths(sceneDepth, c, p1, p2);
