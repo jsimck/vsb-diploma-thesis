@@ -129,9 +129,9 @@ std::vector<cv::Rect> matcher_deprecated::matchTemplate(const cv::Mat &input, st
             float sum = 0, sumNormT = 0, sumNormI = 0;
 
             // Loop through template
-            for (int ty = 0; ty < t->src.rows; ty++) {
-                for (int tx = 0; tx < t->src.cols; tx++) {
-                    float Ti = t->src.at<float>(ty, tx);
+            for (int ty = 0; ty < t->objBB.height; ty++) {
+                for (int tx = 0; tx < t->objBB.width; tx++) {
+                    float Ti = t->src.at<float>(ty + t->objBB.y, tx + t->objBB.x);
 
                     // Ignore black pixels
                     if (Ti == 0) continue;
@@ -149,7 +149,7 @@ std::vector<cv::Rect> matcher_deprecated::matchTemplate(const cv::Mat &input, st
 
             // Check if we found new max scoreBB, if yes -> save roi location + scoreBB
             if (crossSum > maxScore) {
-                maxRect = cv::Rect(window.x, window.y, t->src.cols, t->src.rows);
+                maxRect = cv::Rect(window.x, window.y, t->objBB.width, t->objBB.height);
                 maxScore = crossSum;
                 matchFound = true;
             }

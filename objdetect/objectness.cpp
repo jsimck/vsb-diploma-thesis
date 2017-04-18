@@ -73,8 +73,9 @@ void Objectness::extractMinEdgels(std::vector<TemplateGroup> &templateGroups, Da
     // Find template which contains least amount of the edgels and get his bounding box
     for (auto &group : templateGroups) {
         for (auto &t : group.templates) {
-            // Normalize input image into <0, 1> values
+            // Normalize input image into <0, 1> values and crop it
             t.srcDepth.convertTo(tplNormalized, CV_32F, 1.0f / 65536.0f);
+            tplNormalized = tplNormalized(t.objBB);
 
             // Apply sobel filter and thresholding
             filterSobel(tplNormalized, tplSobel);

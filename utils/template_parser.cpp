@@ -115,26 +115,22 @@ Template TemplateParser::parseGt(int index, std::string path, cv::FileNode &gtNo
     cv::Mat src = cv::imread(path + "/rgb/" + fileName + ".png", CV_LOAD_IMAGE_GRAYSCALE);
     cv::Mat srcDepth = cv::imread(path + "/depth/" + fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
 
-    // Crop image using objBB
-    src = src(objBB);
-    srcDepth = srcDepth(objBB);
-
     // Convert to float
     src.convertTo(src, CV_32F, 1.0f / 255.0f);
     srcDepth.convertTo(srcDepth, CV_32F); // because of surface normal calculation, don't doo normalization
 
     // Find smallest object
-    if (src.cols * src.rows < info.smallestTemplateSize.area()) {
-        info.smallestTemplateSize.width = src.cols;
-        info.smallestTemplateSize.height = src.rows;
+    if (objBB.area() < info.smallestTemplateSize.area()) {
+        info.smallestTemplateSize.width = objBB.width;
+        info.smallestTemplateSize.height = objBB.height;
     }
 
     // Find largest object
-    if (src.cols >= info.maxTemplateSize.width) {
-        info.maxTemplateSize.width = src.cols;
+    if (objBB.width >= info.maxTemplateSize.width) {
+        info.maxTemplateSize.width = objBB.width;
     }
-    if (src.rows >= info.maxTemplateSize.height) {
-        info.maxTemplateSize.height = src.rows;
+    if (objBB.height >= info.maxTemplateSize.height) {
+        info.maxTemplateSize.height = objBB.height;
     }
 
     // Checks

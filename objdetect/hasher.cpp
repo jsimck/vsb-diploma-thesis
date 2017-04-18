@@ -160,10 +160,15 @@ void Hasher::calculateDepthBinRanges(const std::vector<TemplateGroup> &groups, s
                 // Checks
                 assert(!t.srcDepth.empty());
 
-                // TODO - Extract depths relative to normalized window??
+                // Calculate offset for the triplet grid
+                cv::Point gridOffset(
+                    t.objBB.tl().x - (info.maxTemplateSize.width - t.objBB.width) / 2,
+                    t.objBB.tl().y - (info.maxTemplateSize.height - t.objBB.height) / 2
+                );
 
                 // Get triplet points
-                TripletCoords coordParams = Triplet::getCoordParams(t.srcDepth.cols, t.srcDepth.rows, referencePointsGrid);
+                TripletCoords coordParams = Triplet::getCoordParams(info.maxTemplateSize.width, info.maxTemplateSize.height,
+                                                                    referencePointsGrid, gridOffset.x, gridOffset.y);
                 cv::Point c = hashTable.triplet.getCenterCoords(coordParams);
                 cv::Point p1 = hashTable.triplet.getP1Coords(coordParams);
                 cv::Point p2 = hashTable.triplet.getP2Coords(coordParams);
@@ -213,7 +218,6 @@ void Hasher::train(std::vector<TemplateGroup> &groups, std::vector<HashTable> &h
 
     // Prepare hash tables and histogram bin ranges
     initialize(groups, hashTables, info);
-    cv::Mat srcNorm = cv::Mat::zeros(info.maxTemplateSize, CV_32FC1);
 
     // Fill hash tables with templates and keys quantizied from measured values
     for (auto &hashTable : hashTables) {
@@ -222,37 +226,63 @@ void Hasher::train(std::vector<TemplateGroup> &groups, std::vector<HashTable> &h
                 // Checks
                 assert(!t.srcDepth.empty());
 
-                // Reset matrix color
-                srcNorm.reshape(1, srcNorm.rows * srcNorm.cols).col(0).setTo(0);
-
-                // Copy src into normalized size matrix to the center
-                cv::Point srcCenter((srcNorm.cols / 2) - t.srcDepth.cols / 2, (srcNorm.rows / 2) - t.srcDepth.rows / 2);
-                t.srcDepth.copyTo(srcNorm(cv::Rect(srcCenter.x, srcCenter.y, t.srcDepth.cols, t.srcDepth.rows)));
+                // Calculate offset for the triplet grid
+                cv::Point gridOffset(
+                    t.objBB.tl().x - (info.maxTemplateSize.width - t.objBB.width) / 2,
+                    t.objBB.tl().y - (info.maxTemplateSize.height - t.objBB.height) / 2
+                );
 
                 // Get triplet points
-                TripletCoords coordParams = Triplet::getCoordParams(srcNorm.cols, srcNorm.rows, referencePointsGrid);
+                TripletCoords coordParams = Triplet::getCoordParams(info.maxTemplateSize.width, info.maxTemplateSize.height,
+                                                                    referencePointsGrid, gridOffset.x, gridOffset.y);
                 cv::Point c = hashTable.triplet.getCenterCoords(coordParams);
                 cv::Point p1 = hashTable.triplet.getP1Coords(coordParams);
                 cv::Point p2 = hashTable.triplet.getP2Coords(coordParams);
 
+                // Visualize triplets
+//                cv::Mat triplet = t.src.clone();
+//                cv::cvtColor(triplet, triplet, CV_GRAY2BGR);
+//                cv::rectangle(triplet, gridOffset, cv::Point(gridOffset.x + info.maxTemplateSize.width, gridOffset.y + info.maxTemplateSize.height), cv::Scalar(0, 255, 0));
+//                cv::rectangle(triplet, t.objBB.tl(), t.objBB.br(), cv::Scalar(0, 0, 255));
+//                for (int i = 0; i < 12; i++) {
+//                    Triplet t(cv::Point(i,0), cv::Point(i,1), cv::Point(i,2));
+//                    cv::circle(triplet, t.getCoords(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t.getCoords(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t.getCoords(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    Triplet t2(cv::Point(i,3), cv::Point(i,4), cv::Point(i,5));
+//                    cv::circle(triplet, t2.getCoords(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t2.getCoords(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t2.getCoords(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    Triplet t3(cv::Point(i,6), cv::Point(i,7), cv::Point(i,8));
+//                    cv::circle(triplet, t3.getCoords(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t3.getCoords(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t3.getCoords(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    Triplet t4(cv::Point(i,9), cv::Point(i,10), cv::Point(i,11));
+//                    cv::circle(triplet, t4.getCoords(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t4.getCoords(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t4.getCoords(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                }
+//                cv::imshow("Classifier::Hash table triplet", triplet);
+//                cv::waitKey(0);
+
                 // Check if we're not out of bounds
-                assert(c.x >= 0 && c.x < srcNorm.cols);
-                assert(c.y >= 0 && c.y < srcNorm.rows);
-                assert(p1.x >= 0 && p1.x < srcNorm.cols);
-                assert(p1.y >= 0 && p1.y < srcNorm.rows);
-                assert(p2.x >= 0 && p2.x < srcNorm.cols);
-                assert(p2.y >= 0 && p2.y < srcNorm.rows);
+                assert(c.x >= 0 && c.x < t.src.cols);
+                assert(c.y >= 0 && c.y < t.src.rows);
+                assert(p1.x >= 0 && p1.x < t.src.cols);
+                assert(p1.y >= 0 && p1.y < t.src.rows);
+                assert(p2.x >= 0 && p2.x < t.src.cols);
+                assert(p2.y >= 0 && p2.y < t.src.rows);
 
                 // Relative depths
-                cv::Vec2i relativeDepths = extractRelativeDepths(srcNorm, c, p1, p2);
+                cv::Vec2i relativeDepths = extractRelativeDepths(t.srcDepth, c, p1, p2);
 
                 // Generate hash key
                 HashKey key(
                     quantizeDepths(relativeDepths[0]),
                     quantizeDepths(relativeDepths[1]),
-                    quantizeSurfaceNormals(extractSurfaceNormal(srcNorm, c)),
-                    quantizeSurfaceNormals(extractSurfaceNormal(srcNorm, p1)),
-                    quantizeSurfaceNormals(extractSurfaceNormal(srcNorm, p2))
+                    quantizeSurfaceNormals(extractSurfaceNormal(t.srcDepth, c)),
+                    quantizeSurfaceNormals(extractSurfaceNormal(t.srcDepth, p1)),
+                    quantizeSurfaceNormals(extractSurfaceNormal(t.srcDepth, p2))
                 );
 
                 // Check if key exists, if not initialize it
@@ -305,18 +335,6 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneDepth, std::vector<Has
     for (auto &&window : windows) {
         // Calculate new rectangle that's placed over the center of image from sliding window
         cv::Point offsetTl((window.width / 2 + window.tl().x) - (info.maxTemplateSize.width / 2), (window.height / 2 + window.tl().y) - info.maxTemplateSize.height / 2);
-
-
-        // TODO Only for debugging
-//        cv::Mat testScnee = sceneDepth.clone();
-//        cv::normalize(sceneDepth, sceneDepth, 0, 1.0f, CV_MINMAX);
-//        cv::cvtColor(sceneDepth, testScnee, CV_GRAY2BGR);
-//        cv::rectangle(testScnee, window.tl(), window.br(), cv::Scalar(0));
-//        cv::rectangle(testScnee, offsetTl, cv::Point(offsetTl.x + info.maxTemplateSize.width, offsetTl.y + info.maxTemplateSize.height), cv::Scalar(0));
-//        cv::imshow("Window name", testScnee);
-//        cv::waitKey(0);
-
-
 
         for (auto &&table : hashTables) {
             // Get triplet points
