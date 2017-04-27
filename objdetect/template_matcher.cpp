@@ -416,7 +416,7 @@ void TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, 
             // Push template that passed all tests to matches array
             float score = (scoreII / featurePointsCount) + (scoreIII / featurePointsCount) + (scoreV / featurePointsCount);
             cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
-            matches.push_back(Match(matchBB, candidate, score));
+            matches.push_back(Match(candidate, matchBB, score));
         }
     }
 

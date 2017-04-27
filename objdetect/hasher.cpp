@@ -77,7 +77,7 @@ int Hasher::quantizeDepths(float depth) {
 void Hasher::generateTriplets(std::vector<HashTable> &hashTables) {
     // Generate triplets
     for (int i = 0; i < hashTableCount; ++i) {
-        HashTable h(Triplet::createRandomTriplet(referencePointsGrid, maxTripletDistance));
+        HashTable h(Triplet::createRandTriplet(referencePointsGrid, maxTripletDistance));
         hashTables.push_back(h);
     }
 
@@ -93,7 +93,7 @@ void Hasher::generateTriplets(std::vector<HashTable> &hashTables) {
                 if (hashTables[i].triplet == hashTables[j].triplet) {
                     // Duplicate generate new triplet
                     duplicate = true;
-                    hashTables[j].triplet = Triplet::createRandomTriplet(referencePointsGrid);
+                    hashTables[j].triplet = Triplet::createRandTriplet(referencePointsGrid);
                 }
             }
         }
@@ -167,11 +167,11 @@ void Hasher::calculateDepthBinRanges(const std::vector<Group> &groups, std::vect
                 );
 
                 // Get triplet points
-                TripletCoords coordParams = Triplet::getCoordParams(info.maxTemplate.width, info.maxTemplate.height,
+                TripletParams coordParams = Triplet::getCoordParams(info.maxTemplate.width, info.maxTemplate.height,
                                                                     referencePointsGrid, gridOffset.x, gridOffset.y);
-                cv::Point c = hashTable.triplet.getCenterCoords(coordParams);
-                cv::Point p1 = hashTable.triplet.getP1Coords(coordParams);
-                cv::Point p2 = hashTable.triplet.getP2Coords(coordParams);
+                cv::Point c = hashTable.triplet.getCenter(coordParams);
+                cv::Point p1 = hashTable.triplet.getP1(coordParams);
+                cv::Point p2 = hashTable.triplet.getP2(coordParams);
 
                 // Check if we're not out of bounds
                 assert(c.x >= 0 && c.x < t.srcDepth.cols);
@@ -233,11 +233,11 @@ void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &hashTable
                 );
 
                 // Get triplet points
-                TripletCoords coordParams = Triplet::getCoordParams(info.maxTemplate.width, info.maxTemplate.height,
+                TripletParams coordParams = Triplet::getCoordParams(info.maxTemplate.width, info.maxTemplate.height,
                                                                     referencePointsGrid, gridOffset.x, gridOffset.y);
-                cv::Point c = hashTable.triplet.getCenterCoords(coordParams);
-                cv::Point p1 = hashTable.triplet.getP1Coords(coordParams);
-                cv::Point p2 = hashTable.triplet.getP2Coords(coordParams);
+                cv::Point c = hashTable.triplet.getCenter(coordParams);
+                cv::Point p1 = hashTable.triplet.getP1(coordParams);
+                cv::Point p2 = hashTable.triplet.getP2(coordParams);
 
                 // Visualize triplets
 //                cv::Mat triplet = t.srcGray.clone();
@@ -246,21 +246,21 @@ void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &hashTable
 //                cv::rectangle(triplet, t.objBB.tl(), t.objBB.br(), cv::Scalar(0, 0, 255));
 //                for (int i = 0; i < 12; i++) {
 //                    Triplet t(cv::Point(i,0), cv::Point(i,1), cv::Point(i,2));
-//                    cv::circle(triplet, t.getCoords(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
-//                    cv::circle(triplet, t.getCoords(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
-//                    cv::circle(triplet, t.getCoords(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t.getPoint(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t.getPoint(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t.getPoint(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
 //                    Triplet t2(cv::Point(i,3), cv::Point(i,4), cv::Point(i,5));
-//                    cv::circle(triplet, t2.getCoords(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
-//                    cv::circle(triplet, t2.getCoords(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
-//                    cv::circle(triplet, t2.getCoords(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t2.getPoint(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t2.getPoint(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t2.getPoint(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
 //                    Triplet t3(cv::Point(i,6), cv::Point(i,7), cv::Point(i,8));
-//                    cv::circle(triplet, t3.getCoords(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
-//                    cv::circle(triplet, t3.getCoords(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
-//                    cv::circle(triplet, t3.getCoords(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t3.getPoint(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t3.getPoint(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t3.getPoint(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
 //                    Triplet t4(cv::Point(i,9), cv::Point(i,10), cv::Point(i,11));
-//                    cv::circle(triplet, t4.getCoords(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
-//                    cv::circle(triplet, t4.getCoords(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
-//                    cv::circle(triplet, t4.getCoords(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t4.getPoint(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t4.getPoint(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, t4.getPoint(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
 //                }
 //                cv::imshow("Classifier::Hash table triplet", triplet);
 //                cv::waitKey(0);
@@ -338,10 +338,10 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneDepth, std::vector<Has
 
         for (auto &table : hashTables) {
             // Get triplet points
-            TripletCoords coordParams = Triplet::getCoordParams(windows[i].width, windows[i].height, referencePointsGrid, windows[i].tl().x, windows[i].tl().y);
-            cv::Point c = table.triplet.getCenterCoords(coordParams);
-            cv::Point p1 = table.triplet.getP1Coords(coordParams);
-            cv::Point p2 = table.triplet.getP2Coords(coordParams);
+            TripletParams coordParams = Triplet::getCoordParams(windows[i].width, windows[i].height, referencePointsGrid, windows[i].tl().x, windows[i].tl().y);
+            cv::Point c = table.triplet.getCenter(coordParams);
+            cv::Point p1 = table.triplet.getP1(coordParams);
+            cv::Point p2 = table.triplet.getP2(coordParams);
 
             // If any point of triplet is out of scene boundaries, ignore it
             if ((c.x < 0 || c.x >= sceneDepth.cols || c.y < 0 || c.y >= sceneDepth.rows) ||
@@ -369,7 +369,7 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneDepth, std::vector<Has
                 usedTemplates.push_back(entry);
             }
 
-            reduced += windows[i].candidatesSize();
+            reduced += windows[i].candidates.size();
         }
 
         // Reset minVotesPerTemplate for all used templates
@@ -382,7 +382,7 @@ void Hasher::verifyTemplateCandidates(const cv::Mat &sceneDepth, std::vector<Has
 
         if (!windows[i].hasCandidates()) {
             emptyIndexes.push_back(i);
-            TripletCoords coordParams = Triplet::getCoordParams(info.maxTemplate.width, info.maxTemplate.height, referencePointsGrid, offsetTl.x, offsetTl.y);
+            TripletParams coordParams = Triplet::getCoordParams(info.maxTemplate.width, info.maxTemplate.height, referencePointsGrid, offsetTl.x, offsetTl.y);
         }
     }
 

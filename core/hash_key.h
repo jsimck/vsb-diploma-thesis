@@ -7,10 +7,10 @@
 /**
  * struct HashKey
  *
- * Custom hash key used in hash table to separate trained images ucharo
- * it's own bins. There can be max 12800 different hash keys, consisting of
- * (d1, d2, n1, n2, n3) where d1, d2 are depth relative depths (p2 - p1, p3 - p1)
- * and n1, n2, n3 quantized surface normals (ucharo 8 bins) at each pouchar of learned triplets
+ * Custom hash key used to quickly identify valid candidates for each Window.
+ * There can be max 12800 different hash keys, consisting of (d1, d2, n1, n2, n3) where:
+ *   - d1, d2 are depth relative depths (p1 - c, p2 - c)
+ *   - n1, n2, n3 are quantized surface normals (into 8 bins) at (p1, p2, c)
  * this gives 5 * 5 * 8 * 8 * 8 = 12800 possible different keys, where each key contains
  * list of templates corresponding to discretizied values of hash key.
  */

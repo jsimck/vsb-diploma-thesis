@@ -10,8 +10,10 @@
 /**
  * struct HashTable
  *
- * Hash table used to store trained templates with discretizied values into
- * coresponding bins, forming hash key of (d1, d2, n1, n2, n3)
+ * Hash table used to store template candidates with discretizied values into
+ * coresponding bins, forming hash key of (d1, d2, n1, n2, n3). Each hash table is
+ * represented with one triplet used to train and separate all templates into different
+ * hash keys.
  */
 struct HashTable {
 public:
@@ -20,7 +22,7 @@ public:
 
     // Constructors
     HashTable() {}
-    HashTable(Triplet triplet) : triplet(triplet){}
+    HashTable(const Triplet triplet) : triplet(triplet) {}
 
     // Operators
     friend std::ostream &operator<<(std::ostream &os, const HashTable &table);

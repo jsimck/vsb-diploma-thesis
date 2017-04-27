@@ -7,17 +7,17 @@
 /**
  * struct Match
  *
- * Holds template that passed all tests in template matching with object bounding box
- * relative to the current scene and score computed from template matching tests
+ * Holds template that passed all tests in template matching, stores object bounding box
+ * relative to the current scene and score computed from template matching tests.
  */
 struct Match {
 public:
-    cv::Rect objBB;
-    Template *t;
     float score;
+    cv::Rect objBB;
+    const Template *t;
 
     // Constructors
-    Match(cv::Rect bb, Template *t, float score = 0) : objBB(bb), t(t), score(score) {}
+    Match(const Template *t, const cv::Rect bb, const float score) : objBB(bb), t(t), score(score) {}
 
     // Friends
     bool operator==(const Match &rhs) const;

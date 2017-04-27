@@ -7,7 +7,7 @@
 /**
  * struct DataSetInfo
  *
- * Holds information about loaded data set for further computation
+ * Holds information about loaded data set for further computation.
  */
 struct DataSetInfo {
 public:

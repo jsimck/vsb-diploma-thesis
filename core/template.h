@@ -8,8 +8,8 @@
 /**
  * struct Template
  *
- * Template parse and downloaded from dataset http://cmp.felk.cvut.cz/t-less/
- * used across all matching process at all sorts of places
+ * Holds one template and all it's data that are either extracted at initialization
+ * or earned throught the process of template matching.
  */
 struct Template {
 public:
@@ -44,7 +44,7 @@ public:
     int votes;
 
     // Constructors
-    Template(uint id, std::string fileName, cv::Mat src, cv::Mat srcHSV, cv::Mat srcDepth, cv::Rect objBB, cv::Mat camRm2c, cv::Vec3d camTm2c)
+    Template(const uint id, const std::string fileName, cv::Mat src, cv::Mat srcHSV, cv::Mat srcDepth, const cv::Rect objBB, cv::Mat camRm2c, cv::Vec3d camTm2c)
         : votes(0), id(id), fileName(fileName), srcGray(src), srcHSV(srcHSV), srcDepth(srcDepth), objBB(objBB), camRm2c(camRm2c), camTm2c(camTm2c) {}
 
     // Methods

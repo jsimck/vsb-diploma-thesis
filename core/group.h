@@ -7,7 +7,7 @@
 /**
  * struct Group
  *
- * Only for purpose of separating each parsed template into it's own group
+ * Separates templates of different objects into separate groups.
  */
 struct Group {
 public:
@@ -16,7 +16,7 @@ public:
 
     // Constructors
     Group() {}
-    Group(std::string folderName, std::vector<Template> templates)
+    Group(const std::string folderName, std::vector<Template> templates)
             : folderName(folderName), templates(templates) {}
 };
 
