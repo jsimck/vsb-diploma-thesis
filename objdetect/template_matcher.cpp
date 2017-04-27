@@ -142,11 +142,11 @@ void TemplateMatcher::generateFeaturePoints(std::vector<Group> &groups) {
 #ifndef NDEBUG
 //            // Visualize extracted features
 //            cv::Mat visualizationMat;
-//            cv::cvtColor(t.srcGray, visualizationMat, CV_GRAY2BGR);
+//            cv::cvtColor(tpl.srcGray, visualizationMat, CV_GRAY2BGR);
 //
 //            for (int i = 0; i < featurePointsCount; ++i) {
-//                cv::Point ePOffset(t.edgePoints[i].x + t.objBB.tl().x, t.edgePoints[i].y + t.objBB.tl().y);
-//                cv::Point sPOffset(t.stablePoints[i].x + t.objBB.tl().x, t.stablePoints[i].y + t.objBB.tl().y);
+//                cv::Point ePOffset(tpl.edgePoints[i].x + tpl.objBB.tl().x, tpl.edgePoints[i].y + tpl.objBB.tl().y);
+//                cv::Point sPOffset(tpl.stablePoints[i].x + tpl.objBB.tl().x, tpl.stablePoints[i].y + tpl.objBB.tl().y);
 //                cv::circle(visualizationMat, ePOffset, 1, cv::Scalar(0, 0, 255), -1);
 //                cv::circle(visualizationMat, sPOffset, 1, cv::Scalar(0, 255, 0), -1);
 //            }
@@ -314,7 +314,7 @@ void TemplateMatcher::nonMaximaSuppression(std::vector<Match> &matches) {
         // Pick first element with highest score
         Match &firstMatch = matches[idx[0]];
 
-        // Store this index into suppress array and push to final matches, we won't check against this BB again
+        // Store this index into suppress array and push to final matches, we won'tpl check against this BB again
         suppress.push_back(idx[0]);
         pick.push_back(firstMatch);
 

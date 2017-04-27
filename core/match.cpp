@@ -1,7 +1,7 @@
 #include "match.h"
 
 bool Match::operator==(const Match &rhs) const {
-    return t->id == rhs.t->id;
+    return tpl->id == rhs.tpl->id;
 }
 
 bool Match::operator!=(const Match &rhs) const {
@@ -25,6 +25,6 @@ bool Match::operator>=(const Match &rhs) const {
 }
 
 std::ostream &operator<<(std::ostream &os, const Match &match) {
-    os << "objBB: " << match.objBB << " t: " << match.t << " score: " << match.score;
+    os << "objBB: " << match.objBB << " tpl: " << match.tpl << " score: " << match.score;
     return os;
 }

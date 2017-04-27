@@ -14,20 +14,19 @@
  */
 class TemplateParser {
 private:
+    static uint idCounter;
+
+    uint tplCount;
     std::string basePath;
-    unsigned int tplCount;
-    std::vector<std::string> templateFolders;
+    std::vector<std::string> folders;
     std::unique_ptr<std::vector<int>> indices;
 
+    Template parseGt(const int index, const std::string path, cv::FileNode &gtNode, DataSetInfo &info);
     void parseInfo(Template &tpl, cv::FileNode &infoNode);
-    Template parseGt(int index, std::string path, cv::FileNode &gtNode, DataSetInfo &info);
     void parseTemplate(std::vector<Template> &templates, DataSetInfo &info, std::string tplName);
-    void parseTemplate(std::vector<Template> &templates, DataSetInfo &info, std::string tplName, std::unique_ptr<std::vector<int>> &indices);
 public:
-    static int idCounter;
-
     TemplateParser(const std::string basePath = "/data", std::vector<std::string> templateFolders = {}, unsigned int tplCount = 1296)
-        : basePath(basePath), templateFolders(templateFolders), tplCount(tplCount) {}
+        : basePath(basePath), folders(templateFolders), tplCount(tplCount) {}
 
     void parse(std::vector<Group> &groups, DataSetInfo &info);
     void clearIndices();
@@ -42,7 +41,7 @@ public:
     // Setters
     void setBasePath(std::string path);
     void setTplCount(unsigned int tplCount);
-    void setTemplateFolders(const std::vector<std::string> &templateFolders);
+    void setFolders(const std::vector<std::string> &folders);
     void setIndices(std::unique_ptr<std::vector<int>> &indices);
 };
 

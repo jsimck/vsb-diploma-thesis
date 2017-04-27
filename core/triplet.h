@@ -32,10 +32,10 @@ public:
 
     // Methods
     cv::Point getPoint(int index, const TripletParams &params);
-    inline cv::Point getPoint(int x, int y, const TripletParams &params);
-    inline cv::Point getCenter(const TripletParams &params);
-    inline cv::Point getP1(const TripletParams &params);
-    inline cv::Point getP2(const TripletParams &params);
+    cv::Point getPoint(int x, int y, const TripletParams &params);
+    cv::Point getCenter(const TripletParams &params);
+    cv::Point getP1(const TripletParams &params);
+    cv::Point getP2(const TripletParams &params);
 
     void visualize(const cv::Mat &src, const cv::Size &grid, bool showGrid = true);
 

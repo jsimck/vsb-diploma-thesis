@@ -83,7 +83,7 @@ TripletParams Triplet::getCoordParams(const int width, const int height, const c
     return TripletParams(offsetX, offsetY, stepX, stepY, sOffsetX, sOffsetY);
 }
 
-inline cv::Point Triplet::getPoint(int x, int y, const TripletParams &params) {
+cv::Point Triplet::getPoint(int x, int y, const TripletParams &params) {
     return cv::Point(
         static_cast<int>(params.sOffsetX + params.offsetX + (x * params.stepX)),
         static_cast<int>(params.sOffsetY + params.offsetY + (y * params.stepY))
@@ -116,15 +116,15 @@ cv::Point Triplet::getPoint(int index, const TripletParams &params) {
     return getPoint(x, y, params);
 }
 
-inline cv::Point Triplet::getCenter(const TripletParams &params) {
+cv::Point Triplet::getCenter(const TripletParams &params) {
     return getPoint(0, params);
 }
 
-inline cv::Point Triplet::getP1(const TripletParams &params) {
+cv::Point Triplet::getP1(const TripletParams &params) {
     return getPoint(1, params);
 }
 
-inline cv::Point Triplet::getP2(const TripletParams &params) {
+cv::Point Triplet::getP2(const TripletParams &params) {
     return getPoint(2, params);
 }
 

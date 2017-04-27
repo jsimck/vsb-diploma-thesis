@@ -88,7 +88,7 @@ void Hasher::generateTriplets(std::vector<HashTable> &hashTables) {
         duplicate = false;
         for (int i = 0; i < hashTables.size(); ++i) {
             for (int j = 0; j < hashTables.size(); ++j) {
-                // Don't compare same triplets
+                // Don'tpl compare same triplets
                 if (i == j) continue;
                 if (hashTables[i].triplet == hashTables[j].triplet) {
                     // Duplicate generate new triplet
@@ -240,15 +240,15 @@ void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &hashTable
                 cv::Point p2 = hashTable.triplet.getP2(coordParams);
 
                 // Visualize triplets
-//                cv::Mat triplet = t.srcGray.clone();
+//                cv::Mat triplet = tpl.srcGray.clone();
 //                cv::cvtColor(triplet, triplet, CV_GRAY2BGR);
 //                cv::rectangle(triplet, gridOffset, cv::Point(gridOffset.x + info.maxTemplate.width, gridOffset.y + info.maxTemplate.height), cv::Scalar(0, 255, 0));
-//                cv::rectangle(triplet, t.objBB.tl(), t.objBB.br(), cv::Scalar(0, 0, 255));
+//                cv::rectangle(triplet, tpl.objBB.tl(), tpl.objBB.br(), cv::Scalar(0, 0, 255));
 //                for (int i = 0; i < 12; i++) {
-//                    Triplet t(cv::Point(i,0), cv::Point(i,1), cv::Point(i,2));
-//                    cv::circle(triplet, t.getPoint(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
-//                    cv::circle(triplet, t.getPoint(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
-//                    cv::circle(triplet, t.getPoint(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    Triplet tpl(cv::Point(i,0), cv::Point(i,1), cv::Point(i,2));
+//                    cv::circle(triplet, tpl.getPoint(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, tpl.getPoint(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, tpl.getPoint(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
 //                    Triplet t2(cv::Point(i,3), cv::Point(i,4), cv::Point(i,5));
 //                    cv::circle(triplet, t2.getPoint(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
 //                    cv::circle(triplet, t2.getPoint(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);

@@ -10,7 +10,7 @@ Classifier::Classifier(std::string basePath, std::vector<std::string> templateFo
 
     // Init parser
     parser.setBasePath(basePath);
-    parser.setTemplateFolders(templateFolders);
+    parser.setFolders(templateFolders);
     parser.setTplCount(1296);
 
     // Init objectness
