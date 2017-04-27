@@ -28,9 +28,9 @@ private:
 
     cv::Mat scene;
     cv::Mat sceneHSV;
-    cv::Mat sceneGrayscale;
+    cv::Mat sceneGray;
     cv::Mat sceneDepth;
-    cv::Mat sceneDepthNormalized;
+    cv::Mat sceneDepthNorma;
 
     DataSetInfo info;
     std::vector<Group> templateGroups;

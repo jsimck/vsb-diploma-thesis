@@ -249,10 +249,10 @@ void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &hashTable
 //                    cv::circle(triplet, tpl.getPoint(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
 //                    cv::circle(triplet, tpl.getPoint(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
 //                    cv::circle(triplet, tpl.getPoint(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
-//                    Triplet t2(cv::Point(i,3), cv::Point(i,4), cv::Point(i,5));
-//                    cv::circle(triplet, t2.getPoint(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
-//                    cv::circle(triplet, t2.getPoint(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
-//                    cv::circle(triplet, t2.getPoint(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    Triplet tMax(cv::Point(i,3), cv::Point(i,4), cv::Point(i,5));
+//                    cv::circle(triplet, tMax.getPoint(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, tMax.getPoint(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);
+//                    cv::circle(triplet, tMax.getPoint(3, coordParams), 2, cv::Scalar(0, 255, 0), -1);
 //                    Triplet t3(cv::Point(i,6), cv::Point(i,7), cv::Point(i,8));
 //                    cv::circle(triplet, t3.getPoint(1, coordParams), 2, cv::Scalar(0, 255, 0), -1);
 //                    cv::circle(triplet, t3.getPoint(2, coordParams), 2, cv::Scalar(0, 255, 0), -1);

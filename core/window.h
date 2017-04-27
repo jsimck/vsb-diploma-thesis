@@ -14,13 +14,13 @@ struct Window {
 public:
     int x;
     int y;
-    uint width;
-    uint height;
-    uint edgels;
+    int width;
+    int height;
+    int edgels;
     std::vector<Template *> candidates;
 
     // Constructors
-    Window(const int x = 0, const int y = 0, uint width = 0, uint height = 0, uint edgels = 0, std::vector<Template *> candidates = {})
+    Window(const int x = 0, const int y = 0, int width = 0, int height = 0, int edgels = 0, std::vector<Template *> candidates = {})
         : x(x), y(y), width(width), height(height), candidates(candidates), edgels(edgels) {}
 
     // Methods

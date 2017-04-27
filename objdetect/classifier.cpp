@@ -15,10 +15,9 @@ Classifier::Classifier(std::string basePath, std::vector<std::string> templateFo
 
     // Init objectness
     objectness.setStep(5);
-    objectness.setMinThreshold(0.01f);
-    objectness.setMaxThreshold(0.1f);
-    objectness.setSlidingWindowSizeFactor(1.0f);
-    objectness.setMatchThresholdFactor(0.3f);
+    objectness.setTMin(0.01f);
+    objectness.setTMax(0.1f);
+    objectness.setTMatch(0.3f);
 
     // Init hasher
     hasher.setReferencePointsGrid(cv::Size(12, 12));
@@ -101,20 +100,20 @@ void Classifier::loadScene() {
 
     // Convert and normalize
     cv::cvtColor(scene, sceneHSV, CV_BGR2HSV);
-    cv::cvtColor(scene, sceneGrayscale, CV_BGR2GRAY);
-    sceneGrayscale.convertTo(sceneGrayscale, CV_32F, 1.0f / 255.0f);
+    cv::cvtColor(scene, sceneGray, CV_BGR2GRAY);
+    sceneGray.convertTo(sceneGray, CV_32F, 1.0f / 255.0f);
     sceneDepth.convertTo(sceneDepth, CV_32F); // TODO work with 16S (int) rather than floats
-    sceneDepth.convertTo(sceneDepthNormalized, CV_32F, 1.0f / 65536.0f);
+    sceneDepth.convertTo(sceneDepthNorma, CV_32F, 1.0f / 65536.0f);
 
     // Check if conversion went ok
     assert(!sceneHSV.empty());
-    assert(!sceneGrayscale.empty());
-    assert(!sceneDepthNormalized.empty());
+    assert(!sceneGray.empty());
+    assert(!sceneDepthNorma.empty());
     assert(scene.type() == 16); // CV_8UC3
     assert(sceneHSV.type() == 16); // CV_8UC3
-    assert(sceneGrayscale.type() == 5); // CV_32FC1
+    assert(sceneGray.type() == 5); // CV_32FC1
     assert(sceneDepth.type() == 5); // CV_32FC1
-    assert(sceneDepthNormalized.type() == 5); // CV_32FC1
+    assert(sceneDepthNorma.type() == 5); // CV_32FC1
 
     std::cout << "DONE!" << std::endl << std::endl;
 }
@@ -127,7 +126,7 @@ void Classifier::detectObjectness() {
     // Objectness detection
     std::cout << "Objectness detection started... " << std::endl;
     Timer t;
-    objectness.objectness(sceneGrayscale, scene, sceneDepthNormalized, windows, info);
+    objectness.objectness(sceneGray, scene, sceneDepthNorma, windows, info);
     std::cout << "  |_ Windows classified as containing object extracted: " << windows.size() << std::endl;
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 }
@@ -162,7 +161,7 @@ void Classifier::matchTemplates() {
     // Verification started
     std::cout << "Template matching started... " << std::endl;
     Timer t;
-    templateMatcher.match(sceneHSV, sceneGrayscale, sceneDepth, windows, matches);
+    templateMatcher.match(sceneHSV, sceneGray, sceneDepth, windows, matches);
     std::cout << "Template matching took: " << t.elapsed() << "s" << std::endl;
 
 
@@ -273,11 +272,11 @@ const std::string &Classifier::getSceneName() const {
 }
 
 const cv::Mat &Classifier::getSceneDepthNormalized() const {
-    return sceneDepthNormalized;
+    return sceneDepthNorma;
 }
 
 const cv::Mat &Classifier::getSceneGrayscale() const {
-    return sceneGrayscale;
+    return sceneGray;
 }
 
 const std::vector<Group> &Classifier::getTemplateGroups() const {
@@ -311,7 +310,7 @@ void Classifier::setSceneDepth(const cv::Mat &sceneDepth) {
 
 void Classifier::setSceneDepthNormalized(const cv::Mat &sceneDepthNormalized) {
     assert(!sceneDepthNormalized.empty());
-    this->sceneDepthNormalized = sceneDepthNormalized;
+    this->sceneDepthNorma = sceneDepthNormalized;
 }
 
 void Classifier::setTemplateGroups(const std::vector<Group> &templateGroups) {
@@ -341,7 +340,7 @@ void Classifier::setSceneName(const std::string &sceneName) {
 
 void Classifier::setSceneGrayscale(const cv::Mat &sceneGrayscale) {
     assert(!sceneGrayscale.empty());
-    this->sceneGrayscale = sceneGrayscale;
+    this->sceneGray = sceneGrayscale;
 }
 
 void Classifier::setWindows(const std::vector<Window> &windows) {

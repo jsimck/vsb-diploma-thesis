@@ -11,7 +11,7 @@
  */
 struct DataSetInfo {
 public:
-    uint minEdgels;
+    int minEdgels;
     cv::Size smallestTemplate;
     cv::Size maxTemplate;
 

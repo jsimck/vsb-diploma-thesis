@@ -7,5 +7,5 @@ DataSetInfo::DataSetInfo() {
 void DataSetInfo::reset() {
     this->smallestTemplate = cv::Size(500, 500); // There are no templates larger than 400x400
     this->maxTemplate = cv::Size(0, 0);
-    this->minEdgels = UINT_MAX;
+    this->minEdgels = INT_MAX;
 }

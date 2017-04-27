@@ -19,37 +19,34 @@
  */
 class Objectness {
 private:
-    unsigned int step; // Stepping for sliding window [5]
-    float minThreshold; // Min threshold applied in sobel filtered image thresholding [0.01f]
-    float maxThreshold; // Max threshold applied in sobel filtered image thresholding [0.1f]
-    float matchThresholdFactor; // Factor used to reduce minEdge for objectness detection to improve occlusion/noise matching [30% -> 0.3f]
-    float slidingWindowSizeFactor; // Reduces sliding window size to improve edge detection [1.0f]
+    uint step; // Stepping for sliding window [5]
+    float tMin; // Min threshold applied in sobel filtered image thresholding [0.01f]
+    float tMax; // Max threshold applied in sobel filtered image thresholding [0.1f]
+    float tMatch; // Factor of minEdgels window should contain to be classified as valid [30% -> 0.3f]
 public:
     // Statics
     static void filterSobel(cv::Mat &src, cv::Mat &dst);
-    static void thresholdMinMax(cv::Mat &src, cv::Mat &dst, float minThreshold, float maxThreshold);
+    static void thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float max);
 
     // Constructors
-    Objectness(unsigned int step = 5, float minThreshold = 0.01f, float maxThreshold = 0.1f, float matchThresholdFactor = 0.3f, float slidingWindowSizeFactor = 1.0f)
-        : step(step), minThreshold(minThreshold), maxThreshold(maxThreshold), matchThresholdFactor(matchThresholdFactor), slidingWindowSizeFactor(slidingWindowSizeFactor) {}
+    Objectness(uint step = 5, float tMin = 0.01f, float tMax = 0.1f, float tMatch = 0.3f)
+        : step(step), tMin(tMin), tMax(tMax), tMatch(tMatch) {}
 
     // Methods
-    void extractMinEdgels(std::vector<Group> &templateGroups, DataSetInfo &info);
-    void objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, std::vector<Window> &windows, DataSetInfo &info);
+    void extractMinEdgels(std::vector<Group> &groups, DataSetInfo &info);
+    void objectness(cv::Mat &sceneGray, cv::Mat &sceneColor, cv::Mat &sceneDepthNorm, std::vector<Window> &windows, DataSetInfo &info);
 
     // Getters
-    unsigned int getStep() const;
-    float getMinThreshold() const;
-    float getMaxThreshold() const;
-    float getMatchThresholdFactor() const;
-    float getSlidingWindowSizeFactor() const;
+    uint getStep() const;
+    float getTMin() const;
+    float getTMax() const;
+    float getTMatch() const;
 
     // Setters
-    void setStep(unsigned int step);
-    void setMinThreshold(float minThreshold);
-    void setMaxThreshold(float maxThreshold);
-    void setMatchThresholdFactor(float matchThresholdFactor);
-    void setSlidingWindowSizeFactor(float slidingWindowSizeFactor);
+    void setStep(uint step);
+    void setTMin(float tMin);
+    void setTMax(float tMax);
+    void setTMatch(float tMatch);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_OBJECTNESS_H
