@@ -27,6 +27,7 @@ private:
     std::vector<std::string> templateFolders;
 
     cv::Mat scene;
+    cv::Mat sceneHSV;
     cv::Mat sceneGrayscale;
     cv::Mat sceneDepth;
     cv::Mat sceneDepthNormalized;

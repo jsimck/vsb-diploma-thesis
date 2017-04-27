@@ -20,6 +20,7 @@ private:
     uchar grayscaleMinThreshold;
 
     // Methods
+    inline cv::Vec3b normalizeHSV(const cv::Vec3b &px);
     inline void extractTemplateFeatures(std::vector<TemplateGroup> &groups);
     inline void generateFeaturePoints(std::vector<TemplateGroup> &groups);
     inline int quantizeOrientationGradient(float deg);
@@ -29,7 +30,7 @@ private:
     inline int testSurfaceNormalOrientation(const int tNormal, Window &w, const cv::Mat &srcDepth, const cv::Point &featurePoint, const cv::Range &n); // Test II
     inline int testIntensityGradients(const int tOrientation, Window &w, const cv::Mat &srcGrayscale, const cv::Point &featurePoint, const cv::Range &n); // Test III
     inline int testDepth(int physicalDiameter, std::vector<int> &depths); // Test IV
-    inline int testColor(); // Test V
+    inline int testColor(const cv::Vec3b tHSV, Window &w, const cv::Mat &sceneHSV, const cv::Point &featurePoint, const cv::Range &n); // Test V
 public:
     // Static methods
     static int median(std::vector<int> &values);
@@ -42,7 +43,7 @@ public:
           sobelMaxThreshold(sobelMaxThreshold), grayscaleMinThreshold(grayscaleMinThreshold), matchNeighbourhood(matchNeighbourhood) {}
 
     // Methods
-    void match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
+    void match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
                std::vector<Window> &windows, std::vector<TemplateMatch> &matches);
     void train(std::vector<TemplateGroup> &groups);
 

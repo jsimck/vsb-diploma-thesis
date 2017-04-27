@@ -41,11 +41,33 @@ int TemplateMatcher::quantizeOrientationGradient(float deg) {
     }
 }
 
+cv::Vec3b TemplateMatcher::normalizeHSV(const cv::Vec3b &px) {
+    const uchar tV = 22; // 0.12 of hue threshold
+    const uchar tS = 31; // 0.12 of saturation threshold
+
+    // Check for black
+    if (px[2] <= tV) {
+        return cv::Vec3b(120, px[1], px[2]); // Set to blue
+    }
+
+    // Check for white
+    if (px[2] > tV && px[1] < tS) {
+        return cv::Vec3b(30, px[1], px[2]); // Set to yellow
+    }
+}
+
 void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) {
     // Init engine
     typedef std::mt19937 engine;
 
-    // TODO - better generation of feature points
+    /* TODO - better generation of feature points
+     * as in [19] S. Hinterstoisser, V. Lepetit, S. Ilic, S. Holzer, G. Bradski, K. Konolige,
+     * and N. Navab, “Model based training, detection and pose estimation
+     * of texture-less 3D objects in heavily cluttered scenes,” in ACCV, 2012.
+     * - 3.1.2 Reducing Feature Redundancy:
+     * - Color Gradient Features:
+     * - Surface Normal Features:
+     */
     for (auto &group : groups) {
         for (auto &t : group.templates) {
             std::vector<cv::Point> cannyPoints;
@@ -118,21 +140,21 @@ void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) 
             assert(t.edgePoints.size() == featurePointsCount);
 
 #ifndef NDEBUG
-            // Visualize extracted features
-            cv::Mat visualizationMat;
-            cv::cvtColor(t.src, visualizationMat, CV_GRAY2BGR);
-
-            for (int i = 0; i < featurePointsCount; ++i) {
-                cv::Point ePOffset(t.edgePoints[i].x + t.objBB.tl().x, t.edgePoints[i].y + t.objBB.tl().y);
-                cv::Point sPOffset(t.stablePoints[i].x + t.objBB.tl().x, t.stablePoints[i].y + t.objBB.tl().y);
-                cv::circle(visualizationMat, ePOffset, 1, cv::Scalar(0, 0, 255), -1);
-                cv::circle(visualizationMat, sPOffset, 1, cv::Scalar(0, 255, 0), -1);
-            }
-
-            cv::imshow("TemplateMatcher::train Sobel", sobel);
-            cv::imshow("TemplateMatcher::train Canny", canny);
-            cv::imshow("TemplateMatcher::train Feature points", visualizationMat);
-            cv::waitKey(0);
+//            // Visualize extracted features
+//            cv::Mat visualizationMat;
+//            cv::cvtColor(t.src, visualizationMat, CV_GRAY2BGR);
+//
+//            for (int i = 0; i < featurePointsCount; ++i) {
+//                cv::Point ePOffset(t.edgePoints[i].x + t.objBB.tl().x, t.edgePoints[i].y + t.objBB.tl().y);
+//                cv::Point sPOffset(t.stablePoints[i].x + t.objBB.tl().x, t.stablePoints[i].y + t.objBB.tl().y);
+//                cv::circle(visualizationMat, ePOffset, 1, cv::Scalar(0, 0, 255), -1);
+//                cv::circle(visualizationMat, sPOffset, 1, cv::Scalar(0, 255, 0), -1);
+//            }
+//
+//            cv::imshow("TemplateMatcher::train Sobel", sobel);
+//            cv::imshow("TemplateMatcher::train Canny", canny);
+//            cv::imshow("TemplateMatcher::train Feature points", visualizationMat);
+//            cv::waitKey(0);
 #endif
         }
     }
@@ -162,7 +184,7 @@ void TemplateMatcher::extractTemplateFeatures(std::vector<TemplateGroup> &groups
                 t.features.orientationGradients[i] = quantizeOrientationGradient(extractOrientationGradient(t.src, edgePOff));
                 t.features.surfaceNormals[i] = Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(t.srcDepth, stablePOff));
                 t.features.depth[i] = t.srcDepth.at<float>(stablePOff);
-                t.features.color[i] = t.srcHSV.at<cv::Vec3b>(stablePOff);
+                t.features.color[i] = normalizeHSV(t.srcHSV.at<cv::Vec3b>(edgePOff));
                 depthArray.push_back(static_cast<int>(t.features.depth[i]));
 
                 // Checks
@@ -190,8 +212,8 @@ bool TemplateMatcher::testObjectSize(float scale) {
     return true; // TODO implement object size test
 }
 
-
 int TemplateMatcher::testSurfaceNormalOrientation(const int tNormal, Window &w, const cv::Mat &srcDepth, const cv::Point &featurePoint, const cv::Range &n) {
+    // TODO Use bitwise operations using response maps
     for (int offsetY = n.start; offsetY <= n.end; ++offsetY) {
         for (int offsetX = n.start; offsetX <= n.end; ++offsetX) {
             // Apply needed offsets to stable point
@@ -213,6 +235,7 @@ int TemplateMatcher::testSurfaceNormalOrientation(const int tNormal, Window &w, 
 }
 
 int TemplateMatcher::testIntensityGradients(const int tOrientation, Window &w, const cv::Mat &srcGrayscale, const cv::Point &featurePoint, const cv::Range &n) {
+    // TODO Use bitwise operations using response maps
     for (int offsetY = n.start; offsetY <= n.end; ++offsetY) {
         for (int offsetX = n.start; offsetX <= n.end; ++offsetX) {
             // Apply needed offsets to edge point
@@ -245,17 +268,44 @@ int TemplateMatcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
     return score;
 }
 
-int TemplateMatcher::testColor() {
+/*
+ * TODO - improvement
+ * In practice we do not take into account the pixels that are too close to the
+ * object projection boundaries, to be tolerant to the inaccuracy of the current
+ * pose estimate. This can be done eciently
+ * by eroding the object projection
+ * beforehand.
+ */
+int TemplateMatcher::testColor(const cv::Vec3b tHSV, Window &w, const cv::Mat &sceneHSV, const cv::Point &featurePoint, const cv::Range &n) {
+
+    for (int offsetY = n.start; offsetY <= n.end; ++offsetY) {
+        for (int offsetX = n.start; offsetX <= n.end; ++offsetX) {
+            // Apply needed offsets to edge point
+            cv::Point stablePoint(featurePoint.x + w.tl().x + offsetX, featurePoint.y + w.tl().y + offsetY);
+
+            // Checks
+            assert(stablePoint.x >= 0);
+            assert(stablePoint.y >= 0);
+            assert(stablePoint.x < sceneHSV.cols);
+            assert(stablePoint.y < sceneHSV.rows);
+
+            const uchar threshold = 5;
+            if (std::abs(normalizeHSV(tHSV)[0] - normalizeHSV(sceneHSV.at<cv::Vec3b>(stablePoint))[0]) < threshold) {
+                return 1;
+            }
+        }
+    }
+
     return 0;
 }
 
-void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
+void TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
                             std::vector<Window> &windows, std::vector<TemplateMatch> &matches) {
     // Checks
-    assert(!srcColor.empty());
+    assert(!srcHSV.empty());
     assert(!srcGrayscale.empty());
     assert(!srcDepth.empty());
-    assert(srcColor.type() == 16); // CV_8UC3
+    assert(srcHSV.type() == 16); // CV_8UC3
     assert(srcGrayscale.type() == 5); // CV_32FC1
     assert(srcDepth.type() == 5); // CV_32FC1
     assert(windows.size() > 0);
@@ -278,7 +328,7 @@ void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale
             if (!testObjectSize(1.0f)) continue;
 
             // Test II
-            for (int i = 0; i < candidate->stablePoints.size(); i++) {
+            for (int i = 0; i < featurePointsCount; i++) {
                 scoreII += testSurfaceNormalOrientation((*candidate).features.surfaceNormals[i], windows[l], srcDepth,
                                                         candidate->stablePoints[i], matchNeighbourhood);
             }
@@ -289,12 +339,22 @@ void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale
             }
 
             // Test III
-            for (int i = 0; i < candidate->edgePoints.size(); i++) {
+            for (int i = 0; i < featurePointsCount; i++) {
                 scoreIII += testIntensityGradients((*candidate).features.orientationGradients[i], windows[l],
                                                          srcDepth, candidate->edgePoints[i], matchNeighbourhood);
             }
 
             if (scoreIII < minThreshold) {
+                candidate->votes = -1; // TODO - remove, for testing only
+                continue;
+            }
+
+            for (int i = 0; i < featurePointsCount; i++) {
+                scoreV += testColor((*candidate).features.color[i], windows[l],
+                                srcHSV, candidate->edgePoints[i], matchNeighbourhood);
+            }
+
+            if (scoreV < minThreshold) {
                 candidate->votes = -1; // TODO - remove, for testing only
                 continue;
             }
@@ -305,6 +365,7 @@ void TemplateMatcher::match(const cv::Mat &srcColor, const cv::Mat &srcGrayscale
                 << ", window: " << l
                 << ", score II: " << scoreII
                 << ", score III: " << scoreIII
+                << ", score V: " << scoreV
                 << std::endl;
 #endif
         }

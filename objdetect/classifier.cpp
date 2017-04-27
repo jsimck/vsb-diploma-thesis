@@ -101,15 +101,18 @@ void Classifier::loadScene() {
     setSceneDepth(cv::imread(basePath + scenePath + "depth/" + sceneName, CV_LOAD_IMAGE_UNCHANGED));
 
     // Convert and normalize
+    cv::cvtColor(scene, sceneHSV, CV_BGR2HSV);
     cv::cvtColor(scene, sceneGrayscale, CV_BGR2GRAY);
     sceneGrayscale.convertTo(sceneGrayscale, CV_32F, 1.0f / 255.0f);
-    sceneDepth.convertTo(sceneDepth, CV_32F);
+    sceneDepth.convertTo(sceneDepth, CV_32F); // TODO work with 16S (int) rather than floats
     sceneDepth.convertTo(sceneDepthNormalized, CV_32F, 1.0f / 65536.0f);
 
     // Check if conversion went ok
+    assert(!sceneHSV.empty());
     assert(!sceneGrayscale.empty());
     assert(!sceneDepthNormalized.empty());
     assert(scene.type() == 16); // CV_8UC3
+    assert(sceneHSV.type() == 16); // CV_8UC3
     assert(sceneGrayscale.type() == 5); // CV_32FC1
     assert(sceneDepth.type() == 5); // CV_32FC1
     assert(sceneDepthNormalized.type() == 5); // CV_32FC1
@@ -154,7 +157,14 @@ void Classifier::verifyTemplateCandidates() {
 }
 
 void Classifier::matchTemplates() {
+    // Checks
+    assert(windows.size() > 0);
 
+    // Verification started
+    std::cout << "Template matching started... " << std::endl;
+    Timer t;
+    templateMatcher.match(sceneHSV, sceneGrayscale, sceneDepth, windows, matches);
+    std::cout << "Template matching took: " << t.elapsed() << "s" << std::endl;
 }
 
 void Classifier::classify() {
@@ -185,9 +195,7 @@ void Classifier::classify() {
     verifyTemplateCandidates();
 
     // Match templates
-    Timer templateMatcherTimer;
-    templateMatcher.match(scene, sceneGrayscale, sceneDepth, windows, matches);
-    std::cout << "Template matching took: " << templateMatcherTimer.elapsed() << "s" << std::endl;
+    matchTemplates();
 
     // Template TemplateMatcher
     Timer tMatching;
@@ -232,9 +240,7 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
     verifyTemplateCandidates();
 
     // Match templates
-    Timer templateMatcherTimer;
-    templateMatcher.match(scene, sceneGrayscale, sceneDepth, windows, matches);
-    std::cout << "Template matching took: " << templateMatcherTimer.elapsed() << "s" << std::endl;
+    matchTemplates();
 
     // Template TemplateMatcher
     std::vector<cv::Rect> matchBBs = matcher_deprecated::matchTemplate(sceneGrayscale, windows);
