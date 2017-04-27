@@ -299,72 +299,62 @@ int TemplateMatcher::testColor(const cv::Vec3b tHSV, Window &w, const cv::Mat &s
     return 0;
 }
 
-std::vector<cv::Rect> TemplateMatcher::nonMaximaSuppresion(std::vector<TemplateMatch> &matches) {
+void TemplateMatcher::nonMaximaSuppression(std::vector<TemplateMatch> &matches) {
     // Checks
     assert(matches.size() > 0);
 
-    const float overlapThresh = 0.1f;
-
     // Sort all matches by their highest score
     std::sort(matches.rbegin(), matches.rend());
+    const float overlapThresh = 0.1f;
 
-    // Indexes of bounding boxes to check (length of BB at start) and fill it with index values
-    std::vector<cv::Rect> pick;
-    std::vector<int> idx(matches.size());
+    std::vector<TemplateMatch> pick;
+    std::vector<int> suppress; // Indexes of matches to remove
+    std::vector<int> idx(matches.size()); // Indexes of bounding boxes to check
     std::iota(idx.begin(), idx.end(), 0);
-    std::vector<int> suppress; // Vector to store indexes which we want to remove at end of each iteration
 
-    // Loop until we check all indexes
     while (!idx.empty()) {
-        // Pick first element with highest score (sorted from highest->lowest in previous step)
-        int firstIndex = idx.front();
-        cv::Rect firstBB = matches[firstIndex].bb;
+        // Pick first element with highest score
+        TemplateMatch &firstMatch = matches[idx[0]];
 
-        // Store this index into suppress array, we won't check against this BB again
-        suppress.push_back(firstIndex);
+        // Store this index into suppress array and push to final matches, we won't check against this BB again
+        suppress.push_back(idx[0]);
+        pick.push_back(firstMatch);
 
-        // Push this BB to final array of filtered bounding boxes
-        pick.push_back(firstBB);
-
-        // Check overlaps with all other bounding boxes, skipping first (since it is the one we're checking)
+        // Check overlaps with all other bounding boxes, skipping first one (since it is the one we're checking with)
         for (int i = 1; i < idx.size(); i++) {
-            // Get next index and bounding box in line
-            int offsetIndex = *(&idx.front() + i);
-            cv::Rect BB = matches[offsetIndex].bb;
-
-            // Get overlap BB coordinates
-            int ox1 = std::max<int>(BB.tl().x, firstBB.tl().x);
-            int ox2 = std::min<int>(BB.br().x, firstBB.br().x);
-            int oy1 = std::max<int>(BB.tl().y, firstBB.tl().y);
-            int oy2 = std::min<int>(BB.br().y, firstBB.br().y);
+            // Get overlap BB coordinates of each other bounding box and compare with the first one
+            cv::Rect bb = matches[idx[i]].bb;
+            int x1 = std::max<int>(bb.tl().x, firstMatch.bb.tl().x);
+            int x2 = std::min<int>(bb.br().x, firstMatch.bb.br().x);
+            int y1 = std::max<int>(bb.tl().y, firstMatch.bb.tl().y);
+            int y2 = std::min<int>(bb.br().y, firstMatch.bb.br().y);
 
             // Calculate overlap area
-            int h = std::max<int>(0, oy2 - oy1);
-            int w = std::max<int>(0, ox2 - ox1);
-            float overlap = static_cast<float>(h * w) / static_cast<float>(firstBB.area());
+            int h = std::max<int>(0, y2 - y1);
+            int w = std::max<int>(0, x2 - x1);
+            float overlap = static_cast<float>(h * w) / static_cast<float>(firstMatch.bb.area());
 
             // Push index of this window to suppression array, since it is overlapping over minimum threshold
             // with a window of higher score, we can safely ignore this window
             if (overlap > overlapThresh) {
-                suppress.push_back(offsetIndex);
+                suppress.push_back(idx[i]);
             }
         }
 
         // Remove all suppress indexes from idx array
         idx.erase(std::remove_if(idx.begin(), idx.end(),
-                                 [&suppress, &idx](int v) -> bool {
-                                     return std::find(suppress.begin(), suppress.end(), v) != suppress.end();
-                                 }
+             [&suppress, &idx](int v) -> bool {
+                 return std::find(suppress.begin(), suppress.end(), v) != suppress.end();
+             }
         ), idx.end());
 
-        // Clear suppress list
         suppress.clear();
     }
 
-    return pick;
+    matches.swap(pick);
 }
 
-std::vector<cv::Rect> TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
+void TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
                             std::vector<Window> &windows, std::vector<TemplateMatch> &matches) {
     // Checks
     assert(!srcHSV.empty());
@@ -398,10 +388,7 @@ std::vector<cv::Rect> TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Ma
                                                         candidate->stablePoints[i], matchNeighbourhood);
             }
 
-            if (scoreII < minThreshold) {
-                candidate->votes = -1; // TODO - remove, for testing only
-                continue;
-            }
+            if (scoreII < minThreshold) continue;
 
             // Test III
             for (int i = 0; i < featurePointsCount; i++) {
@@ -409,20 +396,15 @@ std::vector<cv::Rect> TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Ma
                                                          srcDepth, candidate->edgePoints[i], matchNeighbourhood);
             }
 
-            if (scoreIII < minThreshold) {
-                candidate->votes = -1; // TODO - remove, for testing only
-                continue;
-            }
+            if (scoreIII < minThreshold) continue;
 
+            // Test V
             for (int i = 0; i < featurePointsCount; i++) {
                 scoreV += testColor((*candidate).features.color[i], windows[l],
                                 srcHSV, candidate->edgePoints[i], matchNeighbourhood);
             }
 
-            if (scoreV < minThreshold) {
-                candidate->votes = -1; // TODO - remove, for testing only
-                continue;
-            }
+            if (scoreV < minThreshold) continue;
 
 //#ifndef NDEBUG
 //            std::cout
@@ -433,37 +415,15 @@ std::vector<cv::Rect> TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Ma
 //                << ", score V: " << scoreV
 //                << std::endl;
 //#endif
-            // Template passed all tests, push to template matches
+            // Push template that passed all tests to matches array
             float score = (scoreII / featurePointsCount) + (scoreIII / featurePointsCount) + (scoreV / featurePointsCount);
             cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
             matches.push_back(TemplateMatch(matchBB, candidate, score));
         }
-
-        // TODO - remove, only for testing --->>>
-        // Check if there are any more candidates with positive votes
-        bool candidatesLeft = false;
-        for (auto &candidate : windows[l].candidates) {
-            if (candidate->votes >= 0) {
-                candidatesLeft = true;
-                break;
-            };
-        }
-
-        if (!candidatesLeft) {
-            removeIndex.push_back(l);
-        }
-        // TODO - remove, only for testing ^^^^
     }
 
-    // TODO - remove, only for testing --->>>
-    std::cout << windows.size() << " ----- ";
-    // Remove empty windows
-    utils::removeIndex<Window>(windows, removeIndex);
-    std::cout << windows.size() << std::endl;
-    // TODO - remove, only for testing ^^^^
-
     // Run non maxima suppression on matches
-    return nonMaximaSuppresion(matches);
+    nonMaximaSuppression(matches);
 }
 
 uint TemplateMatcher::getFeaturePointsCount() const {

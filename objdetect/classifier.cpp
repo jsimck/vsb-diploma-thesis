@@ -1,5 +1,4 @@
 #include "classifier.h"
-#include "matching_deprecated.h"
 #include "../utils/timer.h"
 
 Classifier::Classifier(std::string basePath, std::vector<std::string> templateFolders, std::string scenePath, std::string sceneName) {
@@ -163,14 +162,16 @@ void Classifier::matchTemplates() {
     // Verification started
     std::cout << "Template matching started... " << std::endl;
     Timer t;
-    std::vector<cv::Rect> matchBBs = templateMatcher.match(sceneHSV, sceneGrayscale, sceneDepth, windows, matches);
+    templateMatcher.match(sceneHSV, sceneGrayscale, sceneDepth, windows, matches);
     std::cout << "Template matching took: " << t.elapsed() << "s" << std::endl;
 
 
+    std::cout << "SIZE: " << matches.size() << std::endl;
+
     // Template TemplateMatcher
     cv::Mat sceneCopy = scene.clone();
-    for (auto &&bB : matchBBs) {
-        cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
+    for (auto &&bB : matches) {
+        cv::rectangle(sceneCopy, cv::Point(bB.bb.x, bB.bb.y), cv::Point(bB.bb.x + bB.bb.width, bB.bb.y + bB.bb.height), cv::Scalar(0, 255, 0));
     }
 
     // Show matched template results
