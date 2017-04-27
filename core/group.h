@@ -5,19 +5,18 @@
 #include "template.h"
 
 /**
- * struct TemplateGroup
+ * struct Group
  *
- * Simple structure, served only for purpose of separating each parsed template
- * into it's own group
+ * Only for purpose of separating each parsed template into it's own group
  */
-struct TemplateGroup {
+struct Group {
 public:
     std::string folderName;
     std::vector<Template> templates;
 
     // Constructors
-    TemplateGroup() {}
-    TemplateGroup(std::string folderName, std::vector<Template> templates)
+    Group() {}
+    Group(std::string folderName, std::vector<Template> templates)
             : folderName(folderName), templates(templates) {}
 };
 

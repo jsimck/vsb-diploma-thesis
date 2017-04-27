@@ -3,7 +3,7 @@
 
 int TemplateParser::idCounter = 0;
 
-void TemplateParser::parse(std::vector<TemplateGroup> &groups, DatasetInfo &info) {
+void TemplateParser::parse(std::vector<Group> &groups, DataSetInfo &info) {
     // Checks
     assert(this->templateFolders.size() > 0);
     int parsedTemplatesCount = 0;
@@ -23,7 +23,7 @@ void TemplateParser::parse(std::vector<TemplateGroup> &groups, DatasetInfo &info
         }
 
         // Push to groups vector
-        groups.push_back(TemplateGroup(tplName, templates));
+        groups.push_back(Group(tplName, templates));
         parsedTemplatesCount += templates.size();
         std::cout << "  |_ Parsed: " << tplName << ", templates size: " << templates.size() << std::endl;
     }
@@ -31,7 +31,7 @@ void TemplateParser::parse(std::vector<TemplateGroup> &groups, DatasetInfo &info
     std::cout << "  |_ Parsed total: " << parsedTemplatesCount << " templates" << std::endl;
 }
 
-void TemplateParser::parseTemplate(std::vector<Template> &templates, DatasetInfo &info, std::string tplName) {
+void TemplateParser::parseTemplate(std::vector<Template> &templates, DataSetInfo &info, std::string tplName) {
     // Load obj_gt
     cv::FileStorage fs;
     fs.open(this->basePath + tplName + "/gt.yml", cv::FileStorage::READ);
@@ -61,7 +61,7 @@ void TemplateParser::parseTemplate(std::vector<Template> &templates, DatasetInfo
     fs.release();
 }
 
-void TemplateParser::parseTemplate(std::vector<Template> &templates, DatasetInfo &info, std::string tplName, std::unique_ptr<std::vector<int>> &indices) {
+void TemplateParser::parseTemplate(std::vector<Template> &templates, DataSetInfo &info, std::string tplName, std::unique_ptr<std::vector<int>> &indices) {
     // Load obj_gt
     cv::FileStorage fs;
     fs.open(this->basePath + tplName + "/gt.yml", cv::FileStorage::READ);
@@ -93,7 +93,7 @@ void TemplateParser::parseTemplate(std::vector<Template> &templates, DatasetInfo
     fs.release();
 }
 
-Template TemplateParser::parseGt(int index, std::string path, cv::FileNode &gtNode, DatasetInfo &info) {
+Template TemplateParser::parseGt(int index, std::string path, cv::FileNode &gtNode, DataSetInfo &info) {
     // Init template param matrices
     std::vector<float> vCamRm2c, vCamTm2c;
     std::vector<int> vObjBB;
@@ -126,17 +126,17 @@ Template TemplateParser::parseGt(int index, std::string path, cv::FileNode &gtNo
     srcDepth.convertTo(srcDepth, CV_32F); // because of surface normal calculation, don't doo normalization
 
     // Find smallest object
-    if (objBB.area() < info.smallestTemplateSize.area()) {
-        info.smallestTemplateSize.width = objBB.width;
-        info.smallestTemplateSize.height = objBB.height;
+    if (objBB.area() < info.smallestTemplate.area()) {
+        info.smallestTemplate.width = objBB.width;
+        info.smallestTemplate.height = objBB.height;
     }
 
     // Find largest object
-    if (objBB.width >= info.maxTemplateSize.width) {
-        info.maxTemplateSize.width = objBB.width;
+    if (objBB.width >= info.maxTemplate.width) {
+        info.maxTemplate.width = objBB.width;
     }
-    if (objBB.height >= info.maxTemplateSize.height) {
-        info.maxTemplateSize.height = objBB.height;
+    if (objBB.height >= info.maxTemplate.height) {
+        info.maxTemplate.height = objBB.height;
     }
 
     // Checks

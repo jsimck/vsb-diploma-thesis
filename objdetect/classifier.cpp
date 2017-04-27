@@ -47,8 +47,8 @@ void Classifier::parseTemplates() {
     std::cout << "Parsing... " << std::endl;
     parser.parse(templateGroups, info);
     assert(templateGroups.size() > 0);
-    std::cout << "  |_ Smallest template found: " << info.smallestTemplateSize << std::endl;
-    std::cout << "  |_ Largest template found: " << info.maxTemplateSize << std::endl << std::endl;
+    std::cout << "  |_ Smallest template found: " << info.smallestTemplate << std::endl;
+    std::cout << "  |_ Largest template found: " << info.maxTemplate << std::endl << std::endl;
     std::cout << "DONE! " << templateGroups.size() << " template groups parsed" << std::endl;
 }
 
@@ -121,7 +121,7 @@ void Classifier::loadScene() {
 
 void Classifier::detectObjectness() {
     // Checks
-    assert(info.smallestTemplateSize.area() > 0);
+    assert(info.smallestTemplate.area() > 0);
     assert(info.minEdgels > 0);
 
     // Objectness detection
@@ -171,7 +171,7 @@ void Classifier::matchTemplates() {
     // Template TemplateMatcher
     cv::Mat sceneCopy = scene.clone();
     for (auto &&bB : matches) {
-        cv::rectangle(sceneCopy, cv::Point(bB.bb.x, bB.bb.y), cv::Point(bB.bb.x + bB.bb.width, bB.bb.y + bB.bb.height), cv::Scalar(0, 255, 0));
+        cv::rectangle(sceneCopy, cv::Point(bB.objBB.x, bB.objBB.y), cv::Point(bB.objBB.x + bB.objBB.width, bB.objBB.y + bB.objBB.height), cv::Scalar(0, 255, 0));
     }
 
     // Show matched template results
@@ -280,7 +280,7 @@ const cv::Mat &Classifier::getSceneGrayscale() const {
     return sceneGrayscale;
 }
 
-const std::vector<TemplateGroup> &Classifier::getTemplateGroups() const {
+const std::vector<Group> &Classifier::getTemplateGroups() const {
     return templateGroups;
 }
 
@@ -288,7 +288,7 @@ const std::vector<Window> &Classifier::getWindows() const {
     return windows;
 }
 
-const std::vector<TemplateMatch> &Classifier::getMatches() const {
+const std::vector<Match> &Classifier::getMatches() const {
     return matches;
 }
 
@@ -314,7 +314,7 @@ void Classifier::setSceneDepthNormalized(const cv::Mat &sceneDepthNormalized) {
     this->sceneDepthNormalized = sceneDepthNormalized;
 }
 
-void Classifier::setTemplateGroups(const std::vector<TemplateGroup> &templateGroups) {
+void Classifier::setTemplateGroups(const std::vector<Group> &templateGroups) {
     assert(templateGroups.size() > 0);
     this->templateGroups = templateGroups;
 }
@@ -349,7 +349,7 @@ void Classifier::setWindows(const std::vector<Window> &windows) {
     this->windows = windows;
 }
 
-void Classifier::setMatches(const std::vector<TemplateMatch> &matches) {
+void Classifier::setMatches(const std::vector<Match> &matches) {
     assert(matches.size() > 0);
     this->matches = matches;
 }

@@ -3,7 +3,7 @@
 
 #include <string>
 #include "../core/template.h"
-#include "../core/template_group.h"
+#include "../core/group.h"
 #include "../core/window.h"
 #include "../core/dataset_info.h"
 
@@ -34,8 +34,8 @@ public:
         : step(step), minThreshold(minThreshold), maxThreshold(maxThreshold), matchThresholdFactor(matchThresholdFactor), slidingWindowSizeFactor(slidingWindowSizeFactor) {}
 
     // Methods
-    void extractMinEdgels(std::vector<TemplateGroup> &templateGroups, DatasetInfo &info);
-    void objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, std::vector<Window> &windows, DatasetInfo &info);
+    void extractMinEdgels(std::vector<Group> &templateGroups, DataSetInfo &info);
+    void objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, std::vector<Window> &windows, DataSetInfo &info);
 
     // Getters
     unsigned int getStep() const;

@@ -13,23 +13,23 @@
  */
 struct Template {
 public:
-    int id;
+    uint id;
     std::string fileName;
-    cv::Mat src;
+    cv::Mat srcGray;
     cv::Mat srcHSV;
     cv::Mat srcDepth;
 
-    // Template matching feature points
+    // Extracted template feature points
     std::vector<cv::Point> edgePoints;
     std::vector<cv::Point> stablePoints;
 
-    // Learned features for template matching
+    // Matching Features
     struct {
-        uint depthMedian; // median value of depth over all feature points
-        std::unordered_map<int, int> orientationGradients; // <index of point from edgePoints array, quantized orientation>
-        std::unordered_map<int, int> surfaceNormals; // <index of point from stablePoints array, quantized orientation>
-        std::unordered_map<int, float> depth; // <index of point from stablePoints array, px value of depth image>
-        std::unordered_map<int, cv::Vec3b> color; // <index of point from stablePoints array, px value of HSV image>
+        uint median; // median value of depths over all feature points
+        std::vector<uchar> gradients; // quantized oriented gradients
+        std::vector<uchar> normals; // quantized surface normals
+        std::vector<float> depths; // depth value
+        std::vector<cv::Vec3b> colors; // HSV color space value
     } features;
 
     // Template .yml parameters
@@ -44,12 +44,11 @@ public:
     int votes;
 
     // Constructors
-    Template(int id, std::string fileName, cv::Mat src, cv::Mat srcHSV, cv::Mat srcDepth, cv::Rect objBB, cv::Mat camRm2c, cv::Vec3d camTm2c)
-        : votes(0), id(id), fileName(fileName), src(src), srcHSV(srcHSV), srcDepth(srcDepth), objBB(objBB), camRm2c(camRm2c), camTm2c(camTm2c) {}
-//    Template(int id, std::string fileName, cv::Mat src, cv::Mat srcHSV, cv::Mat srcDepth, cv::Rect objBB, cv::Mat camRm2c, cv::Vec3d camTm2c);
+    Template(uint id, std::string fileName, cv::Mat src, cv::Mat srcHSV, cv::Mat srcDepth, cv::Rect objBB, cv::Mat camRm2c, cv::Vec3d camTm2c)
+        : votes(0), id(id), fileName(fileName), srcGray(src), srcHSV(srcHSV), srcDepth(srcDepth), objBB(objBB), camRm2c(camRm2c), camTm2c(camTm2c) {}
 
     // Methods
-    void voteUp();
+    void vote();
     void resetVotes();
     void applyROI();
     void resetROI();

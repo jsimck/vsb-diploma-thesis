@@ -62,7 +62,7 @@ void Objectness::thresholdMinMax(cv::Mat &src, cv::Mat &dst, float minThreshold,
     }
 }
 
-void Objectness::extractMinEdgels(std::vector<TemplateGroup> &templateGroups, DatasetInfo &info) {
+void Objectness::extractMinEdgels(std::vector<Group> &templateGroups, DataSetInfo &info) {
     // Checks
     assert(!templateGroups.empty());
 
@@ -94,9 +94,9 @@ void Objectness::extractMinEdgels(std::vector<TemplateGroup> &templateGroups, Da
 }
 
 // TODO - we should sent only the specific window locations for further matching
-void Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, std::vector<Window> &windows, DatasetInfo &info) {
+void Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Mat &sceneDepthNormalized, std::vector<Window> &windows, DataSetInfo &info) {
     // Check thresholds and min edgels
-    assert(info.smallestTemplateSize.area() > 0);
+    assert(info.smallestTemplate.area() > 0);
     assert(info.minEdgels > 0);
     assert(matchThresholdFactor > 0);
     assert(slidingWindowSizeFactor > 0);
@@ -127,8 +127,8 @@ void Objectness::objectness(cv::Mat &sceneGrayscale, cv::Mat &sceneColor, cv::Ma
 
     // Init helper variables
     int minEdgels = static_cast<int>(info.minEdgels * matchThresholdFactor);
-    int sizeX = static_cast<int>(info.smallestTemplateSize.width * slidingWindowSizeFactor);
-    int sizeY = static_cast<int>(info.smallestTemplateSize.height * slidingWindowSizeFactor);
+    int sizeX = static_cast<int>(info.smallestTemplate.width * slidingWindowSizeFactor);
+    int sizeY = static_cast<int>(info.smallestTemplate.height * slidingWindowSizeFactor);
 
     // Slide window over scene and calculate edgel count for each overlap
     for (int y = 0; y < sceneSobel.rows - sizeY; y += step) {

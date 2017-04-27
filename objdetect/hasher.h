@@ -3,7 +3,7 @@
 
 #include <opencv2/opencv.hpp>
 #include "../core/hash_table.h"
-#include "../core/template_group.h"
+#include "../core/group.h"
 #include "../core/window.h"
 #include "../core/dataset_info.h"
 
@@ -27,7 +27,7 @@ private:
 
     void generateTriplets(std::vector<HashTable> &hashTables);
     void calculateDepthHistogramRanges(unsigned long histogramSum, unsigned long histogramValues[]);
-    void calculateDepthBinRanges(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables, const DatasetInfo &info);
+    void calculateDepthBinRanges(const std::vector<Group> &groups, std::vector<HashTable> &hashTables, const DataSetInfo &info);
 public:
     // Statics
     static const int IMG_16BIT_VALUE_MAX;
@@ -45,9 +45,9 @@ public:
           hashTableCount(hashTableCount), histogramBinCount(histogramBinCount), maxTripletDistance(maxTripletDistance) {}
 
     // Methods
-    void initialize(const std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables, const DatasetInfo &info);
-    void train(std::vector<TemplateGroup> &groups, std::vector<HashTable> &hashTables, const DatasetInfo &info);
-    void verifyTemplateCandidates(const cv::Mat &sceneDepth, std::vector<HashTable> &hashTables, std::vector<Window> &windows, const DatasetInfo &info);
+    void initialize(const std::vector<Group> &groups, std::vector<HashTable> &hashTables, const DataSetInfo &info);
+    void train(std::vector<Group> &groups, std::vector<HashTable> &hashTables, const DataSetInfo &info);
+    void verifyTemplateCandidates(const cv::Mat &sceneDepth, std::vector<HashTable> &hashTables, std::vector<Window> &windows, const DataSetInfo &info);
 
     // Getters
     const cv::Size getReferencePointsGrid();

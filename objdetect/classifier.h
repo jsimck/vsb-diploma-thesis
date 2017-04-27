@@ -1,8 +1,8 @@
 #ifndef VSB_SEMESTRAL_PROJECT_CLASSIFICATOR_H
 #define VSB_SEMESTRAL_PROJECT_CLASSIFICATOR_H
 
-#include "../core/template_group.h"
-#include "../core/template_match.h"
+#include "../core/group.h"
+#include "../core/match.h"
 #include "../core/hash_table.h"
 #include "../utils/template_parser.h"
 #include "hasher.h"
@@ -32,11 +32,11 @@ private:
     cv::Mat sceneDepth;
     cv::Mat sceneDepthNormalized;
 
-    DatasetInfo info;
-    std::vector<TemplateGroup> templateGroups;
+    DataSetInfo info;
+    std::vector<Group> templateGroups;
     std::vector<HashTable> hashTables;
     std::vector<Window> windows;
-    std::vector<TemplateMatch> matches;
+    std::vector<Match> matches;
 
     // Methods
     void parseTemplates();
@@ -70,10 +70,10 @@ public:
     const cv::Mat &getSceneGrayscale() const;
     const cv::Mat &getSceneDepth() const;
     const cv::Mat &getSceneDepthNormalized() const;
-    const std::vector<TemplateGroup> &getTemplateGroups() const;
+    const std::vector<Group> &getTemplateGroups() const;
     const std::vector<HashTable> &getHashTables() const;
     const std::vector<Window> &getWindows() const;
-    const std::vector<TemplateMatch> &getMatches() const;
+    const std::vector<Match> &getMatches() const;
 
     // Setters
     void setBasePath(const std::string &basePath);
@@ -84,10 +84,10 @@ public:
     void setSceneGrayscale(const cv::Mat &sceneGrayscale);
     void setSceneDepth(const cv::Mat &sceneDepth);
     void setSceneDepthNormalized(const cv::Mat &sceneDepthNormalized);
-    void setTemplateGroups(const std::vector<TemplateGroup> &templateGroups);
+    void setTemplateGroups(const std::vector<Group> &templateGroups);
     void setHashTables(const std::vector<HashTable> &hashTables);
     void setWindows(const std::vector<Window> &windows);
-    void setMatches(const std::vector<TemplateMatch> &matches);
+    void setMatches(const std::vector<Match> &matches);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_CLASSIFICATOR_H

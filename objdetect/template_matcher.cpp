@@ -56,7 +56,7 @@ cv::Vec3b TemplateMatcher::normalizeHSV(const cv::Vec3b &px) {
     }
 }
 
-void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) {
+void TemplateMatcher::generateFeaturePoints(std::vector<Group> &groups) {
     // Init engine
     typedef std::mt19937 engine;
 
@@ -75,7 +75,7 @@ void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) 
             cv::Mat canny, sobelX, sobelY, sobel, src_8uc1;
 
             // Convert to uchar and apply canny to detect edges
-            cv::convertScaleAbs(t.src, src_8uc1, 255);
+            cv::convertScaleAbs(t.srcGray, src_8uc1, 255);
 
             // Apply canny to detect edges
             cv::blur(src_8uc1, src_8uc1, cv::Size(3, 3));
@@ -110,7 +110,7 @@ void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) 
             // Save random points into the template arrays
             for (int i = 0; i < featurePointsCount; i++) {
                 int ri;
-                // If points extracted are on the part of depth image corrupted by noise (black spots)
+                // If points extracted are on the part of depths image corrupted by noise (black spots)
                 // regenerate new points, until
                 bool falseStablePointGenerated;
                 do {
@@ -142,7 +142,7 @@ void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) 
 #ifndef NDEBUG
 //            // Visualize extracted features
 //            cv::Mat visualizationMat;
-//            cv::cvtColor(t.src, visualizationMat, CV_GRAY2BGR);
+//            cv::cvtColor(t.srcGray, visualizationMat, CV_GRAY2BGR);
 //
 //            for (int i = 0; i < featurePointsCount; ++i) {
 //                cv::Point ePOffset(t.edgePoints[i].x + t.objBB.tl().x, t.edgePoints[i].y + t.objBB.tl().y);
@@ -160,19 +160,17 @@ void TemplateMatcher::generateFeaturePoints(std::vector<TemplateGroup> &groups) 
     }
 }
 
-void TemplateMatcher::extractTemplateFeatures(std::vector<TemplateGroup> &groups) {
-    // Checks
+void TemplateMatcher::extractTemplateFeatures(std::vector<Group> &groups) {
     assert(groups.size() > 0);
 
     for (auto &group : groups) {
         for (auto &t : group.templates) {
-            // Init tmp array to store depth values to compute median
+            // Init tmp array to store depths values to compute median
             std::vector<int> depthArray;
 
             // Quantize surface normal and gradient orientations and extract other features
             for (int i = 0; i < featurePointsCount; i++) {
-                // Checks
-                assert(!t.src.empty());
+                assert(!t.srcGray.empty());
                 assert(!t.srcHSV.empty());
                 assert(!t.srcDepth.empty());
 
@@ -181,26 +179,26 @@ void TemplateMatcher::extractTemplateFeatures(std::vector<TemplateGroup> &groups
                 cv::Point edgePOff(t.edgePoints[i].x + t.objBB.x, t.edgePoints[i].y + t.objBB.y);
 
                 // Save features to template
-                t.features.orientationGradients[i] = quantizeOrientationGradient(extractOrientationGradient(t.src, edgePOff));
-                t.features.surfaceNormals[i] = Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(t.srcDepth, stablePOff));
-                t.features.depth[i] = t.srcDepth.at<float>(stablePOff);
-                t.features.color[i] = normalizeHSV(t.srcHSV.at<cv::Vec3b>(edgePOff));
-                depthArray.push_back(static_cast<int>(t.features.depth[i]));
+                float depth = t.srcDepth.at<float>(stablePOff);
+                t.features.gradients.push_back(quantizeOrientationGradient(extractOrientationGradient(t.srcGray, edgePOff)));
+                t.features.normals.push_back(Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(t.srcDepth, stablePOff)));
+                t.features.depths.push_back(depth);
+                t.features.colors.push_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(edgePOff)));
+                depthArray.push_back(static_cast<int>(t.features.depths[i]));
 
-                // Checks
-                assert(t.features.orientationGradients[i] >= 0);
-                assert(t.features.orientationGradients[i] < 5);
-                assert(t.features.surfaceNormals[i] >= 0);
-                assert(t.features.surfaceNormals[i] < 8);
+                assert(t.features.gradients[i] >= 0);
+                assert(t.features.gradients[i] < 5);
+                assert(t.features.normals[i] >= 0);
+                assert(t.features.normals[i] < 8);
             }
 
             // Save median value
-            t.features.depthMedian = static_cast<uint>(median(depthArray));
+            t.features.median = static_cast<uint>(median(depthArray));
         }
     }
 }
 
-void TemplateMatcher::train(std::vector<TemplateGroup> &groups) {
+void TemplateMatcher::train(std::vector<Group> &groups) {
     // Generate edge and stable points for features extraction
     generateFeaturePoints(groups);
 
@@ -299,7 +297,7 @@ int TemplateMatcher::testColor(const cv::Vec3b tHSV, Window &w, const cv::Mat &s
     return 0;
 }
 
-void TemplateMatcher::nonMaximaSuppression(std::vector<TemplateMatch> &matches) {
+void TemplateMatcher::nonMaximaSuppression(std::vector<Match> &matches) {
     // Checks
     assert(matches.size() > 0);
 
@@ -307,14 +305,14 @@ void TemplateMatcher::nonMaximaSuppression(std::vector<TemplateMatch> &matches) 
     std::sort(matches.rbegin(), matches.rend());
     const float overlapThresh = 0.1f;
 
-    std::vector<TemplateMatch> pick;
+    std::vector<Match> pick;
     std::vector<int> suppress; // Indexes of matches to remove
     std::vector<int> idx(matches.size()); // Indexes of bounding boxes to check
     std::iota(idx.begin(), idx.end(), 0);
 
     while (!idx.empty()) {
         // Pick first element with highest score
-        TemplateMatch &firstMatch = matches[idx[0]];
+        Match &firstMatch = matches[idx[0]];
 
         // Store this index into suppress array and push to final matches, we won't check against this BB again
         suppress.push_back(idx[0]);
@@ -323,16 +321,16 @@ void TemplateMatcher::nonMaximaSuppression(std::vector<TemplateMatch> &matches) 
         // Check overlaps with all other bounding boxes, skipping first one (since it is the one we're checking with)
         for (int i = 1; i < idx.size(); i++) {
             // Get overlap BB coordinates of each other bounding box and compare with the first one
-            cv::Rect bb = matches[idx[i]].bb;
-            int x1 = std::max<int>(bb.tl().x, firstMatch.bb.tl().x);
-            int x2 = std::min<int>(bb.br().x, firstMatch.bb.br().x);
-            int y1 = std::max<int>(bb.tl().y, firstMatch.bb.tl().y);
-            int y2 = std::min<int>(bb.br().y, firstMatch.bb.br().y);
+            cv::Rect bb = matches[idx[i]].objBB;
+            int x1 = std::max<int>(bb.tl().x, firstMatch.objBB.tl().x);
+            int x2 = std::min<int>(bb.br().x, firstMatch.objBB.br().x);
+            int y1 = std::max<int>(bb.tl().y, firstMatch.objBB.tl().y);
+            int y2 = std::min<int>(bb.br().y, firstMatch.objBB.br().y);
 
             // Calculate overlap area
             int h = std::max<int>(0, y2 - y1);
             int w = std::max<int>(0, x2 - x1);
-            float overlap = static_cast<float>(h * w) / static_cast<float>(firstMatch.bb.area());
+            float overlap = static_cast<float>(h * w) / static_cast<float>(firstMatch.objBB.area());
 
             // Push index of this window to suppression array, since it is overlapping over minimum threshold
             // with a window of higher score, we can safely ignore this window
@@ -355,7 +353,7 @@ void TemplateMatcher::nonMaximaSuppression(std::vector<TemplateMatch> &matches) 
 }
 
 void TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
-                            std::vector<Window> &windows, std::vector<TemplateMatch> &matches) {
+                            std::vector<Window> &windows, std::vector<Match> &matches) {
     // Checks
     assert(!srcHSV.empty());
     assert(!srcGrayscale.empty());
@@ -384,7 +382,7 @@ void TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, 
 
             // Test II
             for (int i = 0; i < featurePointsCount; i++) {
-                scoreII += testSurfaceNormalOrientation((*candidate).features.surfaceNormals[i], windows[l], srcDepth,
+                scoreII += testSurfaceNormalOrientation(candidate->features.normals[i], windows[l], srcDepth,
                                                         candidate->stablePoints[i], matchNeighbourhood);
             }
 
@@ -392,7 +390,7 @@ void TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, 
 
             // Test III
             for (int i = 0; i < featurePointsCount; i++) {
-                scoreIII += testIntensityGradients((*candidate).features.orientationGradients[i], windows[l],
+                scoreIII += testIntensityGradients(candidate->features.gradients[i], windows[l],
                                                          srcDepth, candidate->edgePoints[i], matchNeighbourhood);
             }
 
@@ -400,7 +398,7 @@ void TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, 
 
             // Test V
             for (int i = 0; i < featurePointsCount; i++) {
-                scoreV += testColor((*candidate).features.color[i], windows[l],
+                scoreV += testColor(candidate->features.colors[i], windows[l],
                                 srcHSV, candidate->edgePoints[i], matchNeighbourhood);
             }
 
@@ -418,7 +416,7 @@ void TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, 
             // Push template that passed all tests to matches array
             float score = (scoreII / featurePointsCount) + (scoreIII / featurePointsCount) + (scoreV / featurePointsCount);
             cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
-            matches.push_back(TemplateMatch(matchBB, candidate, score));
+            matches.push_back(Match(matchBB, candidate, score));
         }
     }
 

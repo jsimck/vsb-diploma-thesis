@@ -4,14 +4,19 @@
 #include <opencv2/core/types.hpp>
 #include "template.h"
 
-struct DatasetInfo {
+/**
+ * struct DataSetInfo
+ *
+ * Holds information about loaded data set for further computation
+ */
+struct DataSetInfo {
 public:
-    int minEdgels;
-    cv::Size smallestTemplateSize;
-    cv::Size maxTemplateSize;
+    uint minEdgels;
+    cv::Size smallestTemplate;
+    cv::Size maxTemplate;
 
     // Constructors
-    DatasetInfo();
+    DataSetInfo();
     
     // Methods
     void reset();

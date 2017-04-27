@@ -4,8 +4,8 @@
 #include <opencv2/core/hal/interface.h>
 #include <opencv2/core/mat.hpp>
 #include "../core/window.h"
-#include "../core/template_match.h"
-#include "../core/template_group.h"
+#include "../core/match.h"
+#include "../core/group.h"
 
 class TemplateMatcher {
 private:
@@ -21,10 +21,10 @@ private:
 
     // Methods
     inline cv::Vec3b normalizeHSV(const cv::Vec3b &px);
-    inline void extractTemplateFeatures(std::vector<TemplateGroup> &groups);
-    inline void generateFeaturePoints(std::vector<TemplateGroup> &groups);
+    inline void extractTemplateFeatures(std::vector<Group> &groups);
+    inline void generateFeaturePoints(std::vector<Group> &groups);
     inline int quantizeOrientationGradient(float deg);
-    void nonMaximaSuppression(std::vector<TemplateMatch> &matches);
+    void nonMaximaSuppression(std::vector<Match> &matches);
 
     // Tests
     inline bool testObjectSize(float scale); // Test I
@@ -45,8 +45,8 @@ public:
 
     // Methods
     void match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
-               std::vector<Window> &windows, std::vector<TemplateMatch> &matches);
-    void train(std::vector<TemplateGroup> &groups);
+               std::vector<Window> &windows, std::vector<Match> &matches);
+    void train(std::vector<Group> &groups);
 
     // Getters
     uint getFeaturePointsCount() const;

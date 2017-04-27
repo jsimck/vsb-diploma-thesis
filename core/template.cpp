@@ -1,22 +1,6 @@
 #include "template.h"
 
-//Template::Template(int id, std::string fileName, cv::Mat src, cv::Mat srcHSV, cv::Mat srcDepth, cv::Rect objBB,
-//                   cv::Mat camRm2c, cv::Vec3d camTm2c) {
-//    votes = 0;
-//    this->id = id;
-//    this->fileName = fileName;
-//    this->src = src;
-//    this->srcHSV = srcHSV;
-//    this->srcDepth = srcDepth;
-//    this->objBB = objBB;
-//    this->camRm2c = camRm2c;
-//    this->camTm2c = camTm2c;
-//
-//    // Apply ROI on sources
-//    applyROI();
-//}
-
-void Template::voteUp() {
+void Template::vote() {
     votes++;
 }
 
@@ -26,7 +10,7 @@ void Template::resetVotes() {
 
 void Template::applyROI() {
     // Apply roi to both sources
-    src = src(objBB);
+    srcGray = srcGray(objBB);
     srcHSV = srcHSV(objBB);
     srcDepth = srcDepth(objBB);
 }
@@ -35,10 +19,10 @@ void Template::resetROI() {
     // Locate ROI
     cv::Point offset;
     cv::Size size;
-    src.locateROI(size, offset);
+    srcGray.locateROI(size, offset);
 
     // Set to original [disable ROI]
-    src.adjustROI(offset.y, size.height, offset.x, size.width);
+    srcGray.adjustROI(offset.y, size.height, offset.x, size.width);
     srcDepth.adjustROI(offset.y, size.height, offset.x, size.width);
     srcHSV.adjustROI(offset.y, size.height, offset.x, size.width);
 }
@@ -57,7 +41,7 @@ bool Template::operator!=(const Template &rhs) const {
 std::ostream &operator<<(std::ostream &os, const Template &t) {
     os << "Template ID: " << t.id << std::endl
        << "fileName: " << t.fileName << std::endl
-       << "src (size): " << t.src.size()  << std::endl
+       << "srcGray (size): " << t.srcGray.size()  << std::endl
        << "srcDepth (size): " << t.srcDepth.size() << std::endl
        << "objBB: " << t.objBB  << std::endl
        << "camK: " << t.camK  << std::endl
@@ -66,11 +50,11 @@ std::ostream &operator<<(std::ostream &os, const Template &t) {
        << "elev: " << t.elev  << std::endl
        << "mode: " << t.mode << std::endl
        << "minVotesPerTemplate: " << t.votes << std::endl
-       << "depthMedian: " << t.features.depthMedian << std::endl
-       << "orientationGradients size: " << t.features.orientationGradients.size() << std::endl
-       << "surfaceNormals size: " << t.features.surfaceNormals.size() << std::endl
-       << "depth size: " << t.features.depth.size() << std::endl
-       << "color size: " << t.features.color.size() << std::endl;
+       << "median: " << t.features.median << std::endl
+       << "gradients size: " << t.features.gradients.size() << std::endl
+       << "normals size: " << t.features.normals.size() << std::endl
+       << "depths size: " << t.features.depths.size() << std::endl
+       << "colors size: " << t.features.colors.size() << std::endl;
 
     return os;
 }
