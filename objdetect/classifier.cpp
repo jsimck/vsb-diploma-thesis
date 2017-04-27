@@ -163,8 +163,20 @@ void Classifier::matchTemplates() {
     // Verification started
     std::cout << "Template matching started... " << std::endl;
     Timer t;
-    templateMatcher.match(sceneHSV, sceneGrayscale, sceneDepth, windows, matches);
+    std::vector<cv::Rect> matchBBs = templateMatcher.match(sceneHSV, sceneGrayscale, sceneDepth, windows, matches);
     std::cout << "Template matching took: " << t.elapsed() << "s" << std::endl;
+
+
+    // Template TemplateMatcher
+    cv::Mat sceneCopy = scene.clone();
+    for (auto &&bB : matchBBs) {
+        cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
+    }
+
+    // Show matched template results
+    std::cout << "Classification took: " << t.elapsed() << "s" << std::endl;
+    cv::imshow("Match template result", sceneCopy);
+    cv::waitKey(0);
 }
 
 void Classifier::classify() {
@@ -196,19 +208,6 @@ void Classifier::classify() {
 
     // Match templates
     matchTemplates();
-
-    // Template TemplateMatcher
-    Timer tMatching;
-    std::vector<cv::Rect> matchBBs = matcher_deprecated::matchTemplate(sceneGrayscale, windows);
-    cv::Mat sceneCopy = scene.clone();
-    for (auto &&bB : matchBBs) {
-        cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
-    }
-
-    // Show matched template results
-    std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
-    cv::imshow("Match template result", sceneCopy);
-    cv::waitKey(0);
 }
 
 void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
@@ -241,18 +240,6 @@ void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
 
     // Match templates
     matchTemplates();
-
-    // Template TemplateMatcher
-    std::vector<cv::Rect> matchBBs = matcher_deprecated::matchTemplate(sceneGrayscale, windows);
-    cv::Mat sceneCopy = scene.clone();
-    for (auto &&bB : matchBBs) {
-        cv::rectangle(sceneCopy, cv::Point(bB.x, bB.y), cv::Point(bB.x + bB.width, bB.y + bB.height), cv::Scalar(0, 255, 0));
-    }
-
-    // Show matched template results
-    std::cout << "Classification took: " << t.elapsed() << "s" << std::endl;
-    cv::imshow("Match template result", sceneCopy);
-    cv::waitKey(0);
 }
 
 // Getters and setters

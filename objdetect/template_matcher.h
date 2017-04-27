@@ -24,6 +24,7 @@ private:
     inline void extractTemplateFeatures(std::vector<TemplateGroup> &groups);
     inline void generateFeaturePoints(std::vector<TemplateGroup> &groups);
     inline int quantizeOrientationGradient(float deg);
+    std::vector<cv::Rect> nonMaximaSuppresion(std::vector<TemplateMatch> &matches);
 
     // Tests
     inline bool testObjectSize(float scale); // Test I
@@ -43,7 +44,7 @@ public:
           sobelMaxThreshold(sobelMaxThreshold), grayscaleMinThreshold(grayscaleMinThreshold), matchNeighbourhood(matchNeighbourhood) {}
 
     // Methods
-    void match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
+    std::vector<cv::Rect> match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
                std::vector<Window> &windows, std::vector<TemplateMatch> &matches);
     void train(std::vector<TemplateGroup> &groups);
 

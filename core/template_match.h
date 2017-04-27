@@ -6,12 +6,12 @@
 
 struct TemplateMatch {
 public:
-    cv::Point tl;
+    cv::Rect bb;
     Template *t;
     float score;
 
     // Constructors
-    TemplateMatch(cv::Point tl, Template *t, float score = 0) : tl(tl), t(t), score(score) {}
+    TemplateMatch(cv::Rect bb, Template *t, float score = 0) : bb(bb), t(t), score(score) {}
 
     // Friends
     bool operator==(const TemplateMatch &rhs) const;

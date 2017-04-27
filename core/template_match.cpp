@@ -1,7 +1,7 @@
 #include "template_match.h"
 
 bool TemplateMatch::operator==(const TemplateMatch &rhs) const {
-    return score == rhs.score && t->id == rhs.t->id;
+    return t->id == rhs.t->id;
 }
 
 bool TemplateMatch::operator!=(const TemplateMatch &rhs) const {
@@ -25,6 +25,6 @@ bool TemplateMatch::operator>=(const TemplateMatch &rhs) const {
 }
 
 std::ostream &operator<<(std::ostream &os, const TemplateMatch &match) {
-    os << "tl: " << match.tl << " t: " << match.t << " score: " << match.score;
+    os << "bb: " << match.bb << " t: " << match.t << " score: " << match.score;
     return os;
 }

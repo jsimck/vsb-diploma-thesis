@@ -299,7 +299,72 @@ int TemplateMatcher::testColor(const cv::Vec3b tHSV, Window &w, const cv::Mat &s
     return 0;
 }
 
-void TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
+std::vector<cv::Rect> TemplateMatcher::nonMaximaSuppresion(std::vector<TemplateMatch> &matches) {
+    // Checks
+    assert(matches.size() > 0);
+
+    const float overlapThresh = 0.1f;
+
+    // Sort all matches by their highest score
+    std::sort(matches.rbegin(), matches.rend());
+
+    // Indexes of bounding boxes to check (length of BB at start) and fill it with index values
+    std::vector<cv::Rect> pick;
+    std::vector<int> idx(matches.size());
+    std::iota(idx.begin(), idx.end(), 0);
+    std::vector<int> suppress; // Vector to store indexes which we want to remove at end of each iteration
+
+    // Loop until we check all indexes
+    while (!idx.empty()) {
+        // Pick first element with highest score (sorted from highest->lowest in previous step)
+        int firstIndex = idx.front();
+        cv::Rect firstBB = matches[firstIndex].bb;
+
+        // Store this index into suppress array, we won't check against this BB again
+        suppress.push_back(firstIndex);
+
+        // Push this BB to final array of filtered bounding boxes
+        pick.push_back(firstBB);
+
+        // Check overlaps with all other bounding boxes, skipping first (since it is the one we're checking)
+        for (int i = 1; i < idx.size(); i++) {
+            // Get next index and bounding box in line
+            int offsetIndex = *(&idx.front() + i);
+            cv::Rect BB = matches[offsetIndex].bb;
+
+            // Get overlap BB coordinates
+            int ox1 = std::max<int>(BB.tl().x, firstBB.tl().x);
+            int ox2 = std::min<int>(BB.br().x, firstBB.br().x);
+            int oy1 = std::max<int>(BB.tl().y, firstBB.tl().y);
+            int oy2 = std::min<int>(BB.br().y, firstBB.br().y);
+
+            // Calculate overlap area
+            int h = std::max<int>(0, oy2 - oy1);
+            int w = std::max<int>(0, ox2 - ox1);
+            float overlap = static_cast<float>(h * w) / static_cast<float>(firstBB.area());
+
+            // Push index of this window to suppression array, since it is overlapping over minimum threshold
+            // with a window of higher score, we can safely ignore this window
+            if (overlap > overlapThresh) {
+                suppress.push_back(offsetIndex);
+            }
+        }
+
+        // Remove all suppress indexes from idx array
+        idx.erase(std::remove_if(idx.begin(), idx.end(),
+                                 [&suppress, &idx](int v) -> bool {
+                                     return std::find(suppress.begin(), suppress.end(), v) != suppress.end();
+                                 }
+        ), idx.end());
+
+        // Clear suppress list
+        suppress.clear();
+    }
+
+    return pick;
+}
+
+std::vector<cv::Rect> TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
                             std::vector<Window> &windows, std::vector<TemplateMatch> &matches) {
     // Checks
     assert(!srcHSV.empty());
@@ -320,7 +385,7 @@ void TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, 
             assert(candidate != nullptr);
 
             // Do template matching, if any of the test fails in the cascade, matching is template is discarted
-            int scoreII = 0, scoreIII = 0, scoreIV = 0, scoreV = 0;
+            float scoreII = 0, scoreIII = 0, scoreIV = 0, scoreV = 0;
             std::vector<int> ds;
             candidate->votes = 0; // TODO - remove, for testing only
 
@@ -359,15 +424,19 @@ void TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, 
                 continue;
             }
 
-#ifndef NDEBUG
-            std::cout
-                << "id: " << candidate->id
-                << ", window: " << l
-                << ", score II: " << scoreII
-                << ", score III: " << scoreIII
-                << ", score V: " << scoreV
-                << std::endl;
-#endif
+//#ifndef NDEBUG
+//            std::cout
+//                << "id: " << candidate->id
+//                << ", window: " << l
+//                << ", score II: " << scoreII
+//                << ", score III: " << scoreIII
+//                << ", score V: " << scoreV
+//                << std::endl;
+//#endif
+            // Template passed all tests, push to template matches
+            float score = (scoreII / featurePointsCount) + (scoreIII / featurePointsCount) + (scoreV / featurePointsCount);
+            cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
+            matches.push_back(TemplateMatch(matchBB, candidate, score));
         }
 
         // TODO - remove, only for testing --->>>
@@ -392,6 +461,9 @@ void TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, 
     utils::removeIndex<Window>(windows, removeIndex);
     std::cout << windows.size() << std::endl;
     // TODO - remove, only for testing ^^^^
+
+    // Run non maxima suppression on matches
+    return nonMaximaSuppresion(matches);
 }
 
 uint TemplateMatcher::getFeaturePointsCount() const {
