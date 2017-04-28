@@ -175,7 +175,7 @@ void Hasher::initializeBinRanges(const std::vector<Group> &groups, std::vector<H
                 );
 
                 // Absolute triplet points
-                TripletParams params = Triplet::getParams(info.maxTemplate.width, info.maxTemplate.height, grid, gridOffset.x, gridOffset.y);
+                TripletParams params(info.maxTemplate.width, info.maxTemplate.height, grid, gridOffset.x, gridOffset.y);
                 cv::Point c = table.triplet.getCenter(params);
                 cv::Point p1 = table.triplet.getP1(params);
                 cv::Point p2 = table.triplet.getP2(params);
@@ -238,43 +238,37 @@ void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &tables, c
                 );
 
                 // Get triplet points
-                TripletParams coordParams = Triplet::getParams(info.maxTemplate.width, info.maxTemplate.height, grid, gridOffset.x, gridOffset.y);
+                TripletParams coordParams(info.maxTemplate.width, info.maxTemplate.height, grid, gridOffset.x, gridOffset.y);
                 cv::Point c = table.triplet.getCenter(coordParams);
                 cv::Point p1 = table.triplet.getP1(coordParams);
                 cv::Point p2 = table.triplet.getP2(coordParams);
 
 #ifndef NDEBUG
-//                // Visualize triplets
-//                cv::Mat triplet = t.srcGray.clone();
-//                cv::cvtColor(triplet, triplet, CV_GRAY2BGR);
-//                cv::rectangle(triplet, gridOffset, cv::Point(gridOffset.x + info.maxTemplate.width, gridOffset.y + info.maxTemplate.height), cv::Scalar(0, 255, 0));
-//                cv::rectangle(triplet, t.objBB.tl(), t.objBB.br(), cv::Scalar(0, 0, 255));
-//                for (int i = 0; i < 12; i++) {
-//                    Triplet tpl(cv::Point(i,0), cv::Point(i,1), cv::Point(i,2));
-//                    cv::circle(triplet, tpl.getPoint(0, coordParams), 2, cv::Scalar(0, 200, 0), -1);
-//                    cv::circle(triplet, tpl.getPoint(1, coordParams), 2, cv::Scalar(0, 200, 0), -1);
-//                    cv::circle(triplet, tpl.getPoint(2, coordParams), 2, cv::Scalar(0, 200, 0), -1);
-//                    Triplet tMax(cv::Point(i,3), cv::Point(i,4), cv::Point(i,5));
-//                    cv::circle(triplet, tMax.getPoint(0, coordParams), 2, cv::Scalar(0, 200, 0), -1);
-//                    cv::circle(triplet, tMax.getPoint(1, coordParams), 2, cv::Scalar(0, 200, 0), -1);
-//                    cv::circle(triplet, tMax.getPoint(2, coordParams), 2, cv::Scalar(0, 200, 0), -1);
-//                    Triplet t3(cv::Point(i,6), cv::Point(i,7), cv::Point(i,8));
-//                    cv::circle(triplet, t3.getPoint(0, coordParams), 2, cv::Scalar(0, 200, 0), -1);
-//                    cv::circle(triplet, t3.getPoint(1, coordParams), 2, cv::Scalar(0, 200, 0), -1);
-//                    cv::circle(triplet, t3.getPoint(2, coordParams), 2, cv::Scalar(0, 200, 0), -1);
-//                    Triplet t4(cv::Point(i,9), cv::Point(i,10), cv::Point(i,11));
-//                    cv::circle(triplet, t4.getPoint(0, coordParams), 2, cv::Scalar(0, 200, 0), -1);
-//                    cv::circle(triplet, t4.getPoint(1, coordParams), 2, cv::Scalar(0, 200, 0), -1);
-//                    cv::circle(triplet, t4.getPoint(2, coordParams), 2, cv::Scalar(0, 200, 0), -1);
+//                {
+//                    // Visualize triplets
+//                    cv::Mat mTriplet = t.srcGray.clone();
+//                    cv::cvtColor(mTriplet, mTriplet, CV_GRAY2BGR);
+//                    cv::rectangle(mTriplet, gridOffset, cv::Point(gridOffset.x + info.maxTemplate.width, gridOffset.y + info.maxTemplate.height), cv::Scalar(0, 255, 0));
+//                    cv::rectangle(mTriplet, t.objBB.tl(), t.objBB.br(), cv::Scalar(0, 0, 255));
 //
-//                    cv::circle(triplet, c, 2, cv::Scalar(0, 0, 255), -1);
-//                    cv::circle(triplet, p1, 2, cv::Scalar(0, 0, 255), -1);
-//                    cv::circle(triplet, p2, 2, cv::Scalar(0, 0, 255), -1);
-//                    cv::line(triplet, c, p1, cv::Scalar(0, 0, 255));
-//                    cv::line(triplet, c, p2, cv::Scalar(0, 0, 255));
-//                }
-//                cv::imshow("Classifier::Hash table triplet", triplet);
-//                cv::waitKey(0);
+//                    for (int x = 0; x < 12; x++) {
+//                        for (int y = 0; y < 12; y += 3) {
+//                            Triplet tripletVis(cv::Point(x, y), cv::Point(x, y + 1), cv::Point(x, y + 2));
+//                            cv::circle(mTriplet, tripletVis.getPoint(0, coordParams), 1, cv::Scalar(0, 100, 0), -1);
+//                            cv::circle(mTriplet, tripletVis.getPoint(1, coordParams), 1, cv::Scalar(0, 100, 0), -1);
+//                            cv::circle(mTriplet, tripletVis.getPoint(2, coordParams), 1, cv::Scalar(0, 100, 0), -1);
+//                        }
+//
+//                        cv::circle(mTriplet, c, 2, cv::Scalar(0, 0, 255), -1);
+//                        cv::circle(mTriplet, p1, 2, cv::Scalar(0, 0, 255), -1);
+//                        cv::circle(mTriplet, p2, 2, cv::Scalar(0, 0, 255), -1);
+//                        cv::line(mTriplet, c, p1, cv::Scalar(0, 0, 255));
+//                        cv::line(mTriplet, c, p2, cv::Scalar(0, 0, 255));
+//                    }
+//
+//                    cv::imshow("Hasher::train", mTriplet);
+//                    cv::waitKey(30);
+//                };
 #endif
 
                 // Check if we're not out of bounds
@@ -302,26 +296,6 @@ void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &tables, c
             }
         }
     }
-
-#ifndef NDEBUG
-//    // Visualize triplets
-//    cv::Mat triplet = cv::Mat::zeros(400, 400, CV_32FC3), triplets = cv::Mat::zeros(400, 400, CV_32FC3);
-//    tables[0].triplet.visualize(triplet, getGrid()); // generate grid
-//    tables[0].triplet.visualize(triplets, getGrid()); // generate grid
-//    cv::imshow("Classifier::Hash table triplets", triplets);
-//    cv::imshow("Classifier::Hash table triplet", triplet);
-//    cv::waitKey(0);
-//
-//    for (auto &table : tables) {
-//        std::cout << table << std::endl;
-//        triplet = cv::Mat::zeros(400, 400, CV_32FC3);
-//        table.triplet.visualize(triplets, getGrid(), false);
-//        table.triplet.visualize(triplet, getGrid(), true);
-//        cv::imshow("Classifier::Hash table triplets", triplets);
-//        cv::imshow("Classifier::Hash table triplet", triplet);
-//        cv::waitKey(1);
-//    }
-#endif
 }
 
 void Hasher::verifyCandidates(const cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows, const DataSetInfo &info) {
@@ -340,23 +314,37 @@ void Hasher::verifyCandidates(const cv::Mat &sceneDepth, std::vector<HashTable> 
 
         for (auto &table : tables) {
             // Get triplet points
-            TripletParams coordParams = Triplet::getParams(info.maxTemplate.width, info.maxTemplate.height, grid, gridOffset.x, gridOffset.y);
-            cv::Point c = table.triplet.getCenter(coordParams);
-            cv::Point p1 = table.triplet.getP1(coordParams);
-            cv::Point p2 = table.triplet.getP2(coordParams);
+            TripletParams params(info.maxTemplate.width, info.maxTemplate.height, grid, gridOffset.x, gridOffset.y);
+            cv::Point c = table.triplet.getCenter(params);
+            cv::Point p1 = table.triplet.getP1(params);
+            cv::Point p2 = table.triplet.getP2(params);
 
 #ifndef NDEBUG
-//            // Visualize triplets
-//            cv::Mat triplet = sceneDepth.clone();
-//            cv::cvtColor(triplet, triplet, CV_GRAY2BGR);
-//            cv::rectangle(triplet, gridOffset, cv::Point(gridOffset.x + info.maxTemplate.width, gridOffset.y + info.maxTemplate.height), cv::Scalar(0, 255, 0));
-//            cv::circle(triplet, c, 2, cv::Scalar(0, 0, 255), -1);
-//            cv::circle(triplet, p1, 2, cv::Scalar(0, 0, 255), -1);
-//            cv::circle(triplet, p2, 2, cv::Scalar(0, 0, 255), -1);
-//            cv::line(triplet, c, p1, cv::Scalar(0, 0, 255));
-//            cv::line(triplet, c, p2, cv::Scalar(0, 0, 255));
-//            cv::imshow("Classifier::Hash table triplet", triplet);
-//            cv::waitKey(1);
+//            {
+//                // Visualize triplets
+//                cv::Mat mTriplet = sceneDepth.clone();
+//                cv::normalize(mTriplet, mTriplet, 0.0f, 1.0f, CV_MINMAX);
+//                cv::cvtColor(mTriplet, mTriplet, CV_GRAY2BGR);
+//                cv::rectangle(mTriplet, gridOffset, cv::Point(gridOffset.x + info.maxTemplate.width, gridOffset.y + info.maxTemplate.height), cv::Scalar(0, 255, 0));
+//
+//                for (int x = 0; x < 12; x++) {
+//                    for (int y = 0; y < 12; y += 3) {
+//                        Triplet tripletVis(cv::Point(x, y), cv::Point(x, y + 1), cv::Point(x, y + 2));
+//                        cv::circle(mTriplet, tripletVis.getPoint(0, params), 1, cv::Scalar(0, 150, 0), -1);
+//                        cv::circle(mTriplet, tripletVis.getPoint(1, params), 1, cv::Scalar(0, 150, 0), -1);
+//                        cv::circle(mTriplet, tripletVis.getPoint(2, params), 1, cv::Scalar(0, 150, 0), -1);
+//                    }
+//
+//                    cv::circle(mTriplet, c, 2, cv::Scalar(0, 0, 255), -1);
+//                    cv::circle(mTriplet, p1, 2, cv::Scalar(0, 0, 255), -1);
+//                    cv::circle(mTriplet, p2, 2, cv::Scalar(0, 0, 255), -1);
+//                    cv::line(mTriplet, c, p1, cv::Scalar(0, 0, 255));
+//                    cv::line(mTriplet, c, p2, cv::Scalar(0, 0, 255));
+//                }
+//
+//                cv::imshow("Hasher::verifyCandidates", mTriplet);
+//                cv::waitKey(1);
+//            };
 #endif
 
             // If any point of triplet is out of scene boundaries, ignore it to not get false data
@@ -380,7 +368,7 @@ void Hasher::verifyCandidates(const cv::Mat &sceneDepth, std::vector<HashTable> 
             for (auto &entry : table.templates[key]) {
                 entry->vote();
 
-                // automatically pushes only unique templates with minimum of v minVotes and up to N of templates
+                // pushes only unique templates with minimum of votes (minVotes) building vector of size up to N
                 windows[i].pushUnique(entry, tablesCount, minVotes);
                 usedTemplates.push_back(entry);
             }

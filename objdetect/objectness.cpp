@@ -108,7 +108,7 @@ void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &window
         for (int x = 0; x < sSobel.cols - sizeX; x += step) {
 
             // Calc edgel value in current sliding window with help of image integral
-            unsigned int sceneEdgels = static_cast<unsigned int>(
+            uint sceneEdgels = static_cast<uint>(
                 sIntegral.at<float>(y + sizeY, x + sizeX)
                 - sIntegral.at<float>(y, x + sizeX)
                 - sIntegral.at<float>(y + sizeY, x)

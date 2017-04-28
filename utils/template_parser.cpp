@@ -152,7 +152,7 @@ std::string TemplateParser::getBasePath() const {
     return this->basePath;
 }
 
-unsigned int TemplateParser::getTplCount() const {
+uint TemplateParser::getTplCount() const {
     return this->tplCount;
 }
 
@@ -170,7 +170,7 @@ void TemplateParser::setBasePath(std::string path) {
     this->basePath = path;
 }
 
-void TemplateParser::setTplCount(unsigned int tplCount) {
+void TemplateParser::setTplCount(uint tplCount) {
     assert(tplCount > 0);
     this->tplCount = tplCount;
 }

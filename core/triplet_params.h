@@ -1,6 +1,8 @@
 #ifndef VSB_SEMESTRAL_PROJECT_TRIPLET_COORDS_H
 #define VSB_SEMESTRAL_PROJECT_TRIPLET_COORDS_H
 
+#include <opencv2/core/types.hpp>
+
 /**
  * struct TripletParams
  *
@@ -20,6 +22,7 @@ public:
     // Constructors
     TripletParams(const float offsetX, const float offsetY, const float stepX, const float stepY, const int sOffsetX = 0, const int sOffsetY = 0) :
         offsetX(offsetX), stepX(stepX), offsetY(offsetY), stepY(stepY), sOffsetX(sOffsetX), sOffsetY(sOffsetY) {}
+    TripletParams(const int width, const int height, const cv::Size &grid, const int sOffsetX = 0, const int sOffsetY = 0);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_TRIPLET_COORDS_H

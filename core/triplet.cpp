@@ -73,16 +73,6 @@ Triplet Triplet::create(const cv::Size &grid, const int distance) {
     return Triplet(c, p1, p2);
 }
 
-TripletParams Triplet::getParams(const int width, const int height, const cv::Size &grid, const int sOffsetX, const int sOffsetY) {
-    // Calculate offsets and steps for relative grid
-    float stepX = width / static_cast<float>(grid.width);
-    float stepY = height / static_cast<float>(grid.height);
-    float offsetX = stepX / 2.0f;
-    float offsetY = stepY / 2.0f;
-
-    return TripletParams(offsetX, offsetY, stepX, stepY, sOffsetX, sOffsetY);
-}
-
 cv::Point Triplet::getPoint(int x, int y, const TripletParams &params) {
     return cv::Point(
         static_cast<int>(params.sOffsetX + params.offsetX + (x * params.stepX)),
@@ -136,7 +126,7 @@ void Triplet::visualize(const cv::Mat &src, const cv::Size &grid, bool showGrid)
     assert(src.type() == 21); // CV_32FC3
 
     // Get TripletCoord params
-    TripletParams params = getParams(src.cols, src.rows, grid);
+    TripletParams params(src.cols, src.rows, grid);
 
     // Generate grid
     if (showGrid) {
