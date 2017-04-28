@@ -1,16 +1,16 @@
 #include "classifier.h"
 #include "../utils/timer.h"
 
-Classifier::Classifier(std::string basePath, std::vector<std::string> templateFolders, std::string scenePath, std::string sceneName) {
+Classifier::Classifier(std::string basePath, std::vector<std::string> folders, std::string scenePath, std::string sceneName) {
     // Init properties
     setBasePath(basePath);
-    setTemplateFolders(templateFolders);
+    setFolders(folders);
     setScenePath(scenePath);
     setSceneName(sceneName);
 
     // Init parser
     parser.setBasePath(basePath);
-    parser.setFolders(templateFolders);
+    parser.setFolders(folders);
     parser.setTplCount(1296);
 
     // Init objectness
@@ -27,61 +27,61 @@ Classifier::Classifier(std::string basePath, std::vector<std::string> templateFo
     hasher.setMaxTripletDistance(5);
 
     // Init template matcher
-    templateMatcher.setFeaturePointsCount(100);
-    templateMatcher.setMatchThreshold(0.6f);
-    templateMatcher.setMatchNeighbourhood(cv::Range(-2, 2)); // 5x5 -> [-2, -1, 0, 1, 2]
+    matcher.setFeaturePointsCount(100);
+    matcher.setMatchThreshold(0.6f);
+    matcher.setMatchNeighbourhood(cv::Range(-2, 2)); // 5x5 -> [-2, -1, 0, 1, 2]
     // Training constants
-    templateMatcher.setCannyThreshold1(100);
-    templateMatcher.setCannyThreshold2(200);
-    templateMatcher.setSobelMaxThreshold(50);
-    templateMatcher.setGrayscaleMinThreshold(50);
+    matcher.setCannyThreshold1(100);
+    matcher.setCannyThreshold2(200);
+    matcher.setSobelMaxThreshold(50);
+    matcher.setGrayscaleMinThreshold(50);
 }
 
 void Classifier::parseTemplates() {
     // Checks
     assert(basePath.length() > 0);
-    assert(templateFolders.size() > 0);
+    assert(folders.size() > 0);
 
     // Parse
     std::cout << "Parsing... " << std::endl;
-    parser.parse(templateGroups, info);
-    assert(templateGroups.size() > 0);
+    parser.parse(groups, info);
+    assert(groups.size() > 0);
     std::cout << "  |_ Smallest template found: " << info.smallestTemplate << std::endl;
     std::cout << "  |_ Largest template found: " << info.maxTemplate << std::endl << std::endl;
-    std::cout << "DONE! " << templateGroups.size() << " template groups parsed" << std::endl;
+    std::cout << "DONE! " << groups.size() << " template groups parsed" << std::endl;
 }
 
 void Classifier::extractMinEdgels() {
     // Checks
-    assert(templateGroups.size() > 0);
+    assert(groups.size() > 0);
 
     // Extract min edgels
     std::cout << "Extracting min edgels... ";
-    objectness.extractMinEdgels(templateGroups, info);
+    objectness.extractMinEdgels(groups, info);
     std::cout << "DONE! " << std::endl;
     std::cout << "  |_ Minimum edgels found: " << info.minEdgels << std::endl << std::endl;
 }
 
 void Classifier::trainHashTables() {
     // Checks
-    assert(templateGroups.size() > 0);
+    assert(groups.size() > 0);
 
     // Train hash tables
     std::cout << "Training hash tables... " << std::endl;
     Timer t;
-    hasher.train(templateGroups, hashTables, info);
-    assert(hashTables.size() > 0);
-    std::cout << "DONE! took: " << t.elapsed() << "s, " << hashTables.size() << " hash tables generated" <<std::endl << std::endl;
+    hasher.train(groups, tables, info);
+    assert(tables.size() > 0);
+    std::cout << "DONE! took: " << t.elapsed() << "s, " << tables.size() << " hash tables generated" <<std::endl << std::endl;
 }
 
 void Classifier::trainTemplates() {
     // Checks
-    assert(templateGroups.size() > 0);
+    assert(groups.size() > 0);
 
     // Train hash tables
     std::cout << "Training templates for template matching... " << std::endl;
     Timer t;
-    templateMatcher.train(templateGroups);
+    matcher.train(groups);
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 }
 
@@ -95,8 +95,8 @@ void Classifier::loadScene() {
 
     // Load scenes
     std::cout << "Loading scene... ";
-    setScene(cv::imread(basePath + scenePath + "rgb/" + sceneName, CV_LOAD_IMAGE_COLOR));
-    setSceneDepth(cv::imread(basePath + scenePath + "depth/" + sceneName, CV_LOAD_IMAGE_UNCHANGED));
+    scene = cv::imread(basePath + scenePath + "rgb/" + sceneName, CV_LOAD_IMAGE_COLOR);
+    sceneDepth = cv::imread(basePath + scenePath + "depth/" + sceneName, CV_LOAD_IMAGE_UNCHANGED);
 
     // Convert and normalize
     cv::cvtColor(scene, sceneHSV, CV_BGR2HSV);
@@ -131,24 +131,24 @@ void Classifier::detectObjectness() {
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
 #ifndef NDEBUG
-    // Show results
-    cv::Mat objectnessLocations = scene.clone();
-    for (auto &window : windows) {
-        cv::rectangle(objectnessLocations, window.tl(), window.br(), cv::Scalar(190, 190, 190));
-    }
-    cv::imshow("Objectness locations detected:", objectnessLocations);
-    cv::waitKey(0);
+//    // Show results
+//    cv::Mat objectnessLocations = scene.clone();
+//    for (auto &window : windows) {
+//        cv::rectangle(objectnessLocations, window.tl(), window.br(), cv::Scalar(190, 190, 190));
+//    }
+//    cv::imshow("Objectness locations detected:", objectnessLocations);
+//    cv::waitKey(0);
 #endif
 }
 
 void Classifier::verifyTemplateCandidates() {
     // Checks
-    assert(hashTables.size() > 0);
+    assert(tables.size() > 0);
 
     // Verification started
     std::cout << "Verification of template candidates, using trained HashTables started... " << std::endl;
     Timer t;
-    hasher.verifyTemplateCandidates(sceneDepth, hashTables, windows, info);
+    hasher.verifyTemplateCandidates(sceneDepth, tables, windows, info);
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
 #ifndef NDEBUG
@@ -171,7 +171,7 @@ void Classifier::matchTemplates() {
     // Verification started
     std::cout << "Template matching started... " << std::endl;
     Timer t;
-    templateMatcher.match(sceneHSV, sceneGray, sceneDepth, windows, matches);
+    matcher.match(sceneHSV, sceneGray, sceneDepth, windows, matches);
     std::cout << "Template matching took: " << t.elapsed() << "s" << std::endl;
 
 
@@ -220,39 +220,6 @@ void Classifier::classify() {
     matchTemplates();
 }
 
-void Classifier::classifyTest(std::unique_ptr<std::vector<int>> &indices) {
-    /// Hypothesis generation
-    // Load scene images
-    loadScene();
-
-    // Parse templates with specific indices
-    parser.setIndices(indices);
-    parseTemplates();
-
-    // Extract min edgels
-    extractMinEdgels();
-
-    // Train hash tables
-    trainHashTables();
-
-    // Train templates for template matching
-    trainTemplates();
-
-    /// Hypothesis verification
-    // Start stopwatch
-    Timer t;
-
-    // Objectness detection
-    detectObjectness();
-
-    // Verification and filtering of template candidates
-    verifyTemplateCandidates();
-
-    // Match templates
-    matchTemplates();
-}
-
-// Getters and setters
 const std::string &Classifier::getBasePath() const {
     return basePath;
 }
@@ -261,8 +228,8 @@ const std::string &Classifier::getScenePath() const {
     return scenePath;
 }
 
-const std::vector<std::string> &Classifier::getTemplateFolders() const {
-    return templateFolders;
+const std::vector<std::string> &Classifier::getFolders() const {
+    return folders;
 }
 
 const cv::Mat &Classifier::getScene() const {
@@ -274,14 +241,14 @@ const cv::Mat &Classifier::getSceneDepth() const {
 }
 
 const std::vector<HashTable> &Classifier::getHashTables() const {
-    return hashTables;
+    return tables;
 }
 
 const std::string &Classifier::getSceneName() const {
     return sceneName;
 }
 
-const cv::Mat &Classifier::getSceneDepthNormalized() const {
+const cv::Mat &Classifier::getSceneDepthNorm() const {
     return sceneDepthNorm;
 }
 
@@ -290,7 +257,7 @@ const cv::Mat &Classifier::getSceneGrayscale() const {
 }
 
 const std::vector<Group> &Classifier::getTemplateGroups() const {
-    return templateGroups;
+    return groups;
 }
 
 const std::vector<Window> &Classifier::getWindows() const {
@@ -299,6 +266,10 @@ const std::vector<Window> &Classifier::getWindows() const {
 
 const std::vector<Match> &Classifier::getMatches() const {
     return matches;
+}
+
+const std::vector<int> &Classifier::getIndices() const {
+    return indices;
 }
 
 void Classifier::setBasePath(const std::string &basePath) {
@@ -313,34 +284,9 @@ void Classifier::setScenePath(const std::string &scenePath) {
     this->scenePath = scenePath;
 }
 
-void Classifier::setSceneDepth(const cv::Mat &sceneDepth) {
-    assert(!sceneDepth.empty());
-    this->sceneDepth = sceneDepth;
-}
-
-void Classifier::setSceneDepthNormalized(const cv::Mat &sceneDepthNormalized) {
-    assert(!sceneDepthNormalized.empty());
-    this->sceneDepthNorm = sceneDepthNormalized;
-}
-
-void Classifier::setTemplateGroups(const std::vector<Group> &templateGroups) {
-    assert(templateGroups.size() > 0);
-    this->templateGroups = templateGroups;
-}
-
-void Classifier::setTemplateFolders(const std::vector<std::string> &templateFolders) {
-    assert(templateFolders.size() > 0);
-    this->templateFolders = templateFolders;
-}
-
-void Classifier::setScene(const cv::Mat &scene) {
-    assert(!scene.empty());
-    this->scene = scene;
-}
-
-void Classifier::setHashTables(const std::vector<HashTable> &hashTables) {
-    assert(hashTables.size() > 0);
-    this->hashTables = hashTables;
+void Classifier::setFolders(const std::vector<std::string> &folders) {
+    assert(folders.size() > 0);
+    this->folders = folders;
 }
 
 void Classifier::setSceneName(const std::string &sceneName) {
@@ -348,17 +294,8 @@ void Classifier::setSceneName(const std::string &sceneName) {
     this->sceneName = sceneName;
 }
 
-void Classifier::setSceneGrayscale(const cv::Mat &sceneGrayscale) {
-    assert(!sceneGrayscale.empty());
-    this->sceneGray = sceneGrayscale;
-}
-
-void Classifier::setWindows(const std::vector<Window> &windows) {
-    assert(windows.size() > 0);
-    this->windows = windows;
-}
-
-void Classifier::setMatches(const std::vector<Match> &matches) {
-    assert(matches.size() > 0);
-    this->matches = matches;
+void Classifier::setIndices(const std::vector<int> &indices)  {
+    assert(indices.size() > 0);
+    this->indices = indices;
+    parser.setIndices(indices);
 }

@@ -29,9 +29,9 @@ void TemplateParser::parseTemplate(std::vector<Template> &templates, DataSetInfo
     fs.open(basePath + tplName + "/gt.yml", cv::FileStorage::READ);
     assert(fs.isOpened());
 
-    size_t size = (indices != nullptr && indices->size() > 0) ? indices->size() : tplCount;
+    size_t size = (indices.size() > 0) ? indices.size() : tplCount;
     for (int i = 0; i < size; i++) {
-        int tplIndex = (indices != nullptr && indices->size() > 0) ? (*indices)[i] : i;
+        int tplIndex = (indices.size() > 0) ? indices[i] : i;
         std::string index = "tpl_" + std::to_string(tplIndex);
         cv::FileNode objGt = fs[index];
 
@@ -45,7 +45,7 @@ void TemplateParser::parseTemplate(std::vector<Template> &templates, DataSetInfo
     assert(fs.isOpened());
 
     for (int i = 0; i < size; i++) {
-        int tplIndex = (indices != nullptr && indices->size() > 0) ? (*indices)[i] : i;
+        int tplIndex = (indices.size() > 0) ? indices[i] : i;
         std::string index = "tpl_" + std::to_string(tplIndex);
         cv::FileNode objGt = fs[index];
 
@@ -141,7 +141,7 @@ void TemplateParser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
 }
 
 void TemplateParser::clearIndices() {
-    indices = nullptr;
+    indices.clear();
 }
 
 int TemplateParser::getIdCounter() {
@@ -160,7 +160,7 @@ const std::vector<std::string> &TemplateParser::getTemplateFolders() const {
     return this->folders;
 }
 
-const std::unique_ptr<std::vector<int>> &TemplateParser::getIndices() const {
+const std::vector<int> &TemplateParser::getIndices() const {
     return this->indices;
 }
 
@@ -180,7 +180,7 @@ void TemplateParser::setFolders(const std::vector<std::string> &folders) {
     this->folders = folders;
 }
 
-void TemplateParser::setIndices(std::unique_ptr<std::vector<int>> &indices) {
-    assert(indices->size() > 0);
-    this->indices.swap(indices);
+void TemplateParser::setIndices(const std::vector<int> &indices) {
+    assert(indices.size() > 0);
+    this->indices = indices;
 }

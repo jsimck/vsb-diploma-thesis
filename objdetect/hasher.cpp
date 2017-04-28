@@ -303,13 +303,13 @@ void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &hashTable
 #ifndef NDEBUG
 //    // Visualize triplets
 //    cv::Mat triplet = cv::Mat::zeros(400, 400, CV_32FC3), triplets = cv::Mat::zeros(400, 400, CV_32FC3);
-//    hashTables[0].triplet.visualize(triplet, getReferencePointsGrid()); // generate grid
-//    hashTables[0].triplet.visualize(triplets, getReferencePointsGrid()); // generate grid
+//    tables[0].triplet.visualize(triplet, getReferencePointsGrid()); // generate grid
+//    tables[0].triplet.visualize(triplets, getReferencePointsGrid()); // generate grid
 //    cv::imshow("Classifier::Hash table triplets", triplets);
 //    cv::imshow("Classifier::Hash table triplet", triplet);
 //    cv::waitKey(0);
 //
-//    for (auto &&table : hashTables) {
+//    for (auto &&table : tables) {
 //        std::cout << table << std::endl;
 //        triplet = cv::Mat::zeros(400, 400, CV_32FC3);
 //        table.triplet.visualize(triplets, getReferencePointsGrid(), false);

@@ -11,11 +11,11 @@
  * class Objetness
  *
  * Simple objectness detection algorithm, based on depth discontinuities of depth images.
- * depth discontinuities => areas where pixel arise on the edges of objects. First we extract template
- * with minimum number of depth discontinuity edgels using extractMinEdgels() method and save it's bounding box.
- * Then scene is also first run through sobel filter, then thresholded and then using sliding window of saved BB of
- * smalles template, we slide through the thresholded image and look for edgels. We classify sliding window as containing object
- * if it contains at least 30% of edgels in a template containing least amount of them.
+ * (depth discontinuities => areas where pixel arise on the edges of objects). Sliding window
+ * is used to slide through the scene (using size of a smallest template in dataset) and calculating
+ * amount of depth pixels in the scene. Window is classified as containing object if it contains
+ * at least 30% of edgels of the template containing least amount of them (info.minEdgels), extracted
+ * throught extractMinEdgels method.
  */
 class Objectness {
 private:

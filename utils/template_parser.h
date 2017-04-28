@@ -19,7 +19,7 @@ private:
     uint tplCount;
     std::string basePath;
     std::vector<std::string> folders;
-    std::unique_ptr<std::vector<int>> indices;
+    std::vector<int> indices;
 
     Template parseGt(const int index, const std::string path, cv::FileNode &gtNode, DataSetInfo &info);
     void parseInfo(Template &tpl, cv::FileNode &infoNode);
@@ -36,13 +36,13 @@ public:
     std::string getBasePath() const;
     unsigned int getTplCount() const;
     const std::vector<std::string> &getTemplateFolders() const;
-    const std::unique_ptr<std::vector<int>> &getIndices() const;
+    const std::vector<int> &getIndices() const;
 
     // Setters
     void setBasePath(std::string path);
     void setTplCount(unsigned int tplCount);
     void setFolders(const std::vector<std::string> &folders);
-    void setIndices(std::unique_ptr<std::vector<int>> &indices);
+    void setIndices(const std::vector<int> &indices);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_TEMPLATEPARSER_H
