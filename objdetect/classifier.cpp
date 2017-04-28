@@ -59,7 +59,7 @@ void Classifier::extractMinEdgels() {
     std::cout << "Extracting min edgels... ";
     objectness.extractMinEdgels(templateGroups, info);
     std::cout << "DONE! " << std::endl;
-    std::cout << "  |_ Minimum edgels found: " << info.minEdgels << std::endl;
+    std::cout << "  |_ Minimum edgels found: " << info.minEdgels << std::endl << std::endl;
 }
 
 void Classifier::trainHashTables() {
@@ -103,17 +103,17 @@ void Classifier::loadScene() {
     cv::cvtColor(scene, sceneGray, CV_BGR2GRAY);
     sceneGray.convertTo(sceneGray, CV_32F, 1.0f / 255.0f);
     sceneDepth.convertTo(sceneDepth, CV_32F); // TODO work with 16S (int) rather than floats
-    sceneDepth.convertTo(sceneDepthNorma, CV_32F, 1.0f / 65536.0f);
+    sceneDepth.convertTo(sceneDepthNorm, CV_32F, 1.0f / 65536.0f);
 
     // Check if conversion went ok
     assert(!sceneHSV.empty());
     assert(!sceneGray.empty());
-    assert(!sceneDepthNorma.empty());
+    assert(!sceneDepthNorm.empty());
     assert(scene.type() == 16); // CV_8UC3
     assert(sceneHSV.type() == 16); // CV_8UC3
     assert(sceneGray.type() == 5); // CV_32FC1
     assert(sceneDepth.type() == 5); // CV_32FC1
-    assert(sceneDepthNorma.type() == 5); // CV_32FC1
+    assert(sceneDepthNorm.type() == 5); // CV_32FC1
 
     std::cout << "DONE!" << std::endl << std::endl;
 }
@@ -126,9 +126,19 @@ void Classifier::detectObjectness() {
     // Objectness detection
     std::cout << "Objectness detection started... " << std::endl;
     Timer t;
-    objectness.objectness(sceneGray, scene, sceneDepthNorma, windows, info);
+    objectness.objectness(sceneDepthNorm, windows, info);
     std::cout << "  |_ Windows classified as containing object extracted: " << windows.size() << std::endl;
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
+
+#ifndef NDEBUG
+    // Show results
+    cv::Mat objectnessLocations = scene.clone();
+    for (auto &window : windows) {
+        cv::rectangle(objectnessLocations, window.tl(), window.br(), cv::Scalar(190, 190, 190));
+    }
+    cv::imshow("Objectness locations detected:", objectnessLocations);
+    cv::waitKey(0);
+#endif
 }
 
 void Classifier::verifyTemplateCandidates() {
@@ -144,7 +154,7 @@ void Classifier::verifyTemplateCandidates() {
 #ifndef NDEBUG
 //    // Show results
 //    cv::Mat filteredLocations = scene.clone();
-//    for (auto &&window : windows) {
+//    for (auto &window : windows) {
 //        if (window.hasCandidates()) {
 //            cv::rectangle(filteredLocations, window.tl(), window.br(), cv::Scalar(190, 190, 190));
 //        }
@@ -272,7 +282,7 @@ const std::string &Classifier::getSceneName() const {
 }
 
 const cv::Mat &Classifier::getSceneDepthNormalized() const {
-    return sceneDepthNorma;
+    return sceneDepthNorm;
 }
 
 const cv::Mat &Classifier::getSceneGrayscale() const {
@@ -310,7 +320,7 @@ void Classifier::setSceneDepth(const cv::Mat &sceneDepth) {
 
 void Classifier::setSceneDepthNormalized(const cv::Mat &sceneDepthNormalized) {
     assert(!sceneDepthNormalized.empty());
-    this->sceneDepthNorma = sceneDepthNormalized;
+    this->sceneDepthNorm = sceneDepthNormalized;
 }
 
 void Classifier::setTemplateGroups(const std::vector<Group> &templateGroups) {

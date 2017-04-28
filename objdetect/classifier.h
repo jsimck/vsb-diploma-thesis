@@ -30,7 +30,7 @@ private:
     cv::Mat sceneHSV;
     cv::Mat sceneGray;
     cv::Mat sceneDepth;
-    cv::Mat sceneDepthNorma;
+    cv::Mat sceneDepthNorm;
 
     DataSetInfo info;
     std::vector<Group> templateGroups;

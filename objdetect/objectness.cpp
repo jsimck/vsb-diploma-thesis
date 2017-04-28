@@ -81,19 +81,14 @@ void Objectness::extractMinEdgels(std::vector<Group> &groups, DataSetInfo &info)
     }
 }
 
-void Objectness::objectness(cv::Mat &sceneGray, cv::Mat &sceneColor, cv::Mat &sceneDepthNorm, std::vector<Window> &windows, DataSetInfo &info) {
+void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &windows, DataSetInfo &info) {
     // Check thresholds and min edgels
     assert(info.smallestTemplate.area() > 0);
     assert(info.minEdgels > 0);
     assert(tMatch > 0);
 
-    assert(!sceneGray.empty());
     assert(!sceneDepthNorm.empty());
-    assert(!sceneColor.empty());
-
-    assert(sceneGray.type() == 5); // CV_32FC1
     assert(sceneDepthNorm.type() == 5); // CV_32FC1
-    assert(sceneColor.type() == 16); // CV_8UC3
 
     // Apply sobel filter and thresholding on normalized Depth scene (<0, 1> px values)
     cv::Mat sSobel;

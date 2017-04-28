@@ -34,7 +34,7 @@ public:
 
     // Methods
     void extractMinEdgels(std::vector<Group> &groups, DataSetInfo &info);
-    void objectness(cv::Mat &sceneGray, cv::Mat &sceneColor, cv::Mat &sceneDepthNorm, std::vector<Window> &windows, DataSetInfo &info);
+    void objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &windows, DataSetInfo &info);
 
     // Getters
     uint getStep() const;
