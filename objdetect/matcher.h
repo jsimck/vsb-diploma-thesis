@@ -34,10 +34,10 @@ private:
 
     // Tests
     inline bool testObjectSize(float scale); // Test I
-    inline int testSurfaceNormal(const uchar tNormal, Window &window, const cv::Mat &sceneDepth, const cv::Point &stable, const cv::Range &neighbourhood); // Test II
-    inline int testGradients(const uchar tOrientation, Window &window, const cv::Mat &sceneGray, const cv::Point &edge, const cv::Range &neighbourhood); // Test III
+    inline int testSurfaceNormal(const uchar normal, Window &window, const cv::Mat &sceneDepth, const cv::Point &stable); // Test II
+    inline int testGradients(const uchar orientation, Window &window, const cv::Mat &sceneGray, const cv::Point &edge); // Test III
     inline int testDepth(int physicalDiameter, std::vector<int> &depths); // Test IV
-    inline int testColor(const cv::Vec3b tHSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &stable, const cv::Range &neighbourhood); // Test V
+    inline int testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &stable); // Test V
 public:
     // Static methods
     static int median(std::vector<int> &values);

@@ -46,8 +46,8 @@ int Matcher::quantizeOrientationGradient(float deg) {
 }
 
 cv::Vec3b Matcher::normalizeHSV(const cv::Vec3b &hsv) {
-    const uchar tV = 22; // 0.12 of hue threshold
-    const uchar tS = 31; // 0.12 of saturation threshold
+    static const uchar tV = 22; // 0.12 of hue threshold
+    static const uchar tS = 31; // 0.12 of saturation threshold
 
     // Check for black
     if (hsv[2] <= tV) {
@@ -215,13 +215,12 @@ bool Matcher::testObjectSize(float scale) {
     return true; // TODO implement object size test
 }
 
-int Matcher::testSurfaceNormal(const uchar tNormal, Window &window, const cv::Mat &sceneDepth,
-                               const cv::Point &featurePoint, const cv::Range &n) {
+int Matcher::testSurfaceNormal(const uchar normal, Window &window, const cv::Mat &sceneDepth, const cv::Point &featurePoint) {
     // TODO Use bitwise operations using response maps
-    for (int offsetY = n.start; offsetY <= n.end; ++offsetY) {
-        for (int offsetX = n.start; offsetX <= n.end; ++offsetX) {
+    for (int y = neighbourhood.start; y <= neighbourhood.end; ++y) {
+        for (int x = neighbourhood.start; x <= neighbourhood.end; ++x) {
             // Apply needed offsets to stable point
-            cv::Point stablePoint(featurePoint.x + window.tl().x + offsetX, featurePoint.y + window.tl().y + offsetY);
+            cv::Point stablePoint(featurePoint.x + window.tl().x + x, featurePoint.y + window.tl().y + y);
 
             // Checks
             assert(stablePoint.x >= 0);
@@ -229,7 +228,7 @@ int Matcher::testSurfaceNormal(const uchar tNormal, Window &window, const cv::Ma
             assert(stablePoint.x < sceneDepth.cols);
             assert(stablePoint.y < sceneDepth.rows);
 
-            if (Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, stablePoint)) == tNormal) {
+            if (Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, stablePoint)) == normal) {
                 return 1;
             }
         }
@@ -238,13 +237,12 @@ int Matcher::testSurfaceNormal(const uchar tNormal, Window &window, const cv::Ma
     return 0;
 }
 
-int Matcher::testGradients(const uchar tOrientation, Window &window, const cv::Mat &sceneGray,
-                           const cv::Point &featurePoint, const cv::Range &n) {
+int Matcher::testGradients(const uchar orientation, Window &window, const cv::Mat &sceneGray, const cv::Point &featurePoint) {
     // TODO Use bitwise operations using response maps
-    for (int offsetY = n.start; offsetY <= n.end; ++offsetY) {
-        for (int offsetX = n.start; offsetX <= n.end; ++offsetX) {
+    for (int y = neighbourhood.start; y <= neighbourhood.end; ++y) {
+        for (int x = neighbourhood.start; x <= neighbourhood.end; ++x) {
             // Apply needed offsets to edge point
-            cv::Point edgePoint(featurePoint.x + window.tl().x + offsetX, featurePoint.y + window.tl().y + offsetY);
+            cv::Point edgePoint(featurePoint.x + window.tl().x + x, featurePoint.y + window.tl().y + y);
 
             // Checks
             assert(edgePoint.x >= 0);
@@ -252,7 +250,7 @@ int Matcher::testGradients(const uchar tOrientation, Window &window, const cv::M
             assert(edgePoint.x < sceneGray.cols);
             assert(edgePoint.y < sceneGray.rows);
 
-            if (quantizeOrientationGradient(orientationGradient(sceneGray, edgePoint)) == tOrientation) {
+            if (quantizeOrientationGradient(orientationGradient(sceneGray, edgePoint)) == orientation) {
                 return 1;
             }
         }
@@ -281,13 +279,11 @@ int Matcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
  * by eroding the object projection
  * beforehand.
  */
-int Matcher::testColor(const cv::Vec3b tHSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &edgePoint,
-                       const cv::Range &n) {
-
-    for (int offsetY = n.start; offsetY <= n.end; ++offsetY) {
-        for (int offsetX = n.start; offsetX <= n.end; ++offsetX) {
+int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &edgePoint) {
+    for (int y = neighbourhood.start; y <= neighbourhood.end; ++y) {
+        for (int x = neighbourhood.start; x <= neighbourhood.end; ++x) {
             // Apply needed offsets to edge point
-            cv::Point stablePoint(edgePoint.x + window.tl().x + offsetX, edgePoint.y + window.tl().y + offsetY);
+            cv::Point stablePoint(edgePoint.x + window.tl().x + x, edgePoint.y + window.tl().y + y);
 
             // Checks
             assert(stablePoint.x >= 0);
@@ -296,7 +292,7 @@ int Matcher::testColor(const cv::Vec3b tHSV, Window &window, const cv::Mat &scen
             assert(stablePoint.y < sceneHSV.rows);
 
             const uchar threshold = 5;
-            if (std::abs(normalizeHSV(tHSV)[0] - normalizeHSV(sceneHSV.at<cv::Vec3b>(stablePoint))[0]) < threshold) {
+            if (std::abs(normalizeHSV(HSV)[0] - normalizeHSV(sceneHSV.at<cv::Vec3b>(stablePoint))[0]) < threshold) {
                 return 1;
             }
         }
@@ -360,8 +356,7 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
     matches.swap(pick);
 }
 
-void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv::Mat &sceneDepth,
-                    std::vector<Window> &windows, std::vector<Match> &matches) {
+void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv::Mat &sceneDepth, std::vector<Window> &windows, std::vector<Match> &matches) {
     // Checks
     assert(!sceneHSV.empty());
     assert(!sceneGray.empty());
@@ -371,58 +366,56 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
     assert(sceneDepth.type() == 5); // CV_32FC1
     assert(windows.size() > 0);
 
-    // Thresholds
+    // Min threshold of matched feature points
     const int minThreshold = static_cast<int>(pointsCount * tMatch); // 60%
-    std::vector<int> removeIndex;
 
     for (int l = 0; l < windows.size(); l++) {
         for (auto &candidate : windows[l].candidates) {
             // Checks
             assert(candidate != nullptr);
 
-            // Do template matching, if any of the test fails in the cascade, matching is template is discarted
-            float scoreII = 0, scoreIII = 0, scoreIV = 0, scoreV = 0;
-            std::vector<int> ds;
-            candidate->votes = 0; // TODO - remove, for testing only
+            // Scores for each test, should pass given min threshold (tMatch)
+            float sII = 0, sIII = 0, sIV = 0, sV = 0;
 
             // Test I
             if (!testObjectSize(1.0f)) continue;
 
+
             // Test II
             for (int i = 0; i < pointsCount; i++) {
-                scoreII += testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth,
-                                             candidate->stablePoints[i], neighbourhood);
+                sII += testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
             }
 
-            if (scoreII < minThreshold) continue;
+            if (sII < minThreshold) continue;
+
 
             // Test III
             for (int i = 0; i < pointsCount; i++) {
-                scoreIII += testGradients(candidate->features.gradients[i], windows[l],
-                                          sceneDepth, candidate->edgePoints[i], neighbourhood);
+                sIII += testGradients(candidate->features.gradients[i], windows[l], sceneGray, candidate->edgePoints[i]);
             }
 
-            if (scoreIII < minThreshold) continue;
+            if (sIII < minThreshold) continue;
+
 
             // Test V
             for (int i = 0; i < pointsCount; i++) {
-                scoreV += testColor(candidate->features.colors[i], windows[l],
-                                sceneHSV, candidate->stablePoints[i], neighbourhood);
+                sV += testColor(candidate->features.colors[i], windows[l], sceneHSV, candidate->stablePoints[i]);
             }
 
-            if (scoreV < minThreshold) continue;
+            if (sV < minThreshold) continue;
 
 //#ifndef NDEBUG
 //            std::cout
 //                << "id: " << candidate->id
 //                << ", window: " << l
-//                << ", score II: " << scoreII
-//                << ", score III: " << scoreIII
-//                << ", score V: " << scoreV
+//                << ", score II: " << sII
+//                << ", score III: " << sIII
+//                << ", score V: " << sV
 //                << std::endl;
 //#endif
+
             // Push template that passed all tests to matches array
-            float score = (scoreII / pointsCount) + (scoreIII / pointsCount) + (scoreV / pointsCount);
+            float score = (sII / pointsCount) + (sIII / pointsCount) + (sV / pointsCount);
             cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
             matches.push_back(Match(candidate, matchBB, score));
         }
