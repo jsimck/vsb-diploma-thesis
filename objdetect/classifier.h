@@ -8,7 +8,7 @@
 #include "hasher.h"
 #include "objectness.h"
 #include "../core/window.h"
-#include "template_matcher.h"
+#include "matcher.h"
 #include "../core/dataset_info.h"
 
 /**
@@ -53,7 +53,7 @@ public:
     TemplateParser parser;
     Objectness objectness;
     Hasher hasher;
-    TemplateMatcher matcher;
+    Matcher matcher;
 
     // Constructors
     Classifier(std::string basePath = "data/", std::vector<std::string> folders = {}, std::string scenePath = "scene_01/", std::string sceneName = "0000.png");

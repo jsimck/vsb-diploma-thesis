@@ -1,62 +1,66 @@
 #include <random>
 #include <algorithm>
-#include "template_matcher.h"
+#include "matcher.h"
 #include "../core/triplet.h"
 #include "hasher.h"
 #include "../core/template.h"
 #include "../utils/utils.h"
 
-float TemplateMatcher::extractOrientationGradient(const cv::Mat &src, cv::Point &point) {
-    float dx = (src.at<float>(point.y, point.x - 1) - src.at<float>(point.y, point.x + 1)) / 2.0f;
-    float dy = (src.at<float>(point.y - 1, point.x) - src.at<float>(point.y + 1, point.x)) / 2.0f;
+float Matcher::orientationGradient(const cv::Mat &src, cv::Point &p) {
+    assert(!src.empty());
+    assert(src.type() == 5); // CV_32FC1
+
+    float dx = (src.at<float>(p.y, p.x - 1) - src.at<float>(p.y, p.x + 1)) / 2.0f;
+    float dy = (src.at<float>(p.y - 1, p.x) - src.at<float>(p.y + 1, p.x)) / 2.0f;
 
     return cv::fastAtan2(dy, dx);
 }
 
-int TemplateMatcher::median(std::vector<int> &values) {
-    std::nth_element(values.begin(), values.begin() + values.size() / 2, values.end());
+int Matcher::median(std::vector<int> &values) {
+    assert(values.size() > 0);
 
+    std::nth_element(values.begin(), values.begin() + values.size() / 2, values.end());
     return values[values.size() / 2];
 }
 
-int TemplateMatcher::quantizeOrientationGradient(float deg) {
+int Matcher::quantizeOrientationGradient(float deg) {
     // Checks
     assert(deg >= 0);
     assert(deg <= 360);
 
-    // We work only in first 2 quadrants
-    int degNormalized = static_cast<int>(deg) % 180;
+    // We only work in first 2 quadrants (PI)
+    int degPI = static_cast<int>(deg) % 180;
 
     // Quantize
-    if (degNormalized >= 0 && degNormalized < 36) {
+    if (degPI >= 0 && degPI < 36) {
         return 0;
-    } else if (degNormalized >= 36 && degNormalized < 72) {
+    } else if (degPI >= 36 && degPI < 72) {
         return 1;
-    } else if (degNormalized >= 72 && degNormalized < 108) {
+    } else if (degPI >= 72 && degPI < 108) {
         return 2;
-    } else if (degNormalized >= 108 && degNormalized < 144) {
+    } else if (degPI >= 108 && degPI < 144) {
         return 3;
     } else {
         return 4;
     }
 }
 
-cv::Vec3b TemplateMatcher::normalizeHSV(const cv::Vec3b &px) {
+cv::Vec3b Matcher::normalizeHSV(const cv::Vec3b &hsv) {
     const uchar tV = 22; // 0.12 of hue threshold
     const uchar tS = 31; // 0.12 of saturation threshold
 
     // Check for black
-    if (px[2] <= tV) {
-        return cv::Vec3b(120, px[1], px[2]); // Set to blue
+    if (hsv[2] <= tV) {
+        return cv::Vec3b(120, hsv[1], hsv[2]); // Set to blue
     }
 
     // Check for white
-    if (px[2] > tV && px[1] < tS) {
-        return cv::Vec3b(30, px[1], px[2]); // Set to yellow
+    if (hsv[2] > tV && hsv[1] < tS) {
+        return cv::Vec3b(30, hsv[1], hsv[2]); // Set to yellow
     }
 }
 
-void TemplateMatcher::generateFeaturePoints(std::vector<Group> &groups) {
+void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
     // Init engine
     typedef std::mt19937 engine;
 
@@ -79,7 +83,7 @@ void TemplateMatcher::generateFeaturePoints(std::vector<Group> &groups) {
 
             // Apply canny to detect edges
             cv::blur(src_8uc1, src_8uc1, cv::Size(3, 3));
-            cv::Canny(src_8uc1, canny, cannyThreshold1, cannyThreshold2, 3, false);
+            cv::Canny(src_8uc1, canny, t1Canny, t2Canny, 3, false);
 
             // Apply sobel to get mask for stable areas
             cv::Sobel(src_8uc1, sobelX, CV_8U, 1, 0, 3);
@@ -93,22 +97,22 @@ void TemplateMatcher::generateFeaturePoints(std::vector<Group> &groups) {
                         cannyPoints.push_back(cv::Point(x, y));
                     }
 
-                    if (src_8uc1.at<uchar>(y, x) > grayscaleMinThreshold && sobel.at<uchar>(y, x) <= sobelMaxThreshold) {
+                    if (src_8uc1.at<uchar>(y, x) > tGray && sobel.at<uchar>(y, x) <= tSobel) {
                         stablePoints.push_back(cv::Point(x, y));
                     }
                 }
             }
 
             // There should be more than MIN points for each template
-            assert(stablePoints.size() > featurePointsCount);
-            assert(cannyPoints.size() > featurePointsCount);
+            assert(stablePoints.size() > pointsCount);
+            assert(cannyPoints.size() > pointsCount);
 
             // Shuffle
             std::shuffle(stablePoints.begin(), stablePoints.end(), engine(1));
             std::shuffle(cannyPoints.begin(), cannyPoints.end(), engine(1));
 
             // Save random points into the template arrays
-            for (int i = 0; i < featurePointsCount; i++) {
+            for (int i = 0; i < pointsCount; i++) {
                 int ri;
                 // If points extracted are on the part of depths image corrupted by noise (black spots)
                 // regenerate new points, until
@@ -136,31 +140,31 @@ void TemplateMatcher::generateFeaturePoints(std::vector<Group> &groups) {
                 cannyPoints.erase(cannyPoints.begin() + ri - 1); // Remove from array of points
             }
 
-            assert(t.stablePoints.size() == featurePointsCount);
-            assert(t.edgePoints.size() == featurePointsCount);
+            assert(t.stablePoints.size() == pointsCount);
+            assert(t.edgePoints.size() == pointsCount);
 
 #ifndef NDEBUG
 //            // Visualize extracted features
 //            cv::Mat visualizationMat;
 //            cv::cvtColor(tpl.srcGray, visualizationMat, CV_GRAY2BGR);
 //
-//            for (int i = 0; i < featurePointsCount; ++i) {
+//            for (int i = 0; i < pointsCount; ++i) {
 //                cv::Point ePOffset(tpl.edgePoints[i].x + tpl.objBB.tl().x, tpl.edgePoints[i].y + tpl.objBB.tl().y);
 //                cv::Point sPOffset(tpl.stablePoints[i].x + tpl.objBB.tl().x, tpl.stablePoints[i].y + tpl.objBB.tl().y);
 //                cv::circle(visualizationMat, ePOffset, 1, cv::Scalar(0, 0, 255), -1);
 //                cv::circle(visualizationMat, sPOffset, 1, cv::Scalar(0, 255, 0), -1);
 //            }
 //
-//            cv::imshow("TemplateMatcher::train Sobel", sobel);
-//            cv::imshow("TemplateMatcher::train Canny", canny);
-//            cv::imshow("TemplateMatcher::train Feature points", visualizationMat);
+//            cv::imshow("Matcher::train Sobel", sobel);
+//            cv::imshow("Matcher::train Canny", canny);
+//            cv::imshow("Matcher::train Feature points", visualizationMat);
 //            cv::waitKey(0);
 #endif
         }
     }
 }
 
-void TemplateMatcher::extractTemplateFeatures(std::vector<Group> &groups) {
+void Matcher::extractFeatures(std::vector<Group> &groups) {
     assert(groups.size() > 0);
 
     for (auto &group : groups) {
@@ -169,7 +173,7 @@ void TemplateMatcher::extractTemplateFeatures(std::vector<Group> &groups) {
             std::vector<int> depthArray;
 
             // Quantize surface normal and gradient orientations and extract other features
-            for (int i = 0; i < featurePointsCount; i++) {
+            for (int i = 0; i < pointsCount; i++) {
                 assert(!t.srcGray.empty());
                 assert(!t.srcHSV.empty());
                 assert(!t.srcDepth.empty());
@@ -180,11 +184,11 @@ void TemplateMatcher::extractTemplateFeatures(std::vector<Group> &groups) {
 
                 // Save features to template
                 float depth = t.srcDepth.at<float>(stablePOff);
-                t.features.gradients.push_back(quantizeOrientationGradient(extractOrientationGradient(t.srcGray, edgePOff)));
+                t.features.gradients.push_back(quantizeOrientationGradient(orientationGradient(t.srcGray, edgePOff)));
                 t.features.normals.push_back(
                     Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff)));
                 t.features.depths.push_back(depth);
-                t.features.colors.push_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(edgePOff)));
+                t.features.colors.push_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(stablePOff)));
                 depthArray.push_back(static_cast<int>(t.features.depths[i]));
 
                 assert(t.features.gradients[i] >= 0);
@@ -199,32 +203,33 @@ void TemplateMatcher::extractTemplateFeatures(std::vector<Group> &groups) {
     }
 }
 
-void TemplateMatcher::train(std::vector<Group> &groups) {
+void Matcher::train(std::vector<Group> &groups) {
     // Generate edge and stable points for features extraction
     generateFeaturePoints(groups);
 
     // Extract features for all templates in template group
-    extractTemplateFeatures(groups);
+    extractFeatures(groups);
 }
 
-bool TemplateMatcher::testObjectSize(float scale) {
+bool Matcher::testObjectSize(float scale) {
     return true; // TODO implement object size test
 }
 
-int TemplateMatcher::testSurfaceNormalOrientation(const int tNormal, Window &w, const cv::Mat &srcDepth, const cv::Point &featurePoint, const cv::Range &n) {
+int Matcher::testSurfaceNormal(const uchar tNormal, Window &window, const cv::Mat &sceneDepth,
+                               const cv::Point &featurePoint, const cv::Range &n) {
     // TODO Use bitwise operations using response maps
     for (int offsetY = n.start; offsetY <= n.end; ++offsetY) {
         for (int offsetX = n.start; offsetX <= n.end; ++offsetX) {
             // Apply needed offsets to stable point
-            cv::Point stablePoint(featurePoint.x + w.tl().x + offsetX, featurePoint.y + w.tl().y + offsetY);
+            cv::Point stablePoint(featurePoint.x + window.tl().x + offsetX, featurePoint.y + window.tl().y + offsetY);
 
             // Checks
             assert(stablePoint.x >= 0);
             assert(stablePoint.y >= 0);
-            assert(stablePoint.x < srcDepth.cols);
-            assert(stablePoint.y < srcDepth.rows);
+            assert(stablePoint.x < sceneDepth.cols);
+            assert(stablePoint.y < sceneDepth.rows);
 
-            if (Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(srcDepth, stablePoint)) == tNormal) {
+            if (Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, stablePoint)) == tNormal) {
                 return 1;
             }
         }
@@ -233,20 +238,21 @@ int TemplateMatcher::testSurfaceNormalOrientation(const int tNormal, Window &w, 
     return 0;
 }
 
-int TemplateMatcher::testIntensityGradients(const int tOrientation, Window &w, const cv::Mat &srcGrayscale, const cv::Point &featurePoint, const cv::Range &n) {
+int Matcher::testGradients(const uchar tOrientation, Window &window, const cv::Mat &sceneGray,
+                           const cv::Point &featurePoint, const cv::Range &n) {
     // TODO Use bitwise operations using response maps
     for (int offsetY = n.start; offsetY <= n.end; ++offsetY) {
         for (int offsetX = n.start; offsetX <= n.end; ++offsetX) {
             // Apply needed offsets to edge point
-            cv::Point edgePoint(featurePoint.x + w.tl().x + offsetX, featurePoint.y + w.tl().y + offsetY);
+            cv::Point edgePoint(featurePoint.x + window.tl().x + offsetX, featurePoint.y + window.tl().y + offsetY);
 
             // Checks
             assert(edgePoint.x >= 0);
             assert(edgePoint.y >= 0);
-            assert(edgePoint.x < srcGrayscale.cols);
-            assert(edgePoint.y < srcGrayscale.rows);
+            assert(edgePoint.x < sceneGray.cols);
+            assert(edgePoint.y < sceneGray.rows);
 
-            if (quantizeOrientationGradient(extractOrientationGradient(srcGrayscale, edgePoint)) == tOrientation) {
+            if (quantizeOrientationGradient(orientationGradient(sceneGray, edgePoint)) == tOrientation) {
                 return 1;
             }
         }
@@ -255,7 +261,7 @@ int TemplateMatcher::testIntensityGradients(const int tOrientation, Window &w, c
     return 0;
 }
 
-int TemplateMatcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
+int Matcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
     const float k = 1.0f;
     int dm = median(depths), score = 0;
 
@@ -275,12 +281,13 @@ int TemplateMatcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
  * by eroding the object projection
  * beforehand.
  */
-int TemplateMatcher::testColor(const cv::Vec3b tHSV, Window &w, const cv::Mat &sceneHSV, const cv::Point &featurePoint, const cv::Range &n) {
+int Matcher::testColor(const cv::Vec3b tHSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &edgePoint,
+                       const cv::Range &n) {
 
     for (int offsetY = n.start; offsetY <= n.end; ++offsetY) {
         for (int offsetX = n.start; offsetX <= n.end; ++offsetX) {
             // Apply needed offsets to edge point
-            cv::Point stablePoint(featurePoint.x + w.tl().x + offsetX, featurePoint.y + w.tl().y + offsetY);
+            cv::Point stablePoint(edgePoint.x + window.tl().x + offsetX, edgePoint.y + window.tl().y + offsetY);
 
             // Checks
             assert(stablePoint.x >= 0);
@@ -298,7 +305,7 @@ int TemplateMatcher::testColor(const cv::Vec3b tHSV, Window &w, const cv::Mat &s
     return 0;
 }
 
-void TemplateMatcher::nonMaximaSuppression(std::vector<Match> &matches) {
+void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
     // Checks
     assert(matches.size() > 0);
 
@@ -353,19 +360,19 @@ void TemplateMatcher::nonMaximaSuppression(std::vector<Match> &matches) {
     matches.swap(pick);
 }
 
-void TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, const cv::Mat &srcDepth,
-                            std::vector<Window> &windows, std::vector<Match> &matches) {
+void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv::Mat &sceneDepth,
+                    std::vector<Window> &windows, std::vector<Match> &matches) {
     // Checks
-    assert(!srcHSV.empty());
-    assert(!srcGrayscale.empty());
-    assert(!srcDepth.empty());
-    assert(srcHSV.type() == 16); // CV_8UC3
-    assert(srcGrayscale.type() == 5); // CV_32FC1
-    assert(srcDepth.type() == 5); // CV_32FC1
+    assert(!sceneHSV.empty());
+    assert(!sceneGray.empty());
+    assert(!sceneDepth.empty());
+    assert(sceneHSV.type() == 16); // CV_8UC3
+    assert(sceneGray.type() == 5); // CV_32FC1
+    assert(sceneDepth.type() == 5); // CV_32FC1
     assert(windows.size() > 0);
 
     // Thresholds
-    const int minThreshold = static_cast<int>(featurePointsCount * matchThreshold); // 60%
+    const int minThreshold = static_cast<int>(pointsCount * tMatch); // 60%
     std::vector<int> removeIndex;
 
     for (int l = 0; l < windows.size(); l++) {
@@ -382,25 +389,25 @@ void TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, 
             if (!testObjectSize(1.0f)) continue;
 
             // Test II
-            for (int i = 0; i < featurePointsCount; i++) {
-                scoreII += testSurfaceNormalOrientation(candidate->features.normals[i], windows[l], srcDepth,
-                                                        candidate->stablePoints[i], matchNeighbourhood);
+            for (int i = 0; i < pointsCount; i++) {
+                scoreII += testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth,
+                                             candidate->stablePoints[i], neighbourhood);
             }
 
             if (scoreII < minThreshold) continue;
 
             // Test III
-            for (int i = 0; i < featurePointsCount; i++) {
-                scoreIII += testIntensityGradients(candidate->features.gradients[i], windows[l],
-                                                         srcDepth, candidate->edgePoints[i], matchNeighbourhood);
+            for (int i = 0; i < pointsCount; i++) {
+                scoreIII += testGradients(candidate->features.gradients[i], windows[l],
+                                          sceneDepth, candidate->edgePoints[i], neighbourhood);
             }
 
             if (scoreIII < minThreshold) continue;
 
             // Test V
-            for (int i = 0; i < featurePointsCount; i++) {
+            for (int i = 0; i < pointsCount; i++) {
                 scoreV += testColor(candidate->features.colors[i], windows[l],
-                                srcHSV, candidate->edgePoints[i], matchNeighbourhood);
+                                sceneHSV, candidate->stablePoints[i], neighbourhood);
             }
 
             if (scoreV < minThreshold) continue;
@@ -415,7 +422,7 @@ void TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, 
 //                << std::endl;
 //#endif
             // Push template that passed all tests to matches array
-            float score = (scoreII / featurePointsCount) + (scoreIII / featurePointsCount) + (scoreV / featurePointsCount);
+            float score = (scoreII / pointsCount) + (scoreIII / pointsCount) + (scoreV / pointsCount);
             cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
             matches.push_back(Match(candidate, matchBB, score));
         }
@@ -425,70 +432,70 @@ void TemplateMatcher::match(const cv::Mat &srcHSV, const cv::Mat &srcGrayscale, 
     nonMaximaSuppression(matches);
 }
 
-uint TemplateMatcher::getFeaturePointsCount() const {
-    return featurePointsCount;
+uint Matcher::getPointsCount() const {
+    return pointsCount;
 }
 
-uchar TemplateMatcher::getCannyThreshold1() const {
-    return cannyThreshold1;
+uchar Matcher::getT1Canny() const {
+    return t1Canny;
 }
 
-uchar TemplateMatcher::getCannyThreshold2() const {
-    return cannyThreshold2;
+uchar Matcher::getT2Canny() const {
+    return t2Canny;
 }
 
-uchar TemplateMatcher::getSobelMaxThreshold() const {
-    return sobelMaxThreshold;
+uchar Matcher::getTSobel() const {
+    return tSobel;
 }
 
-uchar TemplateMatcher::getGrayscaleMinThreshold() const {
-    return grayscaleMinThreshold;
+uchar Matcher::getTGray() const {
+    return tGray;
 }
 
-float TemplateMatcher::getMatchThreshold() const {
-    return matchThreshold;
+float Matcher::getTMatch() const {
+    return tMatch;
 }
 
-const cv::Range &TemplateMatcher::getMatchNeighbourhood() const {
-    return matchNeighbourhood;
+const cv::Range &Matcher::getNeighbourhood() const {
+    return neighbourhood;
 }
 
-void TemplateMatcher::setFeaturePointsCount(uint featurePointsCount) {
-    assert(featurePointsCount > 0);
-    this->featurePointsCount = featurePointsCount;
+void Matcher::setPointsCount(uint count) {
+    assert(count > 0);
+    this->pointsCount = count;
 }
 
-void TemplateMatcher::setCannyThreshold1(uchar cannyThreshold1) {
-    assert(featurePointsCount > 0);
-    assert(featurePointsCount < 256);
-    this->cannyThreshold1 = cannyThreshold1;
+void Matcher::setT1Canny(uchar t1) {
+    assert(pointsCount > 0);
+    assert(pointsCount < 256);
+    this->t1Canny = t1;
 }
 
-void TemplateMatcher::setCannyThreshold2(uchar cannyThreshold2) {
-    assert(featurePointsCount > 0);
-    assert(featurePointsCount < 256);
-    this->cannyThreshold2 = cannyThreshold2;
+void Matcher::setT2Canny(uchar t2) {
+    assert(pointsCount > 0);
+    assert(pointsCount < 256);
+    this->t2Canny = t2;
 }
 
-void TemplateMatcher::setSobelMaxThreshold(uchar sobelMaxThreshold) {
-    assert(featurePointsCount > 0);
-    assert(featurePointsCount < 256);
-    this->sobelMaxThreshold = sobelMaxThreshold;
+void Matcher::setTSobel(uchar t) {
+    assert(pointsCount > 0);
+    assert(pointsCount < 256);
+    this->tSobel = t;
 }
 
-void TemplateMatcher::setGrayscaleMinThreshold(uchar grayscaleMinThreshold) {
-    assert(featurePointsCount > 0);
-    assert(featurePointsCount < 256);
-    this->grayscaleMinThreshold = grayscaleMinThreshold;
+void Matcher::setTGray(uchar t) {
+    assert(pointsCount > 0);
+    assert(pointsCount < 256);
+    this->tGray = t;
 }
 
-void TemplateMatcher::setMatchThreshold(float matchThreshold) {
-    assert(matchThreshold > 0);
-    assert(matchThreshold <= 1.0f);
-    this->matchThreshold = matchThreshold;
+void Matcher::setTMatch(float t) {
+    assert(t > 0);
+    assert(t <= 1.0f);
+    this->tMatch = t;
 }
 
-void TemplateMatcher::setMatchNeighbourhood(cv::Range matchNeighbourhood) {
+void Matcher::setNeighbourhood(cv::Range matchNeighbourhood) {
     assert(matchNeighbourhood.start <= matchNeighbourhood.end);
-    this->matchNeighbourhood = matchNeighbourhood;
+    this->neighbourhood = matchNeighbourhood;
 }

@@ -10,7 +10,8 @@
 /**
  * class Hasher
  *
- * Used to train HashTables and verify
+ * Used to train HashTables and quickly verify what templates should be matched
+ * per each window passed form objectness detection
  */
 class Hasher {
 private:

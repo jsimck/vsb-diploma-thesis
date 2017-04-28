@@ -27,14 +27,14 @@ Classifier::Classifier(std::string basePath, std::vector<std::string> folders, s
     hasher.setMaxDistance(5);
 
     // Init template matcher
-    matcher.setFeaturePointsCount(100);
-    matcher.setMatchThreshold(0.6f);
-    matcher.setMatchNeighbourhood(cv::Range(-2, 2)); // 5x5 -> [-2, -1, 0, 1, 2]
+    matcher.setPointsCount(100);
+    matcher.setTMatch(0.6f);
+    matcher.setNeighbourhood(cv::Range(-2, 2)); // 5x5 -> [-2, -1, 0, 1, 2]
     // Training constants
-    matcher.setCannyThreshold1(100);
-    matcher.setCannyThreshold2(200);
-    matcher.setSobelMaxThreshold(50);
-    matcher.setGrayscaleMinThreshold(50);
+    matcher.setT1Canny(100);
+    matcher.setT2Canny(200);
+    matcher.setTSobel(50);
+    matcher.setTGray(50);
 }
 
 void Classifier::parseTemplates() {
