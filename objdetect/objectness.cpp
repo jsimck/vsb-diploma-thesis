@@ -68,7 +68,7 @@ void Objectness::extractMinEdgels(std::vector<Group> &groups, DataSetInfo &info)
             tNorm = tNorm(t.objBB);
 
             filterSobel(tNorm, tSobel);
-            thresholdMinMax(tSobel, tSobel, this->tMin, this->tMax);
+            thresholdMinMax(tSobel, tSobel, tMin, tMax);
 
             // Compute integral image for easier computation of edgels
             cv::integral(tNorm, tIntegral, CV_32F);
@@ -93,7 +93,7 @@ void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &window
     // Apply sobel filter and thresholding on normalized Depth scene (<0, 1> px values)
     cv::Mat sSobel;
     filterSobel(sceneDepthNorm, sSobel);
-    thresholdMinMax(sSobel, sSobel, this->tMin, this->tMax);
+    thresholdMinMax(sSobel, sSobel, tMin, tMax);
 
     // Calculate image integral
     cv::Mat sIntegral;

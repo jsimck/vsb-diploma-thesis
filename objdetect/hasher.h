@@ -23,8 +23,9 @@ private:
 
     uchar quantizeDepth(float depth);
     void generateTriplets(std::vector<HashTable> &tables);
-    void calculateDepthHistogramRanges(unsigned long sum, unsigned long *values);
-    void computeBinRanges(const std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info);
+    void computeBinRanges(unsigned long sum, unsigned long *values);
+    void initializeBinRanges(const std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info);
+    void initialize(const std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info);
 public:
     // Statics
     static const int IMG_16BIT_MAX;
@@ -41,7 +42,6 @@ public:
 
     // Methods
     void train(std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info);
-    void initialize(const std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info);
     void verifyCandidates(const cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows, const DataSetInfo &info);
 
     // Getters

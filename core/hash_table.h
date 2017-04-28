@@ -24,6 +24,9 @@ public:
     HashTable() {}
     HashTable(const Triplet triplet) : triplet(triplet) {}
 
+    // Methods
+    void pushUnique(const HashKey &key, Template &t);
+
     // Operators
     friend std::ostream &operator<<(std::ostream &os, const HashTable &table);
 };

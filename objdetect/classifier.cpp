@@ -208,8 +208,8 @@ void Classifier::classify() {
 
     /// Show matched template results
     cv::Mat sceneCopy = scene.clone();
-    for (auto &&bB : matches) {
-        cv::rectangle(sceneCopy, cv::Point(bB.objBB.x, bB.objBB.y), cv::Point(bB.objBB.x + bB.objBB.width, bB.objBB.y + bB.objBB.height), cv::Scalar(0, 255, 0));
+    for (auto &match : matches) {
+        cv::rectangle(sceneCopy, cv::Point(match.objBB.x, match.objBB.y), cv::Point(match.objBB.x + match.objBB.width, match.objBB.y + match.objBB.height), cv::Scalar(0, 255, 0));
     }
 
     cv::imshow("Match template result", sceneCopy);

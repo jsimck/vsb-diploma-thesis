@@ -42,7 +42,7 @@ cv::Point Triplet::randChildPoint(int min, int max) {
     return cv::Point(x, y);
 }
 
-Triplet Triplet::createRandTriplet(const cv::Size &grid, const int distance) {
+Triplet Triplet::create(const cv::Size &grid, const int distance) {
     // Checks
     assert(grid.width > 0);
     assert(grid.height > 0);
@@ -73,7 +73,7 @@ Triplet Triplet::createRandTriplet(const cv::Size &grid, const int distance) {
     return Triplet(c, p1, p2);
 }
 
-TripletParams Triplet::getCoordParams(const int width, const int height, const cv::Size &grid, int sOffsetX, int sOffsetY) {
+TripletParams Triplet::getParams(const int width, const int height, const cv::Size &grid, const int sOffsetX, const int sOffsetY) {
     // Calculate offsets and steps for relative grid
     float stepX = width / static_cast<float>(grid.width);
     float stepY = height / static_cast<float>(grid.height);
@@ -136,7 +136,7 @@ void Triplet::visualize(const cv::Mat &src, const cv::Size &grid, bool showGrid)
     assert(src.type() == 21); // CV_32FC3
 
     // Get TripletCoord params
-    TripletParams params = getCoordParams(src.cols, src.rows, grid);
+    TripletParams params = getParams(src.cols, src.rows, grid);
 
     // Generate grid
     if (showGrid) {

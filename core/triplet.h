@@ -23,8 +23,8 @@ public:
 
     // Statics
     static float random(const float min = 0.0f, const float max = 1.0f);
-    static Triplet createRandTriplet(const cv::Size &grid, const int distance = 3); // max distance from center triplet
-    static TripletParams getCoordParams(const int width, const int height, const cv::Size &grid, const int sOffsetX = 0, const int sOffsetY = 0);
+    static Triplet create(const cv::Size &grid, const int distance = 3); // max distance from center triplet
+    static TripletParams getParams(const int width, const int height, const cv::Size &grid, const int sOffsetX = 0, const int sOffsetY = 0);
 
     // Constructors
     Triplet() {}
