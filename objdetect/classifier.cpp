@@ -20,11 +20,11 @@ Classifier::Classifier(std::string basePath, std::vector<std::string> folders, s
     objectness.setTMatch(0.3f);
 
     // Init hasher
-    hasher.setReferencePointsGrid(cv::Size(12, 12));
-    hasher.setHashTableCount(100);
-    hasher.setHistogramBinCount(5);
-    hasher.setMinVotesPerTemplate(3);
-    hasher.setMaxTripletDistance(5);
+    hasher.setGrid(cv::Size(12, 12));
+    hasher.setTablesCount(100);
+    hasher.setBinCount(5);
+    hasher.setMinVotes(3);
+    hasher.setMaxDistance(5);
 
     // Init template matcher
     matcher.setFeaturePointsCount(100);
@@ -148,7 +148,7 @@ void Classifier::verifyTemplateCandidates() {
     // Verification started
     std::cout << "Verification of template candidates, using trained HashTables started... " << std::endl;
     Timer t;
-    hasher.verifyTemplateCandidates(sceneDepth, tables, windows, info);
+    hasher.verifyCandidates(sceneDepth, tables, windows, info);
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
 #ifndef NDEBUG
@@ -173,20 +173,6 @@ void Classifier::matchTemplates() {
     Timer t;
     matcher.match(sceneHSV, sceneGray, sceneDepth, windows, matches);
     std::cout << "Template matching took: " << t.elapsed() << "s" << std::endl;
-
-
-    std::cout << "SIZE: " << matches.size() << std::endl;
-
-    // Template TemplateMatcher
-    cv::Mat sceneCopy = scene.clone();
-    for (auto &&bB : matches) {
-        cv::rectangle(sceneCopy, cv::Point(bB.objBB.x, bB.objBB.y), cv::Point(bB.objBB.x + bB.objBB.width, bB.objBB.y + bB.objBB.height), cv::Scalar(0, 255, 0));
-    }
-
-    // Show matched template results
-    std::cout << "Classification took: " << t.elapsed() << "s" << std::endl;
-    cv::imshow("Match template result", sceneCopy);
-    cv::waitKey(0);
 }
 
 void Classifier::classify() {
@@ -218,6 +204,16 @@ void Classifier::classify() {
 
     // Match templates
     matchTemplates();
+    std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
+
+    /// Show matched template results
+    cv::Mat sceneCopy = scene.clone();
+    for (auto &&bB : matches) {
+        cv::rectangle(sceneCopy, cv::Point(bB.objBB.x, bB.objBB.y), cv::Point(bB.objBB.x + bB.objBB.width, bB.objBB.y + bB.objBB.height), cv::Scalar(0, 255, 0));
+    }
+
+    cv::imshow("Match template result", sceneCopy);
+    cv::waitKey(0);
 }
 
 const std::string &Classifier::getBasePath() const {

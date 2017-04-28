@@ -181,7 +181,8 @@ void TemplateMatcher::extractTemplateFeatures(std::vector<Group> &groups) {
                 // Save features to template
                 float depth = t.srcDepth.at<float>(stablePOff);
                 t.features.gradients.push_back(quantizeOrientationGradient(extractOrientationGradient(t.srcGray, edgePOff)));
-                t.features.normals.push_back(Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(t.srcDepth, stablePOff)));
+                t.features.normals.push_back(
+                    Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff)));
                 t.features.depths.push_back(depth);
                 t.features.colors.push_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(edgePOff)));
                 depthArray.push_back(static_cast<int>(t.features.depths[i]));
@@ -223,7 +224,7 @@ int TemplateMatcher::testSurfaceNormalOrientation(const int tNormal, Window &w, 
             assert(stablePoint.x < srcDepth.cols);
             assert(stablePoint.y < srcDepth.rows);
 
-            if (Hasher::quantizeSurfaceNormals(Hasher::extractSurfaceNormal(srcDepth, stablePoint)) == tNormal) {
+            if (Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(srcDepth, stablePoint)) == tNormal) {
                 return 1;
             }
         }

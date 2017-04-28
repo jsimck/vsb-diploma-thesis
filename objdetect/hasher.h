@@ -10,60 +10,55 @@
 /**
  * class Hasher
  *
- * Class used to train templates and sliding windows, to prefilter
- * number of templates needed to be template matched in other stages of
- * template matching.
+ * Used to train HashTables and verify
  */
 class Hasher {
 private:
-    int minVotesPerTemplate;
-    cv::Size referencePointsGrid;
-    unsigned int maxTripletDistance;
-    unsigned int hashTableCount;
-    unsigned int histogramBinCount;
-    std::vector<cv::Range> histogramBinRanges;
+    int minVotes;
+    cv::Size grid;
+    uint maxDistance;
+    uint tablesCount;
+    uint binCount;
+    std::vector<cv::Range> binRanges;
 
-    int quantizeDepths(float depth);
-
-    void generateTriplets(std::vector<HashTable> &hashTables);
-    void calculateDepthHistogramRanges(unsigned long histogramSum, unsigned long histogramValues[]);
-    void calculateDepthBinRanges(const std::vector<Group> &groups, std::vector<HashTable> &hashTables, const DataSetInfo &info);
+    uchar quantizeDepth(float depth);
+    void generateTriplets(std::vector<HashTable> &tables);
+    void calculateDepthHistogramRanges(unsigned long sum, unsigned long *values);
+    void computeBinRanges(const std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info);
 public:
     // Statics
-    static const int IMG_16BIT_VALUE_MAX;
-    static const int IMG_16BIT_VALUES_RANGE;
+    static const int IMG_16BIT_MAX;
+    static const int IMG_16BIT_RANGE;
 
     // Static methods
-    static int quantizeSurfaceNormals(cv::Vec3f normal);
-    static cv::Vec3f extractSurfaceNormal(const cv::Mat &src, const cv::Point c);
-    static cv::Vec2i extractRelativeDepths(const cv::Mat &src, const cv::Point c, const cv::Point p1, const cv::Point p2);
+    static uchar quantizeSurfaceNormal(cv::Vec3f normal);
+    static cv::Vec3f surfaceNormal(const cv::Mat &src, const cv::Point c);
+    static cv::Vec2i relativeDepths(const cv::Mat &src, const cv::Point c, const cv::Point p1, const cv::Point p2);
 
     // Constructors
-    Hasher(int minVotesPerTemplate = 3, cv::Size referencePointsGrid = cv::Size(12, 12),
-           unsigned int hashTableCount = 100, unsigned int histogramBinCount = 5, unsigned int maxTripletDistance = 3)
-        : minVotesPerTemplate(minVotesPerTemplate), referencePointsGrid(referencePointsGrid),
-          hashTableCount(hashTableCount), histogramBinCount(histogramBinCount), maxTripletDistance(maxTripletDistance) {}
+    Hasher(int minVotes = 3, cv::Size grid = cv::Size(12, 12), uint tablesCount = 100, uint binCount = 5, uint maxDistance = 3)
+        : minVotes(minVotes), grid(grid), tablesCount(tablesCount), binCount(binCount), maxDistance(maxDistance) {}
 
     // Methods
-    void initialize(const std::vector<Group> &groups, std::vector<HashTable> &hashTables, const DataSetInfo &info);
-    void train(std::vector<Group> &groups, std::vector<HashTable> &hashTables, const DataSetInfo &info);
-    void verifyTemplateCandidates(const cv::Mat &sceneDepth, std::vector<HashTable> &hashTables, std::vector<Window> &windows, const DataSetInfo &info);
+    void train(std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info);
+    void initialize(const std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info);
+    void verifyCandidates(const cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows, const DataSetInfo &info);
 
     // Getters
-    const cv::Size getReferencePointsGrid();
-    unsigned int getHashTableCount() const;
-    const std::vector<cv::Range> &getHistogramBinRanges() const;
-    unsigned int getHistogramBinCount() const;
-    int getMinVotesPerTemplate() const;
-    unsigned int getMaxTripletDistance() const;
+    const cv::Size getGrid();
+    uint getTablesCount() const;
+    uint getBinCount() const;
+    int getMinVotes() const;
+    uint getMaxDistance() const;
+    const std::vector<cv::Range> &getBinRanges() const;
 
     // Setters
-    void setReferencePointsGrid(cv::Size referencePointsGrid);
-    void setHashTableCount(unsigned int hashTableCount);
-    void setHistogramBinRanges(const std::vector<cv::Range> &histogramBinRanges);
-    void setHistogramBinCount(unsigned int histogramBinCount);
-    void setMinVotesPerTemplate(int minVotesPerTemplate);
-    void setMaxTripletDistance(unsigned int maxTripletDistance);
+    void setGrid(cv::Size grid);
+    void setTablesCount(uint tablesCount);
+    void setBinCount(uint binCount);
+    void setMinVotes(int minVotes);
+    void setMaxDistance(uint maxDistance);
+    void setBinRanges(const std::vector<cv::Range> &binRanges);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_HASHING_H

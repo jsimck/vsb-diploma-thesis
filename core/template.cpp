@@ -49,7 +49,7 @@ std::ostream &operator<<(std::ostream &os, const Template &t) {
        << "camTm2c: " << t.camTm2c  << std::endl
        << "elev: " << t.elev  << std::endl
        << "mode: " << t.mode << std::endl
-       << "minVotesPerTemplate: " << t.votes << std::endl
+       << "minVotes: " << t.votes << std::endl
        << "median: " << t.features.median << std::endl
        << "gradients size: " << t.features.gradients.size() << std::endl
        << "normals size: " << t.features.normals.size() << std::endl
