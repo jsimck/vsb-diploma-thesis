@@ -169,11 +169,11 @@ void Hasher::initializeBinRanges(const std::vector<Group> &groups, std::vector<H
 
             #pragma omp parallel for
             for (size_t i = 0; i < iSize; i++) {
-                // Checks
-                assert(!t.srcDepth.empty());
-
                 // Get template by reference for better access
                 const Template &t = group.templates[i];
+
+                // Checks
+                assert(!t.srcDepth.empty());
 
                 // Offset for the triplet grid
                 cv::Point gridOffset(
