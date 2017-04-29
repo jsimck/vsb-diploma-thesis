@@ -46,18 +46,20 @@ uchar Matcher::quantizeOrientationGradient(float deg) {
 }
 
 cv::Vec3b Matcher::normalizeHSV(const cv::Vec3b &hsv) {
-    static const uchar tV = 22; // 0.12 of hue threshold
-    static const uchar tS = 31; // 0.12 of saturation threshold
+    const uchar tV = 22; // 0.12 of hue threshold
+    const uchar tS = 31; // 0.12 of saturation threshold
 
     // Check for black
     if (hsv[2] <= tV) {
         return cv::Vec3b(120, hsv[1], hsv[2]); // Set to blue
     }
 
-    // Check for white
+    // Check for white (set to yellow)
     if (hsv[2] > tV && hsv[1] < tS) {
         return cv::Vec3b(30, hsv[1], hsv[2]); // Set to yellow
     }
+
+    return hsv;
 }
 
 void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
@@ -187,7 +189,9 @@ void Matcher::extractFeatures(std::vector<Group> &groups) {
                 t.features.gradients.push_back(quantizeOrientationGradient(orientationGradient(t.srcGray, edgePOff)));
                 t.features.normals.push_back(Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff)));
                 t.features.depths.push_back(depth);
-                t.features.colors.push_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(edgePOff)));
+                cv::Vec3b tPx = t.srcHSV.at<cv::Vec3b>(edgePOff);
+                tPx = normalizeHSV(tPx);
+                t.features.colors.push_back(tPx);
                 depthArray.push_back(static_cast<int>(t.features.depths[i]));
 
                 assert(t.features.gradients[i] >= 0);
@@ -281,8 +285,11 @@ int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &scene
             assert(offsetP.x < sceneHSV.cols);
             assert(offsetP.y < sceneHSV.rows);
 
+            cv::Vec3b scenePx = sceneHSV.at<cv::Vec3b>(offsetP);
+            scenePx = normalizeHSV(scenePx);
+
             int hT = static_cast<int>(HSV[0]);
-            int hS = static_cast<int>(normalizeHSV(sceneHSV.at<cv::Vec3b>(offsetP))[0]);
+            int hS = static_cast<int>(scenePx[0]);
 
             if (std::abs(hT - hS) < tColorTest) return 1;
         }
@@ -358,6 +365,8 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
     // Min threshold of matched feature points
     const int minThreshold = static_cast<int>(pointsCount * tMatch); // 60%
 
+    std::cout << "Windows came here: " << windows.size() << std::endl;
+
     #pragma omp parallel for
     for (int l = 0; l < windows.size(); l++) {
         for (auto &candidate : windows[l].candidates) {
@@ -400,7 +409,7 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
             if (sV < minThreshold) continue;
 
-#ifndef NDEBUG
+//#ifndef NDEBUG
 //            std::cout
 //                << "id: " << candidate->id
 //                << ", window: " << l
@@ -408,17 +417,18 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 //                << ", score III: " << sIII
 //                << ", score V: " << sV
 //                << std::endl;
-#endif
+//#endif
+
+            // Push template that passed all tests to matches array
+            float score = (sII / pointsCount) + (sIII / pointsCount) + (sV / pointsCount);
+            cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
 
             #pragma omp critical
-            {
-                // Push template that passed all tests to matches array
-                float score = (sII / pointsCount) + (sIII / pointsCount) + (sV / pointsCount);
-                cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
-                matches.push_back(Match(candidate, matchBB, score));
-            };
+            matches.push_back(Match(candidate, matchBB, score));
         }
     }
+
+    std::cout << "Matches extracteD: " << matches.size() << std::endl;
 
     // Run non maxima suppression on matches
     nonMaximaSuppression(matches);

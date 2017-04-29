@@ -175,7 +175,7 @@ void Classifier::matchTemplates() {
     std::cout << "Template matching started... " << std::endl;
     Timer t;
     matcher.match(sceneHSV, sceneGray, sceneDepth, windows, matches);
-    std::cout << "Template matching took: " << t.elapsed() << "s" << std::endl;
+    std::cout << "DONE! " << matches.size() << " matches found, took: " << t.elapsed() << "s" << std::endl << std::endl;
 }
 
 void Classifier::classify() {
