@@ -16,10 +16,10 @@ class TemplateParser {
 private:
     static uint idCounter;
 
-    uint tplCount;
     std::string basePath;
-    std::vector<std::string> folders;
     std::vector<int> indices;
+    std::vector<std::string> folders;
+    uint tplCount;
 
     Template parseGt(const int index, const std::string path, cv::FileNode &gtNode, DataSetInfo &info);
     void parseInfo(Template &tpl, cv::FileNode &infoNode);

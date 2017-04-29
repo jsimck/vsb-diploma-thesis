@@ -12,12 +12,12 @@
  */
 struct Match {
 public:
-    float score;
-    cv::Rect objBB;
     const Template *tpl;
+    cv::Rect objBB;
+    float score;
 
     // Constructors
-    Match(const Template *tpl, const cv::Rect bb, const float score) : objBB(bb), tpl(tpl), score(score) {}
+    Match(const Template *tpl, const cv::Rect bb, const float score) : tpl(tpl), objBB(bb), score(score) {}
 
     // Friends
     bool operator==(const Match &rhs) const;

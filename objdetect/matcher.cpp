@@ -62,18 +62,13 @@ cv::Vec3b Matcher::normalizeHSV(const cv::Vec3b &hsv) {
     return hsv;
 }
 
+// TODO - better generate feature point positions
+// in [19] S. Hinterstoisser, V. Lepetit, S. Ilic, S. Holzer, G. Bradski, K. Konolige,and N. Navab, "Model based training, detection and
+// pose estimation of texture-less 3D objects in heavily cluttered scenes,” in ACCV, 2012. (chapter 3.1.2)
 void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
-    // Init engine
-    typedef std::mt19937 engine;
+    std::random_device seed;
+    auto engine = std::mt19937(seed());
 
-    /* TODO - better generation of feature points
-     * as in [19] S. Hinterstoisser, V. Lepetit, S. Ilic, S. Holzer, G. Bradski, K. Konolige,
-     * and N. Navab, “Model based training, detection and pose estimation
-     * of texture-less 3D objects in heavily cluttered scenes,” in ACCV, 2012.
-     * - 3.1.2 Reducing Feature Redundancy:
-     * - Color Gradient Features:
-     * - Surface Normal Features:
-     */
     for (auto &group : groups) {
         for (auto &t : group.templates) {
             std::vector<cv::Point> cannyPoints;
@@ -82,8 +77,6 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
 
             // Convert to uchar and apply canny to detect edges
             cv::convertScaleAbs(t.srcGray, src_8uc1, 255);
-
-            // Apply canny to detect edges
             cv::blur(src_8uc1, src_8uc1, cv::Size(3, 3));
             cv::Canny(src_8uc1, canny, t1Canny, t2Canny, 3, false);
 
@@ -92,7 +85,7 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
             cv::Sobel(src_8uc1, sobelY, CV_8U, 0, 1, 3);
             cv::addWeighted(sobelX, 0.5, sobelY, 0.5, 0, sobel);
 
-            // Get all stable and edge points based on threshold
+            // Get all stable and edge points based on thresholds
             for (int y = 0; y < canny.rows; y++) {
                 for (int x = 0; x < canny.cols; x++) {
                     if (canny.at<uchar>(y, x) > 0) {
@@ -109,37 +102,21 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
             assert(stablePoints.size() > pointsCount);
             assert(cannyPoints.size() > pointsCount);
 
-            // Shuffle
-            std::shuffle(stablePoints.begin(), stablePoints.end(), engine(1));
-            std::shuffle(cannyPoints.begin(), cannyPoints.end(), engine(1));
+            // Randomize points to pick
+            std::shuffle(stablePoints.begin(), stablePoints.end(), engine);
+            std::shuffle(cannyPoints.begin(), cannyPoints.end(), engine);
 
-            // Save random points into the template arrays
-            for (int i = 0; i < pointsCount; i++) {
-                int ri;
-                // If points extracted are on the part of depths image corrupted by noise (black spots)
-                // regenerate new points, until
-                bool falseStablePointGenerated;
-                do {
-                    falseStablePointGenerated = false;
-                    ri = (int) Triplet::random(0, stablePoints.size() - 1);
+            int rndI = 0;
+            for (uint i = 0; i < pointsCount; i++) {
+                // Pick random stable point
+                rndI = (int) Triplet::random(0, stablePoints.size() - 1);
+                t.stablePoints.push_back(cv::Point(stablePoints[rndI].x - t.objBB.tl().x, stablePoints[rndI].y - t.objBB.tl().y));
+                stablePoints.erase(stablePoints.begin() + rndI - 1); // Remove from array of points
 
-                    // Check if point is at black spot
-                    if (t.srcDepth.at<float>(stablePoints[ri]) <= 0) {
-                        falseStablePointGenerated = true;
-                    } else {
-                        // Remove offset so the feature point locations are relative to template BB
-                        t.stablePoints.push_back(cv::Point(stablePoints[ri].x - t.objBB.tl().x, stablePoints[ri].y - t.objBB.tl().y));
-                    }
-
-                    stablePoints.erase(stablePoints.begin() + ri - 1); // Remove from array of points
-                } while (falseStablePointGenerated);
-
-                // Randomize once more
-                ri = (int) Triplet::random(0, cannyPoints.size() - 1);
-
-                // Push to feature points array
-                t.edgePoints.push_back(cv::Point(cannyPoints[ri].x - t.objBB.tl().x, cannyPoints[ri].y - t.objBB.tl().y));
-                cannyPoints.erase(cannyPoints.begin() + ri - 1); // Remove from array of points
+                // Pick random edge point
+                rndI = (int) Triplet::random(0, cannyPoints.size() - 1);
+                t.edgePoints.push_back(cv::Point(cannyPoints[rndI].x - t.objBB.tl().x, cannyPoints[rndI].y - t.objBB.tl().y));
+                cannyPoints.erase(cannyPoints.begin() + rndI - 1); // Remove from array of points
             }
 
             assert(t.stablePoints.size() == pointsCount);
@@ -148,11 +125,11 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
 #ifndef NDEBUG
 //            // Visualize extracted features
 //            cv::Mat visualizationMat;
-//            cv::cvtColor(tpl.srcGray, visualizationMat, CV_GRAY2BGR);
+//            cv::cvtColor(t.srcGray, visualizationMat, CV_GRAY2BGR);
 //
 //            for (int i = 0; i < pointsCount; ++i) {
-//                cv::Point ePOffset(tpl.edgePoints[i].x + tpl.objBB.tl().x, tpl.edgePoints[i].y + tpl.objBB.tl().y);
-//                cv::Point sPOffset(tpl.stablePoints[i].x + tpl.objBB.tl().x, tpl.stablePoints[i].y + tpl.objBB.tl().y);
+//                cv::Point ePOffset(t.edgePoints[i].x + t.objBB.tl().x, t.edgePoints[i].y + t.objBB.tl().y);
+//                cv::Point sPOffset(t.stablePoints[i].x + t.objBB.tl().x, t.stablePoints[i].y + t.objBB.tl().y);
 //                cv::circle(visualizationMat, ePOffset, 1, cv::Scalar(0, 0, 255), -1);
 //                cv::circle(visualizationMat, sPOffset, 1, cv::Scalar(0, 255, 0), -1);
 //            }
@@ -171,37 +148,32 @@ void Matcher::extractFeatures(std::vector<Group> &groups) {
 
     for (auto &group : groups) {
         for (auto &t : group.templates) {
-            // Init tmp array to store depths values to compute median
-            std::vector<int> depthArray;
-
-            // Quantize surface normal and gradient orientations and extract other features
-            for (int i = 0; i < pointsCount; i++) {
+            for (uint i = 0; i < pointsCount; i++) {
                 assert(!t.srcGray.empty());
                 assert(!t.srcHSV.empty());
                 assert(!t.srcDepth.empty());
 
-                // Create offset points to work with uncropped templates
+                // Create offsets to object bounding box
                 cv::Point stablePOff(t.stablePoints[i].x + t.objBB.x, t.stablePoints[i].y + t.objBB.y);
                 cv::Point edgePOff(t.edgePoints[i].x + t.objBB.x, t.edgePoints[i].y + t.objBB.y);
 
-                // Save features to template
+                // Extract features
                 float depth = t.srcDepth.at<float>(stablePOff);
-                t.features.gradients.push_back(quantizeOrientationGradient(orientationGradient(t.srcGray, edgePOff)));
-                t.features.normals.push_back(Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff)));
+                uchar gradient = quantizeOrientationGradient(orientationGradient(t.srcGray, edgePOff));
+                uchar normal = Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff));
+                cv::Vec3b hsv = normalizeHSV(t.srcHSV.at<cv::Vec3b>(edgePOff));
+
+                // Save features
                 t.features.depths.push_back(depth);
-                cv::Vec3b tPx = t.srcHSV.at<cv::Vec3b>(edgePOff);
-                tPx = normalizeHSV(tPx);
-                t.features.colors.push_back(tPx);
-                depthArray.push_back(static_cast<int>(t.features.depths[i]));
+                t.features.gradients.push_back(gradient);
+                t.features.normals.push_back(normal);
+                t.features.colors.push_back(hsv);
 
                 assert(t.features.gradients[i] >= 0);
                 assert(t.features.gradients[i] < 5);
                 assert(t.features.normals[i] >= 0);
                 assert(t.features.normals[i] < 8);
             }
-
-            // Save median value
-            t.features.median = static_cast<uint>(median(depthArray));
         }
     }
 }
@@ -240,7 +212,7 @@ int Matcher::testSurfaceNormal(const uchar normal, Window &window, const cv::Mat
 }
 
 // TODO Use bitwise operations using response maps
-int Matcher::testGradients(const uchar orientation, Window &window, const cv::Mat &sceneGray, const cv::Point &edge) {
+int Matcher::testGradients(const uchar gradient, Window &window, const cv::Mat &sceneGray, const cv::Point &edge) {
     for (int y = neighbourhood.start; y <= neighbourhood.end; ++y) {
         for (int x = neighbourhood.start; x <= neighbourhood.end; ++x) {
             // Apply needed offsets to feature point
@@ -252,7 +224,7 @@ int Matcher::testGradients(const uchar orientation, Window &window, const cv::Ma
             assert(offsetP.x < sceneGray.cols);
             assert(offsetP.y < sceneGray.rows);
 
-            if (quantizeOrientationGradient(orientationGradient(sceneGray, offsetP)) == orientation) return 1;
+            if (quantizeOrientationGradient(orientationGradient(sceneGray, offsetP)) == gradient) return 1;
         }
     }
 
@@ -264,7 +236,7 @@ int Matcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
     const float k = 1.0f;
     int dm = median(depths), score = 0;
 
-    for (int i = 0; i < depths.size(); ++i) {
+    for (std::vector<int>::size_type i = 0; i < depths.size(); ++i) {
         std::cout << std::abs(depths[i] - dm) << std::endl;
         score += (std::abs(depths[i] - dm) < k * physicalDiameter) ? 1 : 0;
     }
@@ -273,11 +245,11 @@ int Matcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
 }
 
 // TODO consider eroding object in training stage to be more tollerant to inaccuracy on the edges
-int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &stable) {
+int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &edge) {
     for (int y = neighbourhood.start; y <= neighbourhood.end; ++y) {
         for (int x = neighbourhood.start; x <= neighbourhood.end; ++x) {
             // Apply needed offsets to feature point
-            cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
+            cv::Point offsetP(edge.x + window.tl().x + x, edge.y + window.tl().y + y);
 
             // Checks
             assert(offsetP.x >= 0);
@@ -285,11 +257,9 @@ int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &scene
             assert(offsetP.x < sceneHSV.cols);
             assert(offsetP.y < sceneHSV.rows);
 
-            cv::Vec3b scenePx = sceneHSV.at<cv::Vec3b>(offsetP);
-            scenePx = normalizeHSV(scenePx);
-
+            // Normalize scene HSV value
             int hT = static_cast<int>(HSV[0]);
-            int hS = static_cast<int>(scenePx[0]);
+            int hS = static_cast<int>(normalizeHSV(sceneHSV.at<cv::Vec3b>(offsetP))[0]);
 
             if (std::abs(hT - hS) < tColorTest) return 1;
         }
@@ -319,7 +289,7 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
 
         // Check overlaps with all other bounding boxes, skipping first one (since it is the one we're checking with)
         #pragma omp parallel for
-        for (int i = 1; i < idx.size(); i++) {
+        for (std::vector<int>::size_type i = 1; i < idx.size(); i++) {
             // Get overlap BB coordinates of each other bounding box and compare with the first one
             cv::Rect bb = matches[idx[i]].objBB;
             int x1 = std::max<int>(bb.tl().x, firstMatch.objBB.tl().x);
@@ -365,12 +335,9 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
     // Min threshold of matched feature points
     const int minThreshold = static_cast<int>(pointsCount * tMatch); // 60%
 
-    std::cout << "Windows came here: " << windows.size() << std::endl;
-
     #pragma omp parallel for
-    for (int l = 0; l < windows.size(); l++) {
+    for (uint l = 0; l < windows.size(); l++) {
         for (auto &candidate : windows[l].candidates) {
-            // Checks
             assert(candidate != nullptr);
 
             // Scores for each test
@@ -382,7 +349,7 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
             // Test II
             #pragma omp parallel for
-            for (int i = 0; i < pointsCount; i++) {
+            for (uint i = 0; i < pointsCount; i++) {
                 #pragma omp atomic
                 sII += testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
             }
@@ -392,7 +359,7 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
             // Test III
             #pragma omp parallel for
-            for (int i = 0; i < pointsCount; i++) {
+            for (uint i = 0; i < pointsCount; i++) {
                 #pragma omp atomic
                 sIII += testGradients(candidate->features.gradients[i], windows[l], sceneGray, candidate->edgePoints[i]);
             }
@@ -402,22 +369,12 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
             // Test V
             #pragma omp parallel for
-            for (int i = 0; i < pointsCount; i++) {
+            for (uint i = 0; i < pointsCount; i++) {
                 #pragma omp atomic
                 sV += testColor(candidate->features.colors[i], windows[l], sceneHSV, candidate->edgePoints[i]);
             }
 
             if (sV < minThreshold) continue;
-
-//#ifndef NDEBUG
-//            std::cout
-//                << "id: " << candidate->id
-//                << ", window: " << l
-//                << ", score II: " << sII
-//                << ", score III: " << sIII
-//                << ", score V: " << sV
-//                << std::endl;
-//#endif
 
             // Push template that passed all tests to matches array
             float score = (sII / pointsCount) + (sIII / pointsCount) + (sV / pointsCount);
@@ -425,10 +382,20 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
             #pragma omp critical
             matches.push_back(Match(candidate, matchBB, score));
+
+#ifndef NDEBUG
+//            std::cout
+//                << "id: " << candidate->id
+//                << ", window: " << l
+//                << ", score: " << score
+//                << ", score II: " << sII
+//                << ", score III: " << sIII
+//                << ", score IV: " << sIV
+//                << ", score V: " << sV
+//                << std::endl;
+#endif
         }
     }
-
-    std::cout << "Matches extracteD: " << matches.size() << std::endl;
 
     // Run non maxima suppression on matches
     nonMaximaSuppression(matches);

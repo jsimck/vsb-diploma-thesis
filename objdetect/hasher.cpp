@@ -69,7 +69,7 @@ uchar Hasher::quantizeDepth(float depth) {
     assert(binRanges.size() > 0);
 
     // Loop through histogram ranges and return quantized index
-    for (int i = 0; i < binRanges.size(); i++) {
+    for (std::vector<cv::Range>::size_type i = 0; i < binRanges.size(); i++) {
         if (binRanges[i].start >= depth && depth < binRanges[i].end) {
             return static_cast<uchar>(i);
         }
@@ -83,7 +83,7 @@ uchar Hasher::quantizeDepth(float depth) {
 
 void Hasher::generateTriplets(std::vector<HashTable> &tables) {
     // Generate triplets
-    for (int i = 0; i < tablesCount; ++i) {
+    for (std::vector<HashTable>::size_type i = 0; i < tablesCount; ++i) {
         HashTable h(Triplet::create(grid, maxDistance));
         tables.push_back(h);
     }
@@ -93,8 +93,8 @@ void Hasher::generateTriplets(std::vector<HashTable> &tables) {
     bool duplicate;
     do {
         duplicate = false;
-        for (int i = 0; i < tables.size(); ++i) {
-            for (int j = 0; j < tables.size(); ++j) {
+        for (std::vector<HashTable>::size_type i = 0; i < tables.size(); ++i) {
+            for (std::vector<HashTable>::size_type j = 0; j < tables.size(); ++j) {
                 // Don't compare same triplets
                 if (i == j) continue;
                 if (tables[i].triplet == tables[j].triplet) {
@@ -114,7 +114,7 @@ void Hasher::computeBinRanges(unsigned long sum, unsigned long *values) {
 
     std::vector<cv::Range> ranges;
     unsigned long tmpBinCount = 0;
-    int rangeStart = 0, binsCreated = 0;
+    uint rangeStart = 0, binsCreated = 0;
 
     // Calculate approximate size of every bin
     const unsigned long binSize = sum / binCount;
@@ -143,7 +143,7 @@ void Hasher::computeBinRanges(unsigned long sum, unsigned long *values) {
 
     // Print results
     std::cout << "DONE! Approximate " << binSize << " values per bin" << std::endl;
-    for (int i = 0; i < ranges.size(); i++) {
+    for (std::vector<cv::Range>::size_type i = 0; i < ranges.size(); i++) {
         std::cout << "       |_ " << i << ". <" << ranges[i].start << ", " << ranges[i].end << (i + 1 == ranges.size() ? ">" : ")") << std::endl;
     }
 
@@ -308,7 +308,7 @@ void Hasher::verifyCandidates(const cv::Mat &sceneDepth, std::vector<HashTable> 
     std::vector<Template *> usedTemplates;
     std::vector<int> emptyIndexes;
 
-    for (int i = 0; i < windows.size(); ++i) {
+    for (std::vector<Window>::size_type i = 0; i < windows.size(); ++i) {
         // Calculate new rectangle that's placed over the center of image from sliding window with the maxTemplate size
         cv::Point gridOffset((windows[i].width / 2 + windows[i].tl().x) - (info.maxTemplate.width / 2), (windows[i].height / 2 + windows[i].tl().y) - info.maxTemplate.height / 2);
 

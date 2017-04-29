@@ -50,7 +50,6 @@ std::ostream &operator<<(std::ostream &os, const Template &t) {
        << "elev: " << t.elev  << std::endl
        << "mode: " << t.mode << std::endl
        << "minVotes: " << t.votes << std::endl
-       << "median: " << t.features.median << std::endl
        << "gradients size: " << t.features.gradients.size() << std::endl
        << "normals size: " << t.features.normals.size() << std::endl
        << "depths size: " << t.features.depths.size() << std::endl

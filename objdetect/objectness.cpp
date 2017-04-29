@@ -99,7 +99,7 @@ void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &window
     cv::Mat sIntegral;
     cv::integral(sSobel, sIntegral, CV_32F);
 
-    int edgels = static_cast<int>(info.minEdgels * tMatch);
+    uint edgels = static_cast<uint>(info.minEdgels * tMatch);
     int sizeX = info.smallestTemplate.width;
     int sizeY = info.smallestTemplate.height;
 

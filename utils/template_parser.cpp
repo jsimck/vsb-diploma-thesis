@@ -29,7 +29,7 @@ void TemplateParser::parseTemplate(std::vector<Template> &templates, DataSetInfo
     fs.open(basePath + tplName + "/gt.yml", cv::FileStorage::READ);
     assert(fs.isOpened());
 
-    size_t size = (indices.size() > 0) ? indices.size() : tplCount;
+    int size = static_cast<int>((indices.size() > 0) ? indices.size() : tplCount);
     for (int i = 0; i < size; i++) {
         int tplIndex = (indices.size() > 0) ? indices[i] : i;
         std::string index = "tpl_" + std::to_string(tplIndex);

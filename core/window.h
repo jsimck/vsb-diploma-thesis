@@ -21,7 +21,7 @@ public:
 
     // Constructors
     Window(const int x = 0, const int y = 0, int width = 0, int height = 0, int edgels = 0, std::vector<Template *> candidates = {})
-        : x(x), y(y), width(width), height(height), candidates(candidates), edgels(edgels) {}
+        : x(x), y(y), width(width), height(height), edgels(edgels), candidates(candidates) {}
 
     // Methods
     cv::Point tl();

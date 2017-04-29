@@ -21,7 +21,7 @@ public:
 
     // Constructors
     TripletParams(const float offsetX, const float offsetY, const float stepX, const float stepY, const int sOffsetX = 0, const int sOffsetY = 0) :
-        offsetX(offsetX), stepX(stepX), offsetY(offsetY), stepY(stepY), sOffsetX(sOffsetX), sOffsetY(sOffsetY) {}
+        offsetX(offsetX), offsetY(offsetY), stepX(stepX), stepY(stepY), sOffsetX(sOffsetX), sOffsetY(sOffsetY) {}
     TripletParams(const int width, const int height, const cv::Size &grid, const int sOffsetX = 0, const int sOffsetY = 0);
 };
 

@@ -17,9 +17,9 @@ class Hasher {
 private:
     int minVotes;
     cv::Size grid;
-    uint maxDistance;
     uint tablesCount;
     uint binCount;
+    uint maxDistance;
     std::vector<cv::Range> binRanges;
 
     uchar quantizeDepth(float depth);

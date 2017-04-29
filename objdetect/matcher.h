@@ -16,18 +16,20 @@
 class Matcher {
 private:
     uint pointsCount; // Number of feature points to extract for each template
-    cv::Range neighbourhood; // Extent of local neighbourhood
 
     // Match thresholds
     float tMatch;
-    uchar tColorTest;
     float tOverlap;
+    uchar tColorTest;
 
     // Train thresholds
     uchar t1Canny;
     uchar t2Canny;
     uchar tSobel;
     uchar tGray;
+
+    // Extent of local neighbourhood
+    cv::Range neighbourhood;
 
     // Methods
     cv::Vec3b normalizeHSV(const cv::Vec3b &hsv);
@@ -39,9 +41,9 @@ private:
     // Tests
     bool testObjectSize(float scale); // Test I
     int testSurfaceNormal(const uchar normal, Window &window, const cv::Mat &sceneDepth, const cv::Point &stable); // Test II
-    int testGradients(const uchar orientation, Window &window, const cv::Mat &sceneGray, const cv::Point &edge); // Test III
+    int testGradients(const uchar gradient, Window &window, const cv::Mat &sceneGray, const cv::Point &edge); // Test III
     int testDepth(int physicalDiameter, std::vector<int> &depths); // Test IV
-    int testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &stable); // Test V
+    int testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &edge); // Test V
 public:
     // Static methods
     static int median(std::vector<int> &values);
