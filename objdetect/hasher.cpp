@@ -243,14 +243,8 @@ void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &tables, c
                 // Checks
                 assert(!t.srcDepth.empty());
 
-                // Calculate offset for the triplet grid
-                cv::Point gridOffset(
-                    t.objBB.tl().x - (info.maxTemplate.width - t.objBB.width) / 2,
-                    t.objBB.tl().y - (info.maxTemplate.height - t.objBB.height) / 2
-                );
-
                 // Get triplet points
-                TripletParams coordParams(info.maxTemplate.width, info.maxTemplate.height, grid, gridOffset.x, gridOffset.y);
+                TripletParams coordParams(info.maxTemplate.width, info.maxTemplate.height, grid, t.objBB.tl().x, t.objBB.tl().y);
                 cv::Point c = tables[i].triplet.getCenter(coordParams);
                 cv::Point p1 = tables[i].triplet.getP1(coordParams);
                 cv::Point p2 = tables[i].triplet.getP2(coordParams);
@@ -279,7 +273,7 @@ void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &tables, c
 //                    }
 //
 //                    cv::imshow("Hasher::train", mTriplet);
-//                    cv::waitKey(30);
+//                    cv::waitKey(0);
 //                };
 #endif
 
@@ -322,43 +316,12 @@ void Hasher::verifyCandidates(const cv::Mat &sceneDepth, std::vector<HashTable> 
     std::vector<size_t> emptyIndexes;
 
     for (size_t i = 0; i < iSize; ++i) {
-        // Calculate new rectangle that's placed over the center of image from sliding window with the maxTemplate size
-        const cv::Point gridOffset((windows[i].width / 2 + windows[i].tl().x) - (info.maxTemplate.width / 2), (windows[i].height / 2 + windows[i].tl().y) - info.maxTemplate.height / 2);
-
         for (auto &table : tables) {
             // Get triplet points
-            TripletParams params(info.maxTemplate.width, info.maxTemplate.height, grid, gridOffset.x, gridOffset.y);
+            TripletParams params(info.maxTemplate.width, info.maxTemplate.height, grid, windows[i].tl().x, windows[i].tl().y);
             cv::Point c = table.triplet.getCenter(params);
             cv::Point p1 = table.triplet.getP1(params);
             cv::Point p2 = table.triplet.getP2(params);
-
-#ifndef NDEBUG
-//            {
-//                // Visualize triplets
-//                cv::Mat mTriplet = sceneDepth.clone();
-//                cv::normalize(mTriplet, mTriplet, 0.0f, 1.0f, CV_MINMAX);
-//                cv::cvtColor(mTriplet, mTriplet, CV_GRAY2BGR);
-//                cv::rectangle(mTriplet, gridOffset, cv::Point(gridOffset.x + info.maxTemplate.width, gridOffset.y + info.maxTemplate.height), cv::Scalar(0, 255, 0));
-//
-//                for (int x = 0; x < 12; x++) {
-//                    for (int y = 0; y < 12; y += 3) {
-//                        Triplet tripletVis(cv::Point(x, y), cv::Point(x, y + 1), cv::Point(x, y + 2));
-//                        cv::circle(mTriplet, tripletVis.getPoint(0, params), 1, cv::Scalar(0, 150, 0), -1);
-//                        cv::circle(mTriplet, tripletVis.getPoint(1, params), 1, cv::Scalar(0, 150, 0), -1);
-//                        cv::circle(mTriplet, tripletVis.getPoint(2, params), 1, cv::Scalar(0, 150, 0), -1);
-//                    }
-//
-//                    cv::circle(mTriplet, c, 2, cv::Scalar(0, 0, 255), -1);
-//                    cv::circle(mTriplet, p1, 2, cv::Scalar(0, 0, 255), -1);
-//                    cv::circle(mTriplet, p2, 2, cv::Scalar(0, 0, 255), -1);
-//                    cv::line(mTriplet, c, p1, cv::Scalar(0, 0, 255));
-//                    cv::line(mTriplet, c, p2, cv::Scalar(0, 0, 255));
-//                }
-//
-//                cv::imshow("Hasher::verifyCandidates", mTriplet);
-//                cv::waitKey(1);
-//            };
-#endif
 
             // If any point of triplet is out of scene boundaries, ignore it to not get false data
             if ((c.x < 0 || c.x >= sceneDepth.cols || c.y < 0 || c.y >= sceneDepth.rows) ||
@@ -399,6 +362,41 @@ void Hasher::verifyCandidates(const cv::Mat &sceneDepth, std::vector<HashTable> 
         if (!windows[i].hasCandidates()) {
             emptyIndexes.push_back(i);
         }
+
+#ifndef NDEBUG
+//        {
+//            // Visualize triplets
+//            cv::Mat mTriplet = sceneDepth.clone();
+//            cv::normalize(mTriplet, mTriplet, 0.0f, 1.0f, CV_MINMAX);
+//            cv::cvtColor(mTriplet, mTriplet, CV_GRAY2BGR);
+//            cv::rectangle(mTriplet, gridOffset, cv::Point(gridOffset.x + info.maxTemplate.width, gridOffset.y + info.maxTemplate.height), cv::Scalar(0, 255, 0));
+//            TripletParams params(info.maxTemplate.width, info.maxTemplate.height, grid, gridOffset.x, gridOffset.y);
+//
+//            for (int x = 0; x < 12; x++) {
+//                for (int y = 0; y < 12; y += 3) {
+//                    Triplet tripletVis(cv::Point(x, y), cv::Point(x, y + 1), cv::Point(x, y + 2));
+//                    cv::circle(mTriplet, tripletVis.getPoint(0, params), 1, cv::Scalar(0, 150, 0), -1);
+//                    cv::circle(mTriplet, tripletVis.getPoint(1, params), 1, cv::Scalar(0, 150, 0), -1);
+//                    cv::circle(mTriplet, tripletVis.getPoint(2, params), 1, cv::Scalar(0, 150, 0), -1);
+//                }
+//
+//                for (size_t k = 0; k < tablesCount; k++) {
+//                    cv::Point c = tables[k].triplet.getCenter(params);
+//                    cv::Point p1 = tables[k].triplet.getP1(params);
+//                    cv::Point p2 = tables[k].triplet.getP2(params);
+//
+//                    cv::circle(mTriplet, c, 2, cv::Scalar(0, 0, 255), -1);
+//                    cv::circle(mTriplet, p1, 2, cv::Scalar(0, 0, 255), -1);
+//                    cv::circle(mTriplet, p2, 2, cv::Scalar(0, 0, 255), -1);
+//                    cv::line(mTriplet, c, p1, cv::Scalar(0, 0, 255));
+//                    cv::line(mTriplet, c, p2, cv::Scalar(0, 0, 255));
+//                }
+//            }
+//
+//            cv::imshow("Hasher::verifyCandidates", mTriplet);
+//            cv::waitKey(1);
+//        };
+#endif
     }
 
     // Remove empty windows

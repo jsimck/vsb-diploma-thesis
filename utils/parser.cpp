@@ -44,8 +44,8 @@ void Parser::parseTemplate(std::vector<Template> &templates, DataSetInfo &info, 
     fs.open(basePath + tplName + "/info.yml", cv::FileStorage::READ);
     assert(fs.isOpened());
 
-    for (int i = 0; i < size; i++) {
-        int tplIndex = (indices.size() > 0) ? indices[i] : i;
+    for (uint i = 0; i < size; i++) {
+        uint tplIndex = static_cast<uint>((indices.size() > 0) ? indices[i] : i);
         std::string index = "tpl_" + std::to_string(tplIndex);
         cv::FileNode objGt = fs[index];
 
@@ -160,7 +160,7 @@ const std::vector<std::string> &Parser::getTemplateFolders() const {
     return this->folders;
 }
 
-const std::vector<int> &Parser::getIndices() const {
+const std::vector<uint> &Parser::getIndices() const {
     return this->indices;
 }
 
@@ -180,7 +180,7 @@ void Parser::setFolders(const std::vector<std::string> &folders) {
     this->folders = folders;
 }
 
-void Parser::setIndices(const std::vector<int> &indices) {
+void Parser::setIndices(const std::vector<uint> &indices) {
     assert(indices.size() > 0);
     this->indices = indices;
 }

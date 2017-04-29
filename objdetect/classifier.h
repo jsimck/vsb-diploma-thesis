@@ -25,7 +25,7 @@ private:
     std::string scenePath;
     std::string sceneName;
     std::vector<std::string> folders;
-    std::vector<int> indices;
+    std::vector<uint> indices;
 
     cv::Mat scene;
     cv::Mat sceneHSV;
@@ -74,14 +74,14 @@ public:
     const std::vector<HashTable> &getHashTables() const;
     const std::vector<Window> &getWindows() const;
     const std::vector<Match> &getMatches() const;
-    const std::vector<int> &getIndices() const;
+    const std::vector<uint> &getIndices() const;
 
     // Setters
     void setBasePath(const std::string &basePath);
     void setFolders(const std::vector<std::string> &folders);
     void setScenePath(const std::string &scenePath);
     void setSceneName(const std::string &sceneName);
-    void setIndices(const std::vector<int> &indices);
+    void setIndices(const std::vector<uint> &indices);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_CLASSIFICATOR_H

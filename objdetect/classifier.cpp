@@ -140,6 +140,7 @@ void Classifier::detectObjectness() {
 //    for (auto &window : windows) {
 //        cv::rectangle(objectnessLocations, window.tl(), window.br(), cv::Scalar(190, 190, 190));
 //    }
+//    cv::rectangle(objectnessLocations, windows[0].tl(), windows[0].br(), cv::Scalar(0, 255, 0));
 //    cv::imshow("Objectness locations detected:", objectnessLocations);
 //    cv::waitKey(0);
 #endif
@@ -268,7 +269,7 @@ const std::vector<Match> &Classifier::getMatches() const {
     return matches;
 }
 
-const std::vector<int> &Classifier::getIndices() const {
+const std::vector<uint> &Classifier::getIndices() const {
     return indices;
 }
 
@@ -294,7 +295,7 @@ void Classifier::setSceneName(const std::string &sceneName) {
     this->sceneName = sceneName;
 }
 
-void Classifier::setIndices(const std::vector<int> &indices)  {
+void Classifier::setIndices(const std::vector<uint> &indices)  {
     assert(indices.size() > 0);
     this->indices = indices;
     parser.setIndices(indices);

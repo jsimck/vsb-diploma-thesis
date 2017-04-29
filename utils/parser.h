@@ -17,7 +17,7 @@ private:
     static uint idCounter;
 
     std::string basePath;
-    std::vector<int> indices;
+    std::vector<uint> indices;
     std::vector<std::string> folders;
     uint tplCount;
 
@@ -36,13 +36,13 @@ public:
     std::string getBasePath() const;
     uint getTplCount() const;
     const std::vector<std::string> &getTemplateFolders() const;
-    const std::vector<int> &getIndices() const;
+    const std::vector<uint> &getIndices() const;
 
     // Setters
     void setBasePath(std::string path);
     void setTplCount(uint tplCount);
     void setFolders(const std::vector<std::string> &folders);
-    void setIndices(const std::vector<int> &indices);
+    void setIndices(const std::vector<uint> &indices);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_PARSER_H

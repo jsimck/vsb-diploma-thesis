@@ -110,17 +110,48 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
             std::shuffle(stablePoints.begin(), stablePoints.end(), engine);
             std::shuffle(cannyPoints.begin(), cannyPoints.end(), engine);
 
-            int rndI = 0;
             for (uint j = 0; j < pointsCount; j++) {
-                // Pick random stable point
-                rndI = (int) Triplet::random(0, stablePoints.size() - 1);
-                t.stablePoints.push_back(cv::Point(stablePoints[rndI].x - t.objBB.tl().x, stablePoints[rndI].y - t.objBB.tl().y));
-                stablePoints.erase(stablePoints.begin() + rndI - 1); // Remove from array of points
+                int rndI = 0;
+                bool generate = true;
 
-                // Pick random edge point
-                rndI = (int) Triplet::random(0, cannyPoints.size() - 1);
-                t.edgePoints.push_back(cv::Point(cannyPoints[rndI].x - t.objBB.tl().x, cannyPoints[rndI].y - t.objBB.tl().y));
-                cannyPoints.erase(cannyPoints.begin() + rndI - 1); // Remove from array of points
+                // Generate points within the boundaries of obj bounding box
+                while (generate) {
+                    rndI = (int) Triplet::random(0, stablePoints.size() - 1);
+
+                    // Check if points is within the object bounding box
+                    if ((stablePoints[rndI].x >= t.objBB.tl().x)
+                        && (stablePoints[rndI].y >= t.objBB.tl().y)
+                        && (stablePoints[rndI].x <= t.objBB.br().x)
+                        && (stablePoints[rndI].y <= t.objBB.br().y)) {
+
+                        // Save generated point in coordinates relative to object bounding box
+                        t.stablePoints.push_back(cv::Point(stablePoints[rndI].x - t.objBB.tl().x, stablePoints[rndI].y - t.objBB.tl().y));
+                        generate = false;
+                    }
+
+                    // Remove used point from source array
+                    stablePoints.erase(stablePoints.begin() + rndI - 1);
+                }
+
+                // Generate point again, now for edge points
+                generate = true;
+                while (generate) {
+                    rndI = (int) Triplet::random(0, cannyPoints.size() - 1);
+
+                    // Check if points is within the object bounding box
+                    if ((cannyPoints[rndI].x >= t.objBB.tl().x)
+                        && (cannyPoints[rndI].y >= t.objBB.tl().y)
+                        && (cannyPoints[rndI].x <= t.objBB.br().x)
+                        && (cannyPoints[rndI].y <= t.objBB.br().y)) {
+
+                        // Save generated point in coordinates relative to object bounding box
+                        t.edgePoints.push_back(cv::Point(cannyPoints[rndI].x - t.objBB.tl().x, cannyPoints[rndI].y - t.objBB.tl().y));
+                        generate = false;
+                    }
+
+                    // Remove used point from source array
+                    cannyPoints.erase(cannyPoints.begin() + rndI - 1);
+                }
             }
 
             assert(t.stablePoints.size() == pointsCount);
@@ -207,11 +238,12 @@ int Matcher::testSurfaceNormal(const uchar normal, Window &window, const cv::Mat
             // Apply needed offsets to feature point
             cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
 
+            // Template points in larger templates can go beyond scene boundaries (don't count)
+            if (offsetP.x >= sceneDepth.cols || offsetP.y >= sceneDepth.rows) continue;
+
             // Checks
             assert(offsetP.x >= 0);
             assert(offsetP.y >= 0);
-            assert(offsetP.x < sceneDepth.cols);
-            assert(offsetP.y < sceneDepth.rows);
 
             if (Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, offsetP)) == normal) return 1;
         }
@@ -227,11 +259,12 @@ int Matcher::testGradients(const uchar gradient, Window &window, const cv::Mat &
             // Apply needed offsets to feature point
             cv::Point offsetP(edge.x + window.tl().x + x, edge.y + window.tl().y + y);
 
+            // Template points in larger templates can go beyond scene boundaries (don't count)
+            if (offsetP.x >= sceneGray.cols || offsetP.y >= sceneGray.rows) continue;
+
             // Checks
             assert(offsetP.x >= 0);
             assert(offsetP.y >= 0);
-            assert(offsetP.x < sceneGray.cols);
-            assert(offsetP.y < sceneGray.rows);
 
             if (quantizeOrientationGradient(orientationGradient(sceneGray, offsetP)) == gradient) return 1;
         }
@@ -260,11 +293,12 @@ int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &scene
             // Apply needed offsets to feature point
             cv::Point offsetP(edge.x + window.tl().x + x, edge.y + window.tl().y + y);
 
+            // Template points in larger templates can go beyond scene boundaries (don't count)
+            if (offsetP.x >= sceneHSV.cols || offsetP.y >= sceneHSV.rows) continue;
+
             // Checks
             assert(offsetP.x >= 0);
             assert(offsetP.y >= 0);
-            assert(offsetP.x < sceneHSV.cols);
-            assert(offsetP.y < sceneHSV.rows);
 
             // Normalize scene HSV value
             int hT = static_cast<int>(HSV[0]);
@@ -356,7 +390,6 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
             // Test I
             if (!testObjectSize(1.0f)) continue;
 
-
             // Test II
             #pragma omp parallel for
             for (uint i = 0; i < pointsCount; i++) {
@@ -366,7 +399,6 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
             if (sII < minThreshold) continue;
 
-
             // Test III
             #pragma omp parallel for
             for (uint i = 0; i < pointsCount; i++) {
@@ -375,7 +407,6 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
             }
 
             if (sIII < minThreshold) continue;
-
 
             // Test V
             #pragma omp parallel for
