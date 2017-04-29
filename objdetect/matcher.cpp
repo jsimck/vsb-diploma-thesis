@@ -23,7 +23,7 @@ int Matcher::median(std::vector<int> &values) {
     return values[values.size() / 2];
 }
 
-int Matcher::quantizeOrientationGradient(float deg) {
+uchar Matcher::quantizeOrientationGradient(float deg) {
     // Checks
     assert(deg >= 0);
     assert(deg <= 360);
@@ -185,10 +185,9 @@ void Matcher::extractFeatures(std::vector<Group> &groups) {
                 // Save features to template
                 float depth = t.srcDepth.at<float>(stablePOff);
                 t.features.gradients.push_back(quantizeOrientationGradient(orientationGradient(t.srcGray, edgePOff)));
-                t.features.normals.push_back(
-                    Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff)));
+                t.features.normals.push_back(Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff)));
                 t.features.depths.push_back(depth);
-                t.features.colors.push_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(stablePOff)));
+                t.features.colors.push_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(edgePOff)));
                 depthArray.push_back(static_cast<int>(t.features.depths[i]));
 
                 assert(t.features.gradients[i] >= 0);
@@ -207,58 +206,56 @@ void Matcher::train(std::vector<Group> &groups) {
     // Generate edge and stable points for features extraction
     generateFeaturePoints(groups);
 
-    // Extract features for all templates in template group
+    // Extract features for all templates
     extractFeatures(groups);
 }
 
+// TODO implement object size test
 bool Matcher::testObjectSize(float scale) {
-    return true; // TODO implement object size test
+    return true;
 }
 
-int Matcher::testSurfaceNormal(const uchar normal, Window &window, const cv::Mat &sceneDepth, const cv::Point &featurePoint) {
-    // TODO Use bitwise operations using response maps
+// TODO Use bitwise operations using response maps
+int Matcher::testSurfaceNormal(const uchar normal, Window &window, const cv::Mat &sceneDepth, const cv::Point &stable) {
     for (int y = neighbourhood.start; y <= neighbourhood.end; ++y) {
         for (int x = neighbourhood.start; x <= neighbourhood.end; ++x) {
-            // Apply needed offsets to stable point
-            cv::Point stablePoint(featurePoint.x + window.tl().x + x, featurePoint.y + window.tl().y + y);
+            // Apply needed offsets to feature point
+            cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
 
             // Checks
-            assert(stablePoint.x >= 0);
-            assert(stablePoint.y >= 0);
-            assert(stablePoint.x < sceneDepth.cols);
-            assert(stablePoint.y < sceneDepth.rows);
+            assert(offsetP.x >= 0);
+            assert(offsetP.y >= 0);
+            assert(offsetP.x < sceneDepth.cols);
+            assert(offsetP.y < sceneDepth.rows);
 
-            if (Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, stablePoint)) == normal) {
-                return 1;
-            }
+            if (Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, offsetP)) == normal) return 1;
         }
     }
 
     return 0;
 }
 
-int Matcher::testGradients(const uchar orientation, Window &window, const cv::Mat &sceneGray, const cv::Point &featurePoint) {
-    // TODO Use bitwise operations using response maps
+// TODO Use bitwise operations using response maps
+int Matcher::testGradients(const uchar orientation, Window &window, const cv::Mat &sceneGray, const cv::Point &edge) {
     for (int y = neighbourhood.start; y <= neighbourhood.end; ++y) {
         for (int x = neighbourhood.start; x <= neighbourhood.end; ++x) {
-            // Apply needed offsets to edge point
-            cv::Point edgePoint(featurePoint.x + window.tl().x + x, featurePoint.y + window.tl().y + y);
+            // Apply needed offsets to feature point
+            cv::Point offsetP(edge.x + window.tl().x + x, edge.y + window.tl().y + y);
 
             // Checks
-            assert(edgePoint.x >= 0);
-            assert(edgePoint.y >= 0);
-            assert(edgePoint.x < sceneGray.cols);
-            assert(edgePoint.y < sceneGray.rows);
+            assert(offsetP.x >= 0);
+            assert(offsetP.y >= 0);
+            assert(offsetP.x < sceneGray.cols);
+            assert(offsetP.y < sceneGray.rows);
 
-            if (quantizeOrientationGradient(orientationGradient(sceneGray, edgePoint)) == orientation) {
-                return 1;
-            }
+            if (quantizeOrientationGradient(orientationGradient(sceneGray, offsetP)) == orientation) return 1;
         }
     }
 
     return 0;
 }
 
+// TODO use proper value of k constant (physical diameter)
 int Matcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
     const float k = 1.0f;
     int dm = median(depths), score = 0;
@@ -271,30 +268,23 @@ int Matcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
     return score;
 }
 
-/*
- * TODO - improvement
- * In practice we do not take into account the pixels that are too close to the
- * object projection boundaries, to be tolerant to the inaccuracy of the current
- * pose estimate. This can be done eciently
- * by eroding the object projection
- * beforehand.
- */
-int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &edgePoint) {
+// TODO consider eroding object in training stage to be more tollerant to inaccuracy on the edges
+int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &stable) {
     for (int y = neighbourhood.start; y <= neighbourhood.end; ++y) {
         for (int x = neighbourhood.start; x <= neighbourhood.end; ++x) {
-            // Apply needed offsets to edge point
-            cv::Point stablePoint(edgePoint.x + window.tl().x + x, edgePoint.y + window.tl().y + y);
+            // Apply needed offsets to feature point
+            cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
 
             // Checks
-            assert(stablePoint.x >= 0);
-            assert(stablePoint.y >= 0);
-            assert(stablePoint.x < sceneHSV.cols);
-            assert(stablePoint.y < sceneHSV.rows);
+            assert(offsetP.x >= 0);
+            assert(offsetP.y >= 0);
+            assert(offsetP.x < sceneHSV.cols);
+            assert(offsetP.y < sceneHSV.rows);
 
-            const uchar threshold = 5;
-            if (std::abs(normalizeHSV(HSV)[0] - normalizeHSV(sceneHSV.at<cv::Vec3b>(stablePoint))[0]) < threshold) {
-                return 1;
-            }
+            int hT = static_cast<int>(HSV[0]);
+            int hS = static_cast<int>(normalizeHSV(sceneHSV.at<cv::Vec3b>(offsetP))[0]);
+
+            if (std::abs(hT - hS) < tColorTest) return 1;
         }
     }
 
@@ -302,15 +292,13 @@ int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &scene
 }
 
 void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
-    // Checks
     assert(matches.size() > 0);
 
     // Sort all matches by their highest score
     std::sort(matches.rbegin(), matches.rend());
-    const float overlapThresh = 0.1f;
 
     std::vector<Match> pick;
-    std::vector<int> suppress; // Indexes of matches to remove
+    std::vector<int> suppress(matches.size()); // Indexes of matches to remove
     std::vector<int> idx(matches.size()); // Indexes of bounding boxes to check
     std::iota(idx.begin(), idx.end(), 0);
 
@@ -318,11 +306,12 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
         // Pick first element with highest score
         Match &firstMatch = matches[idx[0]];
 
-        // Store this index into suppress array and push to final matches, we won'tpl check against this BB again
+        // Store this index into suppress array and push to final matches, we won't check against this match again
         suppress.push_back(idx[0]);
         pick.push_back(firstMatch);
 
         // Check overlaps with all other bounding boxes, skipping first one (since it is the one we're checking with)
+        #pragma omp parallel for
         for (int i = 1; i < idx.size(); i++) {
             // Get overlap BB coordinates of each other bounding box and compare with the first one
             cv::Rect bb = matches[idx[i]].objBB;
@@ -336,9 +325,9 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
             int w = std::max<int>(0, x2 - x1);
             float overlap = static_cast<float>(h * w) / static_cast<float>(firstMatch.objBB.area());
 
-            // Push index of this window to suppression array, since it is overlapping over minimum threshold
-            // with a window of higher score, we can safely ignore this window
-            if (overlap > overlapThresh) {
+            // If overlap is bigger than min threshold, remove the match
+            if (overlap > tOverlap) {
+                #pragma omp critical
                 suppress.push_back(idx[i]);
             }
         }
@@ -369,12 +358,13 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
     // Min threshold of matched feature points
     const int minThreshold = static_cast<int>(pointsCount * tMatch); // 60%
 
+    #pragma omp parallel for
     for (int l = 0; l < windows.size(); l++) {
         for (auto &candidate : windows[l].candidates) {
             // Checks
             assert(candidate != nullptr);
 
-            // Scores for each test, should pass given min threshold (tMatch)
+            // Scores for each test
             float sII = 0, sIII = 0, sIV = 0, sV = 0;
 
             // Test I
@@ -382,7 +372,9 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
 
             // Test II
+            #pragma omp parallel for
             for (int i = 0; i < pointsCount; i++) {
+                #pragma omp atomic
                 sII += testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
             }
 
@@ -390,7 +382,9 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
 
             // Test III
+            #pragma omp parallel for
             for (int i = 0; i < pointsCount; i++) {
+                #pragma omp atomic
                 sIII += testGradients(candidate->features.gradients[i], windows[l], sceneGray, candidate->edgePoints[i]);
             }
 
@@ -398,13 +392,15 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
 
             // Test V
+            #pragma omp parallel for
             for (int i = 0; i < pointsCount; i++) {
-                sV += testColor(candidate->features.colors[i], windows[l], sceneHSV, candidate->stablePoints[i]);
+                #pragma omp atomic
+                sV += testColor(candidate->features.colors[i], windows[l], sceneHSV, candidate->edgePoints[i]);
             }
 
             if (sV < minThreshold) continue;
 
-//#ifndef NDEBUG
+#ifndef NDEBUG
 //            std::cout
 //                << "id: " << candidate->id
 //                << ", window: " << l
@@ -412,12 +408,15 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 //                << ", score III: " << sIII
 //                << ", score V: " << sV
 //                << std::endl;
-//#endif
+#endif
 
-            // Push template that passed all tests to matches array
-            float score = (sII / pointsCount) + (sIII / pointsCount) + (sV / pointsCount);
-            cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
-            matches.push_back(Match(candidate, matchBB, score));
+            #pragma omp critical
+            {
+                // Push template that passed all tests to matches array
+                float score = (sII / pointsCount) + (sIII / pointsCount) + (sV / pointsCount);
+                cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
+                matches.push_back(Match(candidate, matchBB, score));
+            };
         }
     }
 
@@ -451,6 +450,14 @@ float Matcher::getTMatch() const {
 
 const cv::Range &Matcher::getNeighbourhood() const {
     return neighbourhood;
+}
+
+uchar Matcher::getTColorTest() const {
+    return tColorTest;
+}
+
+float Matcher::getTOverlap() const {
+    return tOverlap;
 }
 
 void Matcher::setPointsCount(uint count) {
@@ -491,4 +498,14 @@ void Matcher::setTMatch(float t) {
 void Matcher::setNeighbourhood(cv::Range matchNeighbourhood) {
     assert(matchNeighbourhood.start <= matchNeighbourhood.end);
     this->neighbourhood = matchNeighbourhood;
+}
+
+void Matcher::setTColorTest(uchar tColorTest) {
+    assert(tColorTest < 180); // Hue values are in <0, 179>
+    this->tColorTest = tColorTest;
+}
+
+void Matcher::setTOverlap(float tOverlap) {
+    assert(tOverlap >= 0 && tOverlap <= 1.0f);
+    Matcher::tOverlap = tOverlap;
 }

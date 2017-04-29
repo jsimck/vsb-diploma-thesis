@@ -40,14 +40,14 @@ private:
     std::vector<Match> matches;
 
     // Methods
-    inline void parseTemplates();
-    inline void loadScene();
-    inline void extractMinEdgels();
-    inline void trainHashTables();
-    inline void trainTemplates();
-    inline void detectObjectness();
-    inline void verifyTemplateCandidates();
-    inline void matchTemplates();
+    void parseTemplates();
+    void loadScene();
+    void extractMinEdgels();
+    void trainHashTables();
+    void trainTemplates();
+    void detectObjectness();
+    void verifyTemplateCandidates();
+    void matchTemplates();
 public:
     // Classifiers
     TemplateParser parser;

@@ -31,6 +31,7 @@ Classifier::Classifier(std::string basePath, std::vector<std::string> folders, s
     matcher.setTMatch(0.6f);
     matcher.setNeighbourhood(cv::Range(-2, 2)); // 5x5 -> [-2, -1, 0, 1, 2]
     // Training constants
+    matcher.setTColorTest(3);
     matcher.setT1Canny(100);
     matcher.setT2Canny(200);
     matcher.setTSobel(50);
@@ -44,11 +45,12 @@ void Classifier::parseTemplates() {
 
     // Parse
     std::cout << "Parsing... " << std::endl;
+    Timer t;
     parser.parse(groups, info);
     assert(groups.size() > 0);
     std::cout << "  |_ Smallest template found: " << info.smallestTemplate << std::endl;
-    std::cout << "  |_ Largest template found: " << info.maxTemplate << std::endl << std::endl;
-    std::cout << "DONE! " << groups.size() << " template groups parsed" << std::endl;
+    std::cout << "  |_ Largest template found: " << info.maxTemplate << std::endl;
+    std::cout << "DONE! " << groups.size() << " template groups parsed, took: " << t.elapsed() << " s" << std::endl << std::endl;
 }
 
 void Classifier::extractMinEdgels() {
@@ -57,9 +59,10 @@ void Classifier::extractMinEdgels() {
 
     // Extract min edgels
     std::cout << "Extracting min edgels... ";
+    Timer t;
     objectness.extractMinEdgels(groups, info);
     std::cout << "DONE! " << std::endl;
-    std::cout << "  |_ Minimum edgels found: " << info.minEdgels << std::endl << std::endl;
+    std::cout << "  |_ Minimum edgels found: " << info.minEdgels << ", took: " << t.elapsed() << " s" << std::endl << std::endl;
 }
 
 void Classifier::trainHashTables() {
@@ -102,7 +105,7 @@ void Classifier::loadScene() {
     cv::cvtColor(scene, sceneHSV, CV_BGR2HSV);
     cv::cvtColor(scene, sceneGray, CV_BGR2GRAY);
     sceneGray.convertTo(sceneGray, CV_32F, 1.0f / 255.0f);
-    sceneDepth.convertTo(sceneDepth, CV_32F); // TODO work with 16S (int) rather than floats
+    sceneDepth.convertTo(sceneDepth, CV_32F); // TODO work with 16U (int) rather than floats
     sceneDepth.convertTo(sceneDepthNorm, CV_32F, 1.0f / 65536.0f);
 
     // Check if conversion went ok

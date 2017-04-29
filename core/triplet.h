@@ -14,8 +14,8 @@
  */
 struct Triplet {
 private:
-    inline static cv::Point randPoint(const cv::Size grid);
-    inline static cv::Point randChildPoint(const int min = -4, const int max = 4);
+    static cv::Point randPoint(const cv::Size grid);
+    static cv::Point randChildPoint(const int min = -4, const int max = 4);
 public:
     cv::Point c;
     cv::Point p1;
