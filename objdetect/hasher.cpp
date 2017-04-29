@@ -69,7 +69,7 @@ uchar Hasher::quantizeDepth(float depth) {
     assert(binRanges.size() > 0);
 
     // Loop through histogram ranges and return quantized index
-    for (std::vector<cv::Range>::size_type i = 0; i < binRanges.size(); i++) {
+    for (size_t iSize = binRanges.size(), i = 0; i < iSize; i++) {
         if (binRanges[i].start >= depth && depth < binRanges[i].end) {
             return static_cast<uchar>(i);
         }
@@ -83,7 +83,7 @@ uchar Hasher::quantizeDepth(float depth) {
 
 void Hasher::generateTriplets(std::vector<HashTable> &tables) {
     // Generate triplets
-    for (std::vector<HashTable>::size_type i = 0; i < tablesCount; ++i) {
+    for (size_t i = 0; i < tablesCount; ++i) {
         HashTable h(Triplet::create(grid, maxDistance));
         tables.push_back(h);
     }
@@ -93,8 +93,8 @@ void Hasher::generateTriplets(std::vector<HashTable> &tables) {
     bool duplicate;
     do {
         duplicate = false;
-        for (std::vector<HashTable>::size_type i = 0; i < tables.size(); ++i) {
-            for (std::vector<HashTable>::size_type j = 0; j < tables.size(); ++j) {
+        for (size_t i = 0; i < tablesCount; ++i) {
+            for (size_t j = 0; j < tablesCount; ++j) {
                 // Don't compare same triplets
                 if (i == j) continue;
                 if (tables[i].triplet == tables[j].triplet) {
@@ -129,7 +129,7 @@ void Hasher::computeBinRanges(unsigned long sum, unsigned long *values) {
         if (tmpBinCount >= binSize) {
             tmpBinCount = 0;
             ranges.push_back(cv::Range(rangeStart - IMG_16BIT_MAX, i - IMG_16BIT_MAX));
-            rangeStart = i;
+            rangeStart = static_cast<uint>(i);
             binsCreated++;
             i--;
         }
@@ -157,6 +157,7 @@ void Hasher::initializeBinRanges(const std::vector<Group> &groups, std::vector<H
     unsigned long histogramSum = 0;
 
     // Reset histogram
+    #pragma omp parallel for
     for (int i = 0; i < IMG_16BIT_RANGE; i++) {
         histogramValues[i] = 0;
     }
@@ -164,9 +165,15 @@ void Hasher::initializeBinRanges(const std::vector<Group> &groups, std::vector<H
     // Fill histogram with generated triplets and relative depths
     for (auto &table : tables) {
         for (auto &group : groups) {
-            for (auto &t : group.templates) {
+            const size_t iSize = group.templates.size();
+
+            #pragma omp parallel for
+            for (size_t i = 0; i < iSize; i++) {
                 // Checks
                 assert(!t.srcDepth.empty());
+
+                // Get template by reference for better access
+                const Template &t = group.templates[i];
 
                 // Offset for the triplet grid
                 cv::Point gridOffset(
@@ -192,8 +199,11 @@ void Hasher::initializeBinRanges(const std::vector<Group> &groups, std::vector<H
                 cv::Vec2i d = relativeDepths(t.srcDepth, c, p1, p2);
 
                 // Offset depths from <-65535, +65535> to <0, 131070> array histogram counter
+                #pragma omp atomic
                 histogramValues[d[0] + IMG_16BIT_MAX] += 1;
+                #pragma omp atomic
                 histogramValues[d[1] + IMG_16BIT_MAX] += 1;
+                #pragma omp atomic
                 histogramSum += 2; // Total number of histogram values
             }
         }
@@ -223,9 +233,11 @@ void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &tables, c
 
     // Prepare hash tables and histogram bin ranges
     initialize(groups, tables, info);
+    const size_t iSize = tables.size();
 
     // Fill hash tables with templates and keys quantized from measured values
-    for (auto &table : tables) {
+    #pragma omp parallel for
+    for (size_t i = 0; i < iSize; i++) {
         for (auto &group : groups) {
             for (auto &t : group.templates) {
                 // Checks
@@ -239,9 +251,9 @@ void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &tables, c
 
                 // Get triplet points
                 TripletParams coordParams(info.maxTemplate.width, info.maxTemplate.height, grid, gridOffset.x, gridOffset.y);
-                cv::Point c = table.triplet.getCenter(coordParams);
-                cv::Point p1 = table.triplet.getP1(coordParams);
-                cv::Point p2 = table.triplet.getP2(coordParams);
+                cv::Point c = tables[i].triplet.getCenter(coordParams);
+                cv::Point p1 = tables[i].triplet.getP1(coordParams);
+                cv::Point p2 = tables[i].triplet.getP2(coordParams);
 
 #ifndef NDEBUG
 //                {
@@ -292,7 +304,7 @@ void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &tables, c
                 );
 
                 // Check if key exists, if not initialize it
-                table.pushUnique(key, t);
+                tables[i].pushUnique(key, t);
             }
         }
     }
@@ -305,12 +317,13 @@ void Hasher::verifyCandidates(const cv::Mat &sceneDepth, std::vector<HashTable> 
     assert(tables.size() > 0);
     assert(info.maxTemplate.area() > 0);
 
+    const size_t iSize = windows.size();
     std::vector<Template *> usedTemplates;
-    std::vector<int> emptyIndexes;
+    std::vector<size_t> emptyIndexes;
 
-    for (std::vector<Window>::size_type i = 0; i < windows.size(); ++i) {
+    for (size_t i = 0; i < iSize; ++i) {
         // Calculate new rectangle that's placed over the center of image from sliding window with the maxTemplate size
-        cv::Point gridOffset((windows[i].width / 2 + windows[i].tl().x) - (info.maxTemplate.width / 2), (windows[i].height / 2 + windows[i].tl().y) - info.maxTemplate.height / 2);
+        const cv::Point gridOffset((windows[i].width / 2 + windows[i].tl().x) - (info.maxTemplate.width / 2), (windows[i].height / 2 + windows[i].tl().y) - info.maxTemplate.height / 2);
 
         for (auto &table : tables) {
             // Get triplet points

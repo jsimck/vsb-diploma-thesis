@@ -39,7 +39,7 @@ namespace utils {
     // Removes specific indexes from vector array
     // http://stackoverflow.com/questions/20582519/delete-from-specific-indexes-in-a-stdvector
     template<typename T>
-    void removeIndex(std::vector<T> &vector, const std::vector<int> &to_remove) {
+    void removeIndex(std::vector<T> &vector, const std::vector<size_t> &to_remove) {
         auto vector_base = vector.begin();
         auto down_by = 0;
 
