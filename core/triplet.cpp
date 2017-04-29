@@ -8,7 +8,7 @@
 
 std::random_device seed;
 typedef std::uniform_real_distribution<float> distribution;
-static auto engine = std::mt19937(seed());
+static auto engine = std::mt19937(1);
 static auto uniformGenerator = std::bind(distribution(0.0f, 1.0f), engine);
 
 float Triplet::random(const float min, const float max) {

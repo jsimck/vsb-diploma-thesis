@@ -29,9 +29,9 @@ void Parser::parseTemplate(std::vector<Template> &templates, DataSetInfo &info, 
     fs.open(basePath + tplName + "/gt.yml", cv::FileStorage::READ);
     assert(fs.isOpened());
 
-    uint size = static_cast<uint>((indices.size() > 0) ? indices.size() : tplCount);
+    const uint size = static_cast<uint>((indices.size() > 0) ? indices.size() : tplCount);
     for (uint i = 0; i < size; i++) {
-        uint tplIndex = (indices.size() > 0) ? indices[i] : i;
+        uint tplIndex = static_cast<uint>((indices.size() > 0) ? indices[i] : i);
         std::string index = "tpl_" + std::to_string(tplIndex);
         cv::FileNode objGt = fs[index];
 

@@ -66,19 +66,19 @@ uchar Hasher::quantizeSurfaceNormal(cv::Vec3f normal) {
 uchar Hasher::quantizeDepth(float depth) {
     // Depth should have max value of <-65536, +65536>
     assert(depth >= -IMG_16BIT_MAX && depth <= IMG_16BIT_MAX);
+    assert(binRanges.size() == binCount);
     assert(binRanges.size() > 0);
 
     // Loop through histogram ranges and return quantized index
-    for (size_t iSize = binRanges.size(), i = 0; i < iSize; i++) {
+    const size_t iSize = binRanges.size();
+    for (size_t i = 0; i < iSize; i++) {
         if (binRanges[i].start >= depth && depth < binRanges[i].end) {
             return static_cast<uchar>(i);
         }
     }
 
-    assert(binRanges.size() == binCount);
-
     // If value is IMG_16BIT_MAX it belongs to last bin
-    return static_cast<uchar>(binRanges.size() - 1);
+    return static_cast<uchar>(iSize - 1);
 }
 
 void Hasher::generateTriplets(std::vector<HashTable> &tables) {
@@ -143,7 +143,7 @@ void Hasher::computeBinRanges(unsigned long sum, unsigned long *values) {
 
     // Print results
     std::cout << "DONE! Approximate " << binSize << " values per bin" << std::endl;
-    for (std::vector<cv::Range>::size_type i = 0; i < ranges.size(); i++) {
+    for (size_t iSize = ranges.size(), i = 0; i < iSize; i++) {
         std::cout << "       |_ " << i << ". <" << ranges[i].start << ", " << ranges[i].end << (i + 1 == ranges.size() ? ">" : ")") << std::endl;
     }
 

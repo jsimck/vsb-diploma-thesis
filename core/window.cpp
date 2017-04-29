@@ -28,11 +28,12 @@ void Window::pushUnique(Template *t, uint N, int v) {
     if (t->votes < v) return;
 
     // Check if candidate list is not full
-    if (candidates.size() >= N) {
-        std::vector<Template *>::size_type minI = 0;
+    const size_t cSize = candidates.size();
+    if (cSize >= N) {
+        size_t minI = 0;
         int minVotes = N + 1;
 
-        for (std::vector<Template *>::size_type i = 0; i < candidates.size(); i++) {
+        for (size_t i = 0; i < cSize; i++) {
             if (candidates[i] == t) return; // Check for duplicates
             if (candidates[i]->votes < minVotes) {
                 minVotes = candidates[i]->votes;

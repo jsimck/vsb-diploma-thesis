@@ -66,8 +66,7 @@ cv::Vec3b Matcher::normalizeHSV(const cv::Vec3b &hsv) {
 // in [19] S. Hinterstoisser, V. Lepetit, S. Ilic, S. Holzer, G. Bradski, K. Konolige,and N. Navab, "Model based training, detection and
 // pose estimation of texture-less 3D objects in heavily cluttered scenes,” in ACCV, 2012. (chapter 3.1.2)
 void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
-    std::random_device seed;
-    auto engine = std::mt19937(seed());
+    auto engine = std::mt19937(1);
 
     for (auto &group : groups) {
         const size_t iSize = group.templates.size();
@@ -246,7 +245,7 @@ int Matcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
     const float k = 1.0f;
     int dm = median(depths), score = 0;
 
-    for (std::vector<int>::size_type i = 0; i < depths.size(); ++i) {
+    for (size_t i = 0; i < depths.size(); ++i) {
         std::cout << std::abs(depths[i] - dm) << std::endl;
         score += (std::abs(depths[i] - dm) < k * physicalDiameter) ? 1 : 0;
     }
