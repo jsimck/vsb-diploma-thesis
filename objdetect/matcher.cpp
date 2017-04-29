@@ -70,7 +70,12 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
     auto engine = std::mt19937(seed());
 
     for (auto &group : groups) {
-        for (auto &t : group.templates) {
+        const size_t iSize = group.templates.size();
+
+        #pragma omp parallel for
+        for (size_t i = 0; i < iSize; i++) {
+            // Get template by reference for better access
+            Template &t = group.templates[i];
             std::vector<cv::Point> cannyPoints;
             std::vector<cv::Point> stablePoints;
             cv::Mat canny, sobelX, sobelY, sobel, src_8uc1;
@@ -107,7 +112,7 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
             std::shuffle(cannyPoints.begin(), cannyPoints.end(), engine);
 
             int rndI = 0;
-            for (uint i = 0; i < pointsCount; i++) {
+            for (uint j = 0; j < pointsCount; j++) {
                 // Pick random stable point
                 rndI = (int) Triplet::random(0, stablePoints.size() - 1);
                 t.stablePoints.push_back(cv::Point(stablePoints[rndI].x - t.objBB.tl().x, stablePoints[rndI].y - t.objBB.tl().y));
@@ -147,15 +152,20 @@ void Matcher::extractFeatures(std::vector<Group> &groups) {
     assert(groups.size() > 0);
 
     for (auto &group : groups) {
-        for (auto &t : group.templates) {
-            for (uint i = 0; i < pointsCount; i++) {
-                assert(!t.srcGray.empty());
-                assert(!t.srcHSV.empty());
-                assert(!t.srcDepth.empty());
+        const size_t iSize = group.templates.size();
 
+        #pragma omp parallel for
+        for (size_t i = 0; i < iSize; i++) {
+            // Get template by reference for better access
+            Template &t = group.templates[i];
+            assert(!t.srcGray.empty());
+            assert(!t.srcHSV.empty());
+            assert(!t.srcDepth.empty());
+
+            for (uint j = 0; j < pointsCount; j++) {
                 // Create offsets to object bounding box
-                cv::Point stablePOff(t.stablePoints[i].x + t.objBB.x, t.stablePoints[i].y + t.objBB.y);
-                cv::Point edgePOff(t.edgePoints[i].x + t.objBB.x, t.edgePoints[i].y + t.objBB.y);
+                cv::Point stablePOff(t.stablePoints[j].x + t.objBB.x, t.stablePoints[j].y + t.objBB.y);
+                cv::Point edgePOff(t.edgePoints[j].x + t.objBB.x, t.edgePoints[j].y + t.objBB.y);
 
                 // Extract features
                 float depth = t.srcDepth.at<float>(stablePOff);
@@ -169,10 +179,10 @@ void Matcher::extractFeatures(std::vector<Group> &groups) {
                 t.features.normals.push_back(normal);
                 t.features.colors.push_back(hsv);
 
-                assert(t.features.gradients[i] >= 0);
-                assert(t.features.gradients[i] < 5);
-                assert(t.features.normals[i] >= 0);
-                assert(t.features.normals[i] < 8);
+                assert(t.features.gradients[j] >= 0);
+                assert(t.features.gradients[j] < 5);
+                assert(t.features.normals[j] >= 0);
+                assert(t.features.normals[j] < 8);
             }
         }
     }
@@ -289,7 +299,7 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
 
         // Check overlaps with all other bounding boxes, skipping first one (since it is the one we're checking with)
         #pragma omp parallel for
-        for (std::vector<int>::size_type i = 1; i < idx.size(); i++) {
+        for (size_t i = 1; i < idx.size(); i++) {
             // Get overlap BB coordinates of each other bounding box and compare with the first one
             cv::Rect bb = matches[idx[i]].objBB;
             int x1 = std::max<int>(bb.tl().x, firstMatch.objBB.tl().x);
@@ -334,9 +344,10 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
     // Min threshold of matched feature points
     const int minThreshold = static_cast<int>(pointsCount * tMatch); // 60%
+    const size_t lSize = windows.size();
 
     #pragma omp parallel for
-    for (uint l = 0; l < windows.size(); l++) {
+    for (size_t l = 0; l < lSize; l++) {
         for (auto &candidate : windows[l].candidates) {
             assert(candidate != nullptr);
 

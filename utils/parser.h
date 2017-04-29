@@ -1,5 +1,5 @@
-#ifndef VSB_SEMESTRAL_PROJECT_TEMPLATEPARSER_H
-#define VSB_SEMESTRAL_PROJECT_TEMPLATEPARSER_H
+#ifndef VSB_SEMESTRAL_PROJECT_PARSER_H
+#define VSB_SEMESTRAL_PROJECT_PARSER_H
 
 #include <string>
 #include "../core/template.h"
@@ -7,12 +7,12 @@
 #include "../core/dataset_info.h"
 
 /**
- * class TemplateParser
+ * class Parser
  *
  * Utility class used to parse images downloaded from http://cmp.felk.cvut.cz/t-less/
  * into form which can be then modified and further used in the code.
  */
-class TemplateParser {
+class Parser {
 private:
     static uint idCounter;
 
@@ -21,11 +21,11 @@ private:
     std::vector<std::string> folders;
     uint tplCount;
 
-    Template parseGt(const int index, const std::string path, cv::FileNode &gtNode, DataSetInfo &info);
+    Template parseGt(const uint index, const std::string path, cv::FileNode &gtNode, DataSetInfo &info);
     void parseInfo(Template &tpl, cv::FileNode &infoNode);
     void parseTemplate(std::vector<Template> &templates, DataSetInfo &info, std::string tplName);
 public:
-    TemplateParser(const std::string basePath = "/data", std::vector<std::string> templateFolders = {}, uint tplCount = 1296)
+    Parser(const std::string basePath = "/data", std::vector<std::string> templateFolders = {}, uint tplCount = 1296)
         : basePath(basePath), folders(templateFolders), tplCount(tplCount) {}
 
     void parse(std::vector<Group> &groups, DataSetInfo &info);
@@ -45,4 +45,4 @@ public:
     void setIndices(const std::vector<int> &indices);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_TEMPLATEPARSER_H
+#endif //VSB_SEMESTRAL_PROJECT_PARSER_H

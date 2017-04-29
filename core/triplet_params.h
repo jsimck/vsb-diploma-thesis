@@ -1,5 +1,5 @@
-#ifndef VSB_SEMESTRAL_PROJECT_TRIPLET_COORDS_H
-#define VSB_SEMESTRAL_PROJECT_TRIPLET_COORDS_H
+#ifndef VSB_SEMESTRAL_PROJECT_TRIPLET_PARAMS_H
+#define VSB_SEMESTRAL_PROJECT_TRIPLET_PARAMS_H
 
 #include <opencv2/core/types.hpp>
 
@@ -25,4 +25,4 @@ public:
     TripletParams(const int width, const int height, const cv::Size &grid, const int sOffsetX = 0, const int sOffsetY = 0);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_TRIPLET_COORDS_H
+#endif //VSB_SEMESTRAL_PROJECT_TRIPLET_PARAMS_H

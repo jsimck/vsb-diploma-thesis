@@ -1,5 +1,5 @@
-#ifndef VSB_SEMESTRAL_PROJECT_TEMPLATE_GROUP_H
-#define VSB_SEMESTRAL_PROJECT_TEMPLATE_GROUP_H
+#ifndef VSB_SEMESTRAL_PROJECT_GROUP_H
+#define VSB_SEMESTRAL_PROJECT_GROUP_H
 
 #include <string>
 #include "template.h"
@@ -20,4 +20,4 @@ public:
             : folderName(folderName), templates(templates) {}
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_TEMPLATE_GROUP_H
+#endif //VSB_SEMESTRAL_PROJECT_GROUP_H

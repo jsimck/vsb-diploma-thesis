@@ -1,5 +1,5 @@
-#ifndef VSB_SEMESTRAL_PROJECT_TEMPLATE_MATCHER_H
-#define VSB_SEMESTRAL_PROJECT_TEMPLATE_MATCHER_H
+#ifndef VSB_SEMESTRAL_PROJECT_MATCHER_H
+#define VSB_SEMESTRAL_PROJECT_MATCHER_H
 
 #include <opencv2/core/hal/interface.h>
 #include <opencv2/core/mat.hpp>
@@ -83,4 +83,4 @@ public:
     void setNeighbourhood(cv::Range neighbourhood);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_TEMPLATE_MATCHER_H
+#endif //VSB_SEMESTRAL_PROJECT_MATCHER_H

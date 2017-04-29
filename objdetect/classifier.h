@@ -4,7 +4,7 @@
 #include "../core/group.h"
 #include "../core/match.h"
 #include "../core/hash_table.h"
-#include "../utils/template_parser.h"
+#include "../utils/parser.h"
 #include "hasher.h"
 #include "objectness.h"
 #include "../core/window.h"
@@ -50,7 +50,7 @@ private:
     void matchTemplates();
 public:
     // Classifiers
-    TemplateParser parser;
+    Parser parser;
     Objectness objectness;
     Hasher hasher;
     Matcher matcher;

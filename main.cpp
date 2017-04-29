@@ -2,7 +2,6 @@
 #include "utils/timer.h"
 #include "objdetect/classifier.h"
 
-
 int main() {
     // Init classifier
     const std::vector<std::string> tplNames = { "02" };

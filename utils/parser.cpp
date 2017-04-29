@@ -1,9 +1,9 @@
-#include "template_parser.h"
+#include "parser.h"
 #include <cassert>
 
-uint TemplateParser::idCounter = 0;
+uint Parser::idCounter = 0;
 
-void TemplateParser::parse(std::vector<Group> &groups, DataSetInfo &info) {
+void Parser::parse(std::vector<Group> &groups, DataSetInfo &info) {
     // Checks
     assert(folders.size() > 0);
     int parsedCount = 0;
@@ -23,15 +23,15 @@ void TemplateParser::parse(std::vector<Group> &groups, DataSetInfo &info) {
     std::cout << "  |_ Parsed total: " << parsedCount << " templates" << std::endl;
 }
 
-void TemplateParser::parseTemplate(std::vector<Template> &templates, DataSetInfo &info, std::string tplName) {
+void Parser::parseTemplate(std::vector<Template> &templates, DataSetInfo &info, std::string tplName) {
     // Load obj_gt
     cv::FileStorage fs;
     fs.open(basePath + tplName + "/gt.yml", cv::FileStorage::READ);
     assert(fs.isOpened());
 
-    int size = static_cast<int>((indices.size() > 0) ? indices.size() : tplCount);
-    for (int i = 0; i < size; i++) {
-        int tplIndex = (indices.size() > 0) ? indices[i] : i;
+    uint size = static_cast<uint>((indices.size() > 0) ? indices.size() : tplCount);
+    for (uint i = 0; i < size; i++) {
+        uint tplIndex = (indices.size() > 0) ? indices[i] : i;
         std::string index = "tpl_" + std::to_string(tplIndex);
         cv::FileNode objGt = fs[index];
 
@@ -56,7 +56,7 @@ void TemplateParser::parseTemplate(std::vector<Template> &templates, DataSetInfo
     fs.release();
 }
 
-Template TemplateParser::parseGt(const int index, const std::string path, cv::FileNode &gtNode, DataSetInfo &info) {
+Template Parser::parseGt(const uint index, const std::string path, cv::FileNode &gtNode, DataSetInfo &info) {
     // Init template param matrices
     std::vector<float> vCamRm2c, vCamTm2c;
     std::vector<int> vObjBB;
@@ -121,7 +121,7 @@ Template TemplateParser::parseGt(const int index, const std::string path, cv::Fi
     );
 }
 
-void TemplateParser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
+void Parser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
     // Init template param matrices
     std::vector<float> vCamK;
     int elev, mode;
@@ -140,47 +140,47 @@ void TemplateParser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
     tpl.camK = cv::Mat(3, 3, CV_32FC1, vCamK.data()).clone();
 }
 
-void TemplateParser::clearIndices() {
+void Parser::clearIndices() {
     indices.clear();
 }
 
-int TemplateParser::getIdCounter() {
+int Parser::getIdCounter() {
     return idCounter;
 }
 
-std::string TemplateParser::getBasePath() const {
+std::string Parser::getBasePath() const {
     return this->basePath;
 }
 
-uint TemplateParser::getTplCount() const {
+uint Parser::getTplCount() const {
     return this->tplCount;
 }
 
-const std::vector<std::string> &TemplateParser::getTemplateFolders() const {
+const std::vector<std::string> &Parser::getTemplateFolders() const {
     return this->folders;
 }
 
-const std::vector<int> &TemplateParser::getIndices() const {
+const std::vector<int> &Parser::getIndices() const {
     return this->indices;
 }
 
-void TemplateParser::setBasePath(std::string path) {
+void Parser::setBasePath(std::string path) {
     assert(path.length() > 0);
     assert(path[path.length() - 1] == '/');
     this->basePath = path;
 }
 
-void TemplateParser::setTplCount(uint tplCount) {
+void Parser::setTplCount(uint tplCount) {
     assert(tplCount > 0);
     this->tplCount = tplCount;
 }
 
-void TemplateParser::setFolders(const std::vector<std::string> &folders) {
+void Parser::setFolders(const std::vector<std::string> &folders) {
     assert(folders.size() > 0);
     this->folders = folders;
 }
 
-void TemplateParser::setIndices(const std::vector<int> &indices) {
+void Parser::setIndices(const std::vector<int> &indices) {
     assert(indices.size() > 0);
     this->indices = indices;
 }
