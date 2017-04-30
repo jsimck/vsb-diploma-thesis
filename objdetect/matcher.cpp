@@ -71,7 +71,6 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
     for (auto &group : groups) {
         const size_t iSize = group.templates.size();
 
-        #pragma omp parallel for
         for (size_t i = 0; i < iSize; i++) {
             // Get template by reference for better access
             Template &t = group.templates[i];
@@ -128,9 +127,6 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
                         t.stablePoints.push_back(cv::Point(stablePoints[rndI].x - t.objBB.tl().x, stablePoints[rndI].y - t.objBB.tl().y));
                         generate = false;
                     }
-
-                    // Remove used point from source array
-                    stablePoints.erase(stablePoints.begin() + rndI - 1);
                 }
 
                 // Generate point again, now for edge points
@@ -148,9 +144,6 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
                         t.edgePoints.push_back(cv::Point(cannyPoints[rndI].x - t.objBB.tl().x, cannyPoints[rndI].y - t.objBB.tl().y));
                         generate = false;
                     }
-
-                    // Remove used point from source array
-                    cannyPoints.erase(cannyPoints.begin() + rndI - 1);
                 }
             }
 
@@ -201,7 +194,7 @@ void Matcher::extractFeatures(std::vector<Group> &groups) {
                 float depth = t.srcDepth.at<float>(stablePOff);
                 uchar gradient = quantizeOrientationGradient(orientationGradient(t.srcGray, edgePOff));
                 uchar normal = Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff));
-                cv::Vec3b hsv = normalizeHSV(t.srcHSV.at<cv::Vec3b>(edgePOff));
+                cv::Vec3b hsv = normalizeHSV(t.srcHSV.at<cv::Vec3b>(stablePOff));
 
                 // Save features
                 t.features.depths.push_back(depth);
@@ -221,9 +214,11 @@ void Matcher::extractFeatures(std::vector<Group> &groups) {
 void Matcher::train(std::vector<Group> &groups) {
     // Generate edge and stable points for features extraction
     generateFeaturePoints(groups);
+    std::cout << "  |_ Feature points generated" << std::endl;
 
     // Extract features for all templates
     extractFeatures(groups);
+    std::cout << "  |_ Features extracted" << std::endl;
 }
 
 // TODO implement object size test
@@ -287,11 +282,11 @@ int Matcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
 }
 
 // TODO consider eroding object in training stage to be more tollerant to inaccuracy on the edges
-int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &edge) {
+int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &stable) {
     for (int y = neighbourhood.start; y <= neighbourhood.end; ++y) {
         for (int x = neighbourhood.start; x <= neighbourhood.end; ++x) {
             // Apply needed offsets to feature point
-            cv::Point offsetP(edge.x + window.tl().x + x, edge.y + window.tl().y + y);
+            cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
 
             // Template points in larger templates can go beyond scene boundaries (don't count)
             if (offsetP.x >= sceneHSV.cols || offsetP.y >= sceneHSV.rows) continue;
@@ -412,7 +407,7 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
             #pragma omp parallel for
             for (uint i = 0; i < pointsCount; i++) {
                 #pragma omp atomic
-                sV += testColor(candidate->features.colors[i], windows[l], sceneHSV, candidate->edgePoints[i]);
+                sV += testColor(candidate->features.colors[i], windows[l], sceneHSV, candidate->stablePoints[i]);
             }
 
             if (sV < minThreshold) continue;

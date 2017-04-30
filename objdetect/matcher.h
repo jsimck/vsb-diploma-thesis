@@ -43,7 +43,7 @@ private:
     inline int testSurfaceNormal(const uchar normal, Window &window, const cv::Mat &sceneDepth, const cv::Point &stable); // Test II
     inline int testGradients(const uchar gradient, Window &window, const cv::Mat &sceneGray, const cv::Point &edge); // Test III
     inline int testDepth(int physicalDiameter, std::vector<int> &depths); // Test IV
-    inline int testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &edge); // Test V
+    inline int testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &stable); // Test V
 public:
     // Static methods
     static int median(std::vector<int> &values);
