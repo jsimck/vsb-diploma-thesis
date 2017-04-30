@@ -270,11 +270,12 @@ int Matcher::testGradients(const uchar gradient, Window &window, const cv::Mat &
 
 // TODO use proper value of k constant (physical diameter)
 int Matcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
-    const float k = 1.0f;
+    const float k = 0.8f;
     int dm = median(depths), score = 0;
 
+    #pragma omp parallel for
     for (size_t i = 0; i < depths.size(); ++i) {
-        std::cout << std::abs(depths[i] - dm) << std::endl;
+        #pragma omp atomic
         score += (std::abs(depths[i] - dm) < k * physicalDiameter) ? 1 : 0;
     }
 
@@ -381,6 +382,7 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
             // Scores for each test
             float sII = 0, sIII = 0, sIV = 0, sV = 0;
+            std::vector<int> depths;
 
             // Test I
             if (!testObjectSize(1.0f)) continue;
@@ -402,6 +404,14 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
             }
 
             if (sIII < minThreshold) continue;
+
+            // Test IV
+            for (uint i = 0; i < pointsCount; i++) {
+                depths.push_back(static_cast<int>(sceneDepth.at<float>(candidate->stablePoints[i]) - candidate->srcDepth.at<float>(candidate->stablePoints[i])));
+            }
+
+            sIV = testDepth(candidate->objBB.width, depths);
+            if (sIV < minThreshold) continue;
 
             // Test V
             #pragma omp parallel for

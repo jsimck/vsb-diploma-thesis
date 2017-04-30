@@ -214,7 +214,18 @@ void Classifier::classify() {
     /// Show matched template results
     cv::Mat sceneCopy = scene.clone();
     for (auto &match : matches) {
+        std::stringstream ss;
+        ss << "ID: " << match.tpl->id;
         cv::rectangle(sceneCopy, cv::Point(match.objBB.x, match.objBB.y), cv::Point(match.objBB.x + match.objBB.width, match.objBB.y + match.objBB.height), cv::Scalar(0, 255, 0));
+        cv::putText(sceneCopy, ss.str(), cv::Point(match.objBB.tl().x + 5, match.objBB.tl().y + 20), CV_FONT_HERSHEY_DUPLEX, 0.5f, cv::Scalar(0, 0, 255), 1);
+
+        for (auto &group : groups) {
+            for (auto &t : group.templates) {
+                if (t.id == match.tpl->id) {
+                    cv::imshow(ss.str(), t.srcGray);
+                }
+            }
+        }
     }
 
     cv::imshow("Match template result", sceneCopy);
