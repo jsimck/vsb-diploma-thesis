@@ -234,11 +234,8 @@ int Matcher::testSurfaceNormal(const uchar normal, Window &window, const cv::Mat
             cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
 
             // Template points in larger templates can go beyond scene boundaries (don't count)
-            if (offsetP.x >= sceneDepth.cols || offsetP.y >= sceneDepth.rows) continue;
-
-            // Checks
-            assert(offsetP.x >= 0);
-            assert(offsetP.y >= 0);
+            if (offsetP.x >= sceneDepth.cols || offsetP.y >= sceneDepth.rows ||
+                offsetP.x < 0 || offsetP.y < 0) continue;
 
             if (Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, offsetP)) == normal) return 1;
         }
@@ -255,11 +252,8 @@ int Matcher::testGradients(const uchar gradient, Window &window, const cv::Mat &
             cv::Point offsetP(edge.x + window.tl().x + x, edge.y + window.tl().y + y);
 
             // Template points in larger templates can go beyond scene boundaries (don't count)
-            if (offsetP.x >= sceneGray.cols || offsetP.y >= sceneGray.rows) continue;
-
-            // Checks
-            assert(offsetP.x >= 0);
-            assert(offsetP.y >= 0);
+            if (offsetP.x >= sceneGray.cols || offsetP.y >= sceneGray.rows ||
+                offsetP.x < 0 || offsetP.y < 0) continue;
 
             if (quantizeOrientationGradient(orientationGradient(sceneGray, offsetP)) == gradient) return 1;
         }
@@ -290,11 +284,8 @@ int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &scene
             cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
 
             // Template points in larger templates can go beyond scene boundaries (don't count)
-            if (offsetP.x >= sceneHSV.cols || offsetP.y >= sceneHSV.rows) continue;
-
-            // Checks
-            assert(offsetP.x >= 0);
-            assert(offsetP.y >= 0);
+            if (offsetP.x >= sceneHSV.cols || offsetP.y >= sceneHSV.rows ||
+                offsetP.x < 0 || offsetP.y < 0) continue;
 
             // Normalize scene HSV value
             int hT = static_cast<int>(HSV[0]);
@@ -331,14 +322,14 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
         for (size_t i = 1; i < idx.size(); i++) {
             // Get overlap BB coordinates of each other bounding box and compare with the first one
             cv::Rect bb = matches[idx[i]].objBB;
-            int x1 = std::max<int>(bb.tl().x, firstMatch.objBB.tl().x);
-            int x2 = std::min<int>(bb.br().x, firstMatch.objBB.br().x);
-            int y1 = std::max<int>(bb.tl().y, firstMatch.objBB.tl().y);
-            int y2 = std::min<int>(bb.br().y, firstMatch.objBB.br().y);
+            int x1 = std::min<int>(bb.br().x, firstMatch.objBB.br().x);
+            int x2 = std::max<int>(bb.tl().x, firstMatch.objBB.tl().x);
+            int y1 = std::min<int>(bb.br().y, firstMatch.objBB.br().y);
+            int y2 = std::max<int>(bb.tl().y, firstMatch.objBB.tl().y);
 
             // Calculate overlap area
-            int h = std::max<int>(0, y2 - y1);
-            int w = std::max<int>(0, x2 - x1);
+            int h = std::max<int>(0, y1 - y2);
+            int w = std::max<int>(0, x1 - x2);
             float overlap = static_cast<float>(h * w) / static_cast<float>(firstMatch.objBB.area());
 
             // If overlap is bigger than min threshold, remove the match
