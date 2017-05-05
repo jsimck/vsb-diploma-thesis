@@ -5,6 +5,7 @@
 #include "hasher.h"
 #include "../core/template.h"
 #include "../utils/utils.h"
+#include "../utils/timer.h"
 
 float Matcher::orientationGradient(const cv::Mat &src, cv::Point &p) {
     assert(!src.empty());
@@ -366,6 +367,9 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
     const int minThreshold = static_cast<int>(pointsCount * tMatch); // 60%
     const size_t lSize = windows.size();
 
+    // Stop template matching time
+    Timer tMatching;
+
     #pragma omp parallel for
     for (size_t l = 0; l < lSize; l++) {
         for (auto &candidate : windows[l].candidates) {
@@ -434,8 +438,14 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
         }
     }
 
+    std::cout << "  |_ Template matching took: " << tMatching.elapsed() << "s" << std::endl;
+
+    // Stop non maxima time
+    Timer tMaxima;
+
     // Run non maxima suppression on matches
     nonMaximaSuppression(matches);
+    std::cout << "  |_ Non maxima suppression took: " << tMaxima.elapsed() << "s" << std::endl;
 }
 
 uint Matcher::getPointsCount() const {
