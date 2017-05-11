@@ -14,6 +14,13 @@ bool HashKey::operator!=(const HashKey &rhs) const {
 }
 
 std::ostream &operator<<(std::ostream &os, const HashKey &key) {
-    os << "(" << key.d1 << ", " << key.d2 << ", " << key.n1 << ", " << key.n2 << ", " << key.n3 << ")";
+    os << "("
+       << static_cast<int>(key.d1) << ", "
+       << static_cast<int>(key.d2) << ", "
+       << static_cast<int>(key.n1) << ", "
+       << static_cast<int>(key.n2) << ", "
+       << static_cast<int>(key.n3)
+    << ")";
+
     return os;
 }

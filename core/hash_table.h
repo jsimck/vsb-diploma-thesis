@@ -18,6 +18,7 @@
 struct HashTable {
 public:
     Triplet triplet;
+    std::vector<cv::Range> binRanges;
     std::unordered_map<HashKey, std::vector<Template *>, HashKeyHasher> templates;
 
     // Constructors

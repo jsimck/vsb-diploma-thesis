@@ -4,7 +4,6 @@
 #include "../utils/timer.h"
 
 const int Hasher::IMG_16BIT_MAX = 65535; // <0, 65535> => 65536 values
-const int Hasher::IMG_16BIT_RANGE = (IMG_16BIT_MAX * 2) + 1; // <-65535, 65535> => 131070 values + (one zero) == 131070
 
 cv::Vec3f Hasher::surfaceNormal(const cv::Mat &src, const cv::Point c) {
     assert(!src.empty());
@@ -63,16 +62,16 @@ uchar Hasher::quantizeSurfaceNormal(cv::Vec3f normal) {
     return minIndex;
 }
 
-uchar Hasher::quantizeDepth(float depth) {
+uchar Hasher::quantizeDepth(float depth, const std::vector<cv::Range> &ranges) {
     // Depth should have max value of <-65536, +65536>
     assert(depth >= -IMG_16BIT_MAX && depth <= IMG_16BIT_MAX);
-    assert(binRanges.size() == binCount);
-    assert(binRanges.size() > 0);
+    assert(ranges.size() == binCount);
+    assert(ranges.size() > 0);
 
     // Loop through histogram ranges and return quantized index
-    const size_t iSize = binRanges.size();
+    const size_t iSize = ranges.size();
     for (size_t i = 0; i < iSize; i++) {
-        if (binRanges[i].start >= depth && depth < binRanges[i].end) {
+        if (ranges[i].start >= depth && depth < ranges[i].end) {
             return static_cast<uchar>(i);
         }
     }
@@ -107,71 +106,19 @@ void Hasher::generateTriplets(std::vector<HashTable> &tables) {
     } while (duplicate);
 }
 
-void Hasher::computeBinRanges(unsigned long sum, unsigned long *values) {
-    // Checks
-    assert(sum > 0);
-    assert(values != nullptr);
-
-    std::vector<cv::Range> ranges;
-    unsigned long tmpBinCount = 0;
-    uint rangeStart = 0, binsCreated = 0;
-
-    // Calculate approximate size of every bin
-    const unsigned long binSize = sum / binCount;
-
-    // Loop trough histogram and determine ranges
-    for (int i = 0; i < IMG_16BIT_RANGE; i++) {
-        if (values[i] > 0) {
-            tmpBinCount += values[i];
-        }
-
-        // Check if bin is full -> save range and start again
-        if (tmpBinCount >= binSize) {
-            tmpBinCount = 0;
-            ranges.push_back(cv::Range(rangeStart - IMG_16BIT_MAX, i - IMG_16BIT_MAX));
-            rangeStart = static_cast<uint>(i);
-            binsCreated++;
-            i--;
-        }
-
-        // Define last range from current i to end [IMG_16BIT_MAX]
-        if ((binsCreated + 1) >= binSize) {
-            ranges.push_back(cv::Range(i - IMG_16BIT_MAX + 1, IMG_16BIT_MAX));
-            break;
-        }
-    }
-
-    // Print results
-    std::cout << "DONE! Approximate " << binSize << " values per bin" << std::endl;
-    for (size_t iSize = ranges.size(), i = 0; i < iSize; i++) {
-        std::cout << "       |_ " << i << ". <" << ranges[i].start << ", " << ranges[i].end << (i + 1 == ranges.size() ? ">" : ")") << std::endl;
-    }
-
-    // Set histogram ranges
-    setBinRanges(ranges);
-}
-
 void Hasher::initializeBinRanges(const std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info) {
-    // Histogram values <-65535, +65535>
-    unsigned long histogramValues[IMG_16BIT_RANGE];
-    unsigned long histogramSum = 0;
+    // Checks
+    assert(tables.size() > 0);
+    assert(groups.size() > 0);
 
-    // Reset histogram
+    const size_t iSize = tables.size();
+
     #pragma omp parallel for
-    for (int i = 0; i < IMG_16BIT_RANGE; i++) {
-        histogramValues[i] = 0;
-    }
+    for (size_t i = 0; i < iSize; i++) {
+        std::vector<int> rDepths(groups.size() * groups[0].templates.size());
 
-    // Fill histogram with generated triplets and relative depths
-    for (auto &table : tables) {
         for (auto &group : groups) {
-            const size_t iSize = group.templates.size();
-
-            #pragma omp parallel for
-            for (size_t i = 0; i < iSize; i++) {
-                // Get template by reference for better access
-                const Template &t = group.templates[i];
-
+            for (auto &t : group.templates) {
                 // Checks
                 assert(!t.srcDepth.empty());
 
@@ -183,9 +130,9 @@ void Hasher::initializeBinRanges(const std::vector<Group> &groups, std::vector<H
 
                 // Absolute triplet points
                 TripletParams params(info.maxTemplate.width, info.maxTemplate.height, grid, gridOffset.x, gridOffset.y);
-                cv::Point c = table.triplet.getCenter(params);
-                cv::Point p1 = table.triplet.getP1(params);
-                cv::Point p2 = table.triplet.getP2(params);
+                cv::Point c = tables[i].triplet.getCenter(params);
+                cv::Point p1 = tables[i].triplet.getP1(params);
+                cv::Point p2 = tables[i].triplet.getP2(params);
 
                 // Check if we're not out of bounds
                 assert(c.x >= 0 && c.x < t.srcDepth.cols);
@@ -197,20 +144,34 @@ void Hasher::initializeBinRanges(const std::vector<Group> &groups, std::vector<H
 
                 // Relative depths
                 cv::Vec2i d = relativeDepths(t.srcDepth, c, p1, p2);
-
-                // Offset depths from <-65535, +65535> to <0, 131070> array histogram counter
-                #pragma omp atomic
-                histogramValues[d[0] + IMG_16BIT_MAX] += 1;
-                #pragma omp atomic
-                histogramValues[d[1] + IMG_16BIT_MAX] += 1;
-                #pragma omp atomic
-                histogramSum += 2; // Total number of histogram values
+                rDepths.push_back(d[0]);
+                rDepths.push_back(d[1]);
             }
         }
-    }
 
-    // Calculate ranges from retrieved histogram
-    computeBinRanges(histogramSum, histogramValues);
+        // Sort depths Calculate bin ranges
+        std::sort(rDepths.begin(), rDepths.end());
+        const size_t rDSize = rDepths.size();
+        const size_t binSize = rDSize / binCount;
+        std::vector<cv::Range> ranges;
+
+        for (uint j = 0; j < binCount; j++) {
+            int min = rDepths[j * binSize];
+            int max = rDepths[(j + 1) * binSize];
+
+            if (j == 0) {
+                min = -IMG_16BIT_MAX;
+            } else if (j + 1 == binCount) {
+                max = IMG_16BIT_MAX;
+            }
+
+            ranges.push_back(cv::Range(min, max));
+        }
+
+        // Set table bin ranges
+        assert(ranges.size() == binCount);
+        tables[i].binRanges = ranges;
+    }
 }
 
 void Hasher::initialize(const std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info) {
@@ -290,8 +251,8 @@ void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &tables, c
 
                 // Generate hash key
                 HashKey key(
-                    quantizeDepth(d[0]),
-                    quantizeDepth(d[1]),
+                    quantizeDepth(d[0], tables[i].binRanges),
+                    quantizeDepth(d[1], tables[i].binRanges),
                     quantizeSurfaceNormal(surfaceNormal(t.srcDepth, c)),
                     quantizeSurfaceNormal(surfaceNormal(t.srcDepth, p1)),
                     quantizeSurfaceNormal(surfaceNormal(t.srcDepth, p2))
@@ -333,8 +294,8 @@ void Hasher::verifyCandidates(const cv::Mat &sceneDepth, std::vector<HashTable> 
 
             // Generate hash key
             HashKey key(
-                quantizeDepth(d[0]),
-                quantizeDepth(d[1]),
+                quantizeDepth(d[0], table.binRanges),
+                quantizeDepth(d[1], table.binRanges),
                 quantizeSurfaceNormal(surfaceNormal(sceneDepth, c)),
                 quantizeSurfaceNormal(surfaceNormal(sceneDepth, p1)),
                 quantizeSurfaceNormal(surfaceNormal(sceneDepth, p2))
@@ -412,10 +373,6 @@ uint Hasher::getTablesCount() const {
     return tablesCount;
 }
 
-const std::vector<cv::Range> &Hasher::getBinRanges() const {
-    return binRanges;
-}
-
 uint Hasher::getBinCount() const {
     return binCount;
 }
@@ -440,11 +397,6 @@ void Hasher::setGrid(cv::Size grid) {
 void Hasher::setTablesCount(uint tablesCount) {
     assert(tablesCount > 0);
     this->tablesCount = tablesCount;
-}
-
-void Hasher::setBinRanges(const std::vector<cv::Range> &binRanges) {
-    assert(binRanges.size() == binCount);
-    this->binRanges = binRanges;
 }
 
 void Hasher::setBinCount(uint binCount) {

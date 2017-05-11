@@ -87,6 +87,10 @@ void Classifier::trainTemplates() {
     Timer t;
     matcher.train(groups);
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
+
+    for (auto &table : tables) {
+        std::cout << table << std::endl;
+    }
 }
 
 void Classifier::loadScene() {

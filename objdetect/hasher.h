@@ -20,17 +20,14 @@ private:
     uint tablesCount;
     uint binCount;
     uint maxDistance;
-    std::vector<cv::Range> binRanges;
 
-    uchar quantizeDepth(float depth);
+    uchar quantizeDepth(float depth, const std::vector<cv::Range> &ranges);
     void generateTriplets(std::vector<HashTable> &tables);
-    void computeBinRanges(unsigned long sum, unsigned long *values);
     void initializeBinRanges(const std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info);
     void initialize(const std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info);
 public:
     // Statics
     static const int IMG_16BIT_MAX;
-    static const int IMG_16BIT_RANGE;
 
     // Static methods
     static uchar quantizeSurfaceNormal(cv::Vec3f normal);
@@ -51,7 +48,6 @@ public:
     uint getBinCount() const;
     int getMinVotes() const;
     uint getMaxDistance() const;
-    const std::vector<cv::Range> &getBinRanges() const;
 
     // Setters
     void setGrid(cv::Size grid);
@@ -59,7 +55,6 @@ public:
     void setBinCount(uint binCount);
     void setMinVotes(int minVotes);
     void setMaxDistance(uint maxDistance);
-    void setBinRanges(const std::vector<cv::Range> &binRanges);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_HASHING_H
