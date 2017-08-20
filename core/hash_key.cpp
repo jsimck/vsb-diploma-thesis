@@ -1,5 +1,4 @@
 #include "hash_key.h"
-#include <boost/functional/hash.hpp>
 
 bool HashKey::operator==(const HashKey &rhs) const {
     return d1 == rhs.d1 &&
