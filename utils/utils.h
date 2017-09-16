@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <opencv2/core/types.hpp>
 
 #define SQR(x) ((x) * (x))
 

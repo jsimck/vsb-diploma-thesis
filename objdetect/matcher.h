@@ -27,6 +27,7 @@ private:
     uchar t2Canny;
     uchar tSobel;
     uchar tGray;
+    double tMinDistance;
 
     // Extent of local neighbourhood
     cv::Range neighbourhood;
@@ -67,6 +68,7 @@ public:
     uchar getTGray() const;
     float getTMatch() const;
     uchar getTColorTest() const;
+    double getTMinDistance() const;
     const cv::Range &getNeighbourhood() const;
 
     float getTOverlap() const;
@@ -81,6 +83,7 @@ public:
     void setTMatch(float tMatch);
     void setTColorTest(uchar tColorTest);
     void setNeighbourhood(cv::Range neighbourhood);
+    void setTMinDistance(double tMinDistance);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_MATCHER_H

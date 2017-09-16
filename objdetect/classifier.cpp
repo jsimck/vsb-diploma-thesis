@@ -31,12 +31,13 @@ Classifier::Classifier(std::string basePath, std::vector<std::string> folders, s
     matcher.setTMatch(0.6f);
     matcher.setTOverlap(0.1f);
     matcher.setNeighbourhood(cv::Range(-2, 2)); // 5x5 -> [-2, -1, 0, 1, 2]
-    // Training constants
     matcher.setTColorTest(3);
+    // Training constants
     matcher.setT1Canny(100);
     matcher.setT2Canny(200);
-    matcher.setTSobel(50);
+    matcher.setTSobel(20);
     matcher.setTGray(50);
+    matcher.setTMinDistance(20);
 }
 
 void Classifier::parseTemplates() {
