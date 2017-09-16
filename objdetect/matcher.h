@@ -6,6 +6,7 @@
 #include "../core/window.h"
 #include "../core/match.h"
 #include "../core/group.h"
+#include "../core/value_point.h"
 
 /**
  * class Hasher
@@ -22,13 +23,6 @@ private:
     float tOverlap;
     uchar tColorTest;
 
-    // Train thresholds
-    uchar t1Canny;
-    uchar t2Canny;
-    uchar tSobel;
-    uchar tGray;
-    double tMinDistance;
-
     // Extent of local neighbourhood
     cv::Range neighbourhood;
 
@@ -38,6 +32,7 @@ private:
     void generateFeaturePoints(std::vector<Group> &groups);
     uchar quantizeOrientationGradient(float deg);
     void nonMaximaSuppression(std::vector<Match> &matches);
+    void cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, double tMinDistance, uint pointsCount, std::vector<cv::Point> &out);
 
     // Tests
     inline bool testObjectSize(float scale); // Test I
@@ -51,10 +46,8 @@ public:
     static float orientationGradient(const cv::Mat &src, cv::Point &p);
 
     // Constructor
-    Matcher(uint pointsCount = 100, float tMatch = 0.6f, float tOverlap = 0.1f, uchar tColorTest = 5, uchar t1Canny = 100, uchar t2Canny = 200,
-            uchar tSobel = 50, uchar tGray = 50, cv::Range neighbourhood = cv::Range(5, 5))
-        : pointsCount(pointsCount), tMatch(tMatch), tOverlap(tOverlap), tColorTest(tColorTest), t1Canny(t1Canny), t2Canny(t2Canny),
-          tSobel(tSobel), tGray(tGray), neighbourhood(neighbourhood) {}
+    Matcher(uint pointsCount = 100, float tMatch = 0.6f, float tOverlap = 0.1f, uchar tColorTest = 5, cv::Range neighbourhood = cv::Range(5, 5))
+        : pointsCount(pointsCount), tMatch(tMatch), tOverlap(tOverlap), tColorTest(tColorTest), neighbourhood(neighbourhood) {}
 
     // Methods
     void match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv::Mat &sceneDepth, std::vector<Window> &windows, std::vector<Match> &matches);
@@ -62,13 +55,8 @@ public:
 
     // Getters
     uint getPointsCount() const;
-    uchar getT1Canny() const;
-    uchar getT2Canny() const;
-    uchar getTSobel() const;
-    uchar getTGray() const;
     float getTMatch() const;
     uchar getTColorTest() const;
-    double getTMinDistance() const;
     const cv::Range &getNeighbourhood() const;
 
     float getTOverlap() const;
@@ -76,14 +64,9 @@ public:
 
     // Setters
     void setPointsCount(uint count);
-    void setT1Canny(uchar t1Canny);
-    void setT2Canny(uchar t2Canny);
-    void setTSobel(uchar tSobel);
-    void setTGray(uchar tGray);
     void setTMatch(float tMatch);
     void setTColorTest(uchar tColorTest);
     void setNeighbourhood(cv::Range neighbourhood);
-    void setTMinDistance(double tMinDistance);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_MATCHER_H

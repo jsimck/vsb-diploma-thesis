@@ -3,10 +3,8 @@
 #include "matcher.h"
 #include "../core/triplet.h"
 #include "hasher.h"
-#include "../core/template.h"
-#include "../utils/utils.h"
 #include "../utils/timer.h"
-#include "../core/value_point.h"
+#include "objectness.h"
 
 float Matcher::orientationGradient(const cv::Mat &src, cv::Point &p) {
     assert(!src.empty());
@@ -64,171 +62,94 @@ cv::Vec3b Matcher::normalizeHSV(const cv::Vec3b &hsv) {
     return hsv;
 }
 
+void Matcher::cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, double tMinDistance, uint pointsCount, std::vector<cv::Point> &out) {
+    double minDst = tMinDistance;
+    const size_t pointsSize = points.size();
+
+    while (out.size() < pointsCount) {
+        out.clear();
+        minDst -= 0.1;
+
+        for (size_t k = 0; k < pointsSize; ++k) {
+            bool skip = false;
+            const size_t edgePointsSize = out.size();
+
+            for (size_t j = 0; j < edgePointsSize; ++j) {
+                if (cv::norm(points[k].p - out[j]) < minDst) {
+                    skip = true;
+                    break;
+                }
+            }
+
+            if (skip) {
+                continue;
+            }
+
+            out.push_back(points[k].p);
+        }
+    }
+
+    // Resize result to actual required size
+    out.resize(pointsCount);
+}
+
 // TODO - better generate feature point positions
 // in [19] S. Hinterstoisser, V. Lepetit, S. Ilic, S. Holzer, G. Bradski, K. Konolige,and N. Navab, "Model based training, detection and
 // pose estimation of texture-less 3D objects in heavily cluttered scenes,” in ACCV, 2012. (chapter 3.1.2)
 void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
-    auto engine = std::mt19937(1);
-
     for (auto &group : groups) {
         const size_t iSize = group.templates.size();
 
         for (size_t i = 0; i < iSize; i++) {
             // Get template by reference for better access
             Template &t = group.templates[i];
-            std::vector<ValuePoint<uchar>> sobelPoints;
-            std::vector<cv::Point> cannyPoints;
-            cv::Mat visualizationMat2;
-            std::vector<cv::Point> stablePoints;
-            cv::Mat canny, sobelX, sobelY, sobel, src_8uc1;
+            std::vector<ValuePoint<float>> edgePoints;
+            std::vector<ValuePoint<float>> stablePoints;
+            cv::Mat sobel, visualization;
 
-            // Convert to uchar and blur
-            cv::convertScaleAbs(t.srcGray, src_8uc1, 255);
-            cv::blur(src_8uc1, src_8uc1, cv::Size(3, 3));
-
-            // Apply sobel to get mask for stable areas
-            cv::Sobel(src_8uc1, sobelX, CV_8U, 1, 0, 3);
-            cv::Sobel(src_8uc1, sobelY, CV_8U, 0, 1, 3);
-            cv::addWeighted(sobelX, 0.5, sobelY, 0.5, 0, sobel);
+            // Apply sobel to get mask for edge areas
+            Objectness::filterSobel(t.srcGray, sobel);
 
             for (int y = 0; y < sobel.rows; y++) {
                 for (int x = 0; x < sobel.cols; x++) {
-                    uchar value = sobel.at<uchar>(y, x);
+                    float sobelValue = sobel.at<float>(y, x);
+                    float stableValue = t.srcGray.at<float>(y, x);
 
-                    if (value > tSobel) {
+                    if (sobelValue > 0.2f) {
                         // Save point and offset to object BB
-                        ValuePoint<uchar> sPoint(cv::Point(x + t.objBB.tl().x, y + t.objBB.tl().y), value);
-                        sobelPoints.push_back(sPoint);
+                        ValuePoint<float> sPoint(cv::Point(x + t.objBB.tl().x, y + t.objBB.tl().y), sobelValue);
+                        edgePoints.push_back(sPoint);
+                    } else if (sobelValue < 0.6f && stableValue > 0.15f) {
+                        // Save point and offset to object BB
+                        ValuePoint<float> sPoint(cv::Point(x + t.objBB.tl().x, y + t.objBB.tl().y), stableValue);
+                        stablePoints.push_back(sPoint);
                     }
                 }
             }
 
-            // Sort point values descending
-            std::sort(sobelPoints.rbegin(), sobelPoints.rend());
+            // Check if there's enough points to extract
+            assert(edgePoints.size() > pointsCount);
+            assert(stablePoints.size() > pointsCount);
 
-            // Pick most visible points based on the distance
-            double minDst = tMinDistance;
-            const size_t sobelPointsSize = sobelPoints.size();
+            // Sort point values descending & cherry pick feature points
+            std::sort(edgePoints.rbegin(), edgePoints.rend());
+            cherryPickFeaturePoints(edgePoints, edgePoints.size() / pointsCount, pointsCount, t.edgePoints);
+            cherryPickFeaturePoints(stablePoints, stablePoints.size() / pointsCount, pointsCount, t.stablePoints);
 
-            while (t.edgePoints.size() < pointsCount) {
-                t.edgePoints.clear();
-                minDst -= 0.05;
+            assert(edgePoints.size() > pointsCount);
+            assert(stablePoints.size() > pointsCount);
 
-                for (size_t k = 0; k < sobelPointsSize; ++k) {
-                    bool skip = false;
-                    ValuePoint<uchar> p = sobelPoints[k];
-                    const size_t edgePointsSize = t.edgePoints.size();
-
-                    for (size_t j = 0; j < edgePointsSize; ++j) {
-                        if (cv::norm(p.p - t.edgePoints[j]) < minDst) {
-                            skip = true;
-                            break;
-                        }
-                    }
-
-                    if (skip) continue;
-                    t.edgePoints.push_back(p.p);
-                }
-            }
-
-            // Resize elements to be exactly 100
-            t.edgePoints.resize(pointsCount);
-
-#ifndef NDEBUG
-            // Visualize extracted features
-            cv::cvtColor(t.srcGray, visualizationMat2, CV_GRAY2BGR);
-
-            for (int i = 0; i < t.edgePoints.size(); ++i) {
-                cv::circle(visualizationMat2, t.edgePoints[i] - t.objBB.tl(), 1, cv::Scalar(0, 0, 255), -1);
-            }
-
-            cv::imshow("Matcher::sobel", sobel);
-            cv::imshow("Matcher::train Feature points", visualizationMat2);
-            cv::waitKey(10);
-#endif
-
-//
-//
-//
-//            // Convert to uchar and apply canny to detect edges
-//            cv::Canny(src_8uc1, canny, t1Canny, t2Canny, 3, false);
-//            // Get all stable and edge points based on thresholds
-//            for (int y = 0; y < canny.rows; y++) {
-//                for (int x = 0; x < canny.cols; x++) {
-//                    if (canny.at<uchar>(y, x) > 0) {
-//                        cannyPoints.push_back(cv::Point(x, y));
-//                    }
-//
-//                    if (src_8uc1.at<uchar>(y, x) > tGray && sobel.at<uchar>(y, x) <= tSobel) {
-//                        stablePoints.push_back(cv::Point(x, y));
-//                    }
-//                }
-//            }
-//
-//            // There should be more than MIN points for each template
-//            assert(stablePoints.size() > pointsCount);
-//            assert(cannyPoints.size() > pointsCount);
-//
-//            // Randomize points to pick
-//            std::shuffle(stablePoints.begin(), stablePoints.end(), engine);
-//            std::shuffle(cannyPoints.begin(), cannyPoints.end(), engine);
-//
-//            for (uint j = 0; j < pointsCount; j++) {
-//                int rndI = 0;
-//                bool generate = true;
-//
-//                // Generate points within the boundaries of obj bounding box
-//                while (generate) {
-//                    rndI = (int) Triplet::random(0, stablePoints.size() - 1);
-//
-//                    // Check if points is within the object bounding box
-//                    if ((stablePoints[rndI].x >= t.objBB.tl().x)
-//                        && (stablePoints[rndI].y >= t.objBB.tl().y)
-//                        && (stablePoints[rndI].x <= t.objBB.br().x)
-//                        && (stablePoints[rndI].y <= t.objBB.br().y)) {
-//
-//                        // Save generated point in coordinates relative to object bounding box
-//                        t.stablePoints.push_back(cv::Point(stablePoints[rndI].x - t.objBB.tl().x, stablePoints[rndI].y - t.objBB.tl().y));
-//                        generate = false;
-//                    }
-//                }
-//
-//                // Generate point again, now for edge points
-//                generate = true;
-//                while (generate) {
-//                    rndI = (int) Triplet::random(0, cannyPoints.size() - 1);
-//
-//                    // Check if points is within the object bounding box
-//                    if ((cannyPoints[rndI].x >= t.objBB.tl().x)
-//                        && (cannyPoints[rndI].y >= t.objBB.tl().y)
-//                        && (cannyPoints[rndI].x <= t.objBB.br().x)
-//                        && (cannyPoints[rndI].y <= t.objBB.br().y)) {
-//
-//                        // Save generated point in coordinates relative to object bounding box
-//                        t.edgePoints.push_back(cv::Point(cannyPoints[rndI].x - t.objBB.tl().x, cannyPoints[rndI].y - t.objBB.tl().y));
-//                        generate = false;
-//                    }
-//                }
-//            }
-//
-//            assert(t.stablePoints.size() == pointsCount);
-//            assert(t.edgePoints.size() == pointsCount);
-//
 //#ifndef NDEBUG
 //            // Visualize extracted features
-//            cv::Mat visualizationMat;
-//            cv::cvtColor(t.srcGray, visualizationMat, CV_GRAY2BGR);
+//            cv::cvtColor(t.srcGray, visualization, CV_GRAY2BGR);
 //
-//            for (int i = 0; i < pointsCount; ++i) {
-//                cv::Point ePOffset(t.edgePoints[i].x + t.objBB.tl().x, t.edgePoints[i].y + t.objBB.tl().y);
-//                cv::Point sPOffset(t.stablePoints[i].x + t.objBB.tl().x, t.stablePoints[i].y + t.objBB.tl().y);
-//                cv::circle(visualizationMat, ePOffset, 1, cv::Scalar(0, 0, 255), -1);
-//                cv::circle(visualizationMat, sPOffset, 1, cv::Scalar(0, 255, 0), -1);
+//            for (uint l = 0; l < pointsCount; ++l) {
+//                cv::circle(visualization, t.edgePoints[l] - t.objBB.tl(), 1, cv::Scalar(0, 0, 255), -1);
+//                cv::circle(visualization, t.stablePoints[l] - t.objBB.tl(), 1, cv::Scalar(255, 0, 0), -1);
 //            }
 //
-//            cv::imshow("Matcher::train Sobel", sobel);
-//            cv::imshow("Matcher::train Canny", canny);
-//            cv::imshow("Matcher::train Feature points", visualizationMat);
+//            cv::imshow("Matcher::sobel", sobel);
+//            cv::imshow("Matcher::train Feature points", visualization);
 //            cv::waitKey(0);
 //#endif
         }
@@ -515,22 +436,6 @@ uint Matcher::getPointsCount() const {
     return pointsCount;
 }
 
-uchar Matcher::getT1Canny() const {
-    return t1Canny;
-}
-
-uchar Matcher::getT2Canny() const {
-    return t2Canny;
-}
-
-uchar Matcher::getTSobel() const {
-    return tSobel;
-}
-
-uchar Matcher::getTGray() const {
-    return tGray;
-}
-
 float Matcher::getTMatch() const {
     return tMatch;
 }
@@ -547,37 +452,9 @@ float Matcher::getTOverlap() const {
     return tOverlap;
 }
 
-double Matcher::getTMinDistance() const {
-    return tMinDistance;
-}
-
 void Matcher::setPointsCount(uint count) {
     assert(count > 0);
     this->pointsCount = count;
-}
-
-void Matcher::setT1Canny(uchar t1) {
-    assert(pointsCount > 0);
-    assert(pointsCount < 256);
-    this->t1Canny = t1;
-}
-
-void Matcher::setT2Canny(uchar t2) {
-    assert(pointsCount > 0);
-    assert(pointsCount < 256);
-    this->t2Canny = t2;
-}
-
-void Matcher::setTSobel(uchar t) {
-    assert(pointsCount > 0);
-    assert(pointsCount < 256);
-    this->tSobel = t;
-}
-
-void Matcher::setTGray(uchar t) {
-    assert(pointsCount > 0);
-    assert(pointsCount < 256);
-    this->tGray = t;
 }
 
 void Matcher::setTMatch(float t) {
@@ -599,9 +476,4 @@ void Matcher::setTColorTest(uchar tColorTest) {
 void Matcher::setTOverlap(float tOverlap) {
     assert(tOverlap >= 0 && tOverlap <= 1.0f);
     Matcher::tOverlap = tOverlap;
-}
-
-void Matcher::setTMinDistance(double tMinDistance) {
-    assert(tMinDistance > 0);
-    Matcher::tMinDistance = tMinDistance;
 }

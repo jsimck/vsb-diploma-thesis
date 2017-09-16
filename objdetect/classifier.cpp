@@ -32,12 +32,6 @@ Classifier::Classifier(std::string basePath, std::vector<std::string> folders, s
     matcher.setTOverlap(0.1f);
     matcher.setNeighbourhood(cv::Range(-2, 2)); // 5x5 -> [-2, -1, 0, 1, 2]
     matcher.setTColorTest(3);
-    // Training constants
-    matcher.setT1Canny(100);
-    matcher.setT2Canny(200);
-    matcher.setTSobel(20);
-    matcher.setTGray(50);
-    matcher.setTMinDistance(20);
 }
 
 void Classifier::parseTemplates() {
@@ -89,9 +83,11 @@ void Classifier::trainTemplates() {
     matcher.train(groups);
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
-    for (auto &table : tables) {
-        std::cout << table << std::endl;
-    }
+#ifdef NDEBUG
+//    for (auto &table : tables) {
+//        std::cout << table << std::endl;
+//    }
+#endif
 }
 
 void Classifier::loadScene() {
