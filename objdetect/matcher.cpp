@@ -68,7 +68,7 @@ void Matcher::cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, do
 
     while (out.size() < pointsCount) {
         out.clear();
-        minDst -= 0.1;
+        minDst -= 0.5;
 
         for (size_t k = 0; k < pointsSize; ++k) {
             bool skip = false;
@@ -93,9 +93,6 @@ void Matcher::cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, do
     out.resize(pointsCount);
 }
 
-// TODO - better generate feature point positions
-// in [19] S. Hinterstoisser, V. Lepetit, S. Ilic, S. Holzer, G. Bradski, K. Konolige,and N. Navab, "Model based training, detection and
-// pose estimation of texture-less 3D objects in heavily cluttered scenes,” in ACCV, 2012. (chapter 3.1.2)
 void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
     for (auto &group : groups) {
         const size_t iSize = group.templates.size();
@@ -139,19 +136,19 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
             assert(edgePoints.size() > pointsCount);
             assert(stablePoints.size() > pointsCount);
 
-//#ifndef NDEBUG
-//            // Visualize extracted features
-//            cv::cvtColor(t.srcGray, visualization, CV_GRAY2BGR);
-//
-//            for (uint l = 0; l < pointsCount; ++l) {
-//                cv::circle(visualization, t.edgePoints[l] - t.objBB.tl(), 1, cv::Scalar(0, 0, 255), -1);
-//                cv::circle(visualization, t.stablePoints[l] - t.objBB.tl(), 1, cv::Scalar(255, 0, 0), -1);
-//            }
-//
-//            cv::imshow("Matcher::sobel", sobel);
-//            cv::imshow("Matcher::train Feature points", visualization);
-//            cv::waitKey(0);
-//#endif
+#ifndef NDEBUG
+            // Visualize extracted features
+            cv::cvtColor(t.srcGray, visualization, CV_GRAY2BGR);
+
+            for (uint l = 0; l < pointsCount; ++l) {
+                cv::circle(visualization, t.edgePoints[l] - t.objBB.tl(), 1, cv::Scalar(0, 0, 255), -1);
+                cv::circle(visualization, t.stablePoints[l] - t.objBB.tl(), 1, cv::Scalar(255, 0, 0), -1);
+            }
+
+            cv::imshow("Matcher::sobel", sobel);
+            cv::imshow("Matcher::train Feature points", visualization);
+            cv::waitKey(0);
+#endif
         }
     }
 }
