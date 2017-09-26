@@ -65,14 +65,14 @@ void Template::visualize(cv::Mat &result) {
     // Draw edge points
     if (!edgePoints.empty()) {
         for (auto &point : edgePoints) {
-            cv::circle(result, point, 1, cv::Scalar(0, 0, 255), -1);
+            cv::circle(result, point + objBB.tl(), 1, cv::Scalar(0, 0, 255), -1);
         }
     }
 
     // Draw stable points
     if (!stablePoints.empty()) {
         for (auto &point : stablePoints) {
-            cv::circle(result, point, 1, cv::Scalar(255, 0, 0), -1);
+            cv::circle(result, point + objBB.tl(), 1, cv::Scalar(255, 0, 0), -1);
         }
     }
 

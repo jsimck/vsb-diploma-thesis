@@ -115,11 +115,11 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
 
                     if (sobelValue > 0.2f) {
                         // Save point and offset to object BB
-                        ValuePoint<float> sPoint(cv::Point(x, y), sobelValue);
+                        ValuePoint<float> sPoint(cv::Point(x, y) - t.objBB.tl(), sobelValue);
                         edgePoints.push_back(sPoint);
                     } else if (sobelValue < 0.6f && stableValue > 0.15f) {
                         // Save point and offset to object BB
-                        ValuePoint<float> sPoint(cv::Point(x, y), stableValue);
+                        ValuePoint<float> sPoint(cv::Point(x, y) - t.objBB.tl(), stableValue);
                         stablePoints.push_back(sPoint);
                     }
                 }
