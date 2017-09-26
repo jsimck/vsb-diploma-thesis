@@ -49,11 +49,56 @@ std::ostream &operator<<(std::ostream &os, const Template &t) {
        << "camTm2c: " << t.camTm2c  << std::endl
        << "elev: " << t.elev  << std::endl
        << "mode: " << t.mode << std::endl
-       << "minVotes: " << t.votes << std::endl
+       << "votes: " << t.votes << std::endl
        << "gradients size: " << t.features.gradients.size() << std::endl
        << "normals size: " << t.features.normals.size() << std::endl
        << "depths size: " << t.features.depths.size() << std::endl
        << "colors size: " << t.features.colors.size() << std::endl;
 
     return os;
+}
+
+void Template::visualize(cv::Mat &result) {
+    result = srcHSV.clone();
+    cv::cvtColor(srcHSV, result, CV_HSV2BGR);
+
+    // Draw edge points
+    if (!edgePoints.empty()) {
+        for (auto &point : edgePoints) {
+            cv::circle(result, point, 1, cv::Scalar(0, 0, 255), -1);
+        }
+    }
+
+    // Draw stable points
+    if (!stablePoints.empty()) {
+        for (auto &point : stablePoints) {
+            cv::circle(result, point, 1, cv::Scalar(255, 0, 0), -1);
+        }
+    }
+
+    // Draw bounding box
+    cv::rectangle(result, objBB.tl(), objBB.br(), cv::Scalar(255 ,255, 255), 1);
+
+    // Put text data
+    std::ostringstream oss;
+    oss << "votes: " << votes;
+    cv::putText(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 10), CV_FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255 ,255, 255), 1, CV_AA);
+    oss.str("");
+    oss << "mode: " << mode;
+    cv::putText(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 28), CV_FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255 ,255, 255), 1, CV_AA);
+    oss.str("");
+    oss << "elev: " << elev;
+    cv::putText(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 46), CV_FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255 ,255, 255), 1, CV_AA);
+    oss.str("");
+    oss << "gradients: " << features.gradients.size();
+    cv::putText(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 64), CV_FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255 ,255, 255), 1, CV_AA);
+    oss.str("");
+    oss << "normals: " << features.normals.size();
+    cv::putText(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 82), CV_FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255 ,255, 255), 1, CV_AA);
+    oss.str("");
+    oss << "depths: " << features.depths.size();
+    cv::putText(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 100), CV_FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255 ,255, 255), 1, CV_AA);
+    oss.str("");
+    oss << "colors: " << features.colors.size();
+    cv::putText(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 118), CV_FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255 ,255, 255), 1, CV_AA);
 }

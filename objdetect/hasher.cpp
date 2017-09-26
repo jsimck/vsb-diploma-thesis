@@ -307,58 +307,58 @@ Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &scene, std::vector<HashTa
     utils::removeIndex<Window>(windows, emptyIndexes);
     std::cout << "  |_ Number of windows pass to next stage: " << windows.size() << std::endl;
 
-#ifndef NDEBUG
-    {
-        const size_t iSize = windows.size();
-        for (size_t i = 0; i < iSize; ++i) {
-            // Visualize triplets
-            cv::Mat mTriplet = scene.clone();
-            cv::Mat sceneCandidates = scene.clone();
-
-            // Show windows grid
-            for (auto &window : windows) {
-                cv::rectangle(mTriplet, window.tl(), window.br(), cv::Scalar(80, 80, 80));
-            }
-
-            // Render candidates to other window
-            for (auto *tpl : windows[i].candidates) {
-                cv::Mat tplBGR, tplRGBRoi, roiAfer;
-                cv::cvtColor(tpl->srcGray, tplBGR, CV_GRAY2BGR);
-//                tplBGR.copyTo(sceneCandidates(cv::Rect(windows[i].tl().x, windows[i].tl().y, tpl->objBB.width, tpl->objBB.height)));
-            }
-
-            // Visualize triplets
-            cv::rectangle(mTriplet, windows[i].tl(), cv::Point(windows[i].tl().x + info.maxTemplate.width, windows[i].tl().y + info.maxTemplate.height), cv::Scalar(0, 255, 0));
-            cv::rectangle(mTriplet, windows[i].tl(), windows[i].br(), cv::Scalar(255, 0, 0));
-            TripletParams params(info.maxTemplate.width, info.maxTemplate.height, grid, windows[i].tl().x, windows[i].tl().y);
-
-            for (int x = 0; x < 12; x++) {
-                for (int y = 0; y < 12; y += 3) {
-                    Triplet tripletVis(cv::Point(x, y), cv::Point(x, y + 1), cv::Point(x, y + 2));
-                    cv::circle(mTriplet, tripletVis.getPoint(0, params), 1, cv::Scalar(0, 150, 0), -1);
-                    cv::circle(mTriplet, tripletVis.getPoint(1, params), 1, cv::Scalar(0, 150, 0), -1);
-                    cv::circle(mTriplet, tripletVis.getPoint(2, params), 1, cv::Scalar(0, 150, 0), -1);
-                }
-
-                for (size_t k = 0; k < tablesCount; k++) {
-                    cv::Point c = tables[k].triplet.getCenter(params);
-                    cv::Point p1 = tables[k].triplet.getP1(params);
-                    cv::Point p2 = tables[k].triplet.getP2(params);
-
-                    cv::circle(mTriplet, c, 2, cv::Scalar(0, 0, 255), -1);
-                    cv::circle(mTriplet, p1, 2, cv::Scalar(0, 0, 255), -1);
-                    cv::circle(mTriplet, p2, 2, cv::Scalar(0, 0, 255), -1);
-                    cv::line(mTriplet, c, p1, cv::Scalar(0, 0, 255));
-                    cv::line(mTriplet, c, p2, cv::Scalar(0, 0, 255));
-                }
-            }
-
-            cv::imshow("Hasher::verifyCandidates", mTriplet);
-            cv::imshow("Hasher::verifyCandidates - renderedCandidates", sceneCandidates);
-            cv::waitKey(1);
-        };
-    };
-#endif
+//#ifndef NDEBUG
+//    {
+//        const size_t iSize = windows.size();
+//        for (size_t i = 0; i < iSize; ++i) {
+//            // Visualize triplets
+//            cv::Mat mTriplet = scene.clone();
+//            cv::Mat sceneCandidates = scene.clone();
+//
+//            // Show windows grid
+//            for (auto &window : windows) {
+//                cv::rectangle(mTriplet, window.tl(), window.br(), cv::Scalar(80, 80, 80));
+//            }
+//
+//            // Render candidates to other window
+//            for (auto *tpl : windows[i].candidates) {
+//                cv::Mat tplBGR, tplRGBRoi, roiAfer;
+//                cv::cvtColor(tpl->srcGray, tplBGR, CV_GRAY2BGR);
+////                tplBGR.copyTo(sceneCandidates(cv::Rect(windows[i].tl().x, windows[i].tl().y, tpl->objBB.width, tpl->objBB.height)));
+//            }
+//
+//            // Visualize triplets
+//            cv::rectangle(mTriplet, windows[i].tl(), cv::Point(windows[i].tl().x + info.maxTemplate.width, windows[i].tl().y + info.maxTemplate.height), cv::Scalar(0, 255, 0));
+//            cv::rectangle(mTriplet, windows[i].tl(), windows[i].br(), cv::Scalar(255, 0, 0));
+//            TripletParams params(info.maxTemplate.width, info.maxTemplate.height, grid, windows[i].tl().x, windows[i].tl().y);
+//
+//            for (int x = 0; x < 12; x++) {
+//                for (int y = 0; y < 12; y += 3) {
+//                    Triplet tripletVis(cv::Point(x, y), cv::Point(x, y + 1), cv::Point(x, y + 2));
+//                    cv::circle(mTriplet, tripletVis.getPoint(0, params), 1, cv::Scalar(0, 150, 0), -1);
+//                    cv::circle(mTriplet, tripletVis.getPoint(1, params), 1, cv::Scalar(0, 150, 0), -1);
+//                    cv::circle(mTriplet, tripletVis.getPoint(2, params), 1, cv::Scalar(0, 150, 0), -1);
+//                }
+//
+//                for (size_t k = 0; k < tablesCount; k++) {
+//                    cv::Point c = tables[k].triplet.getCenter(params);
+//                    cv::Point p1 = tables[k].triplet.getP1(params);
+//                    cv::Point p2 = tables[k].triplet.getP2(params);
+//
+//                    cv::circle(mTriplet, c, 2, cv::Scalar(0, 0, 255), -1);
+//                    cv::circle(mTriplet, p1, 2, cv::Scalar(0, 0, 255), -1);
+//                    cv::circle(mTriplet, p2, 2, cv::Scalar(0, 0, 255), -1);
+//                    cv::line(mTriplet, c, p1, cv::Scalar(0, 0, 255));
+//                    cv::line(mTriplet, c, p2, cv::Scalar(0, 0, 255));
+//                }
+//            }
+//
+//            cv::imshow("Hasher::verifyCandidates", mTriplet);
+//            cv::imshow("Hasher::verifyCandidates - renderedCandidates", sceneCandidates);
+//            cv::waitKey(1);
+//        };
+//    };
+//#endif
 }
 
 const cv::Size Hasher::getGrid() {

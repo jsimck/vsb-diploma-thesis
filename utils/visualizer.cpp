@@ -26,8 +26,8 @@ void Visualizer::visualizeSingleTemplateFeaturePoints(Template &tpl, const char 
     cv::cvtColor(tpl.srcGray, points, CV_GRAY2BGR);
 
     for (uint i = 0; i < tpl.edgePoints.size(); ++i) {
-        cv::circle(points, tpl.edgePoints[i] - tpl.objBB.tl(), 1, cv::Scalar(0, 0, 255), -1);
-        cv::circle(points, tpl.stablePoints[i] - tpl.objBB.tl(), 1, cv::Scalar(255, 0, 0), -1);
+        cv::circle(points, tpl.edgePoints[i], 1, cv::Scalar(0, 0, 255), -1);
+        cv::circle(points, tpl.stablePoints[i], 1, cv::Scalar(255, 0, 0), -1);
     }
 
     std::stringstream ss;

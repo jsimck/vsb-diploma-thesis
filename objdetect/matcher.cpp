@@ -115,11 +115,11 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
 
                     if (sobelValue > 0.2f) {
                         // Save point and offset to object BB
-                        ValuePoint<float> sPoint(cv::Point(x + t.objBB.tl().x, y + t.objBB.tl().y), sobelValue);
+                        ValuePoint<float> sPoint(cv::Point(x, y), sobelValue);
                         edgePoints.push_back(sPoint);
                     } else if (sobelValue < 0.6f && stableValue > 0.15f) {
                         // Save point and offset to object BB
-                        ValuePoint<float> sPoint(cv::Point(x + t.objBB.tl().x, y + t.objBB.tl().y), stableValue);
+                        ValuePoint<float> sPoint(cv::Point(x, y), stableValue);
                         stablePoints.push_back(sPoint);
                     }
                 }
@@ -342,10 +342,17 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
     // Stop template matching time
     Timer tMatching;
 
-    #pragma omp parallel for
+//    #pragma omp parallel for
     for (size_t l = 0; l < lSize; l++) {
         for (auto &candidate : windows[l].candidates) {
             assert(candidate != nullptr);
+
+#ifndef NDEBUG
+            cv::Mat candidateViz;
+            candidate->visualize(candidateViz);
+            cv::imshow("Candidate Viz", candidateViz);
+            cv::waitKey(0);
+#endif
 
             // Scores for each test
             float sII = 0, sIII = 0, sIV = 0, sV = 0;
