@@ -39,8 +39,8 @@ public:
         : minVotes(minVotes), grid(grid), tablesCount(tablesCount), binCount(binCount), maxDistance(maxDistance) {}
 
     // Methods
-    void train(std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info);
-    void verifyCandidates(const cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows, const DataSetInfo &info);
+    void train(std::vector<Group> &groups, std::vector<HashTable> &tables, DataSetInfo &info);
+    void verifyCandidates(cv::Mat &sceneDepth, cv::Mat &scene, std::vector<HashTable> &tables, std::vector<Window> &windows, DataSetInfo &info);
 
     // Getters
     const cv::Size getGrid();

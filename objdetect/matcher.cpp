@@ -5,6 +5,7 @@
 #include "hasher.h"
 #include "../utils/timer.h"
 #include "objectness.h"
+#include "../utils/visualizer.h"
 
 float Matcher::orientationGradient(const cv::Mat &src, cv::Point &p) {
     assert(!src.empty());
@@ -137,17 +138,7 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
             assert(stablePoints.size() > pointsCount);
 
 #ifndef NDEBUG
-            // Visualize extracted features
-            cv::cvtColor(t.srcGray, visualization, CV_GRAY2BGR);
-
-            for (uint l = 0; l < pointsCount; ++l) {
-                cv::circle(visualization, t.edgePoints[l] - t.objBB.tl(), 1, cv::Scalar(0, 0, 255), -1);
-                cv::circle(visualization, t.stablePoints[l] - t.objBB.tl(), 1, cv::Scalar(255, 0, 0), -1);
-            }
-
-            cv::imshow("Matcher::sobel", sobel);
-            cv::imshow("Matcher::train Feature points", visualization);
-            cv::waitKey(0);
+//            Visualizer::visualizeSingleTemplateFeaturePoints(t);
 #endif
         }
     }
@@ -345,7 +336,7 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
     assert(windows.size() > 0);
 
     // Min threshold of matched feature points
-    const int minThreshold = static_cast<int>(pointsCount * tMatch); // 60%
+    const auto minThreshold = static_cast<int>(pointsCount * tMatch); // 60%
     const size_t lSize = windows.size();
 
     // Stop template matching time
@@ -403,7 +394,7 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
             cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
 
             #pragma omp critical
-            matches.push_back(Match(candidate, matchBB, score));
+            matches.emplace_back(Match(candidate, matchBB, score));
 
 #ifndef NDEBUG
 //            std::cout

@@ -1,5 +1,6 @@
 #include "classifier.h"
 #include "../utils/timer.h"
+#include "../utils/visualizer.h"
 
 Classifier::Classifier(std::string basePath, std::vector<std::string> folders, std::string scenePath, std::string sceneName) {
     // Init properties
@@ -136,14 +137,7 @@ void Classifier::detectObjectness() {
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
 #ifndef NDEBUG
-//    // Show results
-//    cv::Mat objectnessLocations = scene.clone();
-//    for (auto &window : windows) {
-//        cv::rectangle(objectnessLocations, window.tl(), window.br(), cv::Scalar(190, 190, 190));
-//    }
-//    cv::rectangle(objectnessLocations, windows[0].tl(), windows[0].br(), cv::Scalar(0, 255, 0));
-//    cv::imshow("Objectness locations detected:", objectnessLocations);
-//    cv::waitKey(0);
+    Visualizer::visualizeWindows(this->scene, windows, "Objectness locations detected");
 #endif
 }
 
@@ -154,19 +148,11 @@ void Classifier::verifyTemplateCandidates() {
     // Verification started
     std::cout << "Verification of template candidates, using trained HashTables started... " << std::endl;
     Timer t;
-    hasher.verifyCandidates(sceneDepth, tables, windows, info);
+    hasher.verifyCandidates(sceneDepth, scene, tables, windows, info);
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
 #ifndef NDEBUG
-//    // Show results
-//    cv::Mat filteredLocations = scene.clone();
-//    for (auto &window : windows) {
-//        if (window.hasCandidates()) {
-//            cv::rectangle(filteredLocations, window.tl(), window.br(), cv::Scalar(190, 190, 190));
-//        }
-//    }
-//    cv::imshow("Filtered locations:", filteredLocations);
-//    cv::waitKey(0);
+    Visualizer::visualizeWindows(this->scene, windows, "Filtered locations detected");
 #endif
 }
 
