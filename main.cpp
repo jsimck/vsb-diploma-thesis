@@ -4,7 +4,7 @@
 
 int main() {
     // Init classifier
-    const std::vector<std::string> tplNames = { "02", "30" };
+    const std::vector<std::string> tplNames = { "02", "25", "29", "30" };
     Classifier classifier("data/", tplNames, "scene_01/", "_0000.png");
 
     // Init indices

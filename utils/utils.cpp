@@ -1,5 +1,6 @@
 #include "utils.h"
-#include <opencv2/core/hal/interface.h>
+#include <opencv/cv.h>
+#include <opencv2/imgproc.hpp>
 
 std::string utils::matType2Str(int type) {
     std::string r;
@@ -22,4 +23,13 @@ std::string utils::matType2Str(int type) {
     r += (chans + '0');
 
     return r;
+}
+
+// http://answers.opencv.org/question/27695/puttext-with-black-background/
+void ::utils::setLabel(cv::Mat &im, const std::string label, const cv::Point &origin, int padding, int fontFace, double scale
+        , cv::Scalar fColor, cv::Scalar bColor, int thickness) {
+    cv::Size text = cv::getTextSize(label, fontFace, scale, thickness, 0);
+    cv::rectangle(im, origin + cv::Point(-padding - 1, padding + 2),
+                  origin + cv::Point(text.width + padding, -text.height - padding - 2), bColor, CV_FILLED);
+    cv::putText(im, label, origin, fontFace, scale, fColor, thickness, CV_AA);
 }

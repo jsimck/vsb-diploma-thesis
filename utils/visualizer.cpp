@@ -1,6 +1,7 @@
 #include <opencv2/opencv.hpp>
 #include "visualizer.h"
 #include "../core/triplet.h"
+#include "utils.h"
 
 void Visualizer::visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, const char *title) {
     cv::Mat locations = scene.clone();
@@ -15,7 +16,7 @@ void Visualizer::visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, 
 
     cv::rectangle(locations, windows[0].tl(), windows[0].br(), cv::Scalar(0, 255, 0));
     cv::rectangle(locations, cv::Point(0, 0), cv::Point(160, 30), cv::Scalar(0, 0, 0), -1);
-    cv::putText(locations, ss.str(), cv::Point(10, 20), CV_FONT_HERSHEY_DUPLEX, 0.5, cv::Scalar(0, 0, 255), 1, CV_AA);
+    cv::putText(locations, ss.str(), cv::Point(10, 20), CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 1, CV_AA);
 
     cv::imshow(title == nullptr ? "Window locations detected:" : title, locations);
     cv::waitKey(0);
@@ -76,5 +77,44 @@ void Visualizer::visualizeTriplets(Template &tpl, HashTable &table, DataSetInfo 
     ss << "Template [" << tpl.id << "] feature triplets";
 
     cv::imshow(title == nullptr ? ss.str() : title, triplets);
+    cv::waitKey(0);
+}
+
+void Visualizer::visualizeMatches(cv::Mat &scene, std::vector<Match> &matches, std::vector<Group> &groups) {
+    cv::Mat viz = scene.clone();
+
+    for (auto &match : matches) {
+        cv::rectangle(viz, cv::Point(match.objBB.x, match.objBB.y), cv::Point(match.objBB.x + match.objBB.width, match.objBB.y + match.objBB.height), cv::Scalar(0, 255, 0));
+
+        std::ostringstream oss;
+        oss << "id: " << match.tpl->id;
+        utils::setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 10));
+        oss.str("");
+        oss << "score: " << match.score;
+        utils::setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 28));
+
+        for (auto &group : groups) {
+            for (auto &tpl : group.templates) {
+                if (tpl.id == match.tpl->id) {
+                    // Crop template src
+                    cv::Mat tplSrc = tpl.srcHSV(tpl.objBB).clone();
+                    cv::cvtColor(tplSrc, tplSrc, CV_HSV2BGR);
+
+                    oss.str("");
+                    oss << "Template id: " << tpl.id;
+                    std::string winName = oss.str();
+
+                    // Show in resizable window
+                    cv::namedWindow(winName, 0);
+                    cv::imshow(winName, tplSrc);
+                }
+            }
+        }
+    }
+
+    // Show in resizable window
+    std::string winName = "Matched results";
+    cv::namedWindow(winName, 0);
+    cv::imshow(winName, viz);
     cv::waitKey(0);
 }

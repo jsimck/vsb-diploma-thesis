@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <opencv2/core/types.hpp>
+#include <opencv/cv.h>
 
 #define SQR(x) ((x) * (x))
 
@@ -51,6 +52,9 @@ namespace utils {
 
         vector.resize(vector.size() - to_remove.size());
     }
+
+    void setLabel(cv::Mat &im, const std::string label, const cv::Point &origin, int padding = 1, int fontFace = CV_FONT_HERSHEY_SIMPLEX, double scale = 0.4
+            , cv::Scalar fColor = cv::Scalar(255, 255, 255), cv::Scalar bColor = cv::Scalar(0, 0, 0), int thickness = 1);
 }
 
 #endif //VSB_SEMESTRAL_PROJECT_UTILS_H

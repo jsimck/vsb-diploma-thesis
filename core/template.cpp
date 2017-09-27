@@ -1,4 +1,5 @@
 #include "template.h"
+#include "../utils/utils.h"
 
 void Template::vote() {
     votes++;
@@ -79,26 +80,26 @@ void Template::visualize(cv::Mat &result) {
     // Draw bounding box
     cv::rectangle(result, objBB.tl(), objBB.br(), cv::Scalar(255 ,255, 255), 1);
 
-    // Put text data
+    // Put text data to template image
     std::ostringstream oss;
     oss << "votes: " << votes;
-    cv::putText(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 10), CV_FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255 ,255, 255), 1, CV_AA);
+    utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 10));
     oss.str("");
     oss << "mode: " << mode;
-    cv::putText(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 28), CV_FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255 ,255, 255), 1, CV_AA);
+    utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 28));
     oss.str("");
     oss << "elev: " << elev;
-    cv::putText(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 46), CV_FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255 ,255, 255), 1, CV_AA);
+    utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 46));
     oss.str("");
     oss << "gradients: " << features.gradients.size();
-    cv::putText(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 64), CV_FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255 ,255, 255), 1, CV_AA);
+    utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 64));
     oss.str("");
     oss << "normals: " << features.normals.size();
-    cv::putText(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 82), CV_FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255 ,255, 255), 1, CV_AA);
+    utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 82));
     oss.str("");
     oss << "depths: " << features.depths.size();
-    cv::putText(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 100), CV_FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255 ,255, 255), 1, CV_AA);
+    utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 100));
     oss.str("");
     oss << "colors: " << features.colors.size();
-    cv::putText(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 118), CV_FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255 ,255, 255), 1, CV_AA);
+    utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 118));
 }

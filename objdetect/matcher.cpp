@@ -98,6 +98,7 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
     for (auto &group : groups) {
         const size_t iSize = group.templates.size();
 
+        #pragma omp parallel for
         for (size_t i = 0; i < iSize; i++) {
             // Get template by reference for better access
             Template &t = group.templates[i];
@@ -117,7 +118,7 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
                         // Save point and offset to object BB
                         ValuePoint<float> sPoint(cv::Point(x, y) - t.objBB.tl(), sobelValue);
                         edgePoints.push_back(sPoint);
-                    } else if (sobelValue < 0.6f && stableValue > 0.15f) {
+                    } else if (stableValue > 0.2f) {
                         // Save point and offset to object BB
                         ValuePoint<float> sPoint(cv::Point(x, y) - t.objBB.tl(), stableValue);
                         stablePoints.push_back(sPoint);
@@ -131,6 +132,7 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
 
             // Sort point values descending & cherry pick feature points
             std::sort(edgePoints.rbegin(), edgePoints.rend());
+            std::random_shuffle(stablePoints.rbegin(), stablePoints.rend()); // Randomize stable points
             cherryPickFeaturePoints(edgePoints, edgePoints.size() / pointsCount, pointsCount, t.edgePoints);
             cherryPickFeaturePoints(stablePoints, stablePoints.size() / pointsCount, pointsCount, t.stablePoints);
 
@@ -342,16 +344,16 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
     // Stop template matching time
     Timer tMatching;
 
-//    #pragma omp parallel for
+    #pragma omp parallel for
     for (size_t l = 0; l < lSize; l++) {
         for (auto &candidate : windows[l].candidates) {
             assert(candidate != nullptr);
 
 #ifndef NDEBUG
-            cv::Mat candidateViz;
-            candidate->visualize(candidateViz);
-            cv::imshow("Candidate Viz", candidateViz);
-            cv::waitKey(0);
+//            cv::Mat candidateViz;
+//            candidate->visualize(candidateViz);
+//            cv::imshow("Candidate Viz", candidateViz);
+//            cv::waitKey(0);
 #endif
 
             // Scores for each test
