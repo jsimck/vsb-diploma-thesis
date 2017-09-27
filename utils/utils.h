@@ -8,23 +8,9 @@
 
 #define SQR(x) ((x) * (x))
 
-#define SAFE_DELETE(p) { \
-    if ( p != NULL ) \
-    { \
-        delete p; \
-        p = NULL; \
-    } \
-}
-
-#define SAFE_DELETE_ARRAY(p) { \
-    if ( p != NULL ) \
-    { \
-        delete [] p; \
-        p = NULL; \
-    } \
-}
-
-namespace utils {
+class Utils {
+public:
+    // General
     // ---------------------------------------
     // | Mat type |  C1 |  C2  |  C3  |  C4  |
     // ---------------------------------------
@@ -35,13 +21,11 @@ namespace utils {
     // | CV_32S   |  4  |  12  |  20  |  28  |
     // | CV_32F   |  5  |  13  |  21  |  29  |
     // | CV_64F   |  6  |  14  |  22  |  30  |
-     // ---------------------------------------
-    std::string matType2Str(int type);
+    // ---------------------------------------
+    static std::string matType2Str(int type);
 
-    // Removes specific indexes from vector array
-    // http://stackoverflow.com/questions/20582519/delete-from-specific-indexes-in-a-stdvector
     template<typename T>
-    void removeIndex(std::vector<T> &vector, const std::vector<size_t> &to_remove) {
+    static void removeIndex(std::vector<T> &vector, const std::vector<size_t> &to_remove) {
         auto vector_base = vector.begin();
         auto down_by = 0;
 
@@ -53,8 +37,9 @@ namespace utils {
         vector.resize(vector.size() - to_remove.size());
     }
 
-    void setLabel(cv::Mat &im, const std::string label, const cv::Point &origin, int padding = 1, int fontFace = CV_FONT_HERSHEY_SIMPLEX, double scale = 0.4
+    // Rendering
+    static void setLabel(cv::Mat &im, const std::string label, const cv::Point &origin, int padding = 1, int fontFace = CV_FONT_HERSHEY_SIMPLEX, double scale = 0.4
             , cv::Scalar fColor = cv::Scalar(255, 255, 255), cv::Scalar bColor = cv::Scalar(0, 0, 0), int thickness = 1);
-}
+};
 
 #endif //VSB_SEMESTRAL_PROJECT_UTILS_H

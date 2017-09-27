@@ -304,7 +304,7 @@ Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &scene, std::vector<HashTa
     }
 
     // Remove empty windows
-    utils::removeIndex<Window>(windows, emptyIndexes);
+    Utils::removeIndex<Window>(windows, emptyIndexes);
     std::cout << "  |_ Number of windows pass to next stage: " << windows.size() << std::endl;
 
 //#ifndef NDEBUG

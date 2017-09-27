@@ -83,23 +83,23 @@ void Template::visualize(cv::Mat &result) {
     // Put text data to template image
     std::ostringstream oss;
     oss << "votes: " << votes;
-    utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 10));
+    Utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 10));
     oss.str("");
     oss << "mode: " << mode;
-    utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 28));
+    Utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 28));
     oss.str("");
     oss << "elev: " << elev;
-    utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 46));
+    Utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 46));
     oss.str("");
     oss << "gradients: " << features.gradients.size();
-    utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 64));
+    Utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 64));
     oss.str("");
     oss << "normals: " << features.normals.size();
-    utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 82));
+    Utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 82));
     oss.str("");
     oss << "depths: " << features.depths.size();
-    utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 100));
+    Utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 100));
     oss.str("");
     oss << "colors: " << features.colors.size();
-    utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 118));
+    Utils::setLabel(result, oss.str(), objBB.tl() + cv::Point(objBB.width + 5, 118));
 }

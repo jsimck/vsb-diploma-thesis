@@ -88,10 +88,10 @@ void Visualizer::visualizeMatches(cv::Mat &scene, std::vector<Match> &matches, s
 
         std::ostringstream oss;
         oss << "id: " << match.tpl->id;
-        utils::setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 10));
+        Utils::setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 10));
         oss.str("");
         oss << "score: " << match.score;
-        utils::setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 28));
+        Utils::setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 28));
 
         for (auto &group : groups) {
             for (auto &tpl : group.templates) {
