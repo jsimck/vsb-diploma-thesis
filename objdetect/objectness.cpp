@@ -4,7 +4,7 @@
 
 void Objectness::filterSobel(cv::Mat &src, cv::Mat &dst) {
     assert(!src.empty());
-    assert(src.type() == 5); // CV_32FC1
+    assert(src.type() == CV_32FC1);
 
     int filterX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
     int filterY[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
@@ -37,8 +37,8 @@ void Objectness::filterSobel(cv::Mat &src, cv::Mat &dst) {
 void Objectness::thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float max) {
     assert(!src.empty());
     assert(!dst.empty());
-    assert(src.type() == 5); // CV_32FC1
-    assert(dst.type() == 5); // CV_32FC1
+    assert(src.type() == CV_32FC1);
+    assert(dst.type() == CV_32FC1);
     assert(min >= 0);
     assert(max >= 0 && max > min);
 
@@ -88,7 +88,7 @@ void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &window
     assert(tMatch > 0);
 
     assert(!sceneDepthNorm.empty());
-    assert(sceneDepthNorm.type() == 5); // CV_32FC1
+    assert(sceneDepthNorm.type() == CV_32FC1);
 
     // Apply sobel filter and thresholding on normalized Depth scene (<0, 1> px values)
     cv::Mat sSobel;

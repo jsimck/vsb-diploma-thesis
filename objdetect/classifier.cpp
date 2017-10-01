@@ -115,11 +115,11 @@ void Classifier::loadScene() {
     assert(!sceneHSV.empty());
     assert(!sceneGray.empty());
     assert(!sceneDepthNorm.empty());
-    assert(scene.type() == 16); // CV_8UC3
-    assert(sceneHSV.type() == 16); // CV_8UC3
-    assert(sceneGray.type() == 5); // CV_32FC1
-    assert(sceneDepth.type() == 5); // CV_32FC1
-    assert(sceneDepthNorm.type() == 5); // CV_32FC1
+    assert(scene.type() == CV_8UC3);
+    assert(sceneHSV.type() == CV_8UC3);
+    assert(sceneGray.type() == CV_32FC1);
+    assert(sceneDepth.type() == CV_32FC1);
+    assert(sceneDepthNorm.type() == CV_32FC1);
 
     std::cout << "DONE!" << std::endl << std::endl;
 }

@@ -8,7 +8,7 @@ const int Hasher::IMG_16BIT_MAX = 65535; // <0, 65535> => 65536 values
 
 cv::Vec3f Hasher::surfaceNormal(const cv::Mat &src, const cv::Point c) {
     assert(!src.empty());
-    assert(src.type() == 5); // CV_32FC1
+    assert(src.type() == CV_32FC1);
 
     float dzdx = (src.at<float>(c.y, c.x + 1) - src.at<float>(c.y, c.x - 1)) / 2.0f;
     float dzdy = (src.at<float>(c.y + 1, c.x) - src.at<float>(c.y - 1, c.x)) / 2.0f;
@@ -19,7 +19,7 @@ cv::Vec3f Hasher::surfaceNormal(const cv::Mat &src, const cv::Point c) {
 
 cv::Vec2i Hasher::relativeDepths(const cv::Mat &src, const cv::Point c, const cv::Point p1, const cv::Point p2) {
     assert(!src.empty());
-    assert(src.type() == 5); // CV_32FC1
+    assert(src.type() == CV_32FC1);
 
     return cv::Vec2i(
         static_cast<int>(src.at<float>(p1) - src.at<float>(c)),

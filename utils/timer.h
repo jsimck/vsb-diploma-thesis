@@ -9,14 +9,10 @@ private:
     typedef std::chrono::high_resolution_clock clock;
     typedef std::chrono::duration<double, std::ratio<1>> second;
     std::chrono::time_point<clock> beginning;
-
 public:
     Timer() : beginning(clock::now()) {}
-    void reset() { beginning = clock::now(); }
-
-    double elapsed() const {
-        return std::chrono::duration_cast<second>(clock::now() - beginning).count();
-    }
+    double elapsed() const;
+    void reset();
 };
 
 

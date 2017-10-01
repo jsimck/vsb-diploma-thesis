@@ -9,7 +9,7 @@
 
 float Matcher::orientationGradient(const cv::Mat &src, cv::Point &p) {
     assert(!src.empty());
-    assert(src.type() == 5); // CV_32FC1
+    assert(src.type() == CV_32FC1);
 
     float dx = (src.at<float>(p.y, p.x - 1) - src.at<float>(p.y, p.x + 1)) / 2.0f;
     float dy = (src.at<float>(p.y - 1, p.x) - src.at<float>(p.y + 1, p.x)) / 2.0f;
@@ -332,9 +332,9 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
     assert(!sceneHSV.empty());
     assert(!sceneGray.empty());
     assert(!sceneDepth.empty());
-    assert(sceneHSV.type() == 16); // CV_8UC3
-    assert(sceneGray.type() == 5); // CV_32FC1
-    assert(sceneDepth.type() == 5); // CV_32FC1
+    assert(sceneHSV.type() == CV_8UC3);
+    assert(sceneGray.type() == CV_32FC1);
+    assert(sceneDepth.type() == CV_32FC1);
     assert(windows.size() > 0);
 
     // Min threshold of matched feature points

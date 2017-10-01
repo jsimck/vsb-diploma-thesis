@@ -111,8 +111,8 @@ Template Parser::parseGt(const uint index, const std::string path, cv::FileNode 
     assert(!srcDepth.empty());
 
     // Matrix type checks
-    assert(src.type() == 5); // CV_32FC1
-    assert(srcDepth.type() == 5); // CV_32FC1
+    assert(src.type() == CV_32FC1);
+    assert(srcDepth.type() == CV_32FC1);
 
     return Template(
         idCounter, fileName, src, srcHSV, srcDepth, objBB,
