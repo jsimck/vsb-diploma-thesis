@@ -132,7 +132,7 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
 
             // Sort point values descending & cherry pick feature points
             std::sort(edgePoints.rbegin(), edgePoints.rend());
-            std::random_shuffle(stablePoints.rbegin(), stablePoints.rend()); // Randomize stable points
+            std::shuffle(stablePoints.rbegin(), stablePoints.rend(), std::mt19937(std::random_device()())); // Randomize stable points
             cherryPickFeaturePoints(edgePoints, edgePoints.size() / pointsCount, pointsCount, t.edgePoints);
             cherryPickFeaturePoints(stablePoints, stablePoints.size() / pointsCount, pointsCount, t.stablePoints);
 
@@ -140,7 +140,7 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
             assert(stablePoints.size() > pointsCount);
 
 #ifndef NDEBUG
-//            Visualizer::visualizeSingleTemplateFeaturePoints(t);
+//            Visualizer::visualizeTemplate(t, "Template feature points");
 #endif
         }
     }

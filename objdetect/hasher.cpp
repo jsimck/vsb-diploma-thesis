@@ -31,6 +31,7 @@ uchar Hasher::quantizeSurfaceNormal(cv::Vec3f normal) {
     // Normal z coordinate should not be < 0
     assert(normal[2] >= 0);
 
+    // TODO - asi spis nefunguje
     // In our case z is always positive, that's why we're using
     // 8 octants in top half of sphere only to quantize into 8 bins
     static cv::Vec3f octantNormals[8] = {
@@ -63,7 +64,7 @@ uchar Hasher::quantizeSurfaceNormal(cv::Vec3f normal) {
     return minIndex;
 }
 
-uchar Hasher::quantizeDepth(float depth, const std::vector<cv::Range> &ranges) {
+uchar Hasher::quantizeDepth(float depth, const std::vector<cv::Range> &ranges, uint binCount) {
     // Depth should have max value of <-65536, +65536>
     assert(depth >= -IMG_16BIT_MAX && depth <= IMG_16BIT_MAX);
     assert(ranges.size() == binCount);
@@ -166,7 +167,7 @@ void Hasher::initializeBinRanges(const std::vector<Group> &groups, std::vector<H
                 max = IMG_16BIT_MAX;
             }
 
-            ranges.push_back(cv::Range(min, max));
+            ranges.emplace_back(min, max);
         }
 
         // Set table bin ranges
@@ -211,10 +212,6 @@ void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &tables, D
                 cv::Point p1 = tables[i].triplet.getP1(coordParams);
                 cv::Point p2 = tables[i].triplet.getP2(coordParams);
 
-#ifndef NDEBUG
-//                Visualizer::visualizeTriplets(t, tables[i], info, grid);
-#endif
-
                 // Check if we're not out of bounds
                 assert(c.x >= 0 && c.x < t.srcGray.cols);
                 assert(c.y >= 0 && c.y < t.srcGray.rows);
@@ -228,8 +225,8 @@ void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &tables, D
 
                 // Generate hash key
                 HashKey key(
-                    quantizeDepth(d[0], tables[i].binRanges),
-                    quantizeDepth(d[1], tables[i].binRanges),
+                    quantizeDepth(d[0], tables[i].binRanges, binCount),
+                    quantizeDepth(d[1], tables[i].binRanges, binCount),
                     quantizeSurfaceNormal(surfaceNormal(t.srcDepth, c)),
                     quantizeSurfaceNormal(surfaceNormal(t.srcDepth, p1)),
                     quantizeSurfaceNormal(surfaceNormal(t.srcDepth, p2))
@@ -242,12 +239,11 @@ void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &tables, D
     }
 }
 
-void
-Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &scene, std::vector<HashTable> &tables, std::vector<Window> &windows, DataSetInfo &info) {
+void Hasher::verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows, DataSetInfo &info) {
     // Checks
     assert(!sceneDepth.empty());
-    assert(windows.size() > 0);
-    assert(tables.size() > 0);
+    assert(!windows.empty());
+    assert(!tables.empty());
     assert(info.maxTemplate.area() > 0);
 
     const size_t windowsSize = windows.size();
@@ -272,8 +268,8 @@ Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &scene, std::vector<HashTa
 
             // Generate hash key
             HashKey key(
-                quantizeDepth(d[0], table.binRanges),
-                quantizeDepth(d[1], table.binRanges),
+                quantizeDepth(d[0], table.binRanges, binCount),
+                quantizeDepth(d[1], table.binRanges, binCount),
                 quantizeSurfaceNormal(surfaceNormal(sceneDepth, c)),
                 quantizeSurfaceNormal(surfaceNormal(sceneDepth, p1)),
                 quantizeSurfaceNormal(surfaceNormal(sceneDepth, p2))
@@ -306,59 +302,6 @@ Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &scene, std::vector<HashTa
     // Remove empty windows
     Utils::removeIndex<Window>(windows, emptyIndexes);
     std::cout << "  |_ Number of windows pass to next stage: " << windows.size() << std::endl;
-
-//#ifndef NDEBUG
-//    {
-//        const size_t iSize = windows.size();
-//        for (size_t i = 0; i < iSize; ++i) {
-//            // Visualize triplets
-//            cv::Mat mTriplet = scene.clone();
-//            cv::Mat sceneCandidates = scene.clone();
-//
-//            // Show windows grid
-//            for (auto &window : windows) {
-//                cv::rectangle(mTriplet, window.tl(), window.br(), cv::Scalar(80, 80, 80));
-//            }
-//
-//            // Render candidates to other window
-//            for (auto *tpl : windows[i].candidates) {
-//                cv::Mat tplBGR, tplRGBRoi, roiAfer;
-//                cv::cvtColor(tpl->srcGray, tplBGR, CV_GRAY2BGR);
-////                tplBGR.copyTo(sceneCandidates(cv::Rect(windows[i].tl().x, windows[i].tl().y, tpl->objBB.width, tpl->objBB.height)));
-//            }
-//
-//            // Visualize triplets
-//            cv::rectangle(mTriplet, windows[i].tl(), cv::Point(windows[i].tl().x + info.maxTemplate.width, windows[i].tl().y + info.maxTemplate.height), cv::Scalar(0, 255, 0));
-//            cv::rectangle(mTriplet, windows[i].tl(), windows[i].br(), cv::Scalar(255, 0, 0));
-//            TripletParams params(info.maxTemplate.width, info.maxTemplate.height, grid, windows[i].tl().x, windows[i].tl().y);
-//
-//            for (int x = 0; x < 12; x++) {
-//                for (int y = 0; y < 12; y += 3) {
-//                    Triplet tripletVis(cv::Point(x, y), cv::Point(x, y + 1), cv::Point(x, y + 2));
-//                    cv::circle(mTriplet, tripletVis.getPoint(0, params), 1, cv::Scalar(0, 150, 0), -1);
-//                    cv::circle(mTriplet, tripletVis.getPoint(1, params), 1, cv::Scalar(0, 150, 0), -1);
-//                    cv::circle(mTriplet, tripletVis.getPoint(2, params), 1, cv::Scalar(0, 150, 0), -1);
-//                }
-//
-//                for (size_t k = 0; k < tablesCount; k++) {
-//                    cv::Point c = tables[k].triplet.getCenter(params);
-//                    cv::Point p1 = tables[k].triplet.getP1(params);
-//                    cv::Point p2 = tables[k].triplet.getP2(params);
-//
-//                    cv::circle(mTriplet, c, 2, cv::Scalar(0, 0, 255), -1);
-//                    cv::circle(mTriplet, p1, 2, cv::Scalar(0, 0, 255), -1);
-//                    cv::circle(mTriplet, p2, 2, cv::Scalar(0, 0, 255), -1);
-//                    cv::line(mTriplet, c, p1, cv::Scalar(0, 0, 255));
-//                    cv::line(mTriplet, c, p2, cv::Scalar(0, 0, 255));
-//                }
-//            }
-//
-//            cv::imshow("Hasher::verifyCandidates", mTriplet);
-//            cv::imshow("Hasher::verifyCandidates - renderedCandidates", sceneCandidates);
-//            cv::waitKey(1);
-//        };
-//    };
-//#endif
 }
 
 const cv::Size Hasher::getGrid() {

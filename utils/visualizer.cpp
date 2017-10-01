@@ -3,6 +3,7 @@
 #include "visualizer.h"
 #include "../core/triplet.h"
 #include "utils.h"
+#include "../objdetect/hasher.h"
 
 cv::Vec3b Visualizer::heatMapValue(int min, int max, int value) {
     float range = max - min;
@@ -11,11 +12,11 @@ cv::Vec3b Visualizer::heatMapValue(int min, int max, int value) {
     if (range) {
         percentage = static_cast<float>(value - min) / range;
     } else {
-        return cv::Vec3b(120, 120, 120);
+        return cv::Vec3b(90, 90, 90);
     }
 
     if (percentage >= 0 && percentage < 0.1f) {
-        return cv::Vec3b(120, 120, 120);
+        return cv::Vec3b(90, 90, 90);
     } if (percentage >= 0.1f && percentage < 0.2f) {
         return cv::Vec3b(180, 181, 201);
     } if (percentage >= 0.2f && percentage < 0.3f) {
@@ -35,6 +36,14 @@ cv::Vec3b Visualizer::heatMapValue(int min, int max, int value) {
     } else {
         return cv::Vec3b(35, 50, 235);
     }
+}
+
+void Visualizer::setLabel(cv::Mat &im, const std::__cxx11::string label, const cv::Point &origin, int padding, int fontFace, double scale,
+                          cv::Scalar fColor, cv::Scalar bColor, int thickness) {
+    cv::Size text = cv::getTextSize(label, fontFace, scale, thickness, 0);
+    rectangle(im, origin + cv::Point(-padding - 1, padding + 2),
+              origin + cv::Point(text.width + padding, -text.height - padding - 2), bColor, CV_FILLED);
+    putText(im, label, origin, fontFace, scale, fColor, thickness, CV_AA);
 }
 
 void Visualizer::visualizeWindow(cv::Mat &scene, Window &window) {
@@ -103,64 +112,6 @@ void Visualizer::visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, 
 
     // Show results
     cv::imshow(title == nullptr ? oss.str() : title, result);
-    cv::waitKey(0);
-}
-
-void Visualizer::visualizeSingleTemplateFeaturePoints(Template &tpl, const char *title) {
-    cv::Mat points;
-    cv::cvtColor(tpl.srcGray, points, CV_GRAY2BGR);
-
-    for (uint i = 0; i < tpl.edgePoints.size(); ++i) {
-        cv::circle(points, tpl.edgePoints[i], 1, cv::Scalar(0, 0, 255), -1);
-        cv::circle(points, tpl.stablePoints[i], 1, cv::Scalar(255, 0, 0), -1);
-    }
-
-    std::stringstream ss;
-    ss << "Template [" << tpl.id << "] feature points";
-
-    cv::imshow(title == nullptr ? ss.str() : title, points);
-    cv::waitKey(0);
-}
-
-void Visualizer::visualizeTriplets(Template &tpl, HashTable &table, DataSetInfo &info, cv::Size &grid, const char *title) {
-    cv::Mat triplets;
-    cv::cvtColor(tpl.srcGray, triplets, CV_GRAY2BGR);
-
-    // Grid offset
-    cv::Point gridOffset(
-            tpl.objBB.tl().x - (info.maxTemplate.width - tpl.objBB.width) / 2,
-            tpl.objBB.tl().y - (info.maxTemplate.height - tpl.objBB.height) / 2
-    );
-
-    // Get triplet points
-    TripletParams coordParams(info.maxTemplate.width, info.maxTemplate.height, grid, tpl.objBB.tl().x, tpl.objBB.tl().y);
-    cv::Point c = table.triplet.getCenter(coordParams);
-    cv::Point p1 = table.triplet.getP1(coordParams);
-    cv::Point p2 = table.triplet.getP2(coordParams);
-
-    // Visualize triplets
-    cv::rectangle(triplets, gridOffset, cv::Point(gridOffset.x + info.maxTemplate.width, gridOffset.y + info.maxTemplate.height), cv::Scalar(0, 255, 0));
-    cv::rectangle(triplets, tpl.objBB.tl(), tpl.objBB.br(), cv::Scalar(0, 0, 255));
-
-    for (int x = 0; x < 12; x++) {
-        for (int y = 0; y < 12; y += 3) {
-            Triplet tripletVis(cv::Point(x, y), cv::Point(x, y + 1), cv::Point(x, y + 2));
-            cv::circle(triplets, tripletVis.getPoint(0, coordParams), 1, cv::Scalar(0, 100, 0), -1);
-            cv::circle(triplets, tripletVis.getPoint(1, coordParams), 1, cv::Scalar(0, 100, 0), -1);
-            cv::circle(triplets, tripletVis.getPoint(2, coordParams), 1, cv::Scalar(0, 100, 0), -1);
-        }
-
-        cv::circle(triplets, c, 2, cv::Scalar(0, 0, 255), -1);
-        cv::circle(triplets, p1, 2, cv::Scalar(0, 0, 255), -1);
-        cv::circle(triplets, p2, 2, cv::Scalar(0, 0, 255), -1);
-        cv::line(triplets, c, p1, cv::Scalar(0, 0, 255));
-        cv::line(triplets, c, p2, cv::Scalar(0, 0, 255));
-    }
-
-    std::stringstream ss;
-    ss << "Template [" << tpl.id << "] feature triplets";
-
-    cv::imshow(title == nullptr ? ss.str() : title, triplets);
     cv::waitKey(0);
 }
 
@@ -254,10 +205,74 @@ void Visualizer::visualizeTemplate(Template &tpl, const char *title) {
     cv::waitKey(0);
 }
 
-void Visualizer::setLabel(cv::Mat &im, const std::__cxx11::string label, const cv::Point &origin, int padding, int fontFace, double scale,
-                          cv::Scalar fColor, cv::Scalar bColor, int thickness) {
-    cv::Size text = cv::getTextSize(label, fontFace, scale, thickness, 0);
-    rectangle(im, origin + cv::Point(-padding - 1, padding + 2),
-                  origin + cv::Point(text.width + padding, -text.height - padding - 2), bColor, CV_FILLED);
-    putText(im, label, origin, fontFace, scale, fColor, thickness, CV_AA);
+void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables,
+                                  std::vector<Window> &windows, DataSetInfo &info, cv::Size &grid, const char *title) {
+    // Init common
+    cv::Scalar colorRed(0, 0, 255);
+    std::ostringstream oss;
+
+    for (size_t i = 0, windowsSize = windows.size(); i < windowsSize; ++i) {
+        cv::Mat result = scene.clone();
+        int matched = 0;
+
+        // Draw processed windows
+        for (size_t j = 0; j < i; j++) {
+            cv::rectangle(result, windows[j].tl(), windows[j].br(), cv::Scalar::all(90));
+        }
+
+        // Draw window and searched box rectangles
+        cv::rectangle(result, windows[i].tl(), windows[i].tl() + cv::Point(info.maxTemplate), cv::Scalar::all(255));
+        cv::rectangle(result, windows[i].tl(), windows[i].br(), cv::Scalar(0, 255, 0));
+
+        for (auto &table : tables) {
+            // Prepare params to create hash key
+            TripletParams params(info.maxTemplate.width, info.maxTemplate.height, grid, windows[i].tl().x, windows[i].tl().y);
+            cv::Point c = table.triplet.getCenter(params);
+            cv::Point p1 = table.triplet.getP1(params);
+            cv::Point p2 = table.triplet.getP2(params);
+
+            // If any point of triplet is out of scene boundaries, ignore it to not get false data
+            if ((c.x < 0 || c.x >= sceneDepth.cols || c.y < 0 || c.y >= sceneDepth.rows) ||
+                (p1.x < 0 || p1.x >= sceneDepth.cols || p1.y < 0 || p1.y >= sceneDepth.rows) ||
+                (p2.x < 0 || p2.x >= sceneDepth.cols || p2.y < 0 || p2.y >= sceneDepth.rows)) continue;
+
+            // Relative depths
+            cv::Vec2i d = Hasher::relativeDepths(sceneDepth, c, p1, p2);
+
+            // Generate hash key
+            HashKey key(
+                Hasher::quantizeDepth(d[0], table.binRanges, static_cast<uint>(table.binRanges.size())),
+                Hasher::quantizeDepth(d[1], table.binRanges, static_cast<uint>(table.binRanges.size())),
+                Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, c)),
+                Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, p1)),
+                Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, p2))
+            );
+
+            // Draw only triplets that are matched
+            if (table.templates[key].size() > 0) {
+                cv::circle(result, c, 2, colorRed, -1);
+                cv::circle(result, p1, 2, colorRed, -1);
+                cv::circle(result, p2, 2, colorRed, -1);
+                cv::line(result, c, p1, colorRed);
+                cv::line(result, c, p2, colorRed);
+                matched++;
+            }
+        }
+
+        // Labels
+        oss.str("");
+        oss << "candidates: " << windows[i].candidates.size();
+        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(info.maxTemplate.width + 5, 10));
+        oss.str("");
+        oss << "matched: " << matched << "/" << tables.size();
+        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(info.maxTemplate.width + 5, 28));
+        oss.str("");
+        oss << "edgels: " << windows[i].edgels;
+        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(info.maxTemplate.width + 5, 46));
+
+        cv::imshow(title == nullptr ? "Hashing visualization" : title, result);
+        cv::waitKey(1);
+    }
+
+    cv::waitKey(0);
 }

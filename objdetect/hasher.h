@@ -21,7 +21,6 @@ private:
     uint binCount;
     uint maxDistance;
 
-    uchar quantizeDepth(float depth, const std::vector<cv::Range> &ranges);
     void generateTriplets(std::vector<HashTable> &tables);
     void initializeBinRanges(const std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info);
     void initialize(const std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info);
@@ -30,6 +29,7 @@ public:
     static const int IMG_16BIT_MAX;
 
     // Static methods
+    static uchar quantizeDepth(float depth, const std::vector<cv::Range> &ranges, uint binCount);
     static uchar quantizeSurfaceNormal(cv::Vec3f normal);
     static cv::Vec3f surfaceNormal(const cv::Mat &src, const cv::Point c);
     static cv::Vec2i relativeDepths(const cv::Mat &src, const cv::Point c, const cv::Point p1, const cv::Point p2);
@@ -40,7 +40,7 @@ public:
 
     // Methods
     void train(std::vector<Group> &groups, std::vector<HashTable> &tables, DataSetInfo &info);
-    void verifyCandidates(cv::Mat &sceneDepth, cv::Mat &scene, std::vector<HashTable> &tables, std::vector<Window> &windows, DataSetInfo &info);
+    void verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows, DataSetInfo &info);
 
     // Getters
     const cv::Size getGrid();

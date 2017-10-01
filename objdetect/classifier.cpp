@@ -50,6 +50,39 @@ void Classifier::parseTemplates() {
     std::cout << "DONE! " << groups.size() << " template groups parsed, took: " << t.elapsed() << " s" << std::endl << std::endl;
 }
 
+void Classifier::loadScene() {
+    // Checks
+    assert(basePath.length() > 0);
+    assert(basePath.at(basePath.length() - 1) == '/');
+    assert(scenePath.length() > 0);
+    assert(scenePath.at(scenePath.length() - 1) == '/');
+    assert(sceneName.length() > 0);
+
+    // Load scenes
+    std::cout << "Loading scene... ";
+    scene = cv::imread(basePath + scenePath + "rgb/" + sceneName, CV_LOAD_IMAGE_COLOR);
+    sceneDepth = cv::imread(basePath + scenePath + "depth/" + sceneName, CV_LOAD_IMAGE_UNCHANGED);
+
+    // Convert and normalize
+    cv::cvtColor(scene, sceneHSV, CV_BGR2HSV);
+    cv::cvtColor(scene, sceneGray, CV_BGR2GRAY);
+    sceneGray.convertTo(sceneGray, CV_32F, 1.0f / 255.0f);
+    sceneDepth.convertTo(sceneDepth, CV_32F); // TODO work with 16U (int) rather than floats
+    sceneDepth.convertTo(sceneDepthNorm, CV_32F, 1.0f / 65536.0f);
+
+    // Check if conversion went ok
+    assert(!sceneHSV.empty());
+    assert(!sceneGray.empty());
+    assert(!sceneDepthNorm.empty());
+    assert(scene.type() == CV_8UC3);
+    assert(sceneHSV.type() == CV_8UC3);
+    assert(sceneGray.type() == CV_32FC1);
+    assert(sceneDepth.type() == CV_32FC1);
+    assert(sceneDepthNorm.type() == CV_32FC1);
+
+    std::cout << "DONE!" << std::endl << std::endl;
+}
+
 void Classifier::extractMinEdgels() {
     // Checks
     assert(groups.size() > 0);
@@ -91,39 +124,6 @@ void Classifier::trainTemplates() {
 #endif
 }
 
-void Classifier::loadScene() {
-    // Checks
-    assert(basePath.length() > 0);
-    assert(basePath.at(basePath.length() - 1) == '/');
-    assert(scenePath.length() > 0);
-    assert(scenePath.at(scenePath.length() - 1) == '/');
-    assert(sceneName.length() > 0);
-
-    // Load scenes
-    std::cout << "Loading scene... ";
-    scene = cv::imread(basePath + scenePath + "rgb/" + sceneName, CV_LOAD_IMAGE_COLOR);
-    sceneDepth = cv::imread(basePath + scenePath + "depth/" + sceneName, CV_LOAD_IMAGE_UNCHANGED);
-
-    // Convert and normalize
-    cv::cvtColor(scene, sceneHSV, CV_BGR2HSV);
-    cv::cvtColor(scene, sceneGray, CV_BGR2GRAY);
-    sceneGray.convertTo(sceneGray, CV_32F, 1.0f / 255.0f);
-    sceneDepth.convertTo(sceneDepth, CV_32F); // TODO work with 16U (int) rather than floats
-    sceneDepth.convertTo(sceneDepthNorm, CV_32F, 1.0f / 65536.0f);
-
-    // Check if conversion went ok
-    assert(!sceneHSV.empty());
-    assert(!sceneGray.empty());
-    assert(!sceneDepthNorm.empty());
-    assert(scene.type() == CV_8UC3);
-    assert(sceneHSV.type() == CV_8UC3);
-    assert(sceneGray.type() == CV_32FC1);
-    assert(sceneDepth.type() == CV_32FC1);
-    assert(sceneDepthNorm.type() == CV_32FC1);
-
-    std::cout << "DONE!" << std::endl << std::endl;
-}
-
 void Classifier::detectObjectness() {
     // Checks
     assert(info.smallestTemplate.area() > 0);
@@ -148,11 +148,13 @@ void Classifier::verifyTemplateCandidates() {
     // Verification started
     std::cout << "Verification of template candidates, using trained HashTables started... " << std::endl;
     Timer t;
-    hasher.verifyCandidates(sceneDepth, scene, tables, windows, info);
+    hasher.verifyCandidates(sceneDepth, tables, windows, info);
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
 #ifndef NDEBUG
-    Visualizer::visualizeWindows(this->scene, windows, true);
+    cv::Size grid = hasher.getGrid();
+    Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, info, grid);
+    Visualizer::visualizeWindows(this->scene, windows, false);
 #endif
 }
 

@@ -15,14 +15,11 @@ private:
     static void visualizeWindow(cv::Mat &scene, Window &window);
     static cv::Vec3b heatMapValue(int min, int max, int value);
 public:
-    static void visualizeTriplets(Template &tpl, HashTable &table, DataSetInfo &info, cv::Size &grid, const char *title = nullptr);
+    static void visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows, DataSetInfo &info, cv::Size &grid, const char *title = nullptr);
     static void visualizeMatches(cv::Mat &scene, std::vector<Match> &matches, std::vector<Group> &groups);
-
-    // Windows
     static void visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, bool continuous = true, const char *title = nullptr);
 
     // Templates
-    static void visualizeSingleTemplateFeaturePoints(Template &tpl, const char *title = nullptr);
     static void visualizeTemplate(Template &tpl, const char *title = nullptr);
 
     // Utils
