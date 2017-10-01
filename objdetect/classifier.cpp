@@ -137,7 +137,7 @@ void Classifier::detectObjectness() {
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
 #ifndef NDEBUG
-//    Visualizer::visualizeWindows(this->scene, windows, "Objectness locations detected");
+    Visualizer::visualizeWindows(this->scene, windows, false);
 #endif
 }
 
@@ -152,7 +152,7 @@ void Classifier::verifyTemplateCandidates() {
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
 #ifndef NDEBUG
-//    Visualizer::visualizeWindows(this->scene, windows, "Filtered locations detected");
+    Visualizer::visualizeWindows(this->scene, windows, true);
 #endif
 }
 

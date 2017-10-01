@@ -51,7 +51,6 @@ public:
     void resetVotes();
     void applyROI();
     void resetROI();
-    void visualize(cv::Mat &result);
 
     // Operators
     bool operator==(const Template &rhs) const;

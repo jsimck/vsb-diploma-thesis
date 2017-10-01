@@ -1,5 +1,6 @@
 #include <opencv2/imgproc.hpp>
 #include "utils.h"
+#include "visualizer.h"
 
 std::string Utils::matType2Str(int type) {
     std::string r;
@@ -24,10 +25,12 @@ std::string Utils::matType2Str(int type) {
     return r;
 }
 
-void Utils::setLabel(cv::Mat &im, const std::string label, const cv::Point &origin, int padding, int fontFace, double scale,
-                cv::Scalar fColor, cv::Scalar bColor, int thickness) {
-    cv::Size text = cv::getTextSize(label, fontFace, scale, thickness, 0);
-    cv::rectangle(im, origin + cv::Point(-padding - 1, padding + 2),
-                  origin + cv::Point(text.width + padding, -text.height - padding - 2), bColor, CV_FILLED);
-    cv::putText(im, label, origin, fontFace, scale, fColor, thickness, CV_AA);
+cv::Vec3b Utils::hsv2bgr(cv::Vec3f &hsv) {
+    cv::Mat src_hsv(1, 1, CV_32FC3), dst_bgr(1, 1, CV_8UC3);
+
+    // Set color and convert
+    src_hsv.at<cv::Vec3f>(0) = hsv;
+    cv::cvtColor(src_hsv, dst_bgr, CV_HSV2BGR);
+
+    return dst_bgr.at<cv::Vec3b>(0);
 }

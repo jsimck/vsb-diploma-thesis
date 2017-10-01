@@ -23,6 +23,7 @@ public:
     // | CV_64F   |  6  |  14  |  22  |  30  |
     // ---------------------------------------
     static std::string matType2Str(int type);
+    static cv::Vec3b hsv2bgr(cv::Vec3f &hsv);
 
     template<typename T>
     static void removeIndex(std::vector<T> &vector, const std::vector<size_t> &to_remove) {
@@ -36,10 +37,6 @@ public:
 
         vector.resize(vector.size() - to_remove.size());
     }
-
-    // Rendering
-    static void setLabel(cv::Mat &im, const std::string label, const cv::Point &origin, int padding = 1, int fontFace = CV_FONT_HERSHEY_SIMPLEX, double scale = 0.4
-            , cv::Scalar fColor = cv::Scalar(255, 255, 255), cv::Scalar bColor = cv::Scalar(0, 0, 0), int thickness = 1);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_UTILS_H

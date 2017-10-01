@@ -62,3 +62,27 @@ std::ostream& operator<<(std::ostream &os, const Window &w) {
     os << ")";
     return os;
 }
+
+bool Window::operator<(const Window &rhs) const {
+    return candidates.size() < rhs.candidates.size();
+}
+
+bool Window::operator>(const Window &rhs) const {
+    return rhs < *this;
+}
+
+bool Window::operator<=(const Window &rhs) const {
+    return !(rhs < *this);
+}
+
+bool Window::operator>=(const Window &rhs) const {
+    return !(*this < rhs);
+}
+
+bool Window::operator==(const Window &rhs) const {
+    return candidates.size() == rhs.candidates.size();
+}
+
+bool Window::operator!=(const Window &rhs) const {
+    return !(rhs == *this);
+}

@@ -33,7 +33,13 @@ public:
     bool hasCandidates();
     void pushUnique(Template *t, uint N = 100, int v = 3);
 
-    // Friends
+    // Overloads
+    bool operator==(const Window &rhs) const;
+    bool operator!=(const Window &rhs) const;
+    bool operator<(const Window &rhs) const;
+    bool operator>(const Window &rhs) const;
+    bool operator<=(const Window &rhs) const;
+    bool operator>=(const Window &rhs) const;
     friend std::ostream &operator<<(std::ostream &os, const Window &w);
 };
 

@@ -1,24 +1,108 @@
+#include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 #include "visualizer.h"
 #include "../core/triplet.h"
 #include "utils.h"
 
-void Visualizer::visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, const char *title) {
-    cv::Mat locations = scene.clone();
+cv::Vec3b Visualizer::heatMapValue(int min, int max, int value) {
+    float range = max - min;
+    float percentage = 0;
 
-    for (auto window : windows) {
-        cv::rectangle(locations, window.tl(), window.br(), cv::Scalar(190, 190, 190));
+    if (range) {
+        percentage = static_cast<float>(value - min) / range;
+    } else {
+        return cv::Vec3b(120, 120, 120);
     }
 
-    std::stringstream ss;
-    ss << "Locations: " << windows.size();
-    std::cout << windows.size() << std::endl;
+    if (percentage >= 0 && percentage < 0.1f) {
+        return cv::Vec3b(120, 120, 120);
+    } if (percentage >= 0.1f && percentage < 0.2f) {
+        return cv::Vec3b(180, 181, 201);
+    } if (percentage >= 0.2f && percentage < 0.3f) {
+        return cv::Vec3b(178, 179, 226);
+    } if (percentage >= 0.3f && percentage < 0.4f) {
+        return cv::Vec3b(174, 176, 244);
+    } if (percentage >= 0.4f && percentage < 0.5f) {
+        return cv::Vec3b(151, 153, 241);
+    } if (percentage >= 0.5f && percentage < 0.6f) {
+        return cv::Vec3b(126, 129, 239);
+    } if (percentage >= 0.6f && percentage < 0.7f) {
+        return cv::Vec3b(96, 101, 237);
+    } if (percentage >= 0.7f && percentage < 0.8f) {
+        return cv::Vec3b(74, 82, 236);
+    } if (percentage >= 0.8f && percentage < 0.9f) {
+        return cv::Vec3b(51, 62, 235);
+    } else {
+        return cv::Vec3b(35, 50, 235);
+    }
+}
 
-    cv::rectangle(locations, windows[0].tl(), windows[0].br(), cv::Scalar(0, 255, 0));
-    cv::rectangle(locations, cv::Point(0, 0), cv::Point(160, 30), cv::Scalar(0, 0, 0), -1);
-    cv::putText(locations, ss.str(), cv::Point(10, 20), CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 1, CV_AA);
+void Visualizer::visualizeWindow(cv::Mat &scene, Window &window) {
+    std::ostringstream oss;
+    cv::rectangle(scene, window.tl(), window.br(), cv::Scalar(0, 255, 0), 1);
 
-    cv::imshow(title == nullptr ? "Window locations detected:" : title, locations);
+    // Set labels
+    oss << "candidates: " << window.candidates.size();
+    setLabel(scene, oss.str(), window.tr() + cv::Point(5, 10));
+
+    oss.str("");
+    oss << "edges: " << window.edgels;
+    setLabel(scene, oss.str(), window.tr() + cv::Point(5, 28));
+}
+
+void Visualizer::visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, bool continuous, const char *title) {
+    // Init common variables
+    cv::Mat result = scene.clone();
+
+    // Title
+    std::ostringstream oss;
+    oss << "Window result detected: " << windows.size();
+    std::string defTitle = oss.str();
+
+    // Scene label
+    oss.str("");
+    oss << "Locations: " << windows.size();
+    std::string locTitle = oss.str();
+
+    // Sort windows for heat map
+    std::vector<Window> sortedWindows(windows.size());
+    std::copy(windows.begin(), windows.end(), sortedWindows.begin());
+    std::sort(sortedWindows.begin(), sortedWindows.end());
+
+    // Get max for heat map
+    unsigned long max = sortedWindows[sortedWindows.size() - 1].candidates.size();
+
+    if (continuous) {
+        // Visualize each window
+        for (auto &window : windows) {
+            result = scene.clone();
+
+            // Draw all windows in gray
+            for (auto win : sortedWindows) {
+                cv::rectangle(result, win.tl(), win.br(), heatMapValue(0, static_cast<int>(max), static_cast<int>(win.candidates.size())));
+            }
+
+            // Show current window with labels
+            visualizeWindow(result, window);
+            setLabel(result, locTitle, cv::Point(0, 20), 4, 0, 0.5);
+
+            // Show results
+            cv::imshow(title == nullptr ? oss.str() : title, result);
+            cv::waitKey(50);
+        }
+    } else {
+        // Draw all windows in gray
+        for (auto win : windows) {
+            cv::rectangle(result, win.tl(), win.br(), heatMapValue(0, static_cast<int>(max), static_cast<int>(win.candidates.size())));
+        }
+
+        // Show current window with labels
+        Visualizer::visualizeWindow(result, sortedWindows[0]);
+        setLabel(result, locTitle, cv::Point(0, 20), 4, 0, 0.5);
+    }
+
+    // Show results
+    cv::imshow(title == nullptr ? oss.str() : title, result);
     cv::waitKey(0);
 }
 
@@ -88,10 +172,11 @@ void Visualizer::visualizeMatches(cv::Mat &scene, std::vector<Match> &matches, s
 
         std::ostringstream oss;
         oss << "id: " << match.tpl->id;
-        Utils::setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 10));
+        setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 10));
         oss.str("");
-        oss << "score: " << match.score;
-        Utils::setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 28));
+        oss.precision(2);
+        oss << std::fixed << "score: " << match.score << " (" << (match.score * 100.0f) / 4.0f << "%)";
+        setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 28));
 
         for (auto &group : groups) {
             for (auto &tpl : group.templates) {
@@ -117,4 +202,62 @@ void Visualizer::visualizeMatches(cv::Mat &scene, std::vector<Match> &matches, s
     cv::namedWindow(winName, 0);
     cv::imshow(winName, viz);
     cv::waitKey(0);
+}
+
+void Visualizer::visualizeTemplate(Template &tpl, const char *title) {
+    cv::Mat result = tpl.srcHSV.clone();
+    cv::cvtColor(tpl.srcHSV, result, CV_HSV2BGR);
+
+    // Draw edge points
+    if (!tpl.edgePoints.empty()) {
+        for (auto &point : tpl.edgePoints) {
+            cv::circle(result, point + tpl.objBB.tl(), 1, cv::Scalar(0, 0, 255), -1);
+        }
+    }
+
+    // Draw stable points
+    if (!tpl.stablePoints.empty()) {
+        for (auto &point : tpl.stablePoints) {
+            cv::circle(result, point + tpl.objBB.tl(), 1, cv::Scalar(255, 0, 0), -1);
+        }
+    }
+
+    // Draw bounding box
+    cv::rectangle(result, tpl.objBB.tl(), tpl.objBB.br(), cv::Scalar(255 ,255, 255), 1);
+
+    // Put text data to template image
+    std::ostringstream oss;
+    oss << "votes: " << tpl.votes;
+    setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 10));
+    oss.str("");
+    oss << "mode: " << tpl.mode;
+    setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 28));
+    oss.str("");
+    oss << "elev: " << tpl.elev;
+    setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 46));
+    oss.str("");
+    oss << "gradients: " << tpl.features.gradients.size();
+    setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 64));
+    oss.str("");
+    oss << "normals: " << tpl.features.normals.size();
+    setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 82));
+    oss.str("");
+    oss << "depths: " << tpl.features.depths.size();
+    setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 100));
+    oss.str("");
+    oss << "colors: " << tpl.features.colors.size();
+    setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 118));
+
+    oss.str("");
+    oss << "Template: " << tpl.id;
+    cv::imshow(title == nullptr ? "Window locations detected:" : title, result);
+    cv::waitKey(0);
+}
+
+void Visualizer::setLabel(cv::Mat &im, const std::__cxx11::string label, const cv::Point &origin, int padding, int fontFace, double scale,
+                          cv::Scalar fColor, cv::Scalar bColor, int thickness) {
+    cv::Size text = cv::getTextSize(label, fontFace, scale, thickness, 0);
+    rectangle(im, origin + cv::Point(-padding - 1, padding + 2),
+                  origin + cv::Point(text.width + padding, -text.height - padding - 2), bColor, CV_FILLED);
+    putText(im, label, origin, fontFace, scale, fColor, thickness, CV_AA);
 }

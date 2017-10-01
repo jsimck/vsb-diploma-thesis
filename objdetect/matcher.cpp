@@ -349,12 +349,9 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
         for (auto &candidate : windows[l].candidates) {
             assert(candidate != nullptr);
 
-#ifndef NDEBUG
-//            cv::Mat candidateViz;
-//            candidate->visualize(candidateViz);
-//            cv::imshow("Candidate Viz", candidateViz);
-//            cv::waitKey(0);
-#endif
+//#ifndef NDEBUG
+//            Visualizer::visualizeTemplate(*candidate, "Template feature points");
+//#endif
 
             // Scores for each test
             float sII = 0, sIII = 0, sIV = 0, sV = 0;
