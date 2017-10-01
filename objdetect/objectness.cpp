@@ -1,7 +1,7 @@
 #include "objectness.h"
 #include "../utils/utils.h"
 
-void Objectness::filterSobel(cv::Mat &src, cv::Mat &dst) {
+void Objectness::filterSobel(const cv::Mat &src, cv::Mat &dst) {
     assert(!src.empty());
     assert(src.type() == CV_32FC1);
 
@@ -33,7 +33,7 @@ void Objectness::filterSobel(cv::Mat &src, cv::Mat &dst) {
     }
 }
 
-void Objectness::thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float max) {
+void Objectness::thresholdMinMax(const cv::Mat &src, cv::Mat &dst, float min, float max) {
     assert(!src.empty());
     assert(!dst.empty());
     assert(src.type() == CV_32FC1);

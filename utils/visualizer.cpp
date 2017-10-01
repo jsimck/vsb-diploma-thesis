@@ -36,8 +36,8 @@ cv::Vec3b Visualizer::heatMapValue(int min, int max, int value) {
     }
 }
 
-void Visualizer::setLabel(cv::Mat &im, const std::__cxx11::string label, const cv::Point &origin, int padding, int fontFace, double scale,
-                          cv::Scalar fColor, cv::Scalar bColor, int thickness) {
+void Visualizer::setLabel(cv::Mat &im, const std::string &label, const cv::Point &origin, int padding, int fontFace,
+                          double scale, const cv::Scalar &fColor, const cv::Scalar &bColor, int thickness) {
     cv::Size text = cv::getTextSize(label, fontFace, scale, thickness, 0);
     rectangle(im, origin + cv::Point(-padding - 1, padding + 2),
               origin + cv::Point(text.width + padding, -text.height - padding - 2), bColor, CV_FILLED);
@@ -203,8 +203,8 @@ void Visualizer::visualizeTemplate(Template &tpl, const char *title) {
     cv::waitKey(0);
 }
 
-void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables,
-                                  std::vector<Window> &windows, DataSetInfo &info, cv::Size &grid, const char *title) {
+void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows,
+                                  DataSetInfo &info, const cv::Size &grid, bool continuous, const char *title) {
     // Init common
     cv::Scalar colorRed(0, 0, 255);
     std::ostringstream oss;
@@ -247,7 +247,7 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
             );
 
             // Draw only triplets that are matched
-            if (table.templates[key].size() > 0) {
+            if (!table.templates[key].empty()) {
                 cv::circle(result, c, 2, colorRed, -1);
                 cv::circle(result, p1, 2, colorRed, -1);
                 cv::circle(result, p2, 2, colorRed, -1);
@@ -268,8 +268,11 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
         oss << "edgels: " << windows[i].edgels;
         Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(info.maxTemplate.width + 5, 46));
 
+        // Show results
         cv::imshow(title == nullptr ? "Hashing visualization" : title, result);
-        cv::waitKey(1);
+        if (continuous) {
+            cv::waitKey(1);
+        }
     }
 
     cv::waitKey(0);

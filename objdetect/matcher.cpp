@@ -1,11 +1,12 @@
 #include <random>
 #include <algorithm>
 #include "matcher.h"
+#include "../core/triplet.h"
 #include "hasher.h"
 #include "../utils/timer.h"
 #include "objectness.h"
 
-float Matcher::orientationGradient(const cv::Mat &src, cv::Point &p) {
+float Matcher::orientationGradient(const cv::Mat &src, const cv::Point &p) {
     assert(!src.empty());
     assert(src.type() == CV_32FC1);
 
@@ -451,7 +452,7 @@ void Matcher::setTMatch(float t) {
     this->tMatch = t;
 }
 
-void Matcher::setNeighbourhood(cv::Range matchNeighbourhood) {
+void Matcher::setNeighbourhood(const cv::Range &matchNeighbourhood) {
     assert(matchNeighbourhood.start <= matchNeighbourhood.end);
     this->neighbourhood = matchNeighbourhood;
 }

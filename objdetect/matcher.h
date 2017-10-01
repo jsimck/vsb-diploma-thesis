@@ -43,10 +43,10 @@ private:
 public:
     // Static methods
     static int median(std::vector<int> &values);
-    static float orientationGradient(const cv::Mat &src, cv::Point &p);
+    static float orientationGradient(const cv::Mat &src, const cv::Point &p);
 
     // Constructor
-    explicit Matcher(uint pointsCount = 100, float tMatch = 0.6f, float tOverlap = 0.1f, uchar tColorTest = 5, cv::Range neighbourhood = cv::Range(5, 5))
+    explicit Matcher(uint pointsCount = 100, float tMatch = 0.6f, float tOverlap = 0.1f, uchar tColorTest = 5, const cv::Range &neighbourhood = cv::Range(5, 5))
         : pointsCount(pointsCount), tMatch(tMatch), tOverlap(tOverlap), tColorTest(tColorTest), neighbourhood(neighbourhood) {}
 
     // Methods
@@ -66,7 +66,7 @@ public:
     void setPointsCount(uint count);
     void setTMatch(float tMatch);
     void setTColorTest(uchar tColorTest);
-    void setNeighbourhood(cv::Range neighbourhood);
+    void setNeighbourhood(const cv::Range &neighbourhood);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_MATCHER_H

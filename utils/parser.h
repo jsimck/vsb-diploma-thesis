@@ -2,6 +2,7 @@
 #define VSB_SEMESTRAL_PROJECT_PARSER_H
 
 #include <string>
+#include <utility>
 #include "../core/template.h"
 #include "../core/group.h"
 #include "../core/dataset_info.h"
@@ -21,12 +22,12 @@ private:
     std::vector<std::string> folders;
     uint tplCount;
 
-    Template parseGt(const uint index, const std::string path, cv::FileNode &gtNode, DataSetInfo &info);
+    Template parseGt(uint index, const std::string &path, cv::FileNode &gtNode, DataSetInfo &info);
     void parseInfo(Template &tpl, cv::FileNode &infoNode);
-    void parseTemplate(std::vector<Template> &templates, DataSetInfo &info, std::string tplName);
+    void parseTemplate(std::vector<Template> &templates, DataSetInfo &info, const std::string &tplName);
 public:
-    Parser(const std::string basePath = "/data", std::vector<std::string> templateFolders = {}, uint tplCount = 1296)
-        : basePath(basePath), folders(templateFolders), tplCount(tplCount) {}
+    Parser(const std::string &basePath = "/data", const std::vector<std::string> &templateFolders = {}, uint tplCount = 1296)
+        : basePath(basePath), folders(std::move(templateFolders)), tplCount(tplCount) {}
 
     void parse(std::vector<Group> &groups, DataSetInfo &info);
     void clearIndices();

@@ -15,7 +15,8 @@ private:
     static void visualizeWindow(cv::Mat &scene, Window &window);
     static cv::Vec3b heatMapValue(int min, int max, int value);
 public:
-    static void visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows, DataSetInfo &info, cv::Size &grid, const char *title = nullptr);
+    static void visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows,
+                                 DataSetInfo &info, const cv::Size &grid, bool continuous = true, const char *title = nullptr);
     static void visualizeMatches(cv::Mat &scene, std::vector<Match> &matches, std::vector<Group> &groups);
     static void visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, bool continuous = true, const char *title = nullptr);
 
@@ -23,8 +24,8 @@ public:
     static void visualizeTemplate(Template &tpl, const char *title = nullptr);
 
     // Utils
-    static void setLabel(cv::Mat &im, const std::__cxx11::string label, const cv::Point &origin, int padding = 1, int fontFace = CV_FONT_HERSHEY_SIMPLEX, double scale = 0.4
-        , cv::Scalar fColor = cv::Scalar(255, 255, 255), cv::Scalar bColor = cv::Scalar(0, 0, 0), int thickness = 1);
+    static void setLabel(cv::Mat &im, const std::string &label, const cv::Point &origin, int padding = 1, int fontFace = CV_FONT_HERSHEY_SIMPLEX, double scale = 0.4,
+                         const cv::Scalar &fColor = cv::Scalar(255, 255, 255), const cv::Scalar &bColor = cv::Scalar(0, 0, 0), int thickness = 1);
 };
 
 

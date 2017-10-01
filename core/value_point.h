@@ -10,7 +10,7 @@ public:
     cv::Point p;
     T value;
 
-    ValuePoint(cv::Point p, T value) : p(p), value(value) {}
+    ValuePoint(const cv::Point &p, T value) : p(p), value(value) {}
 
     bool operator<(const ValuePoint &rhs) const {
         return value < rhs.value;

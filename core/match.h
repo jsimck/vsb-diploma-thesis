@@ -17,7 +17,7 @@ public:
     float score;
 
     // Constructors
-    Match(const Template *tpl, cv::Rect &bb, const float score) : tpl(tpl), objBB(bb), score(score) {}
+    Match(const Template *tpl, cv::Rect &bb, float score) : tpl(tpl), objBB(bb), score(score) {}
 
     // Friends
     bool operator==(const Match &rhs) const;

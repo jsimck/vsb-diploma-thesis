@@ -24,13 +24,3 @@ std::string Utils::matType2Str(int type) {
 
     return r;
 }
-
-cv::Vec3b Utils::hsv2bgr(cv::Vec3f &hsv) {
-    cv::Mat src_hsv(1, 1, CV_32FC3), dst_bgr(1, 1, CV_8UC3);
-
-    // Set color and convert
-    src_hsv.at<cv::Vec3f>(0) = hsv;
-    cv::cvtColor(src_hsv, dst_bgr, CV_HSV2BGR);
-
-    return dst_bgr.at<cv::Vec3b>(0);
-}

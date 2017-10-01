@@ -20,7 +20,7 @@ public:
     std::vector<Template *> candidates;
 
     // Constructors
-    Window(const int x = 0, const int y = 0, int width = 0, int height = 0, int edgels = 0, std::vector<Template *> candidates = {})
+    explicit Window(int x = 0, int y = 0, int width = 0, int height = 0, int edgels = 0, const std::vector<Template *> &candidates = {})
         : x(x), y(y), width(width), height(height), edgels(edgels), candidates(candidates) {}
 
     // Methods

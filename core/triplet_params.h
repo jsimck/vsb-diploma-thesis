@@ -20,7 +20,7 @@ public:
     int sOffsetY; // Scene offset Y
 
     // Constructors
-    TripletParams(const float offsetX, const float offsetY, const float stepX, const float stepY, const int sOffsetX = 0, const int sOffsetY = 0) :
+    TripletParams(float offsetX, float offsetY, float stepX, float stepY, int sOffsetX = 0, int sOffsetY = 0) :
         offsetX(offsetX), offsetY(offsetY), stepX(stepX), stepY(stepY), sOffsetX(sOffsetX), sOffsetY(sOffsetY) {}
     TripletParams(int width, int height, const cv::Size &grid, int sOffsetX = 0, int sOffsetY = 0);
 };

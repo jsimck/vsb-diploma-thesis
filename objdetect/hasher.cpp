@@ -5,7 +5,7 @@
 
 const int Hasher::IMG_16BIT_MAX = 65535; // <0, 65535> => 65536 values
 
-cv::Vec3f Hasher::surfaceNormal(const cv::Mat &src, const cv::Point c) {
+cv::Vec3f Hasher::surfaceNormal(const cv::Mat &src, const cv::Point &c) {
     assert(!src.empty());
     assert(src.type() == CV_32FC1);
 
@@ -16,7 +16,7 @@ cv::Vec3f Hasher::surfaceNormal(const cv::Mat &src, const cv::Point c) {
     return cv::normalize(d);
 }
 
-cv::Vec2i Hasher::relativeDepths(const cv::Mat &src, const cv::Point c, const cv::Point p1, const cv::Point p2) {
+cv::Vec2i Hasher::relativeDepths(const cv::Mat &src, const cv::Point &c, const cv::Point &p1, const cv::Point &p2) {
     assert(!src.empty());
     assert(src.type() == CV_32FC1);
 
@@ -26,7 +26,7 @@ cv::Vec2i Hasher::relativeDepths(const cv::Mat &src, const cv::Point c, const cv
     );
 }
 
-uchar Hasher::quantizeSurfaceNormal(cv::Vec3f normal) {
+uchar Hasher::quantizeSurfaceNormal(const cv::Vec3f &normal) {
     // Normal z coordinate should not be < 0
     assert(normal[2] >= 0);
 
@@ -107,7 +107,7 @@ void Hasher::generateTriplets(std::vector<HashTable> &tables) {
     } while (duplicate);
 }
 
-void Hasher::initializeBinRanges(const std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info) {
+void Hasher::initializeBinRanges(std::vector<Group> &groups, std::vector<HashTable> &tables, DataSetInfo &info) {
     // Checks
     assert(!tables.empty());
     assert(!groups.empty());
@@ -175,7 +175,7 @@ void Hasher::initializeBinRanges(const std::vector<Group> &groups, std::vector<H
     }
 }
 
-void Hasher::initialize(const std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info) {
+void Hasher::initialize(std::vector<Group> &groups, std::vector<HashTable> &tables, DataSetInfo &info) {
     // Init hash tables
     tables.reserve(tablesCount);
     generateTriplets(tables);

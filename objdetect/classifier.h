@@ -56,7 +56,7 @@ public:
     Matcher matcher;
 
     // Constructors
-    Classifier(std::string basePath = "data/", std::vector<std::string> folders = {}, std::string scenePath = "scene_01/", std::string sceneName = "0000.png");
+    explicit Classifier(std::string basePath = "data/", std::vector<std::string> folders = {}, std::string scenePath = "scene_01/", std::string sceneName = "0000.png");
 
     // Methods
     void classify();

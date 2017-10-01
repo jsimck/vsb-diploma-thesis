@@ -25,8 +25,8 @@ private:
     float tMatch; // Factor of minEdgels window should contain to be classified as valid [30% -> 0.3f]
 public:
     // Statics
-    static void filterSobel(cv::Mat &src, cv::Mat &dst);
-    static void thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float max);
+    static void filterSobel(const cv::Mat &src, cv::Mat &dst);
+    static void thresholdMinMax(const cv::Mat &src, cv::Mat &dst, float min, float max);
 
     // Constructors
     explicit Objectness(uint step = 5, float tMin = 0.01f, float tMax = 0.1f, float tMatch = 0.3f)

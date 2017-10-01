@@ -23,7 +23,6 @@ public:
     // | CV_64F   |  6  |  14  |  22  |  30  |
     // ---------------------------------------
     static std::string matType2Str(int type);
-    static cv::Vec3b hsv2bgr(cv::Vec3f &hsv);
 
     template<typename T>
     static void removeIndex(std::vector<T> &vector, const std::vector<size_t> &to_remove) {

@@ -4,7 +4,7 @@ uint Parser::idCounter = 0;
 
 void Parser::parse(std::vector<Group> &groups, DataSetInfo &info) {
     // Checks
-    assert(folders.size() > 0);
+    assert(!folders.empty());
     int parsedCount = 0;
 
     // Reset data set
@@ -14,7 +14,7 @@ void Parser::parse(std::vector<Group> &groups, DataSetInfo &info) {
     for (auto &tplName : folders) {
         std::vector<Template> templates;
         parseTemplate(templates, info, tplName);
-        groups.push_back(Group(tplName, templates));
+        groups.emplace_back(tplName, templates);
         parsedCount += templates.size();
         std::cout << "  |_ Parsed: " << tplName << ", templates size: " << templates.size() << std::endl;
     }
@@ -22,15 +22,15 @@ void Parser::parse(std::vector<Group> &groups, DataSetInfo &info) {
     std::cout << "  |_ Parsed total: " << parsedCount << " templates" << std::endl;
 }
 
-void Parser::parseTemplate(std::vector<Template> &templates, DataSetInfo &info, std::string tplName) {
+void Parser::parseTemplate(std::vector<Template> &templates, DataSetInfo &info, const std::string &tplName) {
     // Load obj_gt
     cv::FileStorage fs;
     fs.open(basePath + tplName + "/gt.yml", cv::FileStorage::READ);
     assert(fs.isOpened());
 
-    const uint size = static_cast<uint>((indices.size() > 0) ? indices.size() : tplCount);
+    const uint size = static_cast<uint>((!indices.empty()) ? indices.size() : tplCount);
     for (uint i = 0; i < size; i++) {
-        uint tplIndex = static_cast<uint>((indices.size() > 0) ? indices[i] : i);
+        uint tplIndex = static_cast<uint>((!indices.empty()) ? indices[i] : i);
         std::string index = "tpl_" + std::to_string(tplIndex);
         cv::FileNode objGt = fs[index];
 
@@ -44,7 +44,7 @@ void Parser::parseTemplate(std::vector<Template> &templates, DataSetInfo &info, 
     assert(fs.isOpened());
 
     for (uint i = 0; i < size; i++) {
-        uint tplIndex = static_cast<uint>((indices.size() > 0) ? indices[i] : i);
+        uint tplIndex = static_cast<uint>((!indices.empty()) ? indices[i] : i);
         std::string index = "tpl_" + std::to_string(tplIndex);
         cv::FileNode objGt = fs[index];
 
@@ -55,7 +55,7 @@ void Parser::parseTemplate(std::vector<Template> &templates, DataSetInfo &info, 
     fs.release();
 }
 
-Template Parser::parseGt(const uint index, const std::string path, cv::FileNode &gtNode, DataSetInfo &info) {
+Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNode, DataSetInfo &info) {
     // Init template param matrices
     std::vector<float> vCamRm2c, vCamTm2c;
     std::vector<int> vObjBB;
@@ -113,11 +113,11 @@ Template Parser::parseGt(const uint index, const std::string path, cv::FileNode 
     assert(src.type() == CV_32FC1);
     assert(srcDepth.type() == CV_32FC1);
 
-    return Template(
+    return {
         idCounter, fileName, src, srcHSV, srcDepth, objBB,
         cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone(),
         cv::Vec3d(vCamTm2c[0], vCamTm2c[1], vCamTm2c[2])
-    );
+    };
 }
 
 void Parser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
@@ -175,11 +175,11 @@ void Parser::setTplCount(uint tplCount) {
 }
 
 void Parser::setFolders(const std::vector<std::string> &folders) {
-    assert(folders.size() > 0);
+    assert(!folders.empty());
     this->folders = folders;
 }
 
 void Parser::setIndices(const std::vector<uint> &indices) {
-    assert(indices.size() > 0);
+    assert(!indices.empty());
     this->indices = indices;
 }

@@ -23,7 +23,7 @@ public:
 
     // Constructors
     HashTable() {}
-    HashTable(const Triplet triplet) : triplet(triplet) {}
+    HashTable(const Triplet &triplet) : triplet(triplet) {}
 
     // Methods
     void pushUnique(const HashKey &key, Template &t);

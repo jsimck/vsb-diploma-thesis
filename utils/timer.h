@@ -11,6 +11,7 @@ private:
     std::chrono::time_point<clock> beginning;
 public:
     Timer() : beginning(clock::now()) {}
+
     double elapsed() const;
     void reset();
 };

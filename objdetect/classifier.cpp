@@ -38,13 +38,13 @@ Classifier::Classifier(std::string basePath, std::vector<std::string> folders, s
 void Classifier::parseTemplates() {
     // Checks
     assert(basePath.length() > 0);
-    assert(folders.size() > 0);
+    assert(!folders.empty());
 
     // Parse
     std::cout << "Parsing... " << std::endl;
     Timer t;
     parser.parse(groups, info);
-    assert(groups.size() > 0);
+    assert(!groups.empty());
     std::cout << "  |_ Smallest template found: " << info.smallestTemplate << std::endl;
     std::cout << "  |_ Largest template found: " << info.maxTemplate << std::endl;
     std::cout << "DONE! " << groups.size() << " template groups parsed, took: " << t.elapsed() << " s" << std::endl << std::endl;
@@ -85,7 +85,7 @@ void Classifier::loadScene() {
 
 void Classifier::extractMinEdgels() {
     // Checks
-    assert(groups.size() > 0);
+    assert(!groups.empty());
 
     // Extract min edgels
     std::cout << "Extracting min edgels... ";
@@ -97,19 +97,19 @@ void Classifier::extractMinEdgels() {
 
 void Classifier::trainHashTables() {
     // Checks
-    assert(groups.size() > 0);
+    assert(!groups.empty());
 
     // Train hash tables
     std::cout << "Training hash tables... " << std::endl;
     Timer t;
     hasher.train(groups, tables, info);
-    assert(tables.size() > 0);
+    assert(!tables.empty());
     std::cout << "DONE! took: " << t.elapsed() << "s, " << tables.size() << " hash tables generated" <<std::endl << std::endl;
 }
 
 void Classifier::trainTemplates() {
     // Checks
-    assert(groups.size() > 0);
+    assert(!groups.empty());
 
     // Train hash tables
     std::cout << "Training templates for template matching... " << std::endl;
@@ -143,7 +143,7 @@ void Classifier::detectObjectness() {
 
 void Classifier::verifyTemplateCandidates() {
     // Checks
-    assert(tables.size() > 0);
+    assert(!tables.empty());
 
     // Verification started
     std::cout << "Verification of template candidates, using trained HashTables started... " << std::endl;
@@ -152,15 +152,14 @@ void Classifier::verifyTemplateCandidates() {
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
 #ifndef NDEBUG
-//    cv::Size grid = hasher.getGrid();
-//    Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, info, grid);
+    Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, info, hasher.getGrid(), false);
     Visualizer::visualizeWindows(this->scene, windows, false);
 #endif
 }
 
 void Classifier::matchTemplates() {
     // Checks
-    assert(windows.size() > 0);
+    assert(!windows.empty());
 
     // Verification started
     std::cout << "Template matching started... " << std::endl;
@@ -269,7 +268,7 @@ void Classifier::setScenePath(const std::string &scenePath) {
 }
 
 void Classifier::setFolders(const std::vector<std::string> &folders) {
-    assert(folders.size() > 0);
+    assert(!folders.empty());
     this->folders = folders;
 }
 
@@ -279,7 +278,7 @@ void Classifier::setSceneName(const std::string &sceneName) {
 }
 
 void Classifier::setIndices(const std::vector<uint> &indices)  {
-    assert(indices.size() > 0);
+    assert(!indices.empty());
     this->indices = indices;
     parser.setIndices(indices);
 }
