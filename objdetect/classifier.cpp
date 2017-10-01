@@ -117,7 +117,7 @@ void Classifier::trainTemplates() {
     matcher.train(groups);
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
-#ifdef NDEBUG
+#ifndef NDEBUG
 //    for (auto &table : tables) {
 //        std::cout << table << std::endl;
 //    }
@@ -137,7 +137,7 @@ void Classifier::detectObjectness() {
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
 #ifndef NDEBUG
-    Visualizer::visualizeWindows(this->scene, windows, false);
+//    Visualizer::visualizeWindows(this->scene, windows, false);
 #endif
 }
 
@@ -152,8 +152,8 @@ void Classifier::verifyTemplateCandidates() {
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
 #ifndef NDEBUG
-    cv::Size grid = hasher.getGrid();
-    Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, info, grid);
+//    cv::Size grid = hasher.getGrid();
+//    Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, info, grid);
     Visualizer::visualizeWindows(this->scene, windows, false);
 #endif
 }

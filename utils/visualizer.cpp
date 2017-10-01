@@ -1,8 +1,6 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 #include "visualizer.h"
-#include "../core/triplet.h"
-#include "utils.h"
 #include "../objdetect/hasher.h"
 
 cv::Vec3b Visualizer::heatMapValue(int min, int max, int value) {

@@ -3,6 +3,7 @@
 
 #include <opencv2/core/types.hpp>
 #include <ostream>
+#include <random>
 #include "triplet_params.h"
 
 /**
@@ -14,20 +15,23 @@
  */
 struct Triplet {
 private:
-    static cv::Point randPoint(const cv::Size grid);
-    static cv::Point randChildPoint(const int min = -4, const int max = 4);
+    static std::random_device seed;
+    static std::mt19937 rng;
+
+    static cv::Point randPoint(cv::Size grid);
+    static cv::Point randChildPoint(int min = -4, int max = 4);
 public:
     cv::Point c;
     cv::Point p1;
     cv::Point p2;
 
     // Statics
-    static float random(const float min = 0.0f, const float max = 1.0f);
-    static Triplet create(const cv::Size &grid, const int distance = 3); // max distance from center triplet
+    static float random(float min = 0.0f, float max = 1.0f);
+    static Triplet create(const cv::Size &grid, int distance = 3); // max distance from center triplet
 
     // Constructors
     Triplet() {}
-    Triplet(const cv::Point c, const cv::Point p1, const cv::Point p2) : c(c), p1(p1), p2(p2) {}
+    Triplet(cv::Point &c, cv::Point &p1, cv::Point &p2) : c(c), p1(p1), p2(p2) {}
 
     // Methods
     cv::Point getPoint(int index, const TripletParams &params);

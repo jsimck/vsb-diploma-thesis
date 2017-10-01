@@ -1,22 +1,19 @@
-#include <random>
 #include <functional>
 #include <iostream>
-#include <cassert>
 #include <opencv2/core/mat.hpp>
 #include <opencv/cv.hpp>
 #include "triplet.h"
 
-std::random_device seed;
-typedef std::uniform_real_distribution<float> distribution;
-static auto engine = std::mt19937(1);
-static auto uniformGenerator = std::bind(distribution(0.0f, 1.0f), engine);
+std::random_device Triplet::seed;
+std::mt19937 Triplet::rng(Triplet::seed());
 
 float Triplet::random(const float min, const float max) {
     float rnd;
+    std::uniform_real_distribution<float> randomizer(0.0f, 1.0f);
 
-#pragma omp critical (random)
+    #pragma omp critical (random)
     {
-        rnd = static_cast<float>(uniformGenerator());
+        rnd = randomizer(Triplet::rng);
     }
 
     return roundf(rnd * (max - min) + min);
@@ -30,8 +27,8 @@ cv::Point Triplet::randPoint(const cv::Size grid) {
 }
 
 cv::Point Triplet::randChildPoint(int min, int max) {
-    int y = static_cast<int>(random(min, max));
-    int x = static_cast<int>(random(min, max));
+    auto y = static_cast<int>(random(min, max));
+    auto x = static_cast<int>(random(min, max));
 
     // Check if x || y equals zero, if yes, generate again
     while (x == 0 || y == 0) {
@@ -70,7 +67,7 @@ Triplet Triplet::create(const cv::Size &grid, const int distance) {
         || p2.y >= grid.height
     );
 
-    return Triplet(c, p1, p2);
+    return {c, p1, p2};
 }
 
 cv::Point Triplet::getPoint(int x, int y, const TripletParams &params) {

@@ -92,7 +92,6 @@ fabric.properties
 *.hex
 
 # Debug files
-*.dSYM/
 *.su
 .gitignore
 

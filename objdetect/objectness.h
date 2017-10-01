@@ -29,7 +29,7 @@ public:
     static void thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float max);
 
     // Constructors
-    Objectness(uint step = 5, float tMin = 0.01f, float tMax = 0.1f, float tMatch = 0.3f)
+    explicit Objectness(uint step = 5, float tMin = 0.01f, float tMax = 0.1f, float tMatch = 0.3f)
         : step(step), tMin(tMin), tMax(tMax), tMatch(tMatch) {}
 
     // Methods

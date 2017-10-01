@@ -13,14 +13,6 @@ public:
     ValuePoint(cv::Point p, T value) : p(p), value(value) {}
 
     bool operator<(const ValuePoint &rhs) const {
-        if (value < rhs.value) {
-            return true;
-        }
-
-        if (rhs.value < value) {
-            return false;
-        }
-
         return value < rhs.value;
     }
 

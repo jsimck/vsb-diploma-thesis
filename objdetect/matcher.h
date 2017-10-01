@@ -36,17 +36,17 @@ private:
 
     // Tests
     inline bool testObjectSize(float scale); // Test I
-    inline int testSurfaceNormal(const uchar normal, Window &window, const cv::Mat &sceneDepth, const cv::Point &stable); // Test II
-    inline int testGradients(const uchar gradient, Window &window, const cv::Mat &sceneGray, const cv::Point &edge); // Test III
+    inline int testSurfaceNormal(uchar normal, Window &window, const cv::Mat &sceneDepth, const cv::Point &stable); // Test II
+    inline int testGradients(uchar gradient, Window &window, const cv::Mat &sceneGray, const cv::Point &edge); // Test III
     inline int testDepth(int physicalDiameter, std::vector<int> &depths); // Test IV
-    inline int testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &stable); // Test V
+    inline int testColor(cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &stable); // Test V
 public:
     // Static methods
     static int median(std::vector<int> &values);
     static float orientationGradient(const cv::Mat &src, cv::Point &p);
 
     // Constructor
-    Matcher(uint pointsCount = 100, float tMatch = 0.6f, float tOverlap = 0.1f, uchar tColorTest = 5, cv::Range neighbourhood = cv::Range(5, 5))
+    explicit Matcher(uint pointsCount = 100, float tMatch = 0.6f, float tOverlap = 0.1f, uchar tColorTest = 5, cv::Range neighbourhood = cv::Range(5, 5))
         : pointsCount(pointsCount), tMatch(tMatch), tOverlap(tOverlap), tColorTest(tColorTest), neighbourhood(neighbourhood) {}
 
     // Methods

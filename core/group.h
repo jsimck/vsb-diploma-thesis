@@ -2,6 +2,7 @@
 #define VSB_SEMESTRAL_PROJECT_GROUP_H
 
 #include <string>
+#include <utility>
 #include "template.h"
 
 /**
@@ -16,8 +17,8 @@ public:
 
     // Constructors
     Group() {}
-    Group(const std::string folderName, std::vector<Template> templates)
-            : folderName(folderName), templates(templates) {}
+    Group(const std::string &folderName, std::vector<Template> templates)
+            : folderName(std::move(folderName)), templates(templates) {}
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_GROUP_H

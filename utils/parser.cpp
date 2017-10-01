@@ -1,5 +1,4 @@
 #include "parser.h"
-#include <cassert>
 
 uint Parser::idCounter = 0;
 

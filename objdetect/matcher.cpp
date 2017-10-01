@@ -1,11 +1,9 @@
 #include <random>
 #include <algorithm>
 #include "matcher.h"
-#include "../core/triplet.h"
 #include "hasher.h"
 #include "../utils/timer.h"
 #include "objectness.h"
-#include "../utils/visualizer.h"
 
 float Matcher::orientationGradient(const cv::Mat &src, cv::Point &p) {
     assert(!src.empty());
@@ -18,7 +16,7 @@ float Matcher::orientationGradient(const cv::Mat &src, cv::Point &p) {
 }
 
 int Matcher::median(std::vector<int> &values) {
-    assert(values.size() > 0);
+    assert(!values.empty());
 
     std::nth_element(values.begin(), values.begin() + values.size() / 2, values.end());
     return values[values.size() / 2];
@@ -147,7 +145,7 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
 }
 
 void Matcher::extractFeatures(std::vector<Group> &groups) {
-    assert(groups.size() > 0);
+    assert(!groups.empty());
 
     for (auto &group : groups) {
         const size_t iSize = group.templates.size();
@@ -251,7 +249,7 @@ int Matcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
     return score;
 }
 
-// TODO consider eroding object in training stage to be more tollerant to inaccuracy on the edges
+// TODO consider eroding object in training stage to be more tolerant to inaccuracy on the edges
 int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &stable) {
     for (int y = neighbourhood.start; y <= neighbourhood.end; ++y) {
         for (int x = neighbourhood.start; x <= neighbourhood.end; ++x) {
@@ -263,8 +261,8 @@ int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &scene
                 offsetP.x < 0 || offsetP.y < 0) continue;
 
             // Normalize scene HSV value
-            int hT = static_cast<int>(HSV[0]);
-            int hS = static_cast<int>(normalizeHSV(sceneHSV.at<cv::Vec3b>(offsetP))[0]);
+            auto hT = static_cast<int>(HSV[0]);
+            auto hS = static_cast<int>(normalizeHSV(sceneHSV.at<cv::Vec3b>(offsetP))[0]);
 
             if (std::abs(hT - hS) < tColorTest) return 1;
         }
@@ -274,7 +272,7 @@ int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &scene
 }
 
 void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
-    assert(matches.size() > 0);
+    assert(!matches.empty());
 
     // Sort all matches by their highest score
     std::sort(matches.rbegin(), matches.rend());
@@ -335,7 +333,7 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
     assert(sceneHSV.type() == CV_8UC3);
     assert(sceneGray.type() == CV_32FC1);
     assert(sceneDepth.type() == CV_32FC1);
-    assert(windows.size() > 0);
+    assert(!windows.empty());
 
     // Min threshold of matched feature points
     const auto minThreshold = static_cast<int>(pointsCount * tMatch); // 60%
@@ -344,14 +342,10 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
     // Stop template matching time
     Timer tMatching;
 
-    #pragma omp parallel for
+//    #pragma omp parallel for
     for (size_t l = 0; l < lSize; l++) {
         for (auto &candidate : windows[l].candidates) {
             assert(candidate != nullptr);
-
-//#ifndef NDEBUG
-//            Visualizer::visualizeTemplate(*candidate, "Template feature points");
-//#endif
 
             // Scores for each test
             float sII = 0, sIII = 0, sIV = 0, sV = 0;

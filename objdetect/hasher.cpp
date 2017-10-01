@@ -2,7 +2,6 @@
 #include "hasher.h"
 #include "../utils/utils.h"
 #include "../utils/timer.h"
-#include "../utils/visualizer.h"
 
 const int Hasher::IMG_16BIT_MAX = 65535; // <0, 65535> => 65536 values
 
@@ -68,7 +67,7 @@ uchar Hasher::quantizeDepth(float depth, const std::vector<cv::Range> &ranges, u
     // Depth should have max value of <-65536, +65536>
     assert(depth >= -IMG_16BIT_MAX && depth <= IMG_16BIT_MAX);
     assert(ranges.size() == binCount);
-    assert(ranges.size() > 0);
+    assert(!ranges.empty());
 
     // Loop through histogram ranges and return quantized index
     const size_t iSize = ranges.size();
@@ -110,8 +109,8 @@ void Hasher::generateTriplets(std::vector<HashTable> &tables) {
 
 void Hasher::initializeBinRanges(const std::vector<Group> &groups, std::vector<HashTable> &tables, const DataSetInfo &info) {
     // Checks
-    assert(tables.size() > 0);
-    assert(groups.size() > 0);
+    assert(!tables.empty());
+    assert(!groups.empty());
 
     const size_t iSize = tables.size();
 
@@ -188,7 +187,7 @@ void Hasher::initialize(const std::vector<Group> &groups, std::vector<HashTable>
 
 void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &tables, DataSetInfo &info) {
     // Checks
-    assert(groups.size() > 0);
+    assert(!groups.empty());
     assert(tablesCount > 0);
     assert(grid.width > 0);
     assert(grid.height > 0);

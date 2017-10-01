@@ -1,5 +1,4 @@
 #include "template.h"
-#include "../utils/utils.h"
 
 void Template::vote() {
     votes++;

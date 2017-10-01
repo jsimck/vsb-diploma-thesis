@@ -1,5 +1,4 @@
 #include "objectness.h"
-#include <cassert>
 #include "../utils/utils.h"
 
 void Objectness::filterSobel(cv::Mat &src, cv::Mat &dst) {

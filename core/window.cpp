@@ -21,7 +21,7 @@ cv::Size Window::size() {
 }
 
 bool Window::hasCandidates() {
-    return candidates.size() > 0;
+    return !candidates.empty();
 }
 
 void Window::pushUnique(Template *t, uint N, int v) {
