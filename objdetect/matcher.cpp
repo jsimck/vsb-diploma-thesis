@@ -5,6 +5,7 @@
 #include "hasher.h"
 #include "../utils/timer.h"
 #include "objectness.h"
+#include "../utils/visualizer.h"
 
 float Matcher::orientationGradient(const cv::Mat &src, const cv::Point &p) {
     assert(!src.empty());
@@ -137,10 +138,6 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
 
             assert(edgePoints.size() > pointsCount);
             assert(stablePoints.size() > pointsCount);
-
-#ifndef NDEBUG
-//            Visualizer::visualizeTemplate(t, "Template feature points");
-#endif
         }
     }
 }
@@ -181,6 +178,10 @@ void Matcher::extractFeatures(std::vector<Group> &groups) {
                 assert(t.features.normals[j] >= 0);
                 assert(t.features.normals[j] < 8);
             }
+
+#ifndef NDEBUG
+//            Visualizer::visualizeTemplate(t, "Template feature points");
+#endif
         }
     }
 }
