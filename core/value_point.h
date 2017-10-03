@@ -29,7 +29,7 @@ public:
     }
 
     friend std::ostream &operator<<(std::ostream &os, const ValuePoint &point) {
-        os << "p: (" << point.p.x << ", " << point.p.y << ") value: " << static_cast<int>(point.value);
+        os << "p: (" << point.p.x << ", " << point.p.y << ") value: " << point.value;
 
         return os;
     }

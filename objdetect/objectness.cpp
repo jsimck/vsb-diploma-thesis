@@ -5,32 +5,24 @@ void Objectness::filterSobel(const cv::Mat &src, cv::Mat &dst) {
     assert(!src.empty());
     assert(src.type() == CV_32FC1);
 
-    int filterX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
-    int filterY[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
-
     if (dst.empty()) {
         dst = cv::Mat(src.size(), src.type());
     }
 
+    assert(dst.type() == CV_32FC1);
+
     // Blur image little bit to reduce noise
     cv::GaussianBlur(src, dst, cv::Size(3, 3), 0, 0);
 
-    for (int y = 1; y < src.rows - 1; y++) {
-        for (int x = 1; x < src.cols - 1; x++) {
-            int i = 0;
-            float sumX = 0, sumY = 0;
-            for (int yy = 0; yy < 3; yy++) {
-                for (int xx = 0; xx < 3; xx++) {
-                    float px = src.at<float>(yy + y - 1, x + xx - 1);
-                    sumX += px * filterX[i];
-                    sumY += px * filterY[i];
-                    i++;
-                }
-            }
+    // Sobel
+    cv::Mat gradX, gradY;
+    cv::Sobel(src, gradX, CV_32FC1, 1, 0, 3, 2, 0);
+    cv::Sobel(src, gradY, CV_32FC1, 0, 1, 3, 2, 0);
 
-            dst.at<float>(y, x) = sqrt(SQR(sumX) + SQR(sumY));
-        }
-    }
+    // Convert to abs values and merge XY masks to one image
+    cv::absdiff(gradX, cv::Scalar(0.0f), gradX);
+    cv::absdiff(gradY, cv::Scalar(0.0f), gradY);
+    addWeighted(gradX, 0.5, gradY, 0.5, 0, dst);
 }
 
 void Objectness::thresholdMinMax(const cv::Mat &src, cv::Mat &dst, float min, float max) {

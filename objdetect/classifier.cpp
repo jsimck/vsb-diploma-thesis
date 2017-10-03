@@ -29,9 +29,9 @@ Classifier::Classifier(std::string basePath, std::vector<std::string> folders, s
 
     // Init template matcher
     matcher.setPointsCount(100);
-    matcher.setTMatch(0.6f);
+    matcher.setTMatch(0.4f);
     matcher.setTOverlap(0.1f);
-    matcher.setNeighbourhood(cv::Range(-2, 2)); // 5x5 -> [-2, -1, 0, 1, 2]
+    matcher.setNeighbourhood(cv::Range(-6, 6)); // 5x5 -> [-2, -1, 0, 1, 2]
     matcher.setTColorTest(3);
 }
 
