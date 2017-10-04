@@ -332,14 +332,16 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
     cv::Mat sceneAngle, sceneMagnitude;
     Processing::orientationGradients(sceneGray, sceneAngle, sceneMagnitude);
 
-    #pragma omp parallel for
-    for (size_t l = 0; l < lSize; l++) {
+//    #pragma omp parallel for
+    for (size_t l = lSize - 1; l >= 0; l--) {
         for (auto &candidate : windows[l].candidates) {
             assert(candidate != nullptr);
 
+#ifndef NDEBUG
+            std::vector<int> tIITrue, tIIITrue, tVTrue;
+#endif
+
             // Scores for each test
-            int result = 0;
-            cv::Scalar colorGreen(0, 1.0f, 0), colorRed(0, 0, 1.0f);
             float sII = 0, sIII = 0, sIV = 0, sV = 0;
             std::vector<int> depths;
 
@@ -347,20 +349,40 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
             if (!testObjectSize(1.0f)) continue;
 
             // Test II
-            #pragma omp parallel for
+//            #pragma omp parallel for
             for (uint i = 0; i < pointsCount; i++) {
+#ifndef NDEBUG
+                int tmpResult = testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
+                sII += tmpResult;
+                tIITrue.push_back(tmpResult);
+#else
                 #pragma omp atomic
                 sII += testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
+#endif
             }
+
+#ifndef NDEBUG
+            Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints, neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, false);
+#endif
 
             if (sII < minThreshold) continue;
 
             // Test III
-            #pragma omp parallel for
+//            #pragma omp parallel for
             for (uint i = 0; i < pointsCount; i++) {
+#ifndef NDEBUG
+                int tmpResult = testGradients(candidate->features.gradients[i], windows[l], sceneAngle, sceneMagnitude, candidate->edgePoints[i]);
+                sIII += tmpResult;
+                tIIITrue.push_back(tmpResult);
+#else
                 #pragma omp atomic
                 sIII += testGradients(candidate->features.gradients[i], windows[l], sceneAngle, sceneMagnitude, candidate->edgePoints[i]);
+#endif
             }
+
+#ifndef NDEBUG
+            Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints, neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, false);
+#endif
 
             if (sIII < minThreshold) continue;
 
@@ -373,11 +395,21 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
             if (sIV < minThreshold) continue;
 
             // Test V
-            #pragma omp parallel for
+//            #pragma omp parallel for
             for (uint i = 0; i < pointsCount; i++) {
+#ifndef NDEBUG
+                int tmpResult = testColor(candidate->features.colors[i], windows[l], sceneHSV, candidate->stablePoints[i]);
+                sV += tmpResult;
+                tVTrue.push_back(tmpResult);
+#else
                 #pragma omp atomic
                 sV += testColor(candidate->features.colors[i], windows[l], sceneHSV, candidate->stablePoints[i]);
+#endif
             }
+
+#ifndef NDEBUG
+            Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints, neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, false);
+#endif
 
             if (sV < minThreshold) continue;
 
@@ -404,10 +436,8 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
     std::cout << "  |_ Template matching took: " << tMatching.elapsed() << "s" << std::endl;
 
-    // Stop non maxima time
-    Timer tMaxima;
-
     // Run non maxima suppression on matches
+    Timer tMaxima;
     nonMaximaSuppression(matches);
     std::cout << "  |_ Non maxima suppression took: " << tMaxima.elapsed() << "s" << std::endl;
 }

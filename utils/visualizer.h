@@ -22,6 +22,9 @@ public:
 
     // Templates
     static void visualizeTemplate(Template &tpl, const char *title = nullptr);
+    static void visualizeTests(Template &tpl, const cv::Mat &sceneHSV, Window &window, std::vector<cv::Point> &stablePoints, std::vector<cv::Point> &edgePoints,
+                               cv::Range &neighbourhood, std::vector<int> &scoreII, std::vector<int> &scoreIII, float scoreIV,
+                               std::vector<int> &scoreV, int pointsCount, bool continuous = true, const char *title = nullptr);
 
     // Utils
     static void setLabel(cv::Mat &im, const std::string &label, const cv::Point &origin, int padding = 1, int fontFace = CV_FONT_HERSHEY_SIMPLEX, double scale = 0.4,

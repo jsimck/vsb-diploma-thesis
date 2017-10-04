@@ -152,8 +152,8 @@ void Classifier::verifyTemplateCandidates() {
     std::cout << "DONE! took: " << t.elapsed() << "s" << std::endl << std::endl;
 
 #ifndef NDEBUG
-    Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, info, hasher.getGrid(), false);
-    Visualizer::visualizeWindows(this->scene, windows, false);
+//    Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, info, hasher.getGrid(), false);
+//    Visualizer::visualizeWindows(this->scene, windows, false);
 #endif
 }
 

@@ -277,3 +277,82 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
 
     cv::waitKey(0);
 }
+
+void Visualizer::visualizeTests(Template &tpl, const cv::Mat &sceneHSV, Window &window, std::vector<cv::Point> &stablePoints, std::vector<cv::Point> &edgePoints,
+                                cv::Range &neighbourhood, std::vector<int> &scoreII, std::vector<int> &scoreIII, float scoreIV,
+                                std::vector<int> &scoreV, int pointsCount, bool continuous, const char *title) {
+    // Init common
+    std::ostringstream oss;
+    cv::Scalar colorRed(0, 0, 255), colorGreen(0, 255, 0), colorWhite(255, 255, 255), colorBlue(0, 255, 0);
+    cv::Point offsetPStart(neighbourhood.start, neighbourhood.start), offsetPEnd(neighbourhood.end, neighbourhood.end);
+
+    // Convert matrices
+    cv::Mat result, resultScene;
+    cv::cvtColor(tpl.srcHSV, result, CV_HSV2BGR);
+    cv::cvtColor(sceneHSV, resultScene, CV_HSV2BGR);
+    int scoreVTrue = 0, scoreIIITrue = 0, scoreIITrue = 0, currentTest = 0;
+
+    // Draw from end to enable continuous drawing
+    if (!scoreV.empty()) {
+        currentTest = 5;
+        for (int i = 0; i < pointsCount; i++) {
+            const cv::Scalar color = scoreV[i] == 0 ? colorRed : colorGreen;
+            cv::rectangle(resultScene, window.tl() + stablePoints[i] + offsetPStart, window.tl() + stablePoints[i] + offsetPEnd, color, 1);
+            cv::circle(result, tpl.objBB.tl() + stablePoints[i], 2, color, -1);
+        }
+    } else if (!scoreIII.empty()) {
+        currentTest = 3;
+        for (int i = 0; i < pointsCount; i++) {
+            const cv::Scalar color = scoreIII[i] == 0 ? colorRed : colorGreen;
+            cv::rectangle(resultScene, window.tl() + edgePoints[i] + offsetPStart, window.tl() + edgePoints[i] + offsetPEnd, color, 1);
+            cv::circle(result, tpl.objBB.tl() + edgePoints[i], 2, color, -1);
+        }
+    } else if (!scoreII.empty()) {
+        currentTest = 2;
+        for (int i = 0; i < pointsCount; i++) {
+            const cv::Scalar color = scoreII[i] == 0 ? colorRed : colorGreen;
+            cv::rectangle(resultScene, window.tl() + stablePoints[i] + offsetPStart, window.tl() + stablePoints[i] + offsetPEnd, color, 1);
+            cv::circle(result, tpl.objBB.tl() + stablePoints[i], 2, color, -1);
+        }
+    }
+
+    // Count points
+    for (int i = 0; i < pointsCount; i++) {
+        if (!scoreII.empty()) {
+            scoreIITrue += scoreII[i] == 0 ? 0 : 1;
+        }
+
+        if (!scoreIII.empty()) {
+            scoreIIITrue += scoreIII[i] == 0 ? 0 : 1;
+        }
+
+        if (!scoreV.empty()) {
+            scoreVTrue += scoreV[i] == 0 ? 0 : 1;
+        }
+    }
+
+    // Draw window rect and info labels
+    cv::rectangle(resultScene, window.tl(), window.br(), colorWhite, 1);
+    oss.str("");
+    oss << "II: " << scoreIITrue << "/" << pointsCount;
+    Visualizer::setLabel(resultScene, oss.str(), window.tr() + cv::Point(5, 10), 1, 0, 0.4, currentTest == 2 ? colorGreen : colorWhite);
+    oss.str("");
+    oss << "III: " << scoreIIITrue << "/" << pointsCount;
+    Visualizer::setLabel(resultScene, oss.str(), window.tr() + cv::Point(5, 28), 1, 0, 0.4, currentTest == 3 ? colorGreen : colorWhite);
+    oss.str("");
+    oss << "IV: " << scoreIV;
+    Visualizer::setLabel(resultScene, oss.str(), window.tr() + cv::Point(5, 46));
+    oss.str("");
+    oss << "V: " << scoreVTrue << "/" << pointsCount;
+    Visualizer::setLabel(resultScene, oss.str(), window.tr() + cv::Point(5, 64), 1, 0, 0.4, currentTest == 5 ? colorGreen : colorWhite);
+
+    // Form title
+    oss.str("");
+    oss << title;
+    oss << " - scene";
+
+    // Show results
+    cv::imshow(title == nullptr ? "Hashing visualization" : oss.str(), result);
+    cv::imshow(title == nullptr ? "Hashing visualization scene" : title, resultScene);
+    cv::waitKey(continuous ? 1 : 0);
+}
