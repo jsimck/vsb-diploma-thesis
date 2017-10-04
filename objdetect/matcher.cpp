@@ -258,7 +258,9 @@ int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &scene
 }
 
 void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
-    assert(!matches.empty());
+    if (matches.empty()) {
+        return;
+    }
 
     // Sort all matches by their highest score
     std::sort(matches.rbegin(), matches.rend());
@@ -311,6 +313,8 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
     matches.swap(pick);
 }
 
+// Enable/disable visualization for function below
+#define VISUALIZE_MATCH
 void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv::Mat &sceneDepth, std::vector<Window> &windows, std::vector<Match> &matches) {
     // Checks
     assert(!sceneHSV.empty());
@@ -323,7 +327,7 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
     // Min threshold of matched feature points
     const auto minThreshold = static_cast<int>(pointsCount * tMatch); // 60%
-    const size_t lSize = windows.size();
+    const long lSize = windows.size();
 
     // Stop template matching time
     Timer tMatching;
@@ -332,12 +336,14 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
     cv::Mat sceneAngle, sceneMagnitude;
     Processing::orientationGradients(sceneGray, sceneAngle, sceneMagnitude);
 
-//    #pragma omp parallel for
-    for (size_t l = lSize - 1; l >= 0; l--) {
+#if not defined NDEBUG and not defined VISUALIZE_MATCH
+    #pragma omp parallel for
+#endif
+    for (long l = lSize - 1; l >= 0; l--) { // TODO - should run from start, not end
         for (auto &candidate : windows[l].candidates) {
             assert(candidate != nullptr);
 
-#ifndef NDEBUG
+#if not defined NDEBUG and defined VISUALIZE_MATCH
             std::vector<int> tIITrue, tIIITrue, tVTrue;
 #endif
 
@@ -349,19 +355,21 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
             if (!testObjectSize(1.0f)) continue;
 
             // Test II
-//            #pragma omp parallel for
+#if not defined NDEBUG and not defined VISUALIZE_MATCH
+            #pragma omp parallel for
+#endif
             for (uint i = 0; i < pointsCount; i++) {
-#ifndef NDEBUG
+#if not defined NDEBUG and defined VISUALIZE_MATCH
                 int tmpResult = testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
                 sII += tmpResult;
-                tIITrue.push_back(tmpResult);
+                tIITrue.emplace_back(tmpResult);
 #else
                 #pragma omp atomic
                 sII += testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
 #endif
             }
 
-#ifndef NDEBUG
+#if not defined NDEBUG and defined VISUALIZE_MATCH
             Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints,
                                        neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, minThreshold, true);
 #endif
@@ -369,19 +377,21 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
             if (sII < minThreshold) continue;
 
             // Test III
-//            #pragma omp parallel for
+#if not defined NDEBUG and not defined VISUALIZE_MATCH
+            #pragma omp parallel for
+#endif
             for (uint i = 0; i < pointsCount; i++) {
-#ifndef NDEBUG
+#if not defined NDEBUG and defined VISUALIZE_MATCH
                 int tmpResult = testGradients(candidate->features.gradients[i], windows[l], sceneAngle, sceneMagnitude, candidate->edgePoints[i]);
                 sIII += tmpResult;
-                tIIITrue.push_back(tmpResult);
+                tIIITrue.emplace_back(tmpResult);
 #else
                 #pragma omp atomic
                 sIII += testGradients(candidate->features.gradients[i], windows[l], sceneAngle, sceneMagnitude, candidate->edgePoints[i]);
 #endif
             }
 
-#ifndef NDEBUG
+#if not defined NDEBUG and defined VISUALIZE_MATCH
             Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints,
                                        neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, minThreshold, true);
 #endif
@@ -397,19 +407,21 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
             if (sIV < minThreshold) continue;
 
             // Test V
-//            #pragma omp parallel for
+#if not defined NDEBUG and not defined VISUALIZE_MATCH
+            #pragma omp parallel for
+#endif
             for (uint i = 0; i < pointsCount; i++) {
-#ifndef NDEBUG
+#if not defined NDEBUG and defined VISUALIZE_MATCH
                 int tmpResult = testColor(candidate->features.colors[i], windows[l], sceneHSV, candidate->stablePoints[i]);
                 sV += tmpResult;
-                tVTrue.push_back(tmpResult);
+                tVTrue.emplace_back(tmpResult);
 #else
                 #pragma omp atomic
                 sV += testColor(candidate->features.colors[i], windows[l], sceneHSV, candidate->stablePoints[i]);
 #endif
             }
 
-#ifndef NDEBUG
+#if not defined NDEBUG and defined VISUALIZE_MATCH
             Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints,
                                        neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, minThreshold, true);
 #endif
@@ -425,13 +437,14 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
 #ifndef NDEBUG
             std::cout
-                << "id: " << candidate->id
+                << "  |_ id: " << candidate->id
                 << ", window: " << l
                 << ", score: " << score
                 << ", score II: " << sII
                 << ", score III: " << sIII
                 << ", score IV: " << sIV
                 << ", score V: " << sV
+                << ", matches: " << matches.size()
                 << std::endl;
 #endif
         }
