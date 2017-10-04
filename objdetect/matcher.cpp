@@ -8,16 +8,6 @@
 #include "../utils/visualizer.h"
 #include "../processing/processing.h"
 
-float Matcher::orientationGradient(const cv::Mat &src, const cv::Point &p) {
-    assert(!src.empty());
-    assert(src.type() == CV_32FC1);
-
-    float dx = (src.at<float>(p.y, p.x - 1) - src.at<float>(p.y, p.x + 1)) / 2.0f;
-    float dy = (src.at<float>(p.y - 1, p.x) - src.at<float>(p.y + 1, p.x)) / 2.0f;
-
-    return cv::fastAtan2(dy, dx);
-}
-
 int Matcher::median(std::vector<int> &values) {
     assert(!values.empty());
 
@@ -164,7 +154,7 @@ void Matcher::extractFeatures(std::vector<Group> &groups) {
 
                 // Extract features
                 float depth = t.srcDepth.at<float>(stablePOff);
-                uchar gradient = quantizeOrientationGradient(orientationGradient(t.srcGray, edgePOff));
+                uchar gradient = quantizeOrientationGradient(t.srcAngles.at<float>(edgePOff));
                 uchar normal = Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff));
                 cv::Vec3b hsv = normalizeHSV(t.srcHSV.at<cv::Vec3b>(stablePOff));
 
@@ -221,17 +211,17 @@ int Matcher::testSurfaceNormal(const uchar normal, Window &window, const cv::Mat
 }
 
 // TODO Use bitwise operations using response maps
-int Matcher::testGradients(const uchar gradient, Window &window, const cv::Mat &sceneGray, const cv::Point &edge) {
+int Matcher::testGradients(const uchar gradient, Window &window, const cv::Mat &sceneAngles, const cv::Point &edge) {
     for (int y = neighbourhood.start; y <= neighbourhood.end; ++y) {
         for (int x = neighbourhood.start; x <= neighbourhood.end; ++x) {
             // Apply needed offsets to feature point
             cv::Point offsetP(edge.x + window.tl().x + x, edge.y + window.tl().y + y);
 
             // Template points in larger templates can go beyond scene boundaries (don't count)
-            if (offsetP.x >= sceneGray.cols || offsetP.y >= sceneGray.rows ||
+            if (offsetP.x >= sceneAngles.cols || offsetP.y >= sceneAngles.rows ||
                 offsetP.x < 0 || offsetP.y < 0) continue;
 
-            if (quantizeOrientationGradient(orientationGradient(sceneGray, offsetP)) == gradient) return 1;
+            if (quantizeOrientationGradient(sceneAngles.at<float>(offsetP)) == gradient) return 1;
         }
     }
 
@@ -345,6 +335,10 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
     // Stop template matching time
     Timer tMatching;
 
+    // Calculate angels and magnitudes
+    cv::Mat sceneAngles, sceneMagnitudes;
+    Processing::orientationGradients(sceneGray, sceneAngles, sceneMagnitudes);
+
 //    #pragma omp parallel for
     for (size_t l = 0; l < lSize; l++) {
         for (auto &candidate : windows[l].candidates) {
@@ -370,7 +364,7 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
             #pragma omp parallel for
             for (uint i = 0; i < pointsCount; i++) {
                 #pragma omp atomic
-                sIII += testGradients(candidate->features.gradients[i], windows[l], sceneGray, candidate->edgePoints[i]);
+                sIII += testGradients(candidate->features.gradients[i], windows[l], sceneAngles, candidate->edgePoints[i]);
             }
 
             if (sIII < minThreshold) continue;

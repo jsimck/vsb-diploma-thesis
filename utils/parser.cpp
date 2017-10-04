@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "../processing/processing.h"
 
 uint Parser::idCounter = 0;
 
@@ -101,6 +102,10 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
         info.maxTemplate.height = objBB.height;
     }
 
+    // Calculate angles
+    cv::Mat angles, magnitude;
+    Processing::orientationGradients(src, angles, magnitude);
+
     // Checks
     assert(!vObjBB.empty());
     assert(!vCamRm2c.empty());
@@ -114,7 +119,7 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
     assert(srcDepth.type() == CV_32FC1);
 
     return {
-        idCounter, fileName, src, srcHSV, srcDepth, objBB,
+        idCounter, fileName, src, srcHSV, srcDepth, angles, objBB,
         cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone(),
         cv::Vec3d(vCamTm2c[0], vCamTm2c[1], vCamTm2c[2])
     };

@@ -8,10 +8,10 @@ int main() {
     Classifier classifier("data/", tplNames, "scene_01/", "_0000.png");
 
     // Init indices
-    std::vector<uint> indices = { 0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478, 1095, 1015, 72 };
+//    std::vector<uint> indices = { 0, 20, 25, 23, 120, 250, 774, 998, 1100, 400, 478, 1095, 1015, 72 };
 
     // Run classifier
-    classifier.setIndices(indices);
+//    classifier.setIndices(indices);
     classifier.classify();
 
     return 0;

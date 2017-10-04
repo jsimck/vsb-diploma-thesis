@@ -3,6 +3,7 @@
 #include <cassert>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
+#include <opencv/cv.hpp>
 
 void Processing::filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter, bool yFilter) {
     assert(!src.empty());
@@ -58,4 +59,18 @@ void Processing::thresholdMinMax(const cv::Mat &src, cv::Mat &dst, float min, fl
             }
         }
     }
+}
+
+void Processing::orientationGradients(const cv::Mat &src, cv::Mat &angle, cv::Mat &magnitude, bool angleInDegrees) {
+    // Checks
+    assert(!src.empty());
+    assert(src.type() == CV_32FC1);
+
+    // Calc sobel
+    cv::Mat sobelX, sobelY;
+    filterSobel(src, sobelX, true, false);
+    filterSobel(src, sobelY, false, true);
+
+    // Calc orientationGradients
+    cv::cartToPolar(sobelX, sobelY, magnitude, angle, angleInDegrees);
 }

@@ -42,9 +42,6 @@ void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &window
     Processing::filterSobel(sceneDepthNorm, sSobel, true, true);
     Processing::thresholdMinMax(sSobel, sSobel, tMin, tMax);
 
-    cv::imshow("filterSobel", sSobel);
-    cv::waitKey(0);
-
     // Calculate image integral
     cv::Mat sIntegral;
     cv::integral(sSobel, sIntegral, CV_32F);

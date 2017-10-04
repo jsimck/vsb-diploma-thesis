@@ -19,6 +19,7 @@ public:
     cv::Mat srcGray;
     cv::Mat srcHSV;
     cv::Mat srcDepth;
+    cv::Mat srcAngles;
 
     // Extracted template feature points
     std::vector<cv::Point> edgePoints;
@@ -44,8 +45,8 @@ public:
     int votes;
 
     // Constructors
-    Template(uint id, std::string &fileName, cv::Mat &src, cv::Mat &srcHSV, cv::Mat &srcDepth, cv::Rect &objBB, cv::Mat camRm2c, const cv::Vec3d &camTm2c)
-        : id(id), fileName(fileName), srcGray(src), srcHSV(srcHSV), srcDepth(srcDepth), objBB(objBB),
+    Template(uint id, std::string &fileName, cv::Mat &src, cv::Mat &srcHSV, cv::Mat &srcDepth, cv::Mat &srcAngles, cv::Rect &objBB, cv::Mat camRm2c, const cv::Vec3d &camTm2c)
+        : id(id), fileName(fileName), srcGray(src), srcHSV(srcHSV), srcDepth(srcDepth), srcAngles(srcAngles), objBB(objBB),
           camRm2c(std::move(camRm2c)), camTm2c(camTm2c), elev(0), mode(0), votes(0) {}
 
     // Methods

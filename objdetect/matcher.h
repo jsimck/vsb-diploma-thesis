@@ -37,13 +37,12 @@ private:
     // Tests
     inline bool testObjectSize(float scale); // Test I
     inline int testSurfaceNormal(uchar normal, Window &window, const cv::Mat &sceneDepth, const cv::Point &stable); // Test II
-    inline int testGradients(uchar gradient, Window &window, const cv::Mat &sceneGray, const cv::Point &edge); // Test III
+    inline int testGradients(uchar gradient, Window &window, const cv::Mat &sceneAngles, const cv::Point &edge); // Test III
     inline int testDepth(int physicalDiameter, std::vector<int> &depths); // Test IV
     inline int testColor(cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &stable); // Test V
 public:
     // Static methods
     static int median(std::vector<int> &values);
-    static float orientationGradient(const cv::Mat &src, const cv::Point &p);
 
     // Constructor
     explicit Matcher(uint pointsCount = 100, float tMatch = 0.6f, float tOverlap = 0.1f, uchar tColorTest = 5, const cv::Range &neighbourhood = cv::Range(5, 5))
