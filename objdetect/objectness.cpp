@@ -1,57 +1,5 @@
 #include "objectness.h"
-#include "../utils/utils.h"
-
-void Objectness::filterSobel(const cv::Mat &src, cv::Mat &dst) {
-    assert(!src.empty());
-    assert(src.type() == CV_32FC1);
-
-    int filterX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
-    int filterY[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
-
-    if (dst.empty()) {
-        dst = cv::Mat(src.size(), src.type());
-    }
-
-    // Blur image little bit to reduce noise
-    cv::GaussianBlur(src, dst, cv::Size(3, 3), 0, 0);
-
-    for (int y = 1; y < src.rows - 1; y++) {
-        for (int x = 1; x < src.cols - 1; x++) {
-            int i = 0;
-            float sumX = 0, sumY = 0;
-            for (int yy = 0; yy < 3; yy++) {
-                for (int xx = 0; xx < 3; xx++) {
-                    float px = src.at<float>(yy + y - 1, x + xx - 1);
-                    sumX += px * filterX[i];
-                    sumY += px * filterY[i];
-                    i++;
-                }
-            }
-
-            dst.at<float>(y, x) = sqrt(SQR(sumX) + SQR(sumY));
-        }
-    }
-}
-
-void Objectness::thresholdMinMax(const cv::Mat &src, cv::Mat &dst, float min, float max) {
-    assert(!src.empty());
-    assert(!dst.empty());
-    assert(src.type() == CV_32FC1);
-    assert(dst.type() == CV_32FC1);
-    assert(min >= 0);
-    assert(max >= 0 && max > min);
-
-    // Apply very simple min/max thresholding for the source image
-    for (int y = 0; y < src.rows; y++) {
-        for (int x = 0; x < src.cols; x++) {
-            if (src.at<float>(y, x) >= min && src.at<float>(y, x) <= max) {
-                dst.at<float>(y, x) = 1.0;
-            } else {
-                dst.at<float>(y, x) = 0.0;
-            }
-        }
-    }
-}
+#include "../processing/processing.h"
 
 void Objectness::extractMinEdgels(std::vector<Group> &groups, DataSetInfo &info) {
     assert(!groups.empty());
@@ -66,8 +14,8 @@ void Objectness::extractMinEdgels(std::vector<Group> &groups, DataSetInfo &info)
             t.srcDepth.convertTo(tNorm, CV_32F, 1.0f / 65536.0f);
             tNorm = tNorm(t.objBB);
 
-            filterSobel(tNorm, tSobel);
-            thresholdMinMax(tSobel, tSobel, tMin, tMax);
+            Processing::filterSobel(tNorm, tSobel, true, true);
+            Processing::thresholdMinMax(tSobel, tSobel, tMin, tMax);
 
             // Compute integral image for easier computation of edgels
             cv::integral(tNorm, tIntegral, CV_32F);
@@ -91,8 +39,11 @@ void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &window
 
     // Apply sobel filter and thresholding on normalized Depth scene (<0, 1> px values)
     cv::Mat sSobel;
-    filterSobel(sceneDepthNorm, sSobel);
-    thresholdMinMax(sSobel, sSobel, tMin, tMax);
+    Processing::filterSobel(sceneDepthNorm, sSobel, true, true);
+    Processing::thresholdMinMax(sSobel, sSobel, tMin, tMax);
+
+    cv::imshow("filterSobel", sSobel);
+    cv::waitKey(0);
 
     // Calculate image integral
     cv::Mat sIntegral;

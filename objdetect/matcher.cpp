@@ -6,6 +6,7 @@
 #include "../utils/timer.h"
 #include "objectness.h"
 #include "../utils/visualizer.h"
+#include "../processing/processing.h"
 
 float Matcher::orientationGradient(const cv::Mat &src, const cv::Point &p) {
     assert(!src.empty());
@@ -107,7 +108,7 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
             cv::Mat sobel, visualization;
 
             // Apply sobel to get mask for edge areas
-            Objectness::filterSobel(t.srcGray, sobel);
+            Processing::filterSobel(t.srcGray, sobel, true, true);
 
             for (int y = 0; y < sobel.rows; y++) {
                 for (int x = 0; x < sobel.cols; x++) {
