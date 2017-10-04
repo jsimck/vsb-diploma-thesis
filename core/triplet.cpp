@@ -5,7 +5,8 @@
 #include "triplet.h"
 
 std::random_device Triplet::seed;
-std::mt19937 Triplet::rng(Triplet::seed());
+//std::mt19937 Triplet::rng(Triplet::seed());
+std::mt19937 Triplet::rng(1);
 
 float Triplet::random(const float min, const float max) {
     float rnd;

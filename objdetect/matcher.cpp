@@ -105,7 +105,7 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
                     float sobelValue = sobel.at<float>(y, x);
                     float stableValue = t.srcGray.at<float>(y, x);
 
-                    if (sobelValue > 0.2f) {
+                    if (sobelValue > 0.3f) {
                         // Save point and offset to object BB
                         ValuePoint<float> sPoint(cv::Point(x, y) - t.objBB.tl(), sobelValue);
                         edgePoints.push_back(sPoint);
@@ -211,7 +211,7 @@ int Matcher::testSurfaceNormal(const uchar normal, Window &window, const cv::Mat
 }
 
 // TODO Use bitwise operations using response maps
-int Matcher::testGradients(const uchar gradient, Window &window, const cv::Mat &sceneAngles, const cv::Point &edge) {
+int Matcher::testGradients(const uchar gradient, Window &window, const cv::Mat &sceneAngles, const cv::Mat &sceneMagnitude, const cv::Point &edge) {
     for (int y = neighbourhood.start; y <= neighbourhood.end; ++y) {
         for (int x = neighbourhood.start; x <= neighbourhood.end; ++x) {
             // Apply needed offsets to feature point
@@ -221,7 +221,10 @@ int Matcher::testGradients(const uchar gradient, Window &window, const cv::Mat &
             if (offsetP.x >= sceneAngles.cols || offsetP.y >= sceneAngles.rows ||
                 offsetP.x < 0 || offsetP.y < 0) continue;
 
-            if (quantizeOrientationGradient(sceneAngles.at<float>(offsetP)) == gradient) return 1;
+            // TODO - make member threshold
+            if (quantizeOrientationGradient(sceneAngles.at<float>(offsetP)) == gradient && sceneMagnitude.at<float>(offsetP) > 0.1f) {
+                return 1;
+            }
         }
     }
 
@@ -336,36 +339,78 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
     Timer tMatching;
 
     // Calculate angels and magnitudes
-    cv::Mat sceneAngles, sceneMagnitudes;
-    Processing::orientationGradients(sceneGray, sceneAngles, sceneMagnitudes);
+    cv::Mat sceneAngle, sceneMagnitude;
+    Processing::orientationGradients(sceneGray, sceneAngle, sceneMagnitude);
 
-//    #pragma omp parallel for
+    #pragma omp parallel for
     for (size_t l = 0; l < lSize; l++) {
         for (auto &candidate : windows[l].candidates) {
             assert(candidate != nullptr);
 
             // Scores for each test
+            int result = 0;
+            cv::Scalar colorGreen(0, 1.0f, 0), colorRed(0, 0, 1.0f);
             float sII = 0, sIII = 0, sIV = 0, sV = 0;
             std::vector<int> depths;
 
             // Test I
             if (!testObjectSize(1.0f)) continue;
-
+#ifndef NDEBUG
+            cv::Mat viz = sceneGray.clone();
+            cv::Mat vizCandidate = candidate->srcGray.clone();
+            cv::cvtColor(viz, viz, CV_GRAY2BGR);
+            cv::cvtColor(vizCandidate, vizCandidate, CV_GRAY2BGR);
+#endif
             // Test II
             #pragma omp parallel for
             for (uint i = 0; i < pointsCount; i++) {
+#ifndef NDEBUG
+                result = testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
+                cv::rectangle(viz, windows[l].tl(), windows[l].br(), cv::Scalar::all(255), 1);
+                cv::Point offsetStable(candidate->stablePoints[i].x + windows[l].tl().x, candidate->stablePoints[i].y + windows[l].tl().y);
+                cv::rectangle(viz, offsetStable + cv::Point(neighbourhood.start, neighbourhood.start), offsetStable + cv::Point(neighbourhood.end, neighbourhood.end),
+                        result == 1 ? colorGreen : colorRed, 1);
+                cv::circle(vizCandidate, candidate->stablePoints[i] + candidate->objBB.tl(), 2, result == 1 ? colorGreen : colorRed, -1);
+#endif
                 #pragma omp atomic
                 sII += testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
             }
+#ifndef NDEBUG
+            cv::imshow("Window name - candidate", vizCandidate);
+            cv::imshow("Window name", viz);
+#endif
 
             if (sII < minThreshold) continue;
 
             // Test III
+#ifndef NDEBUG
+            viz = sceneGray.clone();
+            vizCandidate = candidate->srcGray.clone();
+            cv::cvtColor(viz, viz, CV_GRAY2BGR);
+            cv::cvtColor(vizCandidate, vizCandidate, CV_GRAY2BGR);
+#endif
+
             #pragma omp parallel for
             for (uint i = 0; i < pointsCount; i++) {
+#ifndef NDEBUG
+                result = testGradients(candidate->features.gradients[i], windows[l], sceneAngle, sceneMagnitude, candidate->edgePoints[i]);
+                cv::rectangle(viz, windows[l].tl(), windows[l].br(), cv::Scalar::all(255), 1);
+                cv::Point offsetEdge(candidate->edgePoints[i].x + windows[l].tl().x, candidate->edgePoints[i].y + windows[l].tl().y);
+                cv::rectangle(viz, offsetEdge + cv::Point(neighbourhood.start, neighbourhood.start), offsetEdge + cv::Point(neighbourhood.end, neighbourhood.end),
+                              result == 1 ? colorGreen : colorRed, 1);
+                cv::circle(vizCandidate, candidate->edgePoints[i] + candidate->objBB.tl(), 2, result == 1 ? colorGreen : colorRed, -1);
+#endif
                 #pragma omp atomic
-                sIII += testGradients(candidate->features.gradients[i], windows[l], sceneAngles, candidate->edgePoints[i]);
+                sIII += testGradients(candidate->features.gradients[i], windows[l], sceneAngle, sceneMagnitude, candidate->edgePoints[i]);
             }
+#ifndef NDEBUG
+            std::ostringstream oss;
+            oss << "matched: " << sIII << "/" << pointsCount;
+            Visualizer::setLabel(viz, oss.str(), windows[l].tl() + cv::Point(0, -8));
+            cv::imshow("Window name - candidate", vizCandidate);
+            cv::imshow("Window name", viz);
+            cv::waitKey(0);
+#endif
 
             if (sIII < minThreshold) continue;
 
@@ -394,15 +439,15 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
             matches.emplace_back(Match(candidate, matchBB, score));
 
 #ifndef NDEBUG
-//            std::cout
-//                << "id: " << candidate->id
-//                << ", window: " << l
-//                << ", score: " << score
-//                << ", score II: " << sII
-//                << ", score III: " << sIII
-//                << ", score IV: " << sIV
-//                << ", score V: " << sV
-//                << std::endl;
+            std::cout
+                << "id: " << candidate->id
+                << ", window: " << l
+                << ", score: " << score
+                << ", score II: " << sII
+                << ", score III: " << sIII
+                << ", score IV: " << sIV
+                << ", score V: " << sV
+                << std::endl;
 #endif
         }
     }
