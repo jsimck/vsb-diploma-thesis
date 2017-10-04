@@ -362,7 +362,8 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
             }
 
 #ifndef NDEBUG
-            Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints, neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, false);
+            Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints,
+                                       neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, minThreshold, true);
 #endif
 
             if (sII < minThreshold) continue;
@@ -381,7 +382,8 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
             }
 
 #ifndef NDEBUG
-            Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints, neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, false);
+            Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints,
+                                       neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, minThreshold, true);
 #endif
 
             if (sIII < minThreshold) continue;
@@ -408,13 +410,14 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
             }
 
 #ifndef NDEBUG
-            Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints, neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, false);
+            Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints,
+                                       neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, minThreshold, true);
 #endif
 
             if (sV < minThreshold) continue;
 
             // Push template that passed all tests to matches array
-            float score = (sII / pointsCount) + (sIII / pointsCount) + (sV / pointsCount);
+            float score = (sII / pointsCount) + (sIII / pointsCount) + (sIV / pointsCount) + (sV / pointsCount);
             cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
 
             #pragma omp critical
