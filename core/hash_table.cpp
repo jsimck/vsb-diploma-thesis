@@ -10,7 +10,7 @@ void HashTable::pushUnique(const HashKey &key, Template &t) {
     // Check for duplicates and push unique
     auto found = std::find_if(templates[key].begin(), templates[key].end(), [&t](const Template* tt) { return t == *tt; });
     if (found == templates[key].end()) {
-        templates[key].push_back(&t);
+        templates[key].emplace_back(&t);
     }
 }
 

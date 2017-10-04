@@ -31,12 +31,12 @@ void Parser::parseTemplate(std::vector<Template> &templates, DataSetInfo &info, 
 
     const uint size = static_cast<uint>((!indices.empty()) ? indices.size() : tplCount);
     for (uint i = 0; i < size; i++) {
-        uint tplIndex = static_cast<uint>((!indices.empty()) ? indices[i] : i);
+        auto tplIndex = static_cast<uint>((!indices.empty()) ? indices[i] : i);
         std::string index = "tpl_" + std::to_string(tplIndex);
         cv::FileNode objGt = fs[index];
 
         // Parse template gt file
-        templates.push_back(parseGt(tplIndex, basePath + tplName, objGt, info));
+        templates.emplace_back(parseGt(tplIndex, basePath + tplName, objGt, info));
         idCounter++;
     }
 

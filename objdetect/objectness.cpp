@@ -63,7 +63,7 @@ void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &window
             );
 
             if (sceneEdgels >= edgels) {
-                windows.push_back(Window(x, y, sizeX, sizeY, sceneEdgels));
+                windows.emplace_back(Window(x, y, sizeX, sizeY, sceneEdgels));
             }
         }
     }

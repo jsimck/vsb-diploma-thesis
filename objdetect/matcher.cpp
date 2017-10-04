@@ -77,7 +77,7 @@ void Matcher::cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, do
                 continue;
             }
 
-            out.push_back(points[k].p);
+            out.emplace_back(points[k].p);
         }
     }
 
@@ -106,13 +106,9 @@ void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
                     float stableValue = t.srcGray.at<float>(y, x);
 
                     if (sobelValue > 0.3f) {
-                        // Save point and offset to object BB
-                        ValuePoint<float> sPoint(cv::Point(x, y) - t.objBB.tl(), sobelValue);
-                        edgePoints.push_back(sPoint);
+                        edgePoints.emplace_back(ValuePoint<float>(cv::Point(x, y) - t.objBB.tl(), sobelValue));
                     } else if (stableValue > 0.2f) {
-                        // Save point and offset to object BB
-                        ValuePoint<float> sPoint(cv::Point(x, y) - t.objBB.tl(), stableValue);
-                        stablePoints.push_back(sPoint);
+                        stablePoints.emplace_back(ValuePoint<float>(cv::Point(x, y) - t.objBB.tl(), stableValue));
                     }
                 }
             }
@@ -152,17 +148,11 @@ void Matcher::extractFeatures(std::vector<Group> &groups) {
                 cv::Point stablePOff(t.stablePoints[j].x + t.objBB.x, t.stablePoints[j].y + t.objBB.y);
                 cv::Point edgePOff(t.edgePoints[j].x + t.objBB.x, t.edgePoints[j].y + t.objBB.y);
 
-                // Extract features
-                float depth = t.srcDepth.at<float>(stablePOff);
-                uchar gradient = quantizeOrientationGradient(t.srcAngles.at<float>(edgePOff));
-                uchar normal = Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff));
-                cv::Vec3b hsv = normalizeHSV(t.srcHSV.at<cv::Vec3b>(stablePOff));
-
                 // Save features
-                t.features.depths.push_back(depth);
-                t.features.gradients.push_back(gradient);
-                t.features.normals.push_back(normal);
-                t.features.colors.push_back(hsv);
+                t.features.depths.emplace_back(t.srcDepth.at<float>(stablePOff));
+                t.features.gradients.emplace_back(quantizeOrientationGradient(t.srcAngles.at<float>(edgePOff)));
+                t.features.normals.emplace_back(Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff)));
+                t.features.colors.emplace_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(stablePOff)));
 
                 assert(t.features.gradients[j] >= 0);
                 assert(t.features.gradients[j] < 5);
@@ -221,7 +211,7 @@ int Matcher::testGradients(const uchar gradient, Window &window, const cv::Mat &
             if (offsetP.x >= sceneAngles.cols || offsetP.y >= sceneAngles.rows ||
                 offsetP.x < 0 || offsetP.y < 0) continue;
 
-            // TODO - make member threshold
+            // TODO - make member threshold (detect automatically based on training values)
             if (quantizeOrientationGradient(sceneAngles.at<float>(offsetP)) == gradient && sceneMagnitude.at<float>(offsetP) > 0.1f) {
                 return 1;
             }
@@ -283,8 +273,8 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
         Match &firstMatch = matches[idx[0]];
 
         // Store this index into suppress array and push to final matches, we won't check against this match again
-        suppress.push_back(idx[0]);
-        pick.push_back(firstMatch);
+        suppress.emplace_back(idx[0]);
+        pick.emplace_back(firstMatch);
 
         // Check overlaps with all other bounding boxes, skipping first one (since it is the one we're checking with)
         #pragma omp parallel for
@@ -304,7 +294,7 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
             // If overlap is bigger than min threshold, remove the match
             if (overlap > tOverlap) {
                 #pragma omp critical
-                suppress.push_back(idx[i]);
+                suppress.emplace_back(idx[i]);
             }
         }
 
@@ -355,68 +345,28 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
             // Test I
             if (!testObjectSize(1.0f)) continue;
-#ifndef NDEBUG
-            cv::Mat viz = sceneGray.clone();
-            cv::Mat vizCandidate = candidate->srcGray.clone();
-            cv::cvtColor(viz, viz, CV_GRAY2BGR);
-            cv::cvtColor(vizCandidate, vizCandidate, CV_GRAY2BGR);
-#endif
+
             // Test II
             #pragma omp parallel for
             for (uint i = 0; i < pointsCount; i++) {
-#ifndef NDEBUG
-                result = testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
-                cv::rectangle(viz, windows[l].tl(), windows[l].br(), cv::Scalar::all(255), 1);
-                cv::Point offsetStable(candidate->stablePoints[i].x + windows[l].tl().x, candidate->stablePoints[i].y + windows[l].tl().y);
-                cv::rectangle(viz, offsetStable + cv::Point(neighbourhood.start, neighbourhood.start), offsetStable + cv::Point(neighbourhood.end, neighbourhood.end),
-                        result == 1 ? colorGreen : colorRed, 1);
-                cv::circle(vizCandidate, candidate->stablePoints[i] + candidate->objBB.tl(), 2, result == 1 ? colorGreen : colorRed, -1);
-#endif
                 #pragma omp atomic
                 sII += testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
             }
-#ifndef NDEBUG
-            cv::imshow("Window name - candidate", vizCandidate);
-            cv::imshow("Window name", viz);
-#endif
 
             if (sII < minThreshold) continue;
 
             // Test III
-#ifndef NDEBUG
-            viz = sceneGray.clone();
-            vizCandidate = candidate->srcGray.clone();
-            cv::cvtColor(viz, viz, CV_GRAY2BGR);
-            cv::cvtColor(vizCandidate, vizCandidate, CV_GRAY2BGR);
-#endif
-
             #pragma omp parallel for
             for (uint i = 0; i < pointsCount; i++) {
-#ifndef NDEBUG
-                result = testGradients(candidate->features.gradients[i], windows[l], sceneAngle, sceneMagnitude, candidate->edgePoints[i]);
-                cv::rectangle(viz, windows[l].tl(), windows[l].br(), cv::Scalar::all(255), 1);
-                cv::Point offsetEdge(candidate->edgePoints[i].x + windows[l].tl().x, candidate->edgePoints[i].y + windows[l].tl().y);
-                cv::rectangle(viz, offsetEdge + cv::Point(neighbourhood.start, neighbourhood.start), offsetEdge + cv::Point(neighbourhood.end, neighbourhood.end),
-                              result == 1 ? colorGreen : colorRed, 1);
-                cv::circle(vizCandidate, candidate->edgePoints[i] + candidate->objBB.tl(), 2, result == 1 ? colorGreen : colorRed, -1);
-#endif
                 #pragma omp atomic
                 sIII += testGradients(candidate->features.gradients[i], windows[l], sceneAngle, sceneMagnitude, candidate->edgePoints[i]);
             }
-#ifndef NDEBUG
-            std::ostringstream oss;
-            oss << "matched: " << sIII << "/" << pointsCount;
-            Visualizer::setLabel(viz, oss.str(), windows[l].tl() + cv::Point(0, -8));
-            cv::imshow("Window name - candidate", vizCandidate);
-            cv::imshow("Window name", viz);
-            cv::waitKey(0);
-#endif
 
             if (sIII < minThreshold) continue;
 
             // Test IV
             for (uint i = 0; i < pointsCount; i++) {
-                depths.push_back(static_cast<int>(sceneDepth.at<float>(candidate->stablePoints[i]) - candidate->srcDepth.at<float>(candidate->stablePoints[i])));
+                depths.emplace_back(static_cast<int>(sceneDepth.at<float>(candidate->stablePoints[i]) - candidate->srcDepth.at<float>(candidate->stablePoints[i])));
             }
 
             sIV = testDepth(candidate->objBB.width, depths);

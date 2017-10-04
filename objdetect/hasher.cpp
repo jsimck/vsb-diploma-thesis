@@ -84,8 +84,7 @@ uchar Hasher::quantizeDepth(float depth, const std::vector<cv::Range> &ranges, u
 void Hasher::generateTriplets(std::vector<HashTable> &tables) {
     // Generate triplets
     for (size_t i = 0; i < tablesCount; ++i) {
-        HashTable h(Triplet::create(grid, maxDistance));
-        tables.push_back(h);
+        tables.emplace_back(Triplet::create(grid, maxDistance));
     }
 
     // TODO - joint entropy of 5k triplets, instead of 100 random triplets
@@ -145,8 +144,8 @@ void Hasher::initializeBinRanges(std::vector<Group> &groups, std::vector<HashTab
 
                 // Relative depths
                 cv::Vec2i d = relativeDepths(t.srcDepth, c, p1, p2);
-                rDepths.push_back(d[0]);
-                rDepths.push_back(d[1]);
+                rDepths.emplace_back(d[0]);
+                rDepths.emplace_back(d[1]);
             }
         }
 
@@ -280,7 +279,7 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &table
 
                 // pushes only unique templates with minimum of votes (minVotes) building vector of size up to N
                 windows[i].pushUnique(entry, tablesCount, minVotes);
-                usedTemplates.push_back(entry);
+                usedTemplates.emplace_back(entry);
             }
         }
 
@@ -294,7 +293,7 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &table
 
         // Save empty windows indexes
         if (!windows[i].hasCandidates()) {
-            emptyIndexes.push_back(i);
+            emptyIndexes.emplace_back(i);
         }
     }
 

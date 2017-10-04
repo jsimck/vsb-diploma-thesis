@@ -50,7 +50,7 @@ void Window::pushUnique(Template *t, uint N, int v) {
             }
         }
 
-        candidates.push_back(t);
+        candidates.emplace_back(t);
     }
 }
 
