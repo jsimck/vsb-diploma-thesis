@@ -332,28 +332,28 @@ void Visualizer::visualizeTests(Template &tpl, const cv::Mat &sceneHSV, Window &
     }
 
     // Draw window rect and info labels
-    cv::rectangle(resultScene, window.tl(), window.br(), colorWhite, 1);
+    cv::rectangle(resultScene, window.tl(), window.tl() + cv::Point(tpl.objBB.width, tpl.objBB.height), colorWhite, 1);
     oss.str("");
     oss << "II: " << scoreIITrue << "/" << pointsCount;
-    Visualizer::setLabel(resultScene, oss.str(), window.tr() + cv::Point(5, 10), 1, 0, 0.4,
+    Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 10), 1, 0, 0.4,
                          currentTest >= 2 ? (scoreIITrue > minThreshold ? colorGreen : colorRed) : colorWhite);
     oss.str("");
     oss << "III: " << scoreIIITrue << "/" << pointsCount;
-    Visualizer::setLabel(resultScene, oss.str(), window.tr() + cv::Point(5, 28), 1, 0, 0.4,
+    Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 28), 1, 0, 0.4,
                          currentTest >= 3 ? (scoreIIITrue > minThreshold ? colorGreen : colorRed) : colorWhite);
     oss.str("");
     oss << "IV: " << scoreIV;
-    Visualizer::setLabel(resultScene, oss.str(), window.tr() + cv::Point(5, 46), 1, 0, 0.4,
+    Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 46), 1, 0, 0.4,
                          currentTest >= 4 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite);
     oss.str("");
     oss << "V: " << scoreVTrue << "/" << pointsCount;
-    Visualizer::setLabel(resultScene, oss.str(), window.tr() + cv::Point(5, 64), 1, 0, 0.4,
+    Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 64), 1, 0, 0.4,
                          currentTest >= 5 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite);
     oss.str("");
     oss.precision(2);
     oss << "score: " << std::fixed << scoreIITrue / static_cast<float>(pointsCount) + scoreIIITrue / static_cast<float>(pointsCount) +
                          scoreVTrue / static_cast<float>(pointsCount) + scoreIV / pointsCount;
-    Visualizer::setLabel(resultScene, oss.str(), window.tr() + cv::Point(5, 82), 1, 0, 0.4,
+    Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 82), 1, 0, 0.4,
                          currentTest >= 5 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite);
 
     // Form title
