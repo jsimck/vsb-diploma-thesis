@@ -44,7 +44,7 @@ uchar Hasher::quantizeSurfaceNormal(const cv::Vec3f &normal) {
         cv::Vec3f(0.57735f, -0.57735f, 0.57735f), // 7. octant
     };
 
-    uchar minIndex = 0;
+    uchar minIndex = 9;
     float maxDot = 0, dot = 0;
     for (uchar i = 0; i < 8; i++) {
         // By doing dot product between octant octantNormals and calculated normal

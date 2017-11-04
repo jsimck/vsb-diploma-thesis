@@ -226,9 +226,8 @@ int Matcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
     const float k = 0.8f;
     int dm = median(depths), score = 0;
 
-    #pragma omp parallel for
+    #pragma omp parallel for reduction(+:score)
     for (size_t i = 0; i < depths.size(); ++i) {
-        #pragma omp atomic
         score += (std::abs(depths[i] - dm) < k * physicalDiameter) ? 1 : 0;
     }
 
@@ -344,6 +343,7 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
             assert(candidate != nullptr);
 
 #if not defined NDEBUG and defined VISUALIZE_MATCH
+            bool continuous = false;
             std::vector<int> tIITrue, tIIITrue, tVTrue;
 #endif
 
@@ -356,7 +356,7 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
             // Test II
 #if not defined NDEBUG and not defined VISUALIZE_MATCH
-            #pragma omp parallel for
+            #pragma omp parallel for reduction(+:sII)
 #endif
             for (uint i = 0; i < pointsCount; i++) {
 #if not defined NDEBUG and defined VISUALIZE_MATCH
@@ -364,21 +364,20 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
                 sII += tmpResult;
                 tIITrue.emplace_back(tmpResult);
 #else
-                #pragma omp atomic
                 sII += testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
 #endif
             }
 
 #if not defined NDEBUG and defined VISUALIZE_MATCH
             Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints,
-                                       neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, minThreshold, true);
+                                       neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, minThreshold, continuous);
 #endif
 
             if (sII < minThreshold) continue;
 
             // Test III
 #if not defined NDEBUG and not defined VISUALIZE_MATCH
-            #pragma omp parallel for
+            #pragma omp parallel for reduction(+:sIII)
 #endif
             for (uint i = 0; i < pointsCount; i++) {
 #if not defined NDEBUG and defined VISUALIZE_MATCH
@@ -386,14 +385,13 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
                 sIII += tmpResult;
                 tIIITrue.emplace_back(tmpResult);
 #else
-                #pragma omp atomic
                 sIII += testGradients(candidate->features.gradients[i], windows[l], sceneAngle, sceneMagnitude, candidate->edgePoints[i]);
 #endif
             }
 
 #if not defined NDEBUG and defined VISUALIZE_MATCH
             Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints,
-                                       neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, minThreshold, true);
+                                       neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, minThreshold, continuous);
 #endif
 
             if (sIII < minThreshold) continue;
@@ -408,7 +406,7 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
             // Test V
 #if not defined NDEBUG and not defined VISUALIZE_MATCH
-            #pragma omp parallel for
+            #pragma omp parallel for reduction(+:sV)
 #endif
             for (uint i = 0; i < pointsCount; i++) {
 #if not defined NDEBUG and defined VISUALIZE_MATCH
@@ -416,14 +414,13 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
                 sV += tmpResult;
                 tVTrue.emplace_back(tmpResult);
 #else
-                #pragma omp atomic
                 sV += testColor(candidate->features.colors[i], windows[l], sceneHSV, candidate->stablePoints[i]);
 #endif
             }
 
 #if not defined NDEBUG and defined VISUALIZE_MATCH
             Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints,
-                                       neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, minThreshold, true);
+                                       neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, pointsCount, minThreshold, continuous);
 #endif
 
             if (sV < minThreshold) continue;
