@@ -15,35 +15,17 @@
  */
 class Parser {
 private:
-    static uint idCounter;
-
-    std::string basePath;
-    std::vector<uint> indices;
-    std::vector<std::string> folders;
-    uint tplCount;
+    uint idCounter;
 
     Template parseGt(uint index, const std::string &path, cv::FileNode &gtNode, DataSetInfo &info);
     void parseInfo(Template &tpl, cv::FileNode &infoNode);
-    void parseTemplate(std::vector<Template> &templates, DataSetInfo &info, const std::string &tplName);
 public:
-    Parser(const std::string &basePath = "/data", const std::vector<std::string> &templateFolders = {}, uint tplCount = 1296)
-        : basePath(basePath), folders(std::move(templateFolders)), tplCount(tplCount) {}
+    std::vector<uint> indices;
+    uint tplCount;
 
-    void parse(std::vector<Group> &groups, DataSetInfo &info);
-    void clearIndices();
+    Parser(uint tplCount = 1296) : tplCount(tplCount) {}
 
-    // Getters
-    static int getIdCounter();
-    std::string getBasePath() const;
-    uint getTplCount() const;
-    const std::vector<std::string> &getTemplateFolders() const;
-    const std::vector<uint> &getIndices() const;
-
-    // Setters
-    void setBasePath(std::string path);
-    void setTplCount(uint tplCount);
-    void setFolders(const std::vector<std::string> &folders);
-    void setIndices(const std::vector<uint> &indices);
+    void parse(const std::string &basePath, std::vector<Template> &templates, DataSetInfo &info);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_PARSER_H

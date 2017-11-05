@@ -2,6 +2,7 @@
 #define VSB_SEMESTRAL_PROJECT_DATASETINFO_H
 
 #include <opencv2/core/types.hpp>
+#include <ostream>
 #include "template.h"
 
 /**
@@ -20,6 +21,8 @@ public:
     
     // Methods
     void reset();
+
+    friend std::ostream &operator<<(std::ostream &os, const DataSetInfo &info);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_DATASETINFO_H

@@ -22,8 +22,8 @@ private:
     uint maxDistance;
 
     void generateTriplets(std::vector<HashTable> &tables);
-    void initializeBinRanges(std::vector<Group> &groups, std::vector<HashTable> &tables, DataSetInfo &info);
-    void initialize(std::vector<Group> &groups, std::vector<HashTable> &tables, DataSetInfo &info);
+    void initializeBinRanges(std::vector<Template> &templates, std::vector<HashTable> &tables, DataSetInfo &info);
+    void initialize(std::vector<Template> &templates, std::vector<HashTable> &tables, DataSetInfo &info);
 public:
     // Statics
     static const int IMG_16BIT_MAX;
@@ -39,7 +39,7 @@ public:
         : minVotes(minVotes), grid(grid), tablesCount(tablesCount), binCount(binCount), maxDistance(maxDistance) {}
 
     // Methods
-    void train(std::vector<Group> &groups, std::vector<HashTable> &tables, DataSetInfo &info);
+    void train(std::vector<Template> &templates, std::vector<HashTable> &tables, DataSetInfo &info);
     void verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows, DataSetInfo &info);
 
     // Getters

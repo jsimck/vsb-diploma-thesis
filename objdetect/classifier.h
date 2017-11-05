@@ -1,5 +1,5 @@
-#ifndef VSB_SEMESTRAL_PROJECT_CLASSIFICATOR_H
-#define VSB_SEMESTRAL_PROJECT_CLASSIFICATOR_H
+#ifndef VSB_SEMESTRAL_PROJECT_CLASSIFIER_H
+#define VSB_SEMESTRAL_PROJECT_CLASSIFIER_H
 
 #include "../core/group.h"
 #include "../core/match.h"
@@ -21,11 +21,8 @@
  */
 class Classifier {
 private:
-    std::string basePath;
     std::string scenePath;
     std::string sceneName;
-    std::vector<std::string> folders;
-    std::vector<uint> indices;
 
     cv::Mat scene;
     cv::Mat sceneHSV;
@@ -34,54 +31,47 @@ private:
     cv::Mat sceneDepthNorm;
 
     DataSetInfo info;
-    std::vector<Group> groups;
+    std::vector<Template> templates;
     std::vector<HashTable> tables;
     std::vector<Window> windows;
     std::vector<Match> matches;
 
     // Methods
-    inline void parseTemplates();
-    inline void loadScene();
-    inline void extractMinEdgels();
-    inline void trainHashTables();
-    inline void trainTemplates();
-    inline void detectObjectness();
-    inline void verifyTemplateCandidates();
-    inline void matchTemplates();
+    void loadScene();
+    void extractMinEdgels();
+    void trainHashTables();
+    void detectObjectness();
+    void verifyTemplateCandidates();
+    void matchTemplates();
 public:
     // Classifiers
-    Parser parser;
     Objectness objectness;
     Hasher hasher;
     Matcher matcher;
 
     // Constructors
-    explicit Classifier(std::string basePath = "data/", std::vector<std::string> folders = {}, std::string scenePath = "scene_01/", std::string sceneName = "0000.png");
+    explicit Classifier(std::string scenePath = "scene_01/", std::string sceneName = "0000.png");
 
     // Methods
     void classify();
+    void train(std::string templatesPath, std::string resultPath, std::vector<uint> indices = {});
+    void detect(std::string trainedTemplatesPath);
 
     // Getters
-    const std::string &getBasePath() const;
     const std::string &getScenePath() const;
     const std::string &getSceneName() const;
     const cv::Mat &getScene() const;
     const cv::Mat &getSceneGrayscale() const;
     const cv::Mat &getSceneDepth() const;
     const cv::Mat &getSceneDepthNorm() const;
-    const std::vector<std::string> &getFolders() const;
-    const std::vector<Group> &getTemplateGroups() const;
+    const std::vector<Template> &getTemplates() const;
     const std::vector<HashTable> &getHashTables() const;
     const std::vector<Window> &getWindows() const;
     const std::vector<Match> &getMatches() const;
-    const std::vector<uint> &getIndices() const;
 
     // Setters
-    void setBasePath(const std::string &basePath);
-    void setFolders(const std::vector<std::string> &folders);
     void setScenePath(const std::string &scenePath);
     void setSceneName(const std::string &sceneName);
-    void setIndices(const std::vector<uint> &indices);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_CLASSIFICATOR_H
+#endif //VSB_SEMESTRAL_PROJECT_CLASSIFIER_H

@@ -85,96 +85,90 @@ void Matcher::cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, do
     out.resize(pointsCount);
 }
 
-void Matcher::generateFeaturePoints(std::vector<Group> &groups) {
-    for (auto &group : groups) {
-        const size_t iSize = group.templates.size();
+void Matcher::generateFeaturePoints(std::vector<Template> &templates) {
+    const size_t iSize = templates.size();
 
-        #pragma omp parallel for
-        for (size_t i = 0; i < iSize; i++) {
-            // Get template by reference for better access
-            Template &t = group.templates[i];
-            std::vector<ValuePoint<float>> edgePoints;
-            std::vector<ValuePoint<float>> stablePoints;
-            cv::Mat sobel, visualization;
+    #pragma omp parallel for
+    for (size_t i = 0; i < iSize; i++) {
+        // Get template by reference for better access
+        Template &t = templates[i];
+        std::vector<ValuePoint<float>> edgePoints;
+        std::vector<ValuePoint<float>> stablePoints;
+        cv::Mat sobel, visualization;
 
-            // Apply sobel to get mask for edge areas
-            Processing::filterSobel(t.srcGray, sobel, true, true);
+        // Apply sobel to get mask for edge areas
+        Processing::filterSobel(t.srcGray, sobel, true, true);
 
-            for (int y = 0; y < sobel.rows; y++) {
-                for (int x = 0; x < sobel.cols; x++) {
-                    float sobelValue = sobel.at<float>(y, x);
-                    float stableValue = t.srcGray.at<float>(y, x);
+        for (int y = 0; y < sobel.rows; y++) {
+            for (int x = 0; x < sobel.cols; x++) {
+                float sobelValue = sobel.at<float>(y, x);
+                float stableValue = t.srcGray.at<float>(y, x);
 
-                    if (sobelValue > 0.3f) {
-                        edgePoints.emplace_back(ValuePoint<float>(cv::Point(x, y) - t.objBB.tl(), sobelValue));
-                    } else if (stableValue > 0.2f) {
-                        stablePoints.emplace_back(ValuePoint<float>(cv::Point(x, y) - t.objBB.tl(), stableValue));
-                    }
+                if (sobelValue > 0.3f) {
+                    edgePoints.emplace_back(ValuePoint<float>(cv::Point(x, y) - t.objBB.tl(), sobelValue));
+                } else if (stableValue > 0.2f) {
+                    stablePoints.emplace_back(ValuePoint<float>(cv::Point(x, y) - t.objBB.tl(), stableValue));
                 }
             }
-
-            // Check if there's enough points to extract
-            assert(edgePoints.size() > pointsCount);
-            assert(stablePoints.size() > pointsCount);
-
-            // Sort point values descending & cherry pick feature points
-            std::sort(edgePoints.rbegin(), edgePoints.rend());
-            std::shuffle(stablePoints.rbegin(), stablePoints.rend(), std::mt19937(std::random_device()())); // Randomize stable points
-            cherryPickFeaturePoints(edgePoints, edgePoints.size() / pointsCount, pointsCount, t.edgePoints);
-            cherryPickFeaturePoints(stablePoints, stablePoints.size() / pointsCount, pointsCount, t.stablePoints);
-
-            assert(edgePoints.size() > pointsCount);
-            assert(stablePoints.size() > pointsCount);
         }
+
+        // Check if there's enough points to extract
+        assert(edgePoints.size() > pointsCount);
+        assert(stablePoints.size() > pointsCount);
+
+        // Sort point values descending & cherry pick feature points
+        std::sort(edgePoints.rbegin(), edgePoints.rend());
+        std::shuffle(stablePoints.rbegin(), stablePoints.rend(), std::mt19937(std::random_device()())); // Randomize stable points
+        cherryPickFeaturePoints(edgePoints, edgePoints.size() / pointsCount, pointsCount, t.edgePoints);
+        cherryPickFeaturePoints(stablePoints, stablePoints.size() / pointsCount, pointsCount, t.stablePoints);
+
+        assert(edgePoints.size() > pointsCount);
+        assert(stablePoints.size() > pointsCount);
     }
 }
 
-void Matcher::extractFeatures(std::vector<Group> &groups) {
-    assert(!groups.empty());
+void Matcher::extractFeatures(std::vector<Template> &templates) {
+    const size_t iSize = templates.size();
 
-    for (auto &group : groups) {
-        const size_t iSize = group.templates.size();
+    #pragma omp parallel for
+    for (size_t i = 0; i < iSize; i++) {
+        // Get template by reference for better access
+        Template &t = templates[i];
+        assert(!t.srcGray.empty());
+        assert(!t.srcHSV.empty());
+        assert(!t.srcDepth.empty());
 
-        #pragma omp parallel for
-        for (size_t i = 0; i < iSize; i++) {
-            // Get template by reference for better access
-            Template &t = group.templates[i];
-            assert(!t.srcGray.empty());
-            assert(!t.srcHSV.empty());
-            assert(!t.srcDepth.empty());
+        for (uint j = 0; j < pointsCount; j++) {
+            // Create offsets to object bounding box
+            cv::Point stablePOff(t.stablePoints[j].x + t.objBB.x, t.stablePoints[j].y + t.objBB.y);
+            cv::Point edgePOff(t.edgePoints[j].x + t.objBB.x, t.edgePoints[j].y + t.objBB.y);
 
-            for (uint j = 0; j < pointsCount; j++) {
-                // Create offsets to object bounding box
-                cv::Point stablePOff(t.stablePoints[j].x + t.objBB.x, t.stablePoints[j].y + t.objBB.y);
-                cv::Point edgePOff(t.edgePoints[j].x + t.objBB.x, t.edgePoints[j].y + t.objBB.y);
+            // Save features
+            t.features.depths.emplace_back(t.srcDepth.at<float>(stablePOff));
+            t.features.gradients.emplace_back(quantizeOrientationGradient(t.srcAngles.at<float>(edgePOff)));
+            t.features.normals.emplace_back(Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff)));
+            t.features.colors.emplace_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(stablePOff)));
 
-                // Save features
-                t.features.depths.emplace_back(t.srcDepth.at<float>(stablePOff));
-                t.features.gradients.emplace_back(quantizeOrientationGradient(t.srcAngles.at<float>(edgePOff)));
-                t.features.normals.emplace_back(Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff)));
-                t.features.colors.emplace_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(stablePOff)));
-
-                assert(t.features.gradients[j] >= 0);
-                assert(t.features.gradients[j] < 5);
-                assert(t.features.normals[j] >= 0);
-                assert(t.features.normals[j] < 8);
-            }
+            assert(t.features.gradients[j] >= 0);
+            assert(t.features.gradients[j] < 5);
+            assert(t.features.normals[j] >= 0);
+            assert(t.features.normals[j] < 8);
+        }
 
 #ifndef NDEBUG
 //            Visualizer::visualizeTemplate(t, "Template feature points");
 #endif
-        }
     }
 }
 
-void Matcher::train(std::vector<Group> &groups) {
+void Matcher::train(std::vector<Template> &templates) {
+    assert(!templates.empty());
+
     // Generate edge and stable points for features extraction
-    generateFeaturePoints(groups);
-    std::cout << "  |_ Feature points generated" << std::endl;
+    generateFeaturePoints(templates);
 
     // Extract features for all templates
-    extractFeatures(groups);
-    std::cout << "  |_ Features extracted" << std::endl;
+    extractFeatures(templates);
 }
 
 // TODO implement object size test

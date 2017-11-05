@@ -1,29 +1,27 @@
 #include "objectness.h"
 #include "../processing/processing.h"
 
-void Objectness::extractMinEdgels(std::vector<Group> &groups, DataSetInfo &info) {
-    assert(!groups.empty());
+void Objectness::extractMinEdgels(std::vector<Template> &templates, DataSetInfo &info) {
+    assert(!templates.empty());
 
     int edgels = 0;
     cv::Mat tSobel, tIntegral, tNorm;
 
     // Find template which contains least amount of the edgels and get his bounding box
-    for (auto &group : groups) {
-        for (auto &t : group.templates) {
-            // Normalize input image into <0, 1> values and crop it
-            t.srcDepth.convertTo(tNorm, CV_32F, 1.0f / 65536.0f);
-            tNorm = tNorm(t.objBB);
+    for (auto &t : templates) {
+        // Normalize input image into <0, 1> values and crop it
+        t.srcDepth.convertTo(tNorm, CV_32F, 1.0f / 65536.0f);
+        tNorm = tNorm(t.objBB);
 
-            Processing::filterSobel(tNorm, tSobel, true, true);
-            Processing::thresholdMinMax(tSobel, tSobel, tMin, tMax);
+        Processing::filterSobel(tNorm, tSobel, true, true);
+        Processing::thresholdMinMax(tSobel, tSobel, tMin, tMax);
 
-            // Compute integral image for easier computation of edgels
-            cv::integral(tNorm, tIntegral, CV_32F);
-            edgels = static_cast<int>(tIntegral.at<float>(tIntegral.rows - 1, tIntegral.cols - 1));
+        // Compute integral image for easier computation of edgels
+        cv::integral(tNorm, tIntegral, CV_32F);
+        edgels = static_cast<int>(tIntegral.at<float>(tIntegral.rows - 1, tIntegral.cols - 1));
 
-            if (edgels < info.minEdgels) {
-                info.minEdgels = edgels;
-            }
+        if (edgels < info.minEdgels) {
+            info.minEdgels = edgels;
         }
     }
 }

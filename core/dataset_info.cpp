@@ -9,3 +9,9 @@ void DataSetInfo::reset() {
     this->maxTemplate = cv::Size(0, 0);
     this->minEdgels = INT_MAX;
 }
+
+std::ostream &operator<<(std::ostream &os, const DataSetInfo &info) {
+    os << "minEdgels: " << info.minEdgels << " smallestTemplate: " << info.smallestTemplate << " maxTemplate: "
+       << info.maxTemplate;
+    return os;
+}

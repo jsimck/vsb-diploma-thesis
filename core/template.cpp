@@ -27,6 +27,25 @@ void Template::resetROI() {
     srcHSV.adjustROI(offset.y, size.height, offset.x, size.width);
 }
 
+void Template::persist(cv::FileStorage &fs) {
+    fs << "{";
+    fs << "id" << id;
+    fs << "fileName" << fileName;
+    fs << "edgePoints" << edgePoints;
+    fs << "stablePoints" << stablePoints;
+    fs << "gradients" << features.gradients;
+    fs << "normals" << features.normals;
+    fs << "depths" << features.depths;
+    fs << "colors" << features.colors;
+    fs << "objBB" << objBB;
+    fs << "camK" << camK;
+    fs << "camRm2c" << camRm2c;
+    fs << "camTm2c" << camTm2c;
+    fs << "elev" << elev;
+    fs << "mode" << mode;
+    fs << "}";
+}
+
 bool Template::operator==(const Template &rhs) const {
     return id == rhs.id &&
            fileName == rhs.fileName &&

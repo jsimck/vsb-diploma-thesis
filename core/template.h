@@ -14,7 +14,7 @@
  */
 struct Template {
 public:
-    uint id;
+    int id;
     std::string fileName;
     cv::Mat srcGray;
     cv::Mat srcHSV;
@@ -54,6 +54,7 @@ public:
     void resetVotes();
     void applyROI();
     void resetROI();
+    void persist(cv::FileStorage &fs);
 
     // Operators
     bool operator==(const Template &rhs) const;

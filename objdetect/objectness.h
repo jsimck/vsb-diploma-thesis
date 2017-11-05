@@ -30,7 +30,7 @@ public:
         : step(step), tMin(tMin), tMax(tMax), tMatch(tMatch) {}
 
     // Methods
-    void extractMinEdgels(std::vector<Group> &groups, DataSetInfo &info);
+    void extractMinEdgels(std::vector<Template> &templates, DataSetInfo &info);
     void objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &windows, DataSetInfo &info);
 
     // Getters

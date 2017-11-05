@@ -106,47 +106,45 @@ void Hasher::generateTriplets(std::vector<HashTable> &tables) {
     } while (duplicate);
 }
 
-void Hasher::initializeBinRanges(std::vector<Group> &groups, std::vector<HashTable> &tables, DataSetInfo &info) {
+void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<HashTable> &tables, DataSetInfo &info) {
     // Checks
     assert(!tables.empty());
-    assert(!groups.empty());
+    assert(!templates.empty());
 
     const size_t iSize = tables.size();
 
     #pragma omp parallel for
     for (size_t i = 0; i < iSize; i++) {
-        std::vector<int> rDepths(groups.size() * groups[0].templates.size());
+        std::vector<int> rDepths;
 
-        for (auto &group : groups) {
-            for (auto &t : group.templates) {
-                // Checks
-                assert(!t.srcDepth.empty());
+        for (auto &t : templates) {
+            // Checks
+            assert(!t.srcDepth.empty());
 
-                // Offset for the triplet grid
-                cv::Point gridOffset(
-                    t.objBB.tl().x - (info.maxTemplate.width - t.objBB.width) / 2,
-                    t.objBB.tl().y - (info.maxTemplate.height - t.objBB.height) / 2
-                );
+            // Offset for the triplet grid
+            cv::Point gridOffset(
+                t.objBB.tl().x - (info.maxTemplate.width - t.objBB.width) / 2,
+                t.objBB.tl().y - (info.maxTemplate.height - t.objBB.height) / 2
+            );
 
-                // Absolute triplet points
-                TripletParams params(info.maxTemplate.width, info.maxTemplate.height, grid, gridOffset.x, gridOffset.y);
-                cv::Point c = tables[i].triplet.getCenter(params);
-                cv::Point p1 = tables[i].triplet.getP1(params);
-                cv::Point p2 = tables[i].triplet.getP2(params);
+            // Absolute triplet points
+            TripletParams params(info.maxTemplate.width, info.maxTemplate.height, grid, gridOffset.x, gridOffset.y);
+            cv::Point c = tables[i].triplet.getCenter(params);
+            cv::Point p1 = tables[i].triplet.getP1(params);
+            cv::Point p2 = tables[i].triplet.getP2(params);
 
-                // Check if we're not out of bounds
-                assert(c.x >= 0 && c.x < t.srcDepth.cols);
-                assert(c.y >= 0 && c.y < t.srcDepth.rows);
-                assert(p1.x >= 0 && p1.x < t.srcDepth.cols);
-                assert(p1.y >= 0 && p1.y < t.srcDepth.rows);
-                assert(p2.x >= 0 && p2.x < t.srcDepth.cols);
-                assert(p2.y >= 0 && p2.y < t.srcDepth.rows);
+            // Check if we're not out of bounds
+            assert(c.x >= 0 && c.x < t.srcDepth.cols);
+            assert(c.y >= 0 && c.y < t.srcDepth.rows);
+            assert(p1.x >= 0 && p1.x < t.srcDepth.cols);
+            assert(p1.y >= 0 && p1.y < t.srcDepth.rows);
+            assert(p2.x >= 0 && p2.x < t.srcDepth.cols);
+            assert(p2.y >= 0 && p2.y < t.srcDepth.rows);
 
-                // Relative depths
-                cv::Vec2i d = relativeDepths(t.srcDepth, c, p1, p2);
-                rDepths.emplace_back(d[0]);
-                rDepths.emplace_back(d[1]);
-            }
+            // Relative depths
+            cv::Vec2i d = relativeDepths(t.srcDepth, c, p1, p2);
+            rDepths.emplace_back(d[0]);
+            rDepths.emplace_back(d[1]);
         }
 
         // Sort depths Calculate bin ranges
@@ -174,65 +172,63 @@ void Hasher::initializeBinRanges(std::vector<Group> &groups, std::vector<HashTab
     }
 }
 
-void Hasher::initialize(std::vector<Group> &groups, std::vector<HashTable> &tables, DataSetInfo &info) {
+void Hasher::initialize(std::vector<Template> &templates, std::vector<HashTable> &tables, DataSetInfo &info) {
     // Init hash tables
     tables.reserve(tablesCount);
     generateTriplets(tables);
 
     // Calculate bin ranges for depth quantization
     std::cout << "  |_ Calculating depths bin ranges... ";
-    initializeBinRanges(groups, tables, info);
+    initializeBinRanges(templates, tables, info);
 }
 
-void Hasher::train(std::vector<Group> &groups, std::vector<HashTable> &tables, DataSetInfo &info) {
+void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tables, DataSetInfo &info) {
     // Checks
-    assert(!groups.empty());
+    assert(!templates.empty());
     assert(tablesCount > 0);
     assert(grid.width > 0);
     assert(grid.height > 0);
     assert(info.maxTemplate.area() > 0);
 
     // Prepare hash tables and histogram bin ranges
-    initialize(groups, tables, info);
+    initialize(templates, tables, info);
     const size_t iSize = tables.size();
 
     // Fill hash tables with templates and keys quantized from measured values
     #pragma omp parallel for
     for (size_t i = 0; i < iSize; i++) {
-        for (auto &group : groups) {
-            for (auto &t : group.templates) {
-                // Checks
-                assert(!t.srcDepth.empty());
+        for (auto &t : templates) {
+            // Checks
+            assert(!t.srcDepth.empty());
 
-                // Get triplet points
-                TripletParams coordParams(info.maxTemplate.width, info.maxTemplate.height, grid, t.objBB.tl().x, t.objBB.tl().y);
-                cv::Point c = tables[i].triplet.getCenter(coordParams);
-                cv::Point p1 = tables[i].triplet.getP1(coordParams);
-                cv::Point p2 = tables[i].triplet.getP2(coordParams);
+            // Get triplet points
+            TripletParams coordParams(info.maxTemplate.width, info.maxTemplate.height, grid, t.objBB.tl().x, t.objBB.tl().y);
+            cv::Point c = tables[i].triplet.getCenter(coordParams);
+            cv::Point p1 = tables[i].triplet.getP1(coordParams);
+            cv::Point p2 = tables[i].triplet.getP2(coordParams);
 
-                // Check if we're not out of bounds
-                assert(c.x >= 0 && c.x < t.srcGray.cols);
-                assert(c.y >= 0 && c.y < t.srcGray.rows);
-                assert(p1.x >= 0 && p1.x < t.srcGray.cols);
-                assert(p1.y >= 0 && p1.y < t.srcGray.rows);
-                assert(p2.x >= 0 && p2.x < t.srcGray.cols);
-                assert(p2.y >= 0 && p2.y < t.srcGray.rows);
+            // Check if we're not out of bounds
+            assert(c.x >= 0 && c.x < t.srcGray.cols);
+            assert(c.y >= 0 && c.y < t.srcGray.rows);
+            assert(p1.x >= 0 && p1.x < t.srcGray.cols);
+            assert(p1.y >= 0 && p1.y < t.srcGray.rows);
+            assert(p2.x >= 0 && p2.x < t.srcGray.cols);
+            assert(p2.y >= 0 && p2.y < t.srcGray.rows);
 
-                // Relative depths
-                cv::Vec2i d = relativeDepths(t.srcDepth, c, p1, p2);
+            // Relative depths
+            cv::Vec2i d = relativeDepths(t.srcDepth, c, p1, p2);
 
-                // Generate hash key
-                HashKey key(
-                    quantizeDepth(d[0], tables[i].binRanges, binCount),
-                    quantizeDepth(d[1], tables[i].binRanges, binCount),
-                    quantizeSurfaceNormal(surfaceNormal(t.srcDepth, c)),
-                    quantizeSurfaceNormal(surfaceNormal(t.srcDepth, p1)),
-                    quantizeSurfaceNormal(surfaceNormal(t.srcDepth, p2))
-                );
+            // Generate hash key
+            HashKey key(
+                quantizeDepth(d[0], tables[i].binRanges, binCount),
+                quantizeDepth(d[1], tables[i].binRanges, binCount),
+                quantizeSurfaceNormal(surfaceNormal(t.srcDepth, c)),
+                quantizeSurfaceNormal(surfaceNormal(t.srcDepth, p1)),
+                quantizeSurfaceNormal(surfaceNormal(t.srcDepth, p2))
+            );
 
-                // Check if key exists, if not initialize it
-                tables[i].pushUnique(key, t);
-            }
+            // Check if key exists, if not initialize it
+            tables[i].pushUnique(key, t);
         }
     }
 }

@@ -5,7 +5,6 @@
 #include <opencv2/core/mat.hpp>
 #include "../core/window.h"
 #include "../core/match.h"
-#include "../core/group.h"
 #include "../core/value_point.h"
 
 /**
@@ -28,8 +27,8 @@ private:
 
     // Methods
     cv::Vec3b normalizeHSV(const cv::Vec3b &hsv);
-    void extractFeatures(std::vector<Group> &groups);
-    void generateFeaturePoints(std::vector<Group> &groups);
+    void extractFeatures(std::vector<Template> &templates);
+    void generateFeaturePoints(std::vector<Template> &templates);
     uchar quantizeOrientationGradient(float deg);
     void nonMaximaSuppression(std::vector<Match> &matches);
     void cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, double tMinDistance, uint pointsCount, std::vector<cv::Point> &out);
@@ -50,7 +49,7 @@ public:
 
     // Methods
     void match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv::Mat &sceneDepth, std::vector<Window> &windows, std::vector<Match> &matches);
-    void train(std::vector<Group> &groups);
+    void train(std::vector<Template> &templates);
 
     // Getters
     uint getPointsCount() const;

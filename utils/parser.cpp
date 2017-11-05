@@ -1,47 +1,26 @@
 #include "parser.h"
 #include "../processing/processing.h"
 
-uint Parser::idCounter = 0;
-
-void Parser::parse(std::vector<Group> &groups, DataSetInfo &info) {
-    // Checks
-    assert(!folders.empty());
-    int parsedCount = 0;
-
-    // Reset data set
-    info.reset();
-
-    // Parse
-    for (auto &tplName : folders) {
-        std::vector<Template> templates;
-        parseTemplate(templates, info, tplName);
-        groups.emplace_back(tplName, templates);
-        parsedCount += templates.size();
-        std::cout << "  |_ Parsed: " << tplName << ", templates size: " << templates.size() << std::endl;
-    }
-
-    std::cout << "  |_ Parsed total: " << parsedCount << " templates" << std::endl;
-}
-
-void Parser::parseTemplate(std::vector<Template> &templates, DataSetInfo &info, const std::string &tplName) {
+void Parser::parse(const std::string &basePath, std::vector<Template> &templates, DataSetInfo &info) {
     // Load obj_gt
+    idCounter = 0;
     cv::FileStorage fs;
-    fs.open(basePath + tplName + "/gt.yml", cv::FileStorage::READ);
+    fs.open(basePath + "/gt.yml", cv::FileStorage::READ);
     assert(fs.isOpened());
 
-    const uint size = static_cast<uint>((!indices.empty()) ? indices.size() : tplCount);
+    const auto size = static_cast<uint>((!indices.empty()) ? indices.size() : tplCount);
     for (uint i = 0; i < size; i++) {
         auto tplIndex = static_cast<uint>((!indices.empty()) ? indices[i] : i);
         std::string index = "tpl_" + std::to_string(tplIndex);
         cv::FileNode objGt = fs[index];
 
         // Parse template gt file
-        templates.emplace_back(parseGt(tplIndex, basePath + tplName, objGt, info));
+        templates.emplace_back(parseGt(tplIndex, basePath, objGt, info));
         idCounter++;
     }
 
     // Load obj_info
-    fs.open(basePath + tplName + "/info.yml", cv::FileStorage::READ);
+    fs.open(basePath + "/info.yml", cv::FileStorage::READ);
     assert(fs.isOpened());
 
     for (uint i = 0; i < size; i++) {
@@ -58,10 +37,12 @@ void Parser::parseTemplate(std::vector<Template> &templates, DataSetInfo &info, 
 
 Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNode, DataSetInfo &info) {
     // Init template param matrices
+    int id;
     std::vector<float> vCamRm2c, vCamTm2c;
     std::vector<int> vObjBB;
 
     // Nodes containing matrices and vectors to parseTemplate
+    gtNode["obj_id"] >> id;
     gtNode["obj_bb"] >> vObjBB;
     gtNode["cam_R_m2c"] >> vCamRm2c;
     gtNode["cam_t_m2c"] >> vCamTm2c;
@@ -119,7 +100,7 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
     assert(srcDepth.type() == CV_32FC1);
 
     return {
-        idCounter, fileName, src, srcHSV, srcDepth, angles, objBB,
+        idCounter + (2000 * id), fileName, src, srcHSV, srcDepth, angles, objBB,
         cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone(),
         cv::Vec3d(vCamTm2c[0], vCamTm2c[1], vCamTm2c[2])
     };
@@ -142,49 +123,4 @@ void Parser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
     tpl.elev = elev;
     tpl.mode = mode;
     tpl.camK = cv::Mat(3, 3, CV_32FC1, vCamK.data()).clone();
-}
-
-void Parser::clearIndices() {
-    indices.clear();
-}
-
-int Parser::getIdCounter() {
-    return idCounter;
-}
-
-std::string Parser::getBasePath() const {
-    return this->basePath;
-}
-
-uint Parser::getTplCount() const {
-    return this->tplCount;
-}
-
-const std::vector<std::string> &Parser::getTemplateFolders() const {
-    return this->folders;
-}
-
-const std::vector<uint> &Parser::getIndices() const {
-    return this->indices;
-}
-
-void Parser::setBasePath(std::string path) {
-    assert(path.length() > 0);
-    assert(path[path.length() - 1] == '/');
-    this->basePath = path;
-}
-
-void Parser::setTplCount(uint tplCount) {
-    assert(tplCount > 0);
-    this->tplCount = tplCount;
-}
-
-void Parser::setFolders(const std::vector<std::string> &folders) {
-    assert(!folders.empty());
-    this->folders = folders;
-}
-
-void Parser::setIndices(const std::vector<uint> &indices) {
-    assert(!indices.empty());
-    this->indices = indices;
 }
