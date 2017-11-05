@@ -45,16 +45,20 @@ public:
     int votes;
 
     // Constructors
+    Template() {}
     Template(uint id, std::string &fileName, cv::Mat &src, cv::Mat &srcHSV, cv::Mat &srcDepth, cv::Mat &srcAngles, cv::Rect &objBB, cv::Mat camRm2c, const cv::Vec3d &camTm2c)
         : id(id), fileName(fileName), srcGray(src), srcHSV(srcHSV), srcDepth(srcDepth), srcAngles(srcAngles), objBB(objBB),
           camRm2c(std::move(camRm2c)), camTm2c(camTm2c), elev(0), mode(0), votes(0) {}
+
+    // Persist and load methods
+    static Template load(cv::FileNode node);
+    void save(cv::FileStorage &fs);
 
     // Methods
     void vote();
     void resetVotes();
     void applyROI();
     void resetROI();
-    void persist(cv::FileStorage &fs);
 
     // Operators
     bool operator==(const Template &rhs) const;

@@ -27,7 +27,7 @@ void Template::resetROI() {
     srcHSV.adjustROI(offset.y, size.height, offset.x, size.width);
 }
 
-void Template::persist(cv::FileStorage &fs) {
+void Template::save(cv::FileStorage &fs) {
     fs << "{";
     fs << "id" << id;
     fs << "fileName" << fileName;
@@ -44,6 +44,27 @@ void Template::persist(cv::FileStorage &fs) {
     fs << "elev" << elev;
     fs << "mode" << mode;
     fs << "}";
+}
+
+Template Template::load(cv::FileNode node) {
+    Template t;
+
+    node["id"] >> t.id;
+    t.fileName = (std::string) node["fileName"];
+    node["edgePoints"] >> t.edgePoints;
+    node["stablePoints"] >> t.stablePoints;
+    node["gradients"] >> t.features.gradients;
+    node["normals"] >> t.features.normals;
+    node["depths"] >> t.features.depths;
+    node["colors"] >> t.features.colors;
+    node["objBB"] >> t.objBB;
+    node["camK"] >> t.camK;
+    node["camRm2c"] >> t.camRm2c;
+    node["camTm2c"] >> t.camTm2c;
+    node["elev"] >> t.elev;
+    node["mode"] >> t.mode;
+
+    return t;
 }
 
 bool Template::operator==(const Template &rhs) const {

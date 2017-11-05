@@ -28,26 +28,26 @@ Classifier::Classifier(std::string scenePath, std::string sceneName) {
     matcher.setTColorTest(3);
 }
 
-void Classifier::train(std::string templatesPath, std::string resultPath, std::vector<uint> indices) {
-    std::ifstream ifs(templatesPath);
+void Classifier::train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices) {
+    std::ifstream ifs(templatesListPath);
     assert(ifs.is_open());
 
     // Init parser and common
     Parser parser;
     std::ostringstream oss;
     std::vector<Template> tpls;
-    std::string line;
+    std::string path;
 
     parser.indices.swap(indices);
 
     Timer t;
     std::cout << "Training... " << std::endl;
 
-    while (ifs >> line) {
-        std::cout << "  |_ " << line;
+    while (ifs >> path) {
+        std::cout << "  |_ " << path;
 
-        // Parse each object by one and persist it
-        parser.parse(line, tpls, info);
+        // Parse each object by one and save it
+        parser.parse(path, tpls, info);
 
         // Train features for loaded templates
         matcher.train(tpls);
@@ -60,13 +60,41 @@ void Classifier::train(std::string templatesPath, std::string resultPath, std::v
 
         fsw << "templates" << "[";
         for (auto &tpl : tpls) {
-            tpl.persist(fsw);
+            tpl.save(fsw);
         }
         fsw << "]";
 
         fsw.release();
         tpls.clear();
         std::cout << " -> " << trainedPath << std::endl;
+    }
+
+    std::cout << "DONE!, took: " << t.elapsed() << " s" << std::endl << std::endl;
+}
+
+void Classifier::loadTemplates(const std::string &trainedTemplatesPath) {
+    std::ifstream ifs(trainedTemplatesPath);
+    assert(ifs.is_open());
+
+    Timer t;
+    std::string path;
+    std::cout << "Loading trained templates... " << std::endl;
+
+    while (ifs >> path) {
+        std::cout << "  |_ " << path;
+
+        // Load trained data
+        cv::FileStorage fsr(path, cv::FileStorage::READ);
+
+        cv::FileNode tpls = fsr["templates"];
+
+        // Loop through templates
+        for (cv::FileNodeIterator it = tpls.begin(); it != tpls.end(); it++) {
+            templates.emplace_back(Template::load(*it));
+        }
+
+        fsr.release();
+        std::cout << " -> LOADED" << std::endl;
     }
 
     std::cout << "DONE!, took: " << t.elapsed() << " s" << std::endl << std::endl;
@@ -171,7 +199,10 @@ void Classifier::matchTemplates() {
     std::cout << "DONE! " << matches.size() << " matches found, took: " << t.elapsed() << "s" << std::endl << std::endl;
 }
 
-void Classifier::detect(std::string trainedTemplatesPath) {
+void Classifier::detect(std::string trainedTemplatesListPath) {
+    // Load trained template data
+    loadTemplates(trainedTemplatesListPath);
+
     /// Hypothesis generation
     // Load scene images
     loadScene();

@@ -38,6 +38,7 @@ private:
 
     // Methods
     void loadScene();
+    void loadTemplates(const std::string &trainedTemplatesPath);
     void extractMinEdgels();
     void trainHashTables();
     void detectObjectness();
@@ -50,12 +51,12 @@ public:
     Matcher matcher;
 
     // Constructors
-    explicit Classifier(std::string scenePath = "scene_01/", std::string sceneName = "0000.png");
+    explicit Classifier(std::string scenePath = "data/scene_01/", std::string sceneName = "0000.png");
 
     // Methods
     void classify();
-    void train(std::string templatesPath, std::string resultPath, std::vector<uint> indices = {});
-    void detect(std::string trainedTemplatesPath);
+    void train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices = {});
+    void detect(std::string trainedTemplatesListPath);
 
     // Getters
     const std::string &getScenePath() const;

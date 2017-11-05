@@ -223,7 +223,7 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
         cv::rectangle(result, windows[i].tl(), windows[i].br(), cv::Scalar(0, 255, 0));
 
         for (auto &table : tables) {
-            // Prepare params to create hash key
+            // Prepare params to load hash key
             TripletParams params(info.maxTemplate.width, info.maxTemplate.height, grid, windows[i].tl().x, windows[i].tl().y);
             cv::Point c = table.triplet.getCenter(params);
             cv::Point p1 = table.triplet.getP1(params);
