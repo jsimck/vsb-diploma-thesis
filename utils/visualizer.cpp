@@ -113,7 +113,7 @@ void Visualizer::visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, 
     cv::waitKey(0);
 }
 
-void Visualizer::visualizeMatches(cv::Mat &scene, std::vector<Match> &matches, std::vector<Group> &groups) {
+void Visualizer::visualizeMatches(cv::Mat &scene, std::vector<Match> &matches) {
     cv::Mat viz = scene.clone();
 
     for (auto &match : matches) {
@@ -127,23 +127,23 @@ void Visualizer::visualizeMatches(cv::Mat &scene, std::vector<Match> &matches, s
         oss << std::fixed << "score: " << match.score << " (" << (match.score * 100.0f) / 4.0f << "%)";
         setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 28));
 
-        for (auto &group : groups) {
-            for (auto &tpl : group.templates) {
-                if (tpl.id == match.tpl->id) {
-                    // Crop template src
-                    cv::Mat tplSrc = tpl.srcHSV(tpl.objBB).clone();
-                    cv::cvtColor(tplSrc, tplSrc, CV_HSV2BGR);
-
-                    oss.str("");
-                    oss << "Template id: " << tpl.id;
-                    std::string winName = oss.str();
-
-                    // Show in resizable window
-                    cv::namedWindow(winName, 0);
-                    cv::imshow(winName, tplSrc);
-                }
-            }
-        }
+//        for (auto &group : groups) {
+//            for (auto &tpl : group.templates) {
+//                if (tpl.id == match.tpl->id) {
+//                    // Crop template src
+//                    cv::Mat tplSrc = tpl.srcHSV(tpl.objBB).clone();
+//                    cv::cvtColor(tplSrc, tplSrc, CV_HSV2BGR);
+//
+//                    oss.str("");
+//                    oss << "Template id: " << tpl.id;
+//                    std::string winName = oss.str();
+//
+//                    // Show in resizable window
+//                    cv::namedWindow(winName, 0);
+//                    cv::imshow(winName, tplSrc);
+//                }
+//            }
+//        }
     }
 
     // Show in resizable window

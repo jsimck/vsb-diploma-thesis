@@ -7,6 +7,7 @@
 #include "objectness.h"
 #include "../utils/visualizer.h"
 #include "../processing/processing.h"
+#include "../core/template.h"
 
 int Matcher::median(std::vector<int> &values) {
     assert(!values.empty());
@@ -307,7 +308,7 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
 }
 
 // Enable/disable visualization for function below
-#define VISUALIZE_MATCH
+//#define VISUALIZE_MATCH
 void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv::Mat &sceneDepth, std::vector<Window> &windows, std::vector<Match> &matches) {
     // Checks
     assert(!sceneHSV.empty());
@@ -392,7 +393,7 @@ void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv:
 
             // Test IV
             for (uint i = 0; i < pointsCount; i++) {
-                depths.emplace_back(static_cast<int>(sceneDepth.at<float>(candidate->stablePoints[i]) - candidate->srcDepth.at<float>(candidate->stablePoints[i])));
+                depths.emplace_back(static_cast<int>(sceneDepth.at<float>(candidate->stablePoints[i]) - candidate->features.depths[i]));
             }
 
             sIV = testDepth(candidate->objBB.width, depths);

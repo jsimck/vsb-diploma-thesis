@@ -17,7 +17,7 @@ private:
 public:
     static void visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows,
                                  DataSetInfo &info, const cv::Size &grid, bool continuous = true, const char *title = nullptr);
-    static void visualizeMatches(cv::Mat &scene, std::vector<Match> &matches, std::vector<Group> &groups);
+    static void visualizeMatches(cv::Mat &scene, std::vector<Match> &matches);
     static void visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, bool continuous = true, const char *title = nullptr);
     static void visualizeTests(Template &tpl, const cv::Mat &sceneHSV, Window &window, std::vector<cv::Point> &stablePoints, std::vector<cv::Point> &edgePoints,
                                cv::Range &neighbourhood, std::vector<int> &scoreII, std::vector<int> &scoreIII, float scoreIV, std::vector<int> &scoreV,

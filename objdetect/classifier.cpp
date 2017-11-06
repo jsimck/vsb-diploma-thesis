@@ -234,7 +234,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
     std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
 
     /// Show matched template results
-//    Visualizer::visualizeMatches(scene, matches, templates);
+    Visualizer::visualizeMatches(scene, matches);
 }
 
 const std::string &Classifier::getScenePath() const {
