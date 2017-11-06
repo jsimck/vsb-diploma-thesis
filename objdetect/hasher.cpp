@@ -175,10 +175,11 @@ void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<H
 void Hasher::initialize(std::vector<Template> &templates, std::vector<HashTable> &tables, DataSetInfo &info) {
     // Init hash tables
     tables.reserve(tablesCount);
+    std::cout << "    |_ Generating triplets... " << std::endl;
     generateTriplets(tables);
 
     // Calculate bin ranges for depth quantization
-    std::cout << "  |_ Calculating depths bin ranges... ";
+    std::cout << "    |_ Calculating depths bin ranges... " << std::endl;
     initializeBinRanges(templates, tables, info);
 }
 
@@ -208,12 +209,12 @@ void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tab
             cv::Point p2 = tables[i].triplet.getP2(coordParams);
 
             // Check if we're not out of bounds
-            assert(c.x >= 0 && c.x < t..cols);
-            assert(c.y >= 0 && c.y < t..rows);
-            assert(p1.x >= 0 && p1.x < t..cols);
-            assert(p1.y >= 0 && p1.y < t..rows);
-            assert(p2.x >= 0 && p2.x < t..cols);
-            assert(p2.y >= 0 && p2.y < t..rows);
+            assert(c.x >= 0 && c.x < t.srcGray.cols);
+            assert(c.y >= 0 && c.y < t.srcGray.rows);
+            assert(p1.x >= 0 && p1.x < t.srcGray.cols);
+            assert(p1.y >= 0 && p1.y < t.srcGray.rows);
+            assert(p2.x >= 0 && p2.x < t.srcGray.cols);
+            assert(p2.y >= 0 && p2.y < t.srcGray.rows);
 
             // Relative depths
             cv::Vec2i d = relativeDepths(t.srcDepth, c, p1, p2);

@@ -10,20 +10,20 @@ void DataSetInfo::reset() {
     minEdgels = INT_MAX;
 }
 
-DataSetInfo DataSetInfo::load(cv::FileStorage node) {
+DataSetInfo DataSetInfo::load(cv::FileStorage fsr) {
     DataSetInfo dataSet;
 
-    node["smallest_template"] >> dataSet.smallestTemplate;
-    node["max_template"] >> dataSet.maxTemplate;
-    node["min_edgels"] >> dataSet.minEdgels;
+    fsr["smallestTemplate"] >> dataSet.smallestTemplate;
+    fsr["maxTemplate"] >> dataSet.maxTemplate;
+    fsr["minEdgels"] >> dataSet.minEdgels;
 
     return dataSet;
 }
 
-void DataSetInfo::save(cv::FileStorage &fs) {
-    fs << "smallest_template" << smallestTemplate;
-    fs << "max_template" << maxTemplate;
-    fs << "min_edgels" << minEdgels;
+void DataSetInfo::save(cv::FileStorage &fsw) {
+    fsw << "smallestTemplate" << smallestTemplate;
+    fsw << "maxTemplate" << maxTemplate;
+    fsw << "minEdgels" << minEdgels;
 }
 
 std::ostream &operator<<(std::ostream &os, const DataSetInfo &info) {

@@ -32,3 +32,93 @@ std::ostream &operator<<(std::ostream &os, const HashTable &table) {
     }
     return os;
 }
+
+HashTable HashTable::load(cv::FileNode &node, std::vector<Template> &templates) {
+    HashTable table;
+
+    // Load triplet triplet
+    cv::FileNode tripletNode = node["triplet"];
+    tripletNode["p1"] >> table.triplet.p1;
+    tripletNode["p2"] >> table.triplet.p2;
+    tripletNode["c"] >> table.triplet.c;
+
+    // Load bin ranges
+    node["binRanges"] >> table.binRanges;
+
+    // Save Templates
+    cv::FileNode data = node["data"];
+    for (auto &&row : data) {
+        // Load key
+        HashKey key;
+        cv::FileNode keyNode = row["key"];
+
+        keyNode["d1"] >> key.d1;
+        keyNode["d2"] >> key.d2;
+        keyNode["n1"] >> key.n1;
+        keyNode["n2"] >> key.n2;
+        keyNode["n3"] >> key.n3;
+
+        // Load templates
+        int id = 0;
+        cv::FileNode templatesNode = row["templates"];
+
+        for (auto &&tplId : templatesNode) {
+            tplId >> id;
+
+            // Loop through existing templates and save pointers to maching ids
+            for (auto &tpl : templates) {
+                if (id == tpl.id) {
+                    // Check if key exists, if not initialize it
+                    if (table.templates.find(key) == table.templates.end()) {
+                        std::vector<Template *> hashTemplates;
+                        table.templates[key] = hashTemplates;
+                    }
+
+                    // Push to table
+                    table.templates[key].push_back(&tpl);
+                    break;
+                }
+            }
+        }
+    }
+
+    return table;
+}
+
+void HashTable::save(cv::FileStorage &fsw) {
+    // Save triplet
+    fsw << "{";
+    fsw << "triplet" << "{";
+    fsw << "p1" << triplet.p1;
+    fsw << "c" << triplet.c;
+    fsw << "p2" << triplet.p2;
+    fsw << "}";
+
+    // Save bin ranges
+    fsw << "binRanges" << binRanges;
+
+    // Save Templates
+    fsw << "data" << "[";
+    for (auto &tableRow : templates) {
+        // Save key
+        fsw << "{";
+        fsw << "key" << "{";
+        fsw << "d1" << tableRow.first.d1;
+        fsw << "d2" << tableRow.first.d2;
+        fsw << "n1" << tableRow.first.n1;
+        fsw << "n2" << tableRow.first.n2;
+        fsw << "n3" << tableRow.first.n3;
+        fsw << "}";
+
+        // Save template IDS
+        fsw << "templates" << "[";
+        for (auto &tpl : tableRow.second) {
+            fsw << tpl->id;
+        }
+        fsw << "]";
+        fsw << "}";
+    }
+    fsw << "]";
+
+    fsw << "}";
+}

@@ -34,11 +34,11 @@ void Classifier::train(std::string templatesListPath, std::string resultPath, st
 
     // Init parser and common
     Parser parser;
-    std::ostringstream oss;
-    std::vector<Template> tpls;
-    std::string path;
-
     parser.indices.swap(indices);
+
+    std::ostringstream oss;
+    std::vector<Template> tpls, allTemplates;
+    std::string path;
 
     Timer t;
     std::cout << "Training... " << std::endl;
@@ -51,6 +51,9 @@ void Classifier::train(std::string templatesListPath, std::string resultPath, st
 
         // Train features for loaded templates
         matcher.train(tpls);
+
+        // Save templates for later hash table generation
+        allTemplates.insert(allTemplates.end(), tpls.begin(), tpls.end());
 
         // Extract min edgels for objectness detection
         objectness.extractMinEdgels(tpls, info);
@@ -75,14 +78,28 @@ void Classifier::train(std::string templatesListPath, std::string resultPath, st
     // Save data set
     cv::FileStorage fsw(resultPath + "classifier.yml.gz", cv::FileStorage::WRITE);
     info.save(fsw);
-    fsw.release();
-
     std::cout << "  |_ info -> " << resultPath + "classifier.yml.gz" << std::endl;
+
+    // Train hash tables
+    std::cout << "  |_ Training hash tables... " << std::endl;
+    hasher.train(allTemplates, tables, info);
+    assert(!tables.empty());
+    std::cout << "    |_ " << tables.size() << " hash tables generated" <<std::endl;
+
+    // Persist hashTables
+    fsw << "tables" << "[";
+    for (auto &table : tables) {
+        table.save(fsw);
+    }
+    fsw << "]";
+    fsw.release();
+    std::cout << "  |_ tables -> " << resultPath + "classifier.yml.gz" << std::endl;
+
     std::cout << "DONE!, took: " << t.elapsed() << " s" << std::endl << std::endl;
 }
 
-void Classifier::load(const std::string &trainedTemplatesPath, const std::string &trainedPath) {
-    std::ifstream ifs(trainedTemplatesPath);
+void Classifier::load(const std::string &trainedTemplatesListPath, const std::string &trainedPath) {
+    std::ifstream ifs(trainedTemplatesListPath);
     assert(ifs.is_open());
 
     Timer t;
@@ -108,9 +125,17 @@ void Classifier::load(const std::string &trainedTemplatesPath, const std::string
     // Load data set
     cv::FileStorage fsr(trainedPath + "classifier.yml.gz", cv::FileStorage::READ);
     info = DataSetInfo::load(fsr);
-    fsr.release();
-
     std::cout << "  |_ info -> LOADED" << std::endl;
+
+    // Load hash tables
+    cv::FileNode hashTables = fsr["tables"];
+    for (auto &&table : hashTables) {
+        tables.emplace_back(HashTable::load(table, templates));
+    }
+
+    fsr.release();
+    std::cout << "  |_ hashTables -> LOADED (" << tables.size() << ")" << std::endl;
+
     std::cout << "DONE!, took: " << t.elapsed() << " s" << std::endl << std::endl;
 }
 
@@ -143,18 +168,6 @@ void Classifier::loadScene() {
     assert(sceneDepthNorm.type() == CV_32FC1);
 
     std::cout << "DONE!" << std::endl << std::endl;
-}
-
-void Classifier::trainHashTables() {
-    // Checks
-    assert(!templates.empty());
-
-    // Train hash tables
-    std::cout << "Training hash tables... " << std::endl;
-    Timer t;
-    hasher.train(templates, tables, info);
-    assert(!tables.empty());
-    std::cout << "DONE! took: " << t.elapsed() << "s, " << tables.size() << " hash tables generated" <<std::endl << std::endl;
 }
 
 void Classifier::detectObjectness() {
@@ -205,10 +218,6 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
     // Load trained template data and scene
     load(trainedTemplatesListPath, trainedPath);
     loadScene();
-
-    /// Hypothesis generation
-    // Train hash tables
-    trainHashTables();
 
     /// Hypothesis verification
     // Start stopwatch

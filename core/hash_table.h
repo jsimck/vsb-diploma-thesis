@@ -25,6 +25,10 @@ public:
     HashTable() {}
     HashTable(const Triplet &triplet) : triplet(triplet) {}
 
+    // Persistence
+    static HashTable load(cv::FileNode &node, std::vector<Template> &templates);
+    void save(cv::FileStorage &fsw);
+
     // Methods
     void pushUnique(const HashKey &key, Template &t);
 

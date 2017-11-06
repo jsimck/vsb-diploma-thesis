@@ -38,7 +38,7 @@ private:
 
     // Methods
     void loadScene();
-    void load(const std::string &trainedTemplatesPath, const std::string &trainedPath);
+    void load(const std::string &trainedTemplatesListPath, const std::string &trainedPath);
     void trainHashTables();
     void detectObjectness();
     void verifyTemplateCandidates();

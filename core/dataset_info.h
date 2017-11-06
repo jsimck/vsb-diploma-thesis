@@ -20,8 +20,8 @@ public:
     DataSetInfo();
 
     // Persistence
-    static DataSetInfo load(cv::FileStorage node);
-    void save(cv::FileStorage &fs);
+    static DataSetInfo load(cv::FileStorage fsr);
+    void save(cv::FileStorage &fsw);
     
     // Methods
     void reset();

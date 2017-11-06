@@ -31,7 +31,6 @@ void Template::save(cv::FileStorage &fs) {
     fs << "{";
     fs << "id" << id;
     fs << "fileName" << fileName;
-    fs << "angles" << angles;
     fs << "edgePoints" << edgePoints;
     fs << "stablePoints" << stablePoints;
     fs << "gradients" << features.gradients;
@@ -52,7 +51,6 @@ Template Template::load(cv::FileNode node) {
 
     node["id"] >> t.id;
     t.fileName = (std::string) node["fileName"];
-    node["angles"] >> t.angles;
     node["edgePoints"] >> t.edgePoints;
     node["stablePoints"] >> t.stablePoints;
     node["gradients"] >> t.features.gradients;

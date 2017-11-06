@@ -20,7 +20,7 @@ public:
     uchar n1, n2, n3; // n1, n2, n3 surface normals are quantized into 8 discrete values each [index 0 - 7]
 
     // Constructors
-    HashKey(uchar d1, uchar d2, uchar n1, uchar n2, uchar n3) : d1(d1), d2(d2), n1(n1), n2(n2), n3(n3) {}
+    HashKey(uchar d1 = 0, uchar d2 = 0, uchar n1 = 0, uchar n2 = 0, uchar n3 = 0) : d1(d1), d2(d2), n1(n1), n2(n2), n3(n3) {}
 
     // Operators
     bool operator==(const HashKey &rhs) const;
