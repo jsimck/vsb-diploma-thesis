@@ -57,7 +57,7 @@ void Visualizer::visualizeWindow(cv::Mat &scene, Window &window) {
     setLabel(scene, oss.str(), window.tr() + cv::Point(5, 28));
 }
 
-void Visualizer::visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, bool continuous, const char *title) {
+void Visualizer::visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, bool continuous, int wait, const char *title) {
     // Init common variables
     cv::Mat result = scene.clone();
 
@@ -110,7 +110,7 @@ void Visualizer::visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, 
 
     // Show results
     cv::imshow(title == nullptr ? oss.str() : title, result);
-    cv::waitKey(0);
+    cv::waitKey(wait);
 }
 
 void Visualizer::visualizeMatches(cv::Mat &scene, std::vector<Match> &matches) {
@@ -150,7 +150,7 @@ void Visualizer::visualizeMatches(cv::Mat &scene, std::vector<Match> &matches) {
     std::string winName = "Matched results";
     cv::namedWindow(winName, 0);
     cv::imshow(winName, viz);
-    cv::waitKey(0);
+    cv::waitKey(1);
 }
 
 void Visualizer::visualizeTemplate(Template &tpl, const char *title) {

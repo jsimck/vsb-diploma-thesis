@@ -1,4 +1,1 @@
 data/trained/trained_02.yml.gz
-data/trained/trained_25.yml.gz
-data/trained/trained_29.yml.gz
-data/trained/trained_30.yml.gz
