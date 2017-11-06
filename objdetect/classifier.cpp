@@ -52,6 +52,9 @@ void Classifier::train(std::string templatesListPath, std::string resultPath, st
         // Train features for loaded templates
         matcher.train(tpls);
 
+        // Extract min edgels for objectness detection
+        objectness.extractMinEdgels(tpls, info);
+
         // Persist trained data
         oss.str("");
         oss << resultPath << "trained_" << std::setw(2) << std::setfill('0') << tpls[0].id / 2000 << ".yml.gz";
@@ -69,10 +72,16 @@ void Classifier::train(std::string templatesListPath, std::string resultPath, st
         std::cout << " -> " << trainedPath << std::endl;
     }
 
+    // Save data set
+    cv::FileStorage fsw(resultPath + "classifier.yml.gz", cv::FileStorage::WRITE);
+    info.save(fsw);
+    fsw.release();
+
+    std::cout << "  |_ info -> " << resultPath + "classifier.yml.gz" << std::endl;
     std::cout << "DONE!, took: " << t.elapsed() << " s" << std::endl << std::endl;
 }
 
-void Classifier::loadTemplates(const std::string &trainedTemplatesPath) {
+void Classifier::load(const std::string &trainedTemplatesPath, const std::string &trainedPath) {
     std::ifstream ifs(trainedTemplatesPath);
     assert(ifs.is_open());
 
@@ -85,18 +94,23 @@ void Classifier::loadTemplates(const std::string &trainedTemplatesPath) {
 
         // Load trained data
         cv::FileStorage fsr(path, cv::FileStorage::READ);
-
         cv::FileNode tpls = fsr["templates"];
 
         // Loop through templates
-        for (cv::FileNodeIterator it = tpls.begin(); it != tpls.end(); it++) {
-            templates.emplace_back(Template::load(*it));
+        for (auto &&tpl : tpls) {
+            templates.emplace_back(Template::load(tpl));
         }
 
         fsr.release();
         std::cout << " -> LOADED" << std::endl;
     }
 
+    // Load data set
+    cv::FileStorage fsr(trainedPath + "classifier.yml.gz", cv::FileStorage::READ);
+    info = DataSetInfo::load(fsr);
+    fsr.release();
+
+    std::cout << "  |_ info -> LOADED" << std::endl;
     std::cout << "DONE!, took: " << t.elapsed() << " s" << std::endl << std::endl;
 }
 
@@ -129,18 +143,6 @@ void Classifier::loadScene() {
     assert(sceneDepthNorm.type() == CV_32FC1);
 
     std::cout << "DONE!" << std::endl << std::endl;
-}
-
-void Classifier::extractMinEdgels() {
-    // Checks
-    assert(!templates.empty());
-
-    // Extract min edgels
-    std::cout << "Extracting min edgels... ";
-    Timer t;
-    objectness.extractMinEdgels(templates, info);
-    std::cout << "DONE! " << std::endl;
-    std::cout << "  |_ Minimum edgels found: " << info.minEdgels << ", took: " << t.elapsed() << " s" << std::endl << std::endl;
 }
 
 void Classifier::trainHashTables() {
@@ -199,17 +201,12 @@ void Classifier::matchTemplates() {
     std::cout << "DONE! " << matches.size() << " matches found, took: " << t.elapsed() << "s" << std::endl << std::endl;
 }
 
-void Classifier::detect(std::string trainedTemplatesListPath) {
-    // Load trained template data
-    loadTemplates(trainedTemplatesListPath);
-
-    /// Hypothesis generation
-    // Load scene images
+void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath) {
+    // Load trained template data and scene
+    load(trainedTemplatesListPath, trainedPath);
     loadScene();
 
-    // Extract min edgels
-    extractMinEdgels();
-
+    /// Hypothesis generation
     // Train hash tables
     trainHashTables();
 

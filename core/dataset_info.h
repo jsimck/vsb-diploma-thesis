@@ -18,6 +18,10 @@ public:
 
     // Constructors
     DataSetInfo();
+
+    // Persistence
+    static DataSetInfo load(cv::FileStorage node);
+    void save(cv::FileStorage &fs);
     
     // Methods
     void reset();

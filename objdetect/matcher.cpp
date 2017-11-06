@@ -145,7 +145,7 @@ void Matcher::extractFeatures(std::vector<Template> &templates) {
 
             // Save features
             t.features.depths.emplace_back(t.srcDepth.at<float>(stablePOff));
-            t.features.gradients.emplace_back(quantizeOrientationGradient(t.srcAngles.at<float>(edgePOff)));
+            t.features.gradients.emplace_back(quantizeOrientationGradient(t.angles.at<float>(edgePOff)));
             t.features.normals.emplace_back(Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff)));
             t.features.colors.emplace_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(stablePOff)));
 
