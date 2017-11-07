@@ -8,7 +8,6 @@
 #include "../core/dataset_info.h"
 #include "../core/hash_table.h"
 #include "../core/match.h"
-#include "../core/group.h"
 
 class Visualizer {
 private:

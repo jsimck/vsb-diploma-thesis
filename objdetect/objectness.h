@@ -3,7 +3,6 @@
 
 #include <string>
 #include "../core/template.h"
-#include "../core/group.h"
 #include "../core/window.h"
 #include "../core/dataset_info.h"
 

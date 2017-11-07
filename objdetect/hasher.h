@@ -3,9 +3,8 @@
 
 #include <opencv2/opencv.hpp>
 #include "../core/hash_table.h"
-#include "../core/group.h"
-#include "../core/window.h"
 #include "../core/dataset_info.h"
+#include "../core/window.h"
 
 /**
  * class Hasher

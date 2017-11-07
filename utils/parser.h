@@ -4,7 +4,6 @@
 #include <string>
 #include <utility>
 #include "../core/template.h"
-#include "../core/group.h"
 #include "../core/dataset_info.h"
 
 /**

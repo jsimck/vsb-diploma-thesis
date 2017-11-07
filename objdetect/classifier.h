@@ -1,7 +1,6 @@
 #ifndef VSB_SEMESTRAL_PROJECT_CLASSIFIER_H
 #define VSB_SEMESTRAL_PROJECT_CLASSIFIER_H
 
-#include "../core/group.h"
 #include "../core/match.h"
 #include "../core/hash_table.h"
 #include "../utils/parser.h"
