@@ -15,23 +15,16 @@
  */
 class Matcher {
 private:
-    uint pointsCount; // Number of feature points to extract for each template
-
-    // Match thresholds
-    float tMatch;
-    float tOverlap;
-    uchar tColorTest;
-
-    // Extent of local neighbourhood
-    cv::Range neighbourhood;
 
     // Methods
     cv::Vec3b normalizeHSV(const cv::Vec3b &hsv);
+    uchar quantizeOrientationGradient(float deg);
+
     void extractFeatures(std::vector<Template> &templates);
     void generateFeaturePoints(std::vector<Template> &templates);
-    uchar quantizeOrientationGradient(float deg);
-    void nonMaximaSuppression(std::vector<Match> &matches);
     void cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, double tMinDistance, uint pointsCount, std::vector<cv::Point> &out);
+
+    void nonMaximaSuppression(std::vector<Match> &matches);
 
     // Tests
     bool testObjectSize(float scale); // Test I
@@ -40,31 +33,24 @@ private:
     int testDepth(int physicalDiameter, std::vector<int> &depths); // Test IV
     int testColor(cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &stable); // Test V
 public:
+    // Params
+    struct {
+        uint pointsCount; // Number of feature points to extract for each template
+        float tMatch; // [0.0 - 1.0] number indicating how many percentage of points should match
+        float tOverlap; // [0.0 - 1.0] overlap threshold, how much should 2 windows overlap in order to calculate non-maxima suppression
+        uchar tColorTest; // 0-180 HUE value max threshold to pass comparing colors between scene and template
+        cv::Range neighbourhood; // (-2, 2) area to search around feature point to look for match
+    } params;
+
     // Static methods
     static int median(std::vector<int> &values);
 
     // Constructor
-    explicit Matcher(uint pointsCount = 100, float tMatch = 0.6f, float tOverlap = 0.1f, uchar tColorTest = 5, const cv::Range &neighbourhood = cv::Range(5, 5))
-        : pointsCount(pointsCount), tMatch(tMatch), tOverlap(tOverlap), tColorTest(tColorTest), neighbourhood(neighbourhood) {}
+    Matcher();
 
     // Methods
-    void match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv::Mat &sceneDepth, std::vector<Window> &windows, std::vector<Match> &matches);
+    void match(float scale, const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv::Mat &sceneDepth, std::vector<Window> &windows, std::vector<Match> &matches);
     void train(std::vector<Template> &templates);
-
-    // Getters
-    uint getPointsCount() const;
-    float getTMatch() const;
-    uchar getTColorTest() const;
-    const cv::Range &getNeighbourhood() const;
-
-    float getTOverlap() const;
-    void setTOverlap(float tOverlap);
-
-    // Setters
-    void setPointsCount(uint count);
-    void setTMatch(float tMatch);
-    void setTColorTest(uchar tColorTest);
-    void setNeighbourhood(const cv::Range &neighbourhood);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_MATCHER_H

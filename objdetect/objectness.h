@@ -18,32 +18,21 @@
  * throught extractMinEdgels method.
  */
 class Objectness {
-private:
-    uint step; // Stepping for sliding window [5]
-    float tMin; // Min threshold applied in sobel filtered image thresholding [0.01f]
-    float tMax; // Max threshold applied in sobel filtered image thresholding [0.1f]
-    float tMatch; // Factor of minEdgels window should contain to be classified as valid [30% -> 0.3f]
 public:
+    // Params
+    struct {
+        uint step; // Stepping for sliding window [5]
+        float tEdgesMin; // Min threshold applied in sobel filtered image thresholding [0.01f]
+        float tEdgesMax; // Max threshold applied in sobel filtered image thresholding [0.1f]
+        float tMatch; // Factor of minEdgels window should contain to be classified as valid [30% -> 0.3f]
+    } params;
 
     // Constructors
-    explicit Objectness(uint step = 5, float tMin = 0.01f, float tMax = 0.1f, float tMatch = 0.3f)
-        : step(step), tMin(tMin), tMax(tMax), tMatch(tMatch) {}
+    Objectness();
 
     // Methods
     void extractMinEdgels(std::vector<Template> &templates, DataSetInfo &info);
     void objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &windows, DataSetInfo &info);
-
-    // Getters
-    uint getStep() const;
-    float getTMin() const;
-    float getTMax() const;
-    float getTMatch() const;
-
-    // Setters
-    void setStep(uint step);
-    void setTMin(float tMin);
-    void setTMax(float tMax);
-    void setTMatch(float tMatch);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_OBJECTNESS_H

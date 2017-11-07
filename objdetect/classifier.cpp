@@ -2,28 +2,26 @@
 #include "../utils/timer.h"
 #include "../utils/visualizer.h"
 
-void load(std::string basic_string, std::string basicString);
-
 Classifier::Classifier() {
-    // Init objectness
-    objectness.setStep(5);
-    objectness.setTMin(0.01f);
-    objectness.setTMax(0.1f);
-    objectness.setTMatch(0.3f);
+    // Init objectness params
+    objectness.params.step = 5;
+    objectness.params.tEdgesMin = 0.01f;
+    objectness.params.tEdgesMax = 0.1f;
+    objectness.params.tMatch = 0.3f;
 
-    // Init hasher
-    hasher.setGrid(cv::Size(12, 12));
-    hasher.setTablesCount(100);
-    hasher.setBinCount(5);
-    hasher.setMinVotes(3);
-    hasher.setMaxDistance(3);
+    // Init hasher params
+    hasher.params.grid = cv::Size(12, 12);
+    hasher.params.tablesCount = 100;
+    hasher.params.binCount = 5;
+    hasher.params.minVotes = 3;
+    hasher.params.maxDistance = 3;
 
     // Init template matcher
-    matcher.setPointsCount(100);
-    matcher.setTMatch(0.4f);
-    matcher.setTOverlap(0.1f);
-    matcher.setNeighbourhood(cv::Range(-2, 2)); // 5x5 -> [-2, -1, 0, 1, 2]
-    matcher.setTColorTest(3);
+    matcher.params.pointsCount = 100;
+    matcher.params.tMatch = 0.6f;
+    matcher.params.tOverlap = 0.1f;
+    matcher.params.neighbourhood = cv::Range(-2, 2); // 5x5 -> [-2, -1, 0, 1, 2]
+    matcher.params.tColorTest = 5;
 }
 
 void Classifier::train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices) {
@@ -208,7 +206,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
 
         std::cout << "Template matching started... " << std::endl;
         Timer tMatching;
-        matcher.match(sceneHSV, sceneGray, sceneDepth, windows, matches);
+        matcher.match(1.0f, sceneHSV, sceneGray, sceneDepth, windows, matches);
         std::cout << "DONE! " << matches.size() << " matches found, took: " << tMatching.elapsed() << "s" << std::endl << std::endl;
         std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
 

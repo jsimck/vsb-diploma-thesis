@@ -1,6 +1,13 @@
 #include "objectness.h"
 #include "../processing/processing.h"
 
+Objectness::Objectness() {
+    params.step = 5;
+    params.tEdgesMin = 0.01f;
+    params.tEdgesMax = 0.1f;
+    params.tMatch = 0.3f;
+}
+
 void Objectness::extractMinEdgels(std::vector<Template> &templates, DataSetInfo &info) {
     assert(!templates.empty());
 
@@ -14,7 +21,7 @@ void Objectness::extractMinEdgels(std::vector<Template> &templates, DataSetInfo 
         tNorm = tNorm(t.objBB);
 
         Processing::filterSobel(tNorm, tSobel, true, true);
-        Processing::thresholdMinMax(tSobel, tSobel, tMin, tMax);
+        Processing::thresholdMinMax(tSobel, tSobel, params.tEdgesMin, params.tEdgesMax);
 
         // Compute integral image for easier computation of edgels
         cv::integral(tNorm, tIntegral, CV_32F);
@@ -30,30 +37,29 @@ void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &window
     // Check thresholds and min edgels
     assert(info.smallestTemplate.area() > 0);
     assert(info.minEdgels > 0);
-    assert(tMatch > 0);
-
+    assert(params.tMatch > 0);
     assert(!sceneDepthNorm.empty());
     assert(sceneDepthNorm.type() == CV_32FC1);
 
     // Apply sobel filter and thresholding on normalized Depth scene (<0, 1> px values)
     cv::Mat sSobel;
     Processing::filterSobel(sceneDepthNorm, sSobel, true, true);
-    Processing::thresholdMinMax(sSobel, sSobel, tMin, tMax);
+    Processing::thresholdMinMax(sSobel, sSobel, params.tEdgesMin, params.tEdgesMax);
 
     // Calculate image integral
     cv::Mat sIntegral;
     cv::integral(sSobel, sIntegral, CV_32F);
 
-    auto edgels = static_cast<uint>(info.minEdgels * tMatch);
+    auto edgels = static_cast<uint>(info.minEdgels * params.tMatch);
     int sizeX = info.smallestTemplate.width;
     int sizeY = info.smallestTemplate.height;
 
-    // Slide window over scene and calculate edgel count for each overlap
-    for (int y = 0; y < sSobel.rows - sizeY; y += step) {
-        for (int x = 0; x < sSobel.cols - sizeX; x += step) {
+    // Slide window over scene and calculate edge count for each overlap
+    for (int y = 0; y < sSobel.rows - sizeY; y += params.step) {
+        for (int x = 0; x < sSobel.cols - sizeX; x += params.step) {
 
-            // Calc edgel value in current sliding window with help of image integral
-            uint sceneEdgels = static_cast<uint>(
+            // Calc edge value in current sliding window with help of image integral
+            auto sceneEdgels = static_cast<uint>(
                 sIntegral.at<float>(y + sizeY, x + sizeX)
                 - sIntegral.at<float>(y, x + sizeX)
                 - sIntegral.at<float>(y + sizeY, x)
@@ -65,40 +71,4 @@ void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &window
             }
         }
     }
-}
-
-float Objectness::getTMin() const {
-    return tMin;
-}
-
-float Objectness::getTMax() const {
-    return tMax;
-}
-
-float Objectness::getTMatch() const {
-    return tMatch;
-}
-
-uint Objectness::getStep() const {
-    return step;
-}
-
-void Objectness::setTMin(float tMin) {
-    assert(tMin >= 0);
-    this->tMin = tMin;
-}
-
-void Objectness::setTMax(float tMax) {
-    assert(tMax >= 0);
-    this->tMax = tMax;
-}
-
-void Objectness::setTMatch(float tMatch) {
-    assert(tMatch > 0);
-    this->tMatch = tMatch;
-}
-
-void Objectness::setStep(uint step) {
-    assert(step > 0);
-    this->step = step;
 }
