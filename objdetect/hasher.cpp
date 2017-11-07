@@ -1,4 +1,5 @@
 #include <unordered_set>
+#include <utility>
 #include "hasher.h"
 #include "../utils/utils.h"
 #include "../utils/timer.h"
@@ -300,5 +301,5 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &table
 }
 
 void Hasher::setCriteria(std::shared_ptr<ClassifierCriteria> criteria) {
-    this->criteria = criteria;
+    this->criteria = std::move(criteria);
 }

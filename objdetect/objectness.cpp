@@ -1,4 +1,6 @@
 #include "objectness.h"
+
+#include <utility>
 #include "../processing/processing.h"
 
 void Objectness::extractMinEdgels(std::vector<Template> &templates) {
@@ -67,5 +69,5 @@ void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &window
 }
 
 void Objectness::setCriteria(std::shared_ptr<ClassifierCriteria> criteria) {
-    this->criteria = criteria;
+    this->criteria = std::move(criteria);
 }
