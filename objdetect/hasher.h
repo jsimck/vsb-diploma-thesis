@@ -25,10 +25,10 @@ public:
     static const int IMG_16BIT_MAX;
 
     // Static methods
-    static uchar quantizeDepth(float depth, const std::vector<cv::Range> &ranges);
+    static uchar quantizeDepth(float depth, std::vector<cv::Range> &ranges);
     static uchar quantizeSurfaceNormal(const cv::Vec3f &normal);
-    static cv::Vec3f surfaceNormal(const cv::Mat &src, const cv::Point &c);
-    static cv::Vec2i relativeDepths(const cv::Mat &src, const cv::Point &c, const cv::Point &p1, const cv::Point &p2);
+    static cv::Vec3f surfaceNormal(cv::Mat &src, cv::Point &c);
+    static cv::Vec2i relativeDepths(cv::Mat &src, cv::Point &c, cv::Point &p1, cv::Point &p2);
 
     // Constructors
     Hasher() = default;

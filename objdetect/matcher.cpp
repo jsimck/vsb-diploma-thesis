@@ -1,5 +1,6 @@
 #include <random>
 #include <algorithm>
+#include <utility>
 #include "matcher.h"
 #include "../core/triplet.h"
 #include "hasher.h"
@@ -39,7 +40,7 @@ uchar Matcher::quantizeOrientationGradient(float deg) {
     }
 }
 
-cv::Vec3b Matcher::normalizeHSV(const cv::Vec3b &hsv) {
+cv::Vec3b Matcher::normalizeHSV(cv::Vec3b &hsv) {
     const uchar tV = 22; // 0.12 of hue threshold
     const uchar tS = 31; // 0.12 of saturation threshold
 
@@ -180,7 +181,7 @@ bool Matcher::testObjectSize(float scale) {
 }
 
 // TODO Use bitwise operations using response maps
-int Matcher::testSurfaceNormal(const uchar normal, Window &window, const cv::Mat &sceneDepth, const cv::Point &stable) {
+int Matcher::testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
     for (int y = criteria->detectParams.matcher.neighbourhood.start; y <= criteria->detectParams.matcher.neighbourhood.end; ++y) {
         for (int x = criteria->detectParams.matcher.neighbourhood.start; x <= criteria->detectParams.matcher.neighbourhood.end; ++x) {
             // Apply needed offsets to feature point
@@ -198,7 +199,8 @@ int Matcher::testSurfaceNormal(const uchar normal, Window &window, const cv::Mat
 }
 
 // TODO Use bitwise operations using response maps
-int Matcher::testGradients(const uchar gradient, Window &window, const cv::Mat &sceneAngles, const cv::Mat &sceneMagnitude, const cv::Point &edge) {
+int Matcher::testGradients(uchar gradient, Window &window, cv::Mat &sceneAngles, cv::Mat &sceneMagnitude,
+                           cv::Point &edge) {
     for (int y = criteria->detectParams.matcher.neighbourhood.start; y <= criteria->detectParams.matcher.neighbourhood.end; ++y) {
         for (int x = criteria->detectParams.matcher.neighbourhood.start; x <= criteria->detectParams.matcher.neighbourhood.end; ++x) {
             // Apply needed offsets to feature point
@@ -232,7 +234,7 @@ int Matcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
 }
 
 // TODO consider eroding object in training stage to be more tolerant to inaccuracy on the edges
-int Matcher::testColor(const cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &stable) {
+int Matcher::testColor(cv::Vec3b HSV, Window &window, cv::Mat &sceneHSV, cv::Point &stable) {
     for (int y = criteria->detectParams.matcher.neighbourhood.start; y <= criteria->detectParams.matcher.neighbourhood.end; ++y) {
         for (int x = criteria->detectParams.matcher.neighbourhood.start; x <= criteria->detectParams.matcher.neighbourhood.end; ++x) {
             // Apply needed offsets to feature point
@@ -311,7 +313,8 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
 
 // Enable/disable visualization for function below
 #define VISUALIZE_MATCH
-void Matcher::match(float scale, const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv::Mat &sceneDepth, std::vector<Window> &windows, std::vector<Match> &matches) {
+void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat &sceneDepth,
+                    std::vector<Window> &windows, std::vector<Match> &matches) {
     // Checks
     assert(!sceneHSV.empty());
     assert(!sceneGray.empty());
@@ -350,6 +353,17 @@ void Matcher::match(float scale, const cv::Mat &sceneHSV, const cv::Mat &sceneGr
             std::vector<int> depths;
 
             // Test I
+            for (auto &depth : candidate->features.depths) {
+                std::cout << depth << " (" << (depth * 1.2f) << ")";
+
+                for (auto &point : candidate->edgePoints) {
+                    std::cout << " == " << sceneDepth.at<float>(point) << ", ";
+                }
+
+                std::cout << std::endl;
+            }
+
+            std::cout << std::endl << std::endl;
             if (!testObjectSize(scale)) continue;
 
             // Test II

@@ -20,22 +20,20 @@ private:
     std::shared_ptr<ClassifierCriteria> criteria;
 
     // Methods
-    cv::Vec3b normalizeHSV(const cv::Vec3b &hsv);
+    cv::Vec3b normalizeHSV(cv::Vec3b &hsv);
     uchar quantizeOrientationGradient(float deg);
 
     void extractFeatures(std::vector<Template> &templates);
     void generateFeaturePoints(std::vector<Template> &templates);
-    void cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, double tMinDistance, int pointsCount,
-                                 std::vector<cv::Point> &out);
-
+    void cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, double tMinDistance, int pointsCount, std::vector<cv::Point> &out);
     void nonMaximaSuppression(std::vector<Match> &matches);
 
     // Tests
     bool testObjectSize(float scale); // Test I
-    int testSurfaceNormal(uchar normal, Window &window, const cv::Mat &sceneDepth, const cv::Point &stable); // Test II
-    int testGradients(uchar gradient, Window &window, const cv::Mat &sceneAngle, const cv::Mat &sceneMagnitude, const cv::Point &edge); // Test III
+    int testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test II
+    int testGradients(uchar gradient, Window &window, cv::Mat &sceneAngle, cv::Mat &sceneMagnitude, cv::Point &edge); // Test III
     int testDepth(int physicalDiameter, std::vector<int> &depths); // Test IV
-    int testColor(cv::Vec3b HSV, Window &window, const cv::Mat &sceneHSV, const cv::Point &stable); // Test V
+    int testColor(cv::Vec3b HSV, Window &window, cv::Mat &sceneHSV, cv::Point &stable); // Test V
 public:
     // Static methods
     static int median(std::vector<int> &values);
@@ -44,7 +42,7 @@ public:
     Matcher() = default;
 
     // Methods
-    void match(float scale, const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv::Mat &sceneDepth, std::vector<Window> &windows, std::vector<Match> &matches);
+    void match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat &sceneDepth, std::vector<Window> &windows, std::vector<Match> &matches);
     void train(std::vector<Template> &templates);
 
     void setCriteria(std::shared_ptr<ClassifierCriteria> criteria);

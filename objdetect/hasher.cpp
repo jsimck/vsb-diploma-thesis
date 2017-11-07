@@ -7,7 +7,7 @@
 
 const int Hasher::IMG_16BIT_MAX = 65535; // <0, 65535> => 65536 values
 
-cv::Vec3f Hasher::surfaceNormal(const cv::Mat &src, const cv::Point &c) {
+cv::Vec3f Hasher::surfaceNormal(cv::Mat &src, cv::Point &c) {
     assert(!src.empty());
     assert(src.type() == CV_32FC1);
 
@@ -18,7 +18,7 @@ cv::Vec3f Hasher::surfaceNormal(const cv::Mat &src, const cv::Point &c) {
     return cv::normalize(d);
 }
 
-cv::Vec2i Hasher::relativeDepths(const cv::Mat &src, const cv::Point &c, const cv::Point &p1, const cv::Point &p2) {
+cv::Vec2i Hasher::relativeDepths(cv::Mat &src, cv::Point &c, cv::Point &p1, cv::Point &p2) {
     assert(!src.empty());
     assert(src.type() == CV_32FC1);
 
@@ -65,7 +65,7 @@ uchar Hasher::quantizeSurfaceNormal(const cv::Vec3f &normal) {
     return minIndex;
 }
 
-uchar Hasher::quantizeDepth(float depth, const std::vector<cv::Range> &ranges) {
+uchar Hasher::quantizeDepth(float depth, std::vector<cv::Range> &ranges) {
     // Depth should have max value of <-65536, +65536>
     assert(depth >= -IMG_16BIT_MAX && depth <= IMG_16BIT_MAX);
     assert(!ranges.empty());

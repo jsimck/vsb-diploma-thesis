@@ -224,12 +224,12 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
 
         std::cout << "Template matching started... " << std::endl;
         Timer tMatching;
-        matcher.match(1.0f, sceneHSV, sceneGray, sceneDepth, windows, matches);
+        matcher.match(1.2f, sceneHSV, sceneGray, sceneDepth, windows, matches);
         std::cout << "DONE! " << matches.size() << " matches found, took: " << tMatching.elapsed() << "s" << std::endl << std::endl;
         std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
 
         /// Show matched template results
-        Visualizer::visualizeMatches(scene, matches, "data/", 30);
+        Visualizer::visualizeMatches(scene, matches, "data/", 0);
 
         // Cleanup
         windows.clear();
