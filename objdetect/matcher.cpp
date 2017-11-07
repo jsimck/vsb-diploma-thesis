@@ -157,7 +157,7 @@ void Matcher::extractFeatures(std::vector<Template> &templates) {
         }
 
 #ifndef NDEBUG
-//            Visualizer::visualizeTemplate(t, "Template feature points");
+//            Visualizer::visualizeTemplate(t, "data/", 0, "Template feature points");
 #endif
     }
 }
@@ -308,7 +308,7 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
 }
 
 // Enable/disable visualization for function below
-//#define VISUALIZE_MATCH
+#define VISUALIZE_MATCH
 void Matcher::match(const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv::Mat &sceneDepth, std::vector<Window> &windows, std::vector<Match> &matches) {
     // Checks
     assert(!sceneHSV.empty());

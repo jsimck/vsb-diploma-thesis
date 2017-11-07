@@ -38,7 +38,7 @@ cv::Vec3b Visualizer::heatMapValue(int min, int max, int value) {
 
 void Visualizer::setLabel(cv::Mat &im, const std::string &label, const cv::Point &origin, int padding, int fontFace,
                           double scale, const cv::Scalar &fColor, const cv::Scalar &bColor, int thickness) {
-    cv::Size text = cv::getTextSize(label, fontFace, scale, thickness, 0);
+    cv::Size text = cv::getTextSize(label, fontFace, scale, thickness, nullptr);
     rectangle(im, origin + cv::Point(-padding - 1, padding + 2),
               origin + cv::Point(text.width + padding, -text.height - padding - 2), bColor, CV_FILLED);
     putText(im, label, origin, fontFace, scale, fColor, thickness, CV_AA);
@@ -113,13 +113,15 @@ void Visualizer::visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, 
     cv::waitKey(wait);
 }
 
-void Visualizer::visualizeMatches(cv::Mat &scene, std::vector<Match> &matches) {
+void Visualizer::visualizeMatches(cv::Mat &scene, std::vector<Match> &matches, const std::string &templatesPath, int wait, const char *title) {
     cv::Mat viz = scene.clone();
+    std::ostringstream oss;
+    int tplCounter = 0;
 
     for (auto &match : matches) {
-        cv::rectangle(viz, cv::Point(match.objBB.x, match.objBB.y), cv::Point(match.objBB.x + match.objBB.width, match.objBB.y + match.objBB.height), cv::Scalar(0, 255, 0));
+        cv::rectangle(viz, match.objBB.tl(), match.objBB.br(), cv::Scalar(0, 255, 0));
 
-        std::ostringstream oss;
+        oss.str("");
         oss << "id: " << match.tpl->id;
         setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 10));
         oss.str("");
@@ -127,35 +129,42 @@ void Visualizer::visualizeMatches(cv::Mat &scene, std::vector<Match> &matches) {
         oss << std::fixed << "score: " << match.score << " (" << (match.score * 100.0f) / 4.0f << "%)";
         setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 28));
 
-//        for (auto &group : groups) {
-//            for (auto &tpl : group.templates) {
-//                if (tpl.id == match.tpl->id) {
-//                    // Crop template src
-//                    cv::Mat tplSrc = tpl.srcHSV(tpl.objBB).clone();
-//                    cv::cvtColor(tplSrc, tplSrc, CV_HSV2BGR);
-//
-//                    oss.str("");
-//                    oss << "Template id: " << tpl.id;
-//                    std::string winName = oss.str();
-//
-//                    // Show in resizable window
-//                    cv::namedWindow(winName, 0);
-//                    cv::imshow(winName, tplSrc);
-//                }
-//            }
-//        }
+        // Load matched template
+        cv::Mat tplSrc = Template::loadSrc(templatesPath, *match.tpl, CV_LOAD_IMAGE_COLOR);
+
+        // draw label and bounding box
+        cv::rectangle(tplSrc, match.tpl->objBB.tl(), match.tpl->objBB.br(), cv::Scalar(0, 255, 0));
+        oss.str("");
+        oss << "id: " << match.tpl->id;
+        setLabel(tplSrc, oss.str(), cv::Point(match.tpl->objBB.br().x + 5, match.tpl->objBB.tl().y + 10));
+
+        oss.str("");
+        oss << "Template: " << tplCounter;
+        std::string winName = oss.str();
+
+        // Show in resizable window
+        cv::namedWindow(winName, 0);
+        cv::imshow(winName, tplSrc);
+        tplCounter++;
     }
 
     // Show in resizable window
-    std::string winName = "Matched results";
+    std::string winName = title != nullptr ? title : "Matched results";
     cv::namedWindow(winName, 0);
     cv::imshow(winName, viz);
-    cv::waitKey(1);
+    cv::waitKey(wait);
 }
 
-void Visualizer::visualizeTemplate(Template &tpl, const char *title) {
-    cv::Mat result = tpl.srcHSV.clone();
-    cv::cvtColor(tpl.srcHSV, result, CV_HSV2BGR);
+void Visualizer::visualizeTemplate(Template &tpl, const std::string &templatesPath, int wait, const char *title) {
+    cv::Mat result;
+
+    // Dynamically load template
+    if (tpl.srcHSV.empty()) {
+        result = Template::loadSrc(templatesPath, tpl, CV_LOAD_IMAGE_COLOR);
+    } else {
+        result = tpl.srcHSV.clone();
+        cv::cvtColor(tpl.srcHSV, result, CV_HSV2BGR);
+    }
 
     // Draw edge points
     if (!tpl.edgePoints.empty()) {
@@ -200,7 +209,7 @@ void Visualizer::visualizeTemplate(Template &tpl, const char *title) {
     oss.str("");
     oss << "Template: " << tpl.id;
     cv::imshow(title == nullptr ? "Window locations detected:" : title, result);
-    cv::waitKey(0);
+    cv::waitKey(wait);
 }
 
 void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows,
@@ -280,7 +289,7 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
 
 void Visualizer::visualizeTests(Template &tpl, const cv::Mat &sceneHSV, Window &window, std::vector<cv::Point> &stablePoints, std::vector<cv::Point> &edgePoints,
                                 cv::Range &neighbourhood, std::vector<int> &scoreII, std::vector<int> &scoreIII, float scoreIV, std::vector<int> &scoreV,
-                                int pointsCount, int minThreshold, bool continuous, const char *title) {
+                                int pointsCount, int minThreshold, bool continuous, const std::string &templatesPath, int wait, const char *title) {
     // Init common
     std::ostringstream oss;
     cv::Scalar colorRed(0, 0, 255), colorGreen(0, 255, 0), colorWhite(255, 255, 255), colorBlue(0, 255, 0);
@@ -288,9 +297,15 @@ void Visualizer::visualizeTests(Template &tpl, const cv::Mat &sceneHSV, Window &
 
     // Convert matrices
     cv::Mat result, resultScene;
-    cv::cvtColor(tpl.srcHSV, result, CV_HSV2BGR);
     cv::cvtColor(sceneHSV, resultScene, CV_HSV2BGR);
     int scoreVTrue = 0, scoreIIITrue = 0, scoreIITrue = 0, currentTest = 0;
+
+    // Dynamically load template src
+    if (tpl.srcHSV.empty()) {
+        result = Template::loadSrc(templatesPath, tpl, CV_LOAD_IMAGE_COLOR);
+    } else {
+        cv::cvtColor(tpl.srcHSV, result, CV_HSV2BGR);
+    }
 
     // Draw from end to enable continuous drawing
     if (!scoreV.empty()) {
@@ -369,6 +384,6 @@ void Visualizer::visualizeTests(Template &tpl, const cv::Mat &sceneHSV, Window &
     if (continuous) {
         cv::waitKey(scoreVTrue > minThreshold ? 0 : 1);
     } else {
-        cv::waitKey(0);
+        cv::waitKey(wait);
     }
 }

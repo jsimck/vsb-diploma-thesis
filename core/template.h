@@ -62,6 +62,9 @@ public:
     void applyROI();
     void resetROI();
 
+    // Dynamic image loading for visualization purposes mostly
+    static cv::Mat loadSrc(const std::string &basePath, const Template &tpl, int ddepth);
+
     // Operators
     bool operator==(const Template &rhs) const;
     bool operator!=(const Template &rhs) const;

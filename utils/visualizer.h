@@ -17,14 +17,15 @@ private:
 public:
     static void visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows,
                                  DataSetInfo &info, const cv::Size &grid, bool continuous = true, const char *title = nullptr);
-    static void visualizeMatches(cv::Mat &scene, std::vector<Match> &matches);
+    static void visualizeMatches(cv::Mat &scene, std::vector<Match> &matches, const std::string &templatesPath = "data/", int wait = 0, const char *title = nullptr);
     static void visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, bool continuous, int wait = 0, const char *title = nullptr);
     static void visualizeTests(Template &tpl, const cv::Mat &sceneHSV, Window &window, std::vector<cv::Point> &stablePoints, std::vector<cv::Point> &edgePoints,
                                cv::Range &neighbourhood, std::vector<int> &scoreII, std::vector<int> &scoreIII, float scoreIV, std::vector<int> &scoreV,
-                               int pointsCount, int minThreshold, bool continuous = true, const char *title = nullptr);
+                               int pointsCount, int minThreshold, bool continuous = true, const std::string &templatesPath = "data/",
+                               int wait = 0, const char *title = nullptr);
 
     // Templates
-    static void visualizeTemplate(Template &tpl, const char *title = nullptr);
+    static void visualizeTemplate(Template &tpl, const std::string &templatesPath = "data/", int wait = 0, const char *title = nullptr);
 
     // Utils
     static void setLabel(cv::Mat &im, const std::string &label, const cv::Point &origin, int padding = 1, int fontFace = CV_FONT_HERSHEY_SIMPLEX, double scale = 0.4,

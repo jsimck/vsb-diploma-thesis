@@ -67,6 +67,26 @@ Template Template::load(cv::FileNode node) {
     return t;
 }
 
+cv::Mat Template::loadSrc(const std::string &basePath, const Template &tpl, int ddepth) {
+    cv::Mat src;
+    std::ostringstream oss;
+
+    // Generate path
+    oss << basePath;
+    oss << std::setw(2) << std::setfill('0') << static_cast<int>(std::floor(tpl.id / 2000));
+
+    if (ddepth == CV_LOAD_IMAGE_UNCHANGED) {
+        oss << "/depth/" << tpl.fileName << ".png";
+        src = cv::imread(oss.str(), ddepth);
+        src.convertTo(src, CV_32FC1, 1.0f / 65536.0f);
+    } else {
+        oss << "/rgb/" << tpl.fileName << ".png";
+        src = cv::imread(oss.str(), ddepth);
+    }
+
+    return src;
+}
+
 bool Template::operator==(const Template &rhs) const {
     return id == rhs.id &&
            fileName == rhs.fileName &&
