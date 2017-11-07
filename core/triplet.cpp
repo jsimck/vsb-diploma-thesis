@@ -123,7 +123,7 @@ void Triplet::visualize(const cv::Mat &src, const cv::Size &grid, bool showGrid)
     assert(src.cols >= grid.width);
     assert(src.type() == CV_32FC3);
 
-    // Get TripletCoord params
+    // Get TripletCoord trainParams
     TripletParams params(src.cols, src.rows, grid);
 
     // Generate grid

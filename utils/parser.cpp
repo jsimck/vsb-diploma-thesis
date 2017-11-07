@@ -70,17 +70,17 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
     srcDepth.convertTo(srcDepth, CV_32F); // because of surface normal calculation, don'tpl doo normalization
 
     // Find smallest object
-    if (objBB.area() < terms->info.smallestTemplate.area()) {
-        terms->info.smallestTemplate.width = objBB.width;
-        terms->info.smallestTemplate.height = objBB.height;
+    if (objBB.area() < criteria->info.smallestTemplate.area()) {
+        criteria->info.smallestTemplate.width = objBB.width;
+        criteria->info.smallestTemplate.height = objBB.height;
     }
 
     // Find largest object
-    if (objBB.width >= terms->info.maxTemplate.width) {
-        terms->info.maxTemplate.width = objBB.width;
+    if (objBB.width >= criteria->info.maxTemplate.width) {
+        criteria->info.maxTemplate.width = objBB.width;
     }
-    if (objBB.height >= terms->info.maxTemplate.height) {
-        terms->info.maxTemplate.height = objBB.height;
+    if (objBB.height >= criteria->info.maxTemplate.height) {
+        criteria->info.maxTemplate.height = objBB.height;
     }
 
     // Calculate angles
@@ -111,7 +111,7 @@ void Parser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
     std::vector<float> vCamK;
     int elev, mode;
 
-    // Parse params contained in info.yml
+    // Parse trainParams contained in info.yml
     infoNode["cam_K"] >> vCamK;
     infoNode["elev"] >> elev;
     infoNode["mode"] >> mode;
@@ -119,7 +119,7 @@ void Parser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
     // Checks
     assert(!vCamK.empty());
 
-    // Assign new params to template
+    // Assign new trainParams to template
     tpl.elev = elev;
     tpl.mode = mode;
     tpl.camK = cv::Mat(3, 3, CV_32FC1, vCamK.data()).clone();

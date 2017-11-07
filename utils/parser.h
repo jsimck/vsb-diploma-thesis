@@ -5,7 +5,7 @@
 #include <utility>
 #include <memory>
 #include "../core/template.h"
-#include "../core/classifier_terms.h"
+#include "../core/classifier_criteria.h"
 
 /**
  * class Parser
@@ -15,7 +15,7 @@
  */
 class Parser {
 private:
-    std::shared_ptr<ClassifierTerms> terms;
+    std::shared_ptr<ClassifierCriteria> criteria;
     uint idCounter;
 
     Template parseGt(uint index, const std::string &path, cv::FileNode &gtNode);
@@ -24,7 +24,7 @@ public:
     std::vector<uint> indices;
     uint tplCount;
 
-    Parser(std::shared_ptr<ClassifierTerms> terms, uint tplCount = 1296) : terms(std::move(terms)), tplCount(tplCount) {}
+    Parser(std::shared_ptr<ClassifierCriteria> criteria, uint tplCount = 1296) : criteria(std::move(criteria)), tplCount(tplCount) {}
 
     void parse(const std::string &basePath, std::vector<Template> &templates);
 };

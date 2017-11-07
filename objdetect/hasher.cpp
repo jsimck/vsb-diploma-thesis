@@ -2,7 +2,7 @@
 #include "hasher.h"
 #include "../utils/utils.h"
 #include "../utils/timer.h"
-#include "../core/classifier_terms.h"
+#include "../core/classifier_criteria.h"
 
 const int Hasher::IMG_16BIT_MAX = 65535; // <0, 65535> => 65536 values
 
@@ -83,8 +83,8 @@ uchar Hasher::quantizeDepth(float depth, const std::vector<cv::Range> &ranges) {
 
 void Hasher::generateTriplets(std::vector<HashTable> &tables) {
     // Generate triplets
-    for (size_t i = 0; i < terms->params.hasher.tablesCount; ++i) {
-        tables.emplace_back(Triplet::create(terms->params.hasher.grid, terms->params.hasher.maxDistance));
+    for (int i = 0; i < criteria->trainParams.hasher.tablesCount; ++i) {
+        tables.emplace_back(Triplet::create(criteria->trainParams.hasher.grid, criteria->trainParams.hasher.maxDistance));
     }
 
     // TODO - joint entropy of 5k triplets, instead of 100 random triplets
@@ -92,14 +92,14 @@ void Hasher::generateTriplets(std::vector<HashTable> &tables) {
     bool duplicate;
     do {
         duplicate = false;
-        for (size_t i = 0; i < terms->params.hasher.tablesCount; ++i) {
-            for (size_t j = 0; j < terms->params.hasher.tablesCount; ++j) {
+        for (int i = 0; i < criteria->trainParams.hasher.tablesCount; ++i) {
+            for (int j = 0; j < criteria->trainParams.hasher.tablesCount; ++j) {
                 // Don't compare same triplets
                 if (i == j) continue;
                 if (tables[i].triplet == tables[j].triplet) {
                     // Duplicate, generate new triplet
                     duplicate = true;
-                    tables[j].triplet = Triplet::create(terms->params.hasher.grid);
+                    tables[j].triplet = Triplet::create(criteria->trainParams.hasher.grid);
                 }
             }
         }
@@ -123,12 +123,12 @@ void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<H
 
             // Offset for the triplet grid
             cv::Point gridOffset(
-                t.objBB.tl().x - (terms->info.maxTemplate.width - t.objBB.width) / 2,
-                t.objBB.tl().y - (terms->info.maxTemplate.height - t.objBB.height) / 2
+                t.objBB.tl().x - (criteria->info.maxTemplate.width - t.objBB.width) / 2,
+                t.objBB.tl().y - (criteria->info.maxTemplate.height - t.objBB.height) / 2
             );
 
             // Absolute triplet points
-            TripletParams tParams(terms->info.maxTemplate.width, terms->info.maxTemplate.height, terms->params.hasher.grid, gridOffset.x, gridOffset.y);
+            TripletParams tParams(criteria->info.maxTemplate.width, criteria->info.maxTemplate.height, criteria->trainParams.hasher.grid, gridOffset.x, gridOffset.y);
             cv::Point c = tables[i].triplet.getCenter(tParams);
             cv::Point p1 = tables[i].triplet.getP1(tParams);
             cv::Point p2 = tables[i].triplet.getP2(tParams);
@@ -150,16 +150,16 @@ void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<H
         // Sort depths Calculate bin ranges
         std::sort(rDepths.begin(), rDepths.end());
         const size_t rDSize = rDepths.size();
-        const size_t binSize = rDSize / terms->params.hasher.binCount;
+        const size_t binSize = rDSize / criteria->trainParams.hasher.binCount;
         std::vector<cv::Range> ranges;
 
-        for (uint j = 0; j < terms->params.hasher.binCount; j++) {
+        for (int j = 0; j < criteria->trainParams.hasher.binCount; j++) {
             int min = rDepths[j * binSize];
             int max = rDepths[(j + 1) * binSize];
 
             if (j == 0) {
                 min = -IMG_16BIT_MAX;
-            } else if (j + 1 == terms->params.hasher.binCount) {
+            } else if (j + 1 == criteria->trainParams.hasher.binCount) {
                 max = IMG_16BIT_MAX;
             }
 
@@ -167,14 +167,14 @@ void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<H
         }
 
         // Set table bin ranges
-        assert(ranges.size() == terms->params.hasher.binCount);
+        assert(ranges.size() == criteria->trainParams.hasher.binCount);
         tables[i].binRanges = ranges;
     }
 }
 
 void Hasher::initialize(std::vector<Template> &templates, std::vector<HashTable> &tables) {
     // Init hash tables
-    tables.reserve(terms->params.hasher.tablesCount);
+    tables.reserve(criteria->trainParams.hasher.tablesCount);
     std::cout << "    |_ Generating triplets... " << std::endl;
     generateTriplets(tables);
 
@@ -186,10 +186,10 @@ void Hasher::initialize(std::vector<Template> &templates, std::vector<HashTable>
 void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tables) {
     // Checks
     assert(!templates.empty());
-    assert(terms->params.hasher.tablesCount > 0);
-    assert(terms->params.hasher.grid.width > 0);
-    assert(terms->params.hasher.grid.height > 0);
-    assert(info.maxTemplate.area() > 0);
+    assert(criteria->trainParams.hasher.tablesCount > 0);
+    assert(criteria->trainParams.hasher.grid.width > 0);
+    assert(criteria->trainParams.hasher.grid.height > 0);
+    assert(criteria->info.maxTemplate.area() > 0);
 
     // Prepare hash tables and histogram bin ranges
     initialize(templates, tables);
@@ -203,7 +203,7 @@ void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tab
             assert(!t.srcDepth.empty());
 
             // Get triplet points
-            TripletParams coordParams(terms->info.maxTemplate.width, terms->info.maxTemplate.height, terms->params.hasher.grid, t.objBB.tl().x, t.objBB.tl().y);
+            TripletParams coordParams(criteria->info.maxTemplate.width, criteria->info.maxTemplate.height, criteria->trainParams.hasher.grid, t.objBB.tl().x, t.objBB.tl().y);
             cv::Point c = tables[i].triplet.getCenter(coordParams);
             cv::Point p1 = tables[i].triplet.getP1(coordParams);
             cv::Point p2 = tables[i].triplet.getP2(coordParams);
@@ -239,7 +239,7 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &table
     assert(!sceneDepth.empty());
     assert(!windows.empty());
     assert(!tables.empty());
-    assert(terms->info.maxTemplate.area() > 0);
+    assert(criteria->info.maxTemplate.area() > 0);
 
     const size_t windowsSize = windows.size();
     std::vector<Template *> usedTemplates;
@@ -248,7 +248,7 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &table
     for (size_t i = 0; i < windowsSize; ++i) {
         for (auto &table : tables) {
             // Get triplet points
-            TripletParams tParams(terms->info.maxTemplate.width, terms->info.maxTemplate.height, terms->params.hasher.grid, windows[i].tl().x, windows[i].tl().y);
+            TripletParams tParams(criteria->info.maxTemplate.width, criteria->info.maxTemplate.height, criteria->trainParams.hasher.grid, windows[i].tl().x, windows[i].tl().y);
             cv::Point c = table.triplet.getCenter(tParams);
             cv::Point p1 = table.triplet.getP1(tParams);
             cv::Point p2 = table.triplet.getP2(tParams);
@@ -275,7 +275,7 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &table
                 entry->vote();
 
                 // pushes only unique templates with minimum of votes (minVotes) building vector of size up to N
-                windows[i].pushUnique(entry, terms->params.hasher.tablesCount, terms->params.hasher.minVotes);
+                windows[i].pushUnique(entry, criteria->trainParams.hasher.tablesCount, criteria->detectParams.hasher.minVotes);
                 usedTemplates.emplace_back(entry);
             }
         }
@@ -299,6 +299,6 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &table
     std::cout << "  |_ Number of windows pass to next stage: " << windows.size() << std::endl;
 }
 
-void Hasher::setTerms(std::shared_ptr<ClassifierTerms> terms) {
-    this->terms = terms;
+void Hasher::setCriteria(std::shared_ptr<ClassifierCriteria> criteria) {
+    this->criteria = criteria;
 }

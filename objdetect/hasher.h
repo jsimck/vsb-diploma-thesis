@@ -4,7 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include <memory>
 #include "../core/hash_table.h"
-#include "../core/classifier_terms.h"
+#include "../core/classifier_criteria.h"
 #include "../core/window.h"
 
 /**
@@ -15,7 +15,7 @@
  */
 class Hasher {
 private:
-    std::shared_ptr<ClassifierTerms> terms;
+    std::shared_ptr<ClassifierCriteria> criteria;
 
     void generateTriplets(std::vector<HashTable> &tables);
     void initializeBinRanges(std::vector<Template> &templates, std::vector<HashTable> &tables);
@@ -37,7 +37,7 @@ public:
     void train(std::vector<Template> &templates, std::vector<HashTable> &tables);
     void verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows);
 
-    void setTerms(std::shared_ptr<ClassifierTerms> terms);
+    void setCriteria(std::shared_ptr<ClassifierCriteria> criteria);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_HASHING_H

@@ -1,5 +1,5 @@
-#ifndef VSB_SEMESTRAL_PROJECT_CLASSIFIER_TERMS_H
-#define VSB_SEMESTRAL_PROJECT_CLASSIFIER_TERMS_H
+#ifndef VSB_SEMESTRAL_PROJECT_CLASSIFIER_CRITERIA_H
+#define VSB_SEMESTRAL_PROJECT_CLASSIFIER_CRITERIA_H
 
 #include <opencv2/core/types.hpp>
 #include <ostream>
@@ -7,18 +7,17 @@
 #include "template.h"
 
 /**
- * struct ClassifierTerms
+ * struct ClassifierCriteria
  *
  * Holds information about loaded data set and all thresholds for further computation
  */
-struct ClassifierTerms {
+struct ClassifierCriteria {
 public:
-    // Params and thresholds
+    // Train params and thresholds
     struct {
         // Hasher
         struct {
             cv::Size grid; // Triplet grid size
-            int minVotes; // Minimum number of votes to classify template as window candidate
             int tablesCount; // Number of tables to generate
             int maxDistance; // Max distance between each point in triplet
             int binCount; // Number of bins for depth ranges
@@ -27,6 +26,24 @@ public:
         // Matcher
         struct {
             int pointsCount; // Number of feature points to extract for each template
+        } matcher;
+
+        // Objectness
+        struct {
+            float tEdgesMin; // Min threshold applied in sobel filtered image thresholding [0.01f]
+            float tEdgesMax; // Max threshold applied in sobel filtered image thresholding [0.1f]
+        } objectness;
+    } trainParams;
+
+    // Detect params and thresholds
+    struct {
+        // Hasher
+        struct {
+            int minVotes; // Minimum number of votes to classify template as window candidate
+        } hasher;
+
+        // Matcher
+        struct {
             float tMatch; // number indicating how many percentage of points should match [0.0 - 1.0]
             float tOverlap; // overlap threshold, how much should 2 windows overlap in order to calculate non-maxima suppression [0.0 - 1.0]
             uchar tColorTest; // HUE value max threshold to pass comparing colors between scene and template [0-180]
@@ -36,11 +53,9 @@ public:
         // Objectness
         struct {
             int step; // Stepping for sliding window
-            float tEdgesMin; // Min threshold applied in sobel filtered image thresholding [0.01f]
-            float tEdgesMax; // Max threshold applied in sobel filtered image thresholding [0.1f]
             float tMatch; // Factor of minEdgels window should contain to be classified as valid [30% -> 0.3f]
         } objectness;
-    } params;
+    } detectParams;
 
     // Data set info
     struct {
@@ -50,16 +65,16 @@ public:
     } info;
 
     // Constructors
-    ClassifierTerms();
+    ClassifierCriteria();
 
     // Persistence
-    static std::shared_ptr<ClassifierTerms> load(cv::FileStorage fsr);
+    static void load(cv::FileStorage fsr, std::shared_ptr<ClassifierCriteria> criteria);
     void save(cv::FileStorage &fsw);
     
     // Methods
     void resetInfo();
 
-    friend std::ostream &operator<<(std::ostream &os, const ClassifierTerms &terms);
+    friend std::ostream &operator<<(std::ostream &os, const ClassifierCriteria &criteria);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_CLASSIFIER_TERMS_H
+#endif //VSB_SEMESTRAL_PROJECT_CLASSIFIER_CRITERIA_H

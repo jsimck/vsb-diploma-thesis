@@ -1,35 +1,45 @@
 #include "classifier.h"
 #include "../utils/timer.h"
 #include "../utils/visualizer.h"
-#include "../core/classifier_terms.h"
+#include "../core/classifier_criteria.h"
 
 Classifier::Classifier() {
-    terms = std::make_shared<ClassifierTerms>();
+    criteria = std::make_shared<ClassifierCriteria>();
 
-    // Init objectness params
-    terms->params.objectness.step = 5;
-    terms->params.objectness.tEdgesMin = 0.01f;
-    terms->params.objectness.tEdgesMax = 0.1f;
-    terms->params.objectness.tMatch = 0.3f;
+    // ------- Train params -------
+    // Objectness
+    criteria->trainParams.objectness.tEdgesMin = 0.01f;
+    criteria->trainParams.objectness.tEdgesMax = 0.1f;
 
-    // Init hasher params
-    terms->params.hasher.grid = cv::Size(12, 12);
-    terms->params.hasher.tablesCount = 100;
-    terms->params.hasher.binCount = 5;
-    terms->params.hasher.minVotes = 3;
-    terms->params.hasher.maxDistance = 3;
+    // Hasher
+    criteria->trainParams.hasher.grid = cv::Size(12, 12);
+    criteria->trainParams.hasher.tablesCount = 100;
+    criteria->trainParams.hasher.binCount = 5;
+    criteria->trainParams.hasher.maxDistance = 3;
 
-    // Init template matcher
-    terms->params.matcher.pointsCount = 100;
-    terms->params.matcher.tMatch = 0.6f;
-    terms->params.matcher.tOverlap = 0.1f;
-    terms->params.matcher.neighbourhood = cv::Range(-2, 2); // 5x5 -> [-2, -1, 0, 1, 2]
-    terms->params.matcher.tColorTest = 5;
+    // Matcher
+    criteria->trainParams.matcher.pointsCount = 100;
+
+
+    // ------- Detect params -------
+    // Objectness
+    criteria->detectParams.objectness.step = 5;
+    criteria->detectParams.objectness.tMatch = 0.3f;
+
+    // Hasher
+    criteria->detectParams.hasher.minVotes = 3;
+
+    // Matcher
+    criteria->detectParams.matcher.tMatch = 0.6f;
+    criteria->detectParams.matcher.tOverlap = 0.1f;
+    criteria->detectParams.matcher.neighbourhood = cv::Range(-2, 2);
+    criteria->detectParams.matcher.tColorTest = 3;
+
 
     // Init classifiers
-    objectness.setTerms(terms);
-    hasher.setTerms(terms);
-    matcher.setTerms(terms);
+    objectness.setCriteria(criteria);
+    hasher.setCriteria(criteria);
+    matcher.setCriteria(criteria);
 }
 
 void Classifier::train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices) {
@@ -37,7 +47,7 @@ void Classifier::train(std::string templatesListPath, std::string resultPath, st
     assert(ifs.is_open());
 
     // Init parser and common
-    Parser parser(terms);
+    Parser parser(criteria);
     parser.indices.swap(indices);
 
     std::ostringstream oss;
@@ -81,7 +91,7 @@ void Classifier::train(std::string templatesListPath, std::string resultPath, st
 
     // Save data set
     cv::FileStorage fsw(resultPath + "classifier.yml.gz", cv::FileStorage::WRITE);
-    terms->save(fsw);
+    criteria->save(fsw);
     std::cout << "  |_ info -> " << resultPath + "classifier.yml.gz" << std::endl;
 
     // Train hash tables
@@ -128,10 +138,7 @@ void Classifier::load(const std::string &trainedTemplatesListPath, const std::st
 
     // Load data set
     cv::FileStorage fsr(trainedPath + "classifier.yml.gz", cv::FileStorage::READ);
-    terms = ClassifierTerms::load(fsr);
-    objectness.setTerms(terms);
-    hasher.setTerms(terms);
-    matcher.setTerms(terms);
+    ClassifierCriteria::load(fsr, criteria);
     std::cout << "  |_ info -> LOADED" << std::endl;
 
     // Load hash tables
@@ -190,8 +197,8 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
         Timer tTotal;
 
         /// Objectness detection
-        assert(info.smallestTemplate.area() > 0);
-        assert(info.minEdgels > 0);
+        assert(criteria->info.smallestTemplate.area() > 0);
+        assert(criteria->info.minEdgels > 0);
 
         std::cout << "Objectness detection started... " << std::endl;
         Timer tObjectness;
@@ -199,7 +206,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
         std::cout << "  |_ Windows classified as containing object extracted: " << windows.size() << std::endl;
         std::cout << "DONE! took: " << tObjectness.elapsed() << "s" << std::endl << std::endl;
 
-        Visualizer::visualizeWindows(this->scene, windows, false, 1, "Locations detected");
+//        Visualizer::visualizeWindows(this->scene, windows, false, 1, "Locations detected");
 
         /// Verification and filtering of template candidates
         assert(!tables.empty());
@@ -210,7 +217,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
         std::cout << "DONE! took: " << tVerification.elapsed() << "s" << std::endl << std::endl;
 
 //        Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, info, hasher.getGrid(), false);
-        Visualizer::visualizeWindows(this->scene, windows, false, 1, "Filtered locations");
+//        Visualizer::visualizeWindows(this->scene, windows, false, 1, "Filtered locations");
 
         /// Match templates
         assert(!windows.empty());
@@ -222,7 +229,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
         std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
 
         /// Show matched template results
-        Visualizer::visualizeMatches(scene, matches, "data/", 0);
+        Visualizer::visualizeMatches(scene, matches, "data/", 30);
 
         // Cleanup
         windows.clear();

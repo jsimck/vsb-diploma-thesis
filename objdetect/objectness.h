@@ -6,7 +6,7 @@
 #include <utility>
 #include "../core/template.h"
 #include "../core/window.h"
-#include "../core/classifier_terms.h"
+#include "../core/classifier_criteria.h"
 
 /**
  * class Objetness
@@ -20,7 +20,7 @@
  */
 class Objectness {
 private:
-    std::shared_ptr<ClassifierTerms> terms;
+    std::shared_ptr<ClassifierCriteria> criteria;
 public:
     // Constructors
     Objectness() = default;
@@ -29,7 +29,7 @@ public:
     void extractMinEdgels(std::vector<Template> &templates);
     void objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &windows);
 
-    void setTerms(std::shared_ptr<ClassifierTerms> terms);
+    void setCriteria(std::shared_ptr<ClassifierCriteria> criteria);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_OBJECTNESS_H

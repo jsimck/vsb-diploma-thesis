@@ -9,7 +9,7 @@
 #include "objectness.h"
 #include "../core/window.h"
 #include "matcher.h"
-#include "../core/classifier_terms.h"
+#include "../core/classifier_criteria.h"
 
 /**
  * class Classifier
@@ -36,7 +36,7 @@ private:
     void loadScene(const std::string &scenePath, const std::string &sceneName);
     void load(const std::string &trainedTemplatesListPath, const std::string &trainedPath);
 public:
-    std::shared_ptr<ClassifierTerms> terms;
+    std::shared_ptr<ClassifierCriteria> criteria;
     Objectness objectness;
     Hasher hasher;
     Matcher matcher;

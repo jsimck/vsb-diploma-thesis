@@ -7,7 +7,7 @@
 #include "../core/window.h"
 #include "../core/match.h"
 #include "../core/value_point.h"
-#include "../core/classifier_terms.h"
+#include "../core/classifier_criteria.h"
 
 /**
  * class Hasher
@@ -17,7 +17,7 @@
  */
 class Matcher {
 private:
-    std::shared_ptr<ClassifierTerms> terms;
+    std::shared_ptr<ClassifierCriteria> criteria;
 
     // Methods
     cv::Vec3b normalizeHSV(const cv::Vec3b &hsv);
@@ -46,7 +46,7 @@ public:
     void match(float scale, const cv::Mat &sceneHSV, const cv::Mat &sceneGray, const cv::Mat &sceneDepth, std::vector<Window> &windows, std::vector<Match> &matches);
     void train(std::vector<Template> &templates);
 
-    void setTerms(std::shared_ptr<ClassifierTerms> terms);
+    void setCriteria(std::shared_ptr<ClassifierCriteria> criteria);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_MATCHER_H
