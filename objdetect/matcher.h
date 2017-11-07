@@ -25,7 +25,8 @@ private:
 
     void extractFeatures(std::vector<Template> &templates);
     void generateFeaturePoints(std::vector<Template> &templates);
-    void cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, double tMinDistance, uint pointsCount, std::vector<cv::Point> &out);
+    void cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, double tMinDistance, int pointsCount,
+                                 std::vector<cv::Point> &out);
 
     void nonMaximaSuppression(std::vector<Match> &matches);
 

@@ -20,6 +20,7 @@ void Parser::parse(const std::string &basePath, std::vector<Template> &templates
     }
 
     // Load obj_info
+    fs.release();
     fs.open(basePath + "/info.yml", cv::FileStorage::READ);
     assert(fs.isOpened());
 

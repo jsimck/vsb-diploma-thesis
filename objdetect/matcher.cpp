@@ -56,7 +56,8 @@ cv::Vec3b Matcher::normalizeHSV(const cv::Vec3b &hsv) {
     return hsv;
 }
 
-void Matcher::cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, double tMinDistance, uint pointsCount, std::vector<cv::Point> &out) {
+void Matcher::cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, double tMinDistance, int pointsCount,
+                                      std::vector<cv::Point> &out) {
     double minDst = tMinDistance;
     const size_t pointsSize = points.size();
 
@@ -140,7 +141,7 @@ void Matcher::extractFeatures(std::vector<Template> &templates) {
         assert(!t.srcHSV.empty());
         assert(!t.srcDepth.empty());
 
-        for (uint j = 0; j < criteria->trainParams.matcher.pointsCount; j++) {
+        for (int j = 0; j < criteria->trainParams.matcher.pointsCount; j++) {
             // Create offsets to object bounding box
             cv::Point stablePOff(t.stablePoints[j].x + t.objBB.x, t.stablePoints[j].y + t.objBB.y);
             cv::Point edgePOff(t.edgePoints[j].x + t.objBB.x, t.edgePoints[j].y + t.objBB.y);
