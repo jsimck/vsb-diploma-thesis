@@ -3,9 +3,10 @@
 
 #include <opencv2/opencv.hpp>
 #include <opencv/cv.h>
+#include <memory>
 #include "../core/window.h"
 #include "../core/template.h"
-#include "../core/dataset_info.h"
+#include "../core/classifier_terms.h"
 #include "../core/hash_table.h"
 #include "../core/match.h"
 
@@ -15,7 +16,7 @@ private:
     static cv::Vec3b heatMapValue(int min, int max, int value);
 public:
     static void visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows,
-                                 DataSetInfo &info, const cv::Size &grid, bool continuous = true, const char *title = nullptr);
+                                 std::shared_ptr<ClassifierTerms> &terms, const cv::Size &grid, bool continuous = true, const char *title = nullptr);
     static void visualizeMatches(cv::Mat &scene, std::vector<Match> &matches, const std::string &templatesPath = "data/", int wait = 0, const char *title = nullptr);
     static void visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, bool continuous, int wait = 0, const char *title = nullptr);
     static void visualizeTests(Template &tpl, const cv::Mat &sceneHSV, Window &window, std::vector<cv::Point> &stablePoints, std::vector<cv::Point> &edgePoints,

@@ -1,6 +1,7 @@
 #ifndef VSB_SEMESTRAL_PROJECT_CLASSIFIER_H
 #define VSB_SEMESTRAL_PROJECT_CLASSIFIER_H
 
+#include <memory>
 #include "../core/match.h"
 #include "../core/hash_table.h"
 #include "../utils/parser.h"
@@ -8,7 +9,7 @@
 #include "objectness.h"
 #include "../core/window.h"
 #include "matcher.h"
-#include "../core/dataset_info.h"
+#include "../core/classifier_terms.h"
 
 /**
  * class Classifier
@@ -35,7 +36,7 @@ private:
     void loadScene(const std::string &scenePath, const std::string &sceneName);
     void load(const std::string &trainedTemplatesListPath, const std::string &trainedPath);
 public:
-    DataSetInfo info;
+    std::shared_ptr<ClassifierTerms> terms;
     Objectness objectness;
     Hasher hasher;
     Matcher matcher;

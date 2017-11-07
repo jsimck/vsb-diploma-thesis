@@ -213,7 +213,7 @@ void Visualizer::visualizeTemplate(Template &tpl, const std::string &templatesPa
 }
 
 void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows,
-                                  DataSetInfo &info, const cv::Size &grid, bool continuous, const char *title) {
+                                  std::shared_ptr<ClassifierTerms> &terms, const cv::Size &grid, bool continuous, const char *title) {
     // Init common
     cv::Scalar colorRed(0, 0, 255);
     std::ostringstream oss;
@@ -228,12 +228,12 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
         }
 
         // Draw window and searched box rectangles
-        cv::rectangle(result, windows[i].tl(), windows[i].tl() + cv::Point(info.maxTemplate), cv::Scalar::all(255));
+        cv::rectangle(result, windows[i].tl(), windows[i].tl() + cv::Point(terms->info.maxTemplate), cv::Scalar::all(255));
         cv::rectangle(result, windows[i].tl(), windows[i].br(), cv::Scalar(0, 255, 0));
 
         for (auto &table : tables) {
             // Prepare params to load hash key
-            TripletParams params(info.maxTemplate.width, info.maxTemplate.height, grid, windows[i].tl().x, windows[i].tl().y);
+            TripletParams params(terms->info.maxTemplate.width, terms->info.maxTemplate.height, grid, windows[i].tl().x, windows[i].tl().y);
             cv::Point c = table.triplet.getCenter(params);
             cv::Point p1 = table.triplet.getP1(params);
             cv::Point p2 = table.triplet.getP2(params);
@@ -248,8 +248,8 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
 
             // Generate hash key
             HashKey key(
-                Hasher::quantizeDepth(d[0], table.binRanges, static_cast<uint>(table.binRanges.size())),
-                Hasher::quantizeDepth(d[1], table.binRanges, static_cast<uint>(table.binRanges.size())),
+                Hasher::quantizeDepth(d[0], table.binRanges),
+                Hasher::quantizeDepth(d[1], table.binRanges),
                 Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, c)),
                 Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, p1)),
                 Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, p2))
@@ -269,13 +269,13 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
         // Labels
         oss.str("");
         oss << "candidates: " << windows[i].candidates.size();
-        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(info.maxTemplate.width + 5, 10));
+        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(terms->info.maxTemplate.width + 5, 10));
         oss.str("");
         oss << "matched: " << matched << "/" << tables.size();
-        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(info.maxTemplate.width + 5, 28));
+        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(terms->info.maxTemplate.width + 5, 28));
         oss.str("");
         oss << "edgels: " << windows[i].edgels;
-        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(info.maxTemplate.width + 5, 46));
+        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(terms->info.maxTemplate.width + 5, 46));
 
         // Show results
         cv::imshow(title == nullptr ? "Hashing visualization" : title, result);

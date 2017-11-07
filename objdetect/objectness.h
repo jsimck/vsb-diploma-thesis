@@ -2,9 +2,11 @@
 #define VSB_SEMESTRAL_PROJECT_OBJECTNESS_H
 
 #include <string>
+#include <memory>
+#include <utility>
 #include "../core/template.h"
 #include "../core/window.h"
-#include "../core/dataset_info.h"
+#include "../core/classifier_terms.h"
 
 /**
  * class Objetness
@@ -17,21 +19,17 @@
  * throught extractMinEdgels method.
  */
 class Objectness {
+private:
+    std::shared_ptr<ClassifierTerms> terms;
 public:
-    // Params
-    struct {
-        uint step; // Stepping for sliding window [5]
-        float tEdgesMin; // Min threshold applied in sobel filtered image thresholding [0.01f]
-        float tEdgesMax; // Max threshold applied in sobel filtered image thresholding [0.1f]
-        float tMatch; // Factor of minEdgels window should contain to be classified as valid [30% -> 0.3f]
-    } params;
-
     // Constructors
-    Objectness();
+    Objectness() = default;
 
     // Methods
-    void extractMinEdgels(std::vector<Template> &templates, DataSetInfo &info);
-    void objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &windows, DataSetInfo &info);
+    void extractMinEdgels(std::vector<Template> &templates);
+    void objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &windows);
+
+    void setTerms(std::shared_ptr<ClassifierTerms> terms);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_OBJECTNESS_H

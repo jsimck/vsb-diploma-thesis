@@ -1,27 +1,35 @@
 #include "classifier.h"
 #include "../utils/timer.h"
 #include "../utils/visualizer.h"
+#include "../core/classifier_terms.h"
 
 Classifier::Classifier() {
+    terms = std::make_shared<ClassifierTerms>();
+
     // Init objectness params
-    objectness.params.step = 5;
-    objectness.params.tEdgesMin = 0.01f;
-    objectness.params.tEdgesMax = 0.1f;
-    objectness.params.tMatch = 0.3f;
+    terms->params.objectness.step = 5;
+    terms->params.objectness.tEdgesMin = 0.01f;
+    terms->params.objectness.tEdgesMax = 0.1f;
+    terms->params.objectness.tMatch = 0.3f;
 
     // Init hasher params
-    hasher.params.grid = cv::Size(12, 12);
-    hasher.params.tablesCount = 100;
-    hasher.params.binCount = 5;
-    hasher.params.minVotes = 3;
-    hasher.params.maxDistance = 3;
+    terms->params.hasher.grid = cv::Size(12, 12);
+    terms->params.hasher.tablesCount = 100;
+    terms->params.hasher.binCount = 5;
+    terms->params.hasher.minVotes = 3;
+    terms->params.hasher.maxDistance = 3;
 
     // Init template matcher
-    matcher.params.pointsCount = 100;
-    matcher.params.tMatch = 0.6f;
-    matcher.params.tOverlap = 0.1f;
-    matcher.params.neighbourhood = cv::Range(-2, 2); // 5x5 -> [-2, -1, 0, 1, 2]
-    matcher.params.tColorTest = 5;
+    terms->params.matcher.pointsCount = 100;
+    terms->params.matcher.tMatch = 0.6f;
+    terms->params.matcher.tOverlap = 0.1f;
+    terms->params.matcher.neighbourhood = cv::Range(-2, 2); // 5x5 -> [-2, -1, 0, 1, 2]
+    terms->params.matcher.tColorTest = 5;
+
+    // Init classifiers
+    objectness.setTerms(terms);
+    hasher.setTerms(terms);
+    matcher.setTerms(terms);
 }
 
 void Classifier::train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices) {
@@ -29,7 +37,7 @@ void Classifier::train(std::string templatesListPath, std::string resultPath, st
     assert(ifs.is_open());
 
     // Init parser and common
-    Parser parser;
+    Parser parser(terms);
     parser.indices.swap(indices);
 
     std::ostringstream oss;
@@ -43,7 +51,7 @@ void Classifier::train(std::string templatesListPath, std::string resultPath, st
         std::cout << "  |_ " << path;
 
         // Parse each object by one and save it
-        parser.parse(path, tpls, info);
+        parser.parse(path, tpls);
 
         // Train features for loaded templates
         matcher.train(tpls);
@@ -52,7 +60,7 @@ void Classifier::train(std::string templatesListPath, std::string resultPath, st
         allTemplates.insert(allTemplates.end(), tpls.begin(), tpls.end());
 
         // Extract min edgels for objectness detection
-        objectness.extractMinEdgels(tpls, info);
+        objectness.extractMinEdgels(tpls);
 
         // Persist trained data
         oss.str("");
@@ -73,12 +81,12 @@ void Classifier::train(std::string templatesListPath, std::string resultPath, st
 
     // Save data set
     cv::FileStorage fsw(resultPath + "classifier.yml.gz", cv::FileStorage::WRITE);
-    info.save(fsw);
+    terms->save(fsw);
     std::cout << "  |_ info -> " << resultPath + "classifier.yml.gz" << std::endl;
 
     // Train hash tables
     std::cout << "  |_ Training hash tables... " << std::endl;
-    hasher.train(allTemplates, tables, info);
+    hasher.train(allTemplates, tables);
     assert(!tables.empty());
     std::cout << "    |_ " << tables.size() << " hash tables generated" <<std::endl;
 
@@ -120,7 +128,10 @@ void Classifier::load(const std::string &trainedTemplatesListPath, const std::st
 
     // Load data set
     cv::FileStorage fsr(trainedPath + "classifier.yml.gz", cv::FileStorage::READ);
-    info = DataSetInfo::load(fsr);
+    terms = ClassifierTerms::load(fsr);
+    objectness.setTerms(terms);
+    hasher.setTerms(terms);
+    matcher.setTerms(terms);
     std::cout << "  |_ info -> LOADED" << std::endl;
 
     // Load hash tables
@@ -184,7 +195,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
 
         std::cout << "Objectness detection started... " << std::endl;
         Timer tObjectness;
-        objectness.objectness(sceneDepthNorm, windows, info);
+        objectness.objectness(sceneDepthNorm, windows);
         std::cout << "  |_ Windows classified as containing object extracted: " << windows.size() << std::endl;
         std::cout << "DONE! took: " << tObjectness.elapsed() << "s" << std::endl << std::endl;
 
@@ -195,7 +206,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
 
         std::cout << "Verification of template candidates, using trained HashTables started... " << std::endl;
         Timer tVerification;
-        hasher.verifyCandidates(sceneDepth, tables, windows, info);
+        hasher.verifyCandidates(sceneDepth, tables, windows);
         std::cout << "DONE! took: " << tVerification.elapsed() << "s" << std::endl << std::endl;
 
 //        Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, info, hasher.getGrid(), false);

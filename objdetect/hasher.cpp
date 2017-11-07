@@ -2,16 +2,9 @@
 #include "hasher.h"
 #include "../utils/utils.h"
 #include "../utils/timer.h"
+#include "../core/classifier_terms.h"
 
 const int Hasher::IMG_16BIT_MAX = 65535; // <0, 65535> => 65536 values
-
-Hasher::Hasher() {
-    params.minVotes = 3;
-    params.grid = cv::Size(12, 12);
-    params.tablesCount = 100;
-    params.binCount = 5;
-    params.maxDistance = 3;
-}
 
 cv::Vec3f Hasher::surfaceNormal(const cv::Mat &src, const cv::Point &c) {
     assert(!src.empty());
@@ -71,10 +64,9 @@ uchar Hasher::quantizeSurfaceNormal(const cv::Vec3f &normal) {
     return minIndex;
 }
 
-uchar Hasher::quantizeDepth(float depth, const std::vector<cv::Range> &ranges, uint binCount) {
+uchar Hasher::quantizeDepth(float depth, const std::vector<cv::Range> &ranges) {
     // Depth should have max value of <-65536, +65536>
     assert(depth >= -IMG_16BIT_MAX && depth <= IMG_16BIT_MAX);
-    assert(ranges.size() == binCount);
     assert(!ranges.empty());
 
     // Loop through histogram ranges and return quantized index
@@ -91,8 +83,8 @@ uchar Hasher::quantizeDepth(float depth, const std::vector<cv::Range> &ranges, u
 
 void Hasher::generateTriplets(std::vector<HashTable> &tables) {
     // Generate triplets
-    for (size_t i = 0; i < params.tablesCount; ++i) {
-        tables.emplace_back(Triplet::create(params.grid, params.maxDistance));
+    for (size_t i = 0; i < terms->params.hasher.tablesCount; ++i) {
+        tables.emplace_back(Triplet::create(terms->params.hasher.grid, terms->params.hasher.maxDistance));
     }
 
     // TODO - joint entropy of 5k triplets, instead of 100 random triplets
@@ -100,21 +92,21 @@ void Hasher::generateTriplets(std::vector<HashTable> &tables) {
     bool duplicate;
     do {
         duplicate = false;
-        for (size_t i = 0; i < params.tablesCount; ++i) {
-            for (size_t j = 0; j < params.tablesCount; ++j) {
+        for (size_t i = 0; i < terms->params.hasher.tablesCount; ++i) {
+            for (size_t j = 0; j < terms->params.hasher.tablesCount; ++j) {
                 // Don't compare same triplets
                 if (i == j) continue;
                 if (tables[i].triplet == tables[j].triplet) {
                     // Duplicate, generate new triplet
                     duplicate = true;
-                    tables[j].triplet = Triplet::create(params.grid);
+                    tables[j].triplet = Triplet::create(terms->params.hasher.grid);
                 }
             }
         }
     } while (duplicate);
 }
 
-void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<HashTable> &tables, DataSetInfo &info) {
+void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<HashTable> &tables) {
     // Checks
     assert(!tables.empty());
     assert(!templates.empty());
@@ -131,12 +123,12 @@ void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<H
 
             // Offset for the triplet grid
             cv::Point gridOffset(
-                t.objBB.tl().x - (info.maxTemplate.width - t.objBB.width) / 2,
-                t.objBB.tl().y - (info.maxTemplate.height - t.objBB.height) / 2
+                t.objBB.tl().x - (terms->info.maxTemplate.width - t.objBB.width) / 2,
+                t.objBB.tl().y - (terms->info.maxTemplate.height - t.objBB.height) / 2
             );
 
             // Absolute triplet points
-            TripletParams tParams(info.maxTemplate.width, info.maxTemplate.height, params.grid, gridOffset.x, gridOffset.y);
+            TripletParams tParams(terms->info.maxTemplate.width, terms->info.maxTemplate.height, terms->params.hasher.grid, gridOffset.x, gridOffset.y);
             cv::Point c = tables[i].triplet.getCenter(tParams);
             cv::Point p1 = tables[i].triplet.getP1(tParams);
             cv::Point p2 = tables[i].triplet.getP2(tParams);
@@ -158,16 +150,16 @@ void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<H
         // Sort depths Calculate bin ranges
         std::sort(rDepths.begin(), rDepths.end());
         const size_t rDSize = rDepths.size();
-        const size_t binSize = rDSize / params.binCount;
+        const size_t binSize = rDSize / terms->params.hasher.binCount;
         std::vector<cv::Range> ranges;
 
-        for (uint j = 0; j < params.binCount; j++) {
+        for (uint j = 0; j < terms->params.hasher.binCount; j++) {
             int min = rDepths[j * binSize];
             int max = rDepths[(j + 1) * binSize];
 
             if (j == 0) {
                 min = -IMG_16BIT_MAX;
-            } else if (j + 1 == params.binCount) {
+            } else if (j + 1 == terms->params.hasher.binCount) {
                 max = IMG_16BIT_MAX;
             }
 
@@ -175,32 +167,32 @@ void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<H
         }
 
         // Set table bin ranges
-        assert(ranges.size() == params.binCount);
+        assert(ranges.size() == terms->params.hasher.binCount);
         tables[i].binRanges = ranges;
     }
 }
 
-void Hasher::initialize(std::vector<Template> &templates, std::vector<HashTable> &tables, DataSetInfo &info) {
+void Hasher::initialize(std::vector<Template> &templates, std::vector<HashTable> &tables) {
     // Init hash tables
-    tables.reserve(params.tablesCount);
+    tables.reserve(terms->params.hasher.tablesCount);
     std::cout << "    |_ Generating triplets... " << std::endl;
     generateTriplets(tables);
 
     // Calculate bin ranges for depth quantization
     std::cout << "    |_ Calculating depths bin ranges... " << std::endl;
-    initializeBinRanges(templates, tables, info);
+    initializeBinRanges(templates, tables);
 }
 
-void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tables, DataSetInfo &info) {
+void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tables) {
     // Checks
     assert(!templates.empty());
-    assert(params.tablesCount > 0);
-    assert(params.grid.width > 0);
-    assert(params.grid.height > 0);
+    assert(terms->params.hasher.tablesCount > 0);
+    assert(terms->params.hasher.grid.width > 0);
+    assert(terms->params.hasher.grid.height > 0);
     assert(info.maxTemplate.area() > 0);
 
     // Prepare hash tables and histogram bin ranges
-    initialize(templates, tables, info);
+    initialize(templates, tables);
     const size_t iSize = tables.size();
 
     // Fill hash tables with templates and keys quantized from measured values
@@ -211,7 +203,7 @@ void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tab
             assert(!t.srcDepth.empty());
 
             // Get triplet points
-            TripletParams coordParams(info.maxTemplate.width, info.maxTemplate.height, params.grid, t.objBB.tl().x, t.objBB.tl().y);
+            TripletParams coordParams(terms->info.maxTemplate.width, terms->info.maxTemplate.height, terms->params.hasher.grid, t.objBB.tl().x, t.objBB.tl().y);
             cv::Point c = tables[i].triplet.getCenter(coordParams);
             cv::Point p1 = tables[i].triplet.getP1(coordParams);
             cv::Point p2 = tables[i].triplet.getP2(coordParams);
@@ -229,8 +221,8 @@ void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tab
 
             // Generate hash key
             HashKey key(
-                quantizeDepth(d[0], tables[i].binRanges, params.binCount),
-                quantizeDepth(d[1], tables[i].binRanges, params.binCount),
+                quantizeDepth(d[0], tables[i].binRanges),
+                quantizeDepth(d[1], tables[i].binRanges),
                 quantizeSurfaceNormal(surfaceNormal(t.srcDepth, c)),
                 quantizeSurfaceNormal(surfaceNormal(t.srcDepth, p1)),
                 quantizeSurfaceNormal(surfaceNormal(t.srcDepth, p2))
@@ -242,12 +234,12 @@ void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tab
     }
 }
 
-void Hasher::verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows, DataSetInfo &info) {
+void Hasher::verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows) {
     // Checks
     assert(!sceneDepth.empty());
     assert(!windows.empty());
     assert(!tables.empty());
-    assert(info.maxTemplate.area() > 0);
+    assert(terms->info.maxTemplate.area() > 0);
 
     const size_t windowsSize = windows.size();
     std::vector<Template *> usedTemplates;
@@ -256,7 +248,7 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &table
     for (size_t i = 0; i < windowsSize; ++i) {
         for (auto &table : tables) {
             // Get triplet points
-            TripletParams tParams(info.maxTemplate.width, info.maxTemplate.height, params.grid, windows[i].tl().x, windows[i].tl().y);
+            TripletParams tParams(terms->info.maxTemplate.width, terms->info.maxTemplate.height, terms->params.hasher.grid, windows[i].tl().x, windows[i].tl().y);
             cv::Point c = table.triplet.getCenter(tParams);
             cv::Point p1 = table.triplet.getP1(tParams);
             cv::Point p2 = table.triplet.getP2(tParams);
@@ -271,8 +263,8 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &table
 
             // Generate hash key
             HashKey key(
-                quantizeDepth(d[0], table.binRanges, params.binCount),
-                quantizeDepth(d[1], table.binRanges, params.binCount),
+                quantizeDepth(d[0], table.binRanges),
+                quantizeDepth(d[1], table.binRanges),
                 quantizeSurfaceNormal(surfaceNormal(sceneDepth, c)),
                 quantizeSurfaceNormal(surfaceNormal(sceneDepth, p1)),
                 quantizeSurfaceNormal(surfaceNormal(sceneDepth, p2))
@@ -283,7 +275,7 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &table
                 entry->vote();
 
                 // pushes only unique templates with minimum of votes (minVotes) building vector of size up to N
-                windows[i].pushUnique(entry, params.tablesCount, params.minVotes);
+                windows[i].pushUnique(entry, terms->params.hasher.tablesCount, terms->params.hasher.minVotes);
                 usedTemplates.emplace_back(entry);
             }
         }
@@ -305,4 +297,8 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &table
     // Remove empty windows
     Utils::removeIndex<Window>(windows, emptyIndexes);
     std::cout << "  |_ Number of windows pass to next stage: " << windows.size() << std::endl;
+}
+
+void Hasher::setTerms(std::shared_ptr<ClassifierTerms> terms) {
+    this->terms = terms;
 }

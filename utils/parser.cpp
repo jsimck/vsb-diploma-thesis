@@ -1,7 +1,7 @@
 #include "parser.h"
 #include "../processing/processing.h"
 
-void Parser::parse(const std::string &basePath, std::vector<Template> &templates, DataSetInfo &info) {
+void Parser::parse(const std::string &basePath, std::vector<Template> &templates) {
     // Load obj_gt
     idCounter = 0;
     cv::FileStorage fs;
@@ -15,7 +15,7 @@ void Parser::parse(const std::string &basePath, std::vector<Template> &templates
         cv::FileNode objGt = fs[index];
 
         // Parse template gt file
-        templates.emplace_back(parseGt(tplIndex, basePath, objGt, info));
+        templates.emplace_back(parseGt(tplIndex, basePath, objGt));
         idCounter++;
     }
 
@@ -35,7 +35,7 @@ void Parser::parse(const std::string &basePath, std::vector<Template> &templates
     fs.release();
 }
 
-Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNode, DataSetInfo &info) {
+Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNode) {
     // Init template param matrices
     int id;
     std::vector<float> vCamRm2c, vCamTm2c;
@@ -70,17 +70,17 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
     srcDepth.convertTo(srcDepth, CV_32F); // because of surface normal calculation, don'tpl doo normalization
 
     // Find smallest object
-    if (objBB.area() < info.smallestTemplate.area()) {
-        info.smallestTemplate.width = objBB.width;
-        info.smallestTemplate.height = objBB.height;
+    if (objBB.area() < terms->info.smallestTemplate.area()) {
+        terms->info.smallestTemplate.width = objBB.width;
+        terms->info.smallestTemplate.height = objBB.height;
     }
 
     // Find largest object
-    if (objBB.width >= info.maxTemplate.width) {
-        info.maxTemplate.width = objBB.width;
+    if (objBB.width >= terms->info.maxTemplate.width) {
+        terms->info.maxTemplate.width = objBB.width;
     }
-    if (objBB.height >= info.maxTemplate.height) {
-        info.maxTemplate.height = objBB.height;
+    if (objBB.height >= terms->info.maxTemplate.height) {
+        terms->info.maxTemplate.height = objBB.height;
     }
 
     // Calculate angles
