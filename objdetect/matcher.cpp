@@ -181,6 +181,7 @@ int Matcher::testObjectSize(float scale, Window &window, cv::Mat &sceneDepth, st
     int depthsC = 0;
     float ratio = 0;
 
+    #pragma omp parallel for reduction(+:depthsC)
     for (int i = 0; i < criteria->trainParams.matcher.pointsCount; ++i) {
         float sDepth = sceneDepth.at<float>(stablePoints[i] + window.tl());
 

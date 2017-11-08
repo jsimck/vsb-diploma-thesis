@@ -30,7 +30,7 @@ Classifier::Classifier() {
     criteria->detectParams.hasher.minVotes = 3;
 
     // Matcher
-    criteria->detectParams.matcher.tMatch = 0.6f;
+    criteria->detectParams.matcher.tMatch = 0.5f;
     criteria->detectParams.matcher.tOverlap = 0.1f;
     criteria->detectParams.matcher.neighbourhood = cv::Range(-2, 2);
     criteria->detectParams.matcher.tColorTest = 3;
