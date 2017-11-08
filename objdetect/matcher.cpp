@@ -198,17 +198,17 @@ int Matcher::testObjectSize(float scale, Window &window, cv::Mat &sceneDepth, st
 }
 
 // TODO Use bitwise operations using response maps
-int Matcher::testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
+int Matcher::testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormals, cv::Point &stable) {
     for (int y = criteria->detectParams.matcher.neighbourhood.start; y <= criteria->detectParams.matcher.neighbourhood.end; ++y) {
         for (int x = criteria->detectParams.matcher.neighbourhood.start; x <= criteria->detectParams.matcher.neighbourhood.end; ++x) {
             // Apply needed offsets to feature point
             cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
 
             // Template points in larger templates can go beyond scene boundaries (don't count)
-            if (offsetP.x >= sceneDepth.cols || offsetP.y >= sceneDepth.rows ||
+            if (offsetP.x >= sceneSurfaceNormals.cols || offsetP.y >= sceneSurfaceNormals.rows ||
                 offsetP.x < 0 || offsetP.y < 0) continue;
 
-            if (Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, offsetP)) == normal) return 1;
+            if (sceneSurfaceNormals.at<uchar>(offsetP) == normal) return 1;
         }
     }
 
@@ -350,8 +350,17 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat 
     Timer tMatching;
 
     // Calculate angels and magnitudes
-    cv::Mat sceneAngle, sceneMagnitude;
+    cv::Mat sceneAngle, sceneMagnitude, sceneSurfaceNormals = cv::Mat(sceneDepth.size(), CV_8UC1);
     Processing::orientationGradients(sceneGray, sceneAngle, sceneMagnitude);
+
+    // Calculate quantized surface normal matric for scene
+    #pragma omp parallel for
+    for (int y = 1; y < sceneDepth.rows - 1; y++) {
+        for (int x = 1; x < sceneDepth.cols - 1; x++) {
+            cv::Point p(y, x);
+            sceneSurfaceNormals.at<uchar>(p) = Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, p));
+        }
+    }
 
 #ifndef VISUALIZE_MATCH
     #pragma omp parallel for
@@ -383,7 +392,7 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat 
                 sII += tmpResult;
                 tIITrue.emplace_back(tmpResult);
 #else
-                sII += testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
+                sII += testSurfaceNormal(candidate->features.normals[i], windows[l], sceneSurfaceNormals, candidate->stablePoints[i]);
 #endif
             }
 
