@@ -15,18 +15,21 @@
  */
 class Parser {
 private:
-    std::shared_ptr<ClassifierCriteria> criteria;
     uint idCounter;
+    std::vector<float> diameters;
+    std::shared_ptr<ClassifierCriteria> criteria;
 
     Template parseGt(uint index, const std::string &path, cv::FileNode &gtNode);
     void parseInfo(Template &tpl, cv::FileNode &infoNode);
+    void parseModelsInfo(const std::string &modelsPath);
 public:
     std::vector<uint> indices;
-    uint tplCount;
+    uint tplCount, modelCount;
 
-    Parser(std::shared_ptr<ClassifierCriteria> criteria, uint tplCount = 1296) : criteria(std::move(criteria)), tplCount(tplCount) {}
+    Parser(std::shared_ptr<ClassifierCriteria> criteria, uint tplCount = 1296, uint modelCount = 30)
+            : criteria(std::move(criteria)), tplCount(tplCount), modelCount(modelCount) {}
 
-    void parse(const std::string &basePath, std::vector<Template> &templates);
+    void parse(std::string basePath, std::string modelsPath, std::vector<Template> &templates);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_PARSER_H

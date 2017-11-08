@@ -31,8 +31,10 @@ void Template::save(cv::FileStorage &fs) {
     fs << "{";
     fs << "id" << id;
     fs << "fileName" << fileName;
+    fs << "diameter" << diameter;
     fs << "edgePoints" << edgePoints;
     fs << "stablePoints" << stablePoints;
+    fs << "depthMedian" << features.depthMedian;
     fs << "gradients" << features.gradients;
     fs << "normals" << features.normals;
     fs << "depths" << features.depths;
@@ -51,8 +53,10 @@ Template Template::load(cv::FileNode node) {
 
     node["id"] >> t.id;
     t.fileName = (std::string) node["fileName"];
+    node["diameter"] >> t.diameter;
     node["edgePoints"] >> t.edgePoints;
     node["stablePoints"] >> t.stablePoints;
+    node["depthMedian"] >> t.features.depthMedian;
     node["gradients"] >> t.features.gradients;
     node["normals"] >> t.features.normals;
     node["depths"] >> t.features.depths;
@@ -101,6 +105,7 @@ bool Template::operator!=(const Template &rhs) const {
 std::ostream &operator<<(std::ostream &os, const Template &t) {
     os << "Template ID: " << t.id << std::endl
        << "fileName: " << t.fileName << std::endl
+       << "diameter: " << t.diameter << std::endl
        << "srcGray (size): " << t.srcGray.size()  << std::endl
        << "srcDepth (size): " << t.srcDepth.size() << std::endl
        << "objBB: " << t.objBB  << std::endl

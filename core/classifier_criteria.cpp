@@ -29,8 +29,10 @@ ClassifierCriteria::ClassifierCriteria() {
     detectParams.matcher.neighbourhood = cv::Range(-2, 2); // 5x5 -> [-2, -1, 0, 1, 2]
     detectParams.matcher.tColorTest = 3;
     detectParams.matcher.depthDeviationFunction = {{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {65600, 0.08f}};
+    detectParams.matcher.depthK = 0.05f;
 
     // Initialize info
+    info.depthScaleFactor = 10.0f;
     resetInfo();
 }
 
@@ -55,6 +57,7 @@ void ClassifierCriteria::load(cv::FileStorage fsr, std::shared_ptr<ClassifierCri
     objectnessNode["tEdgesMin"] >> criteria-> trainParams.objectness.tEdgesMin;
     objectnessNode["tEdgesMax"] >> criteria-> trainParams.objectness.tEdgesMax;
 
+    infoNode["depthScaleFactor"] >> criteria->info.depthScaleFactor;
     infoNode["smallestTemplate"] >> criteria->info.smallestTemplate;
     infoNode["maxTemplate"] >> criteria->info.maxTemplate;
     infoNode["minEdgels"] >> criteria->info.minEdgels;
@@ -78,6 +81,7 @@ void ClassifierCriteria::save(cv::FileStorage &fsw) {
             fsw << "}";
         fsw << "}";
         fsw << "info" << "{";
+            fsw << "depthScaleFactor" << info.depthScaleFactor;
             fsw << "smallestTemplate" << info.smallestTemplate;
             fsw << "maxTemplate" << info.maxTemplate;
             fsw << "minEdgels" << info.minEdgels;
@@ -105,8 +109,9 @@ std::ostream &operator<<(std::ostream &os, const ClassifierCriteria &criteria) {
     os << "    |_ tEdgesMax: " << criteria.trainParams.objectness.tEdgesMax << std::endl;
     os << "    |_ tMatch: " << criteria.detectParams.objectness.tMatch << std::endl << std::endl;
     os << "Info: " << std::endl;
-    os << "  |_ minEdgels: " << criteria.info.minEdgels << std::endl;
+    os << "  |_ depthScaleFactor: " << criteria.info.depthScaleFactor << std::endl;
     os << "  |_ smallestTemplate: " << criteria.info.smallestTemplate << std::endl;
+    os << "  |_ minEdgels: " << criteria.info.minEdgels << std::endl;
     os << "  |_ maxTemplate: " << criteria.info.maxTemplate << std::endl;
 
     return os;

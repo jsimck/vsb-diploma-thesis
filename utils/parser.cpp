@@ -1,12 +1,17 @@
 #include "parser.h"
 #include "../processing/processing.h"
 
-void Parser::parse(const std::string &basePath, std::vector<Template> &templates) {
+void Parser::parse(std::string basePath, std::string modelsPath, std::vector<Template> &templates) {
     // Load obj_gt
     idCounter = 0;
     cv::FileStorage fs;
     fs.open(basePath + "/gt.yml", cv::FileStorage::READ);
     assert(fs.isOpened());
+
+    // Parse diameters if empty
+    if (diameters.empty()) {
+        parseModelsInfo(modelsPath);
+    }
 
     const auto size = static_cast<uint>((!indices.empty()) ? indices.size() : tplCount);
     for (uint i = 0; i < size; i++) {
@@ -47,6 +52,7 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
     gtNode["obj_bb"] >> vObjBB;
     gtNode["cam_R_m2c"] >> vCamRm2c;
     gtNode["cam_t_m2c"] >> vCamTm2c;
+    float diameter = diameters[id];
 
     // Parse objBB
     cv::Rect objBB(vObjBB[0], vObjBB[1], vObjBB[2], vObjBB[3]);
@@ -67,7 +73,6 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
 
     // Convert to float
     src.convertTo(src, CV_32F, 1.0f / 255.0f);
-    // TODO use CV_16S rather than floats
     srcDepth.convertTo(srcDepth, CV_32F); // because of surface normal calculation, don'tpl doo normalization
 
     // Find smallest object
@@ -101,7 +106,7 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
     assert(srcDepth.type() == CV_32FC1);
 
     return {
-        idCounter + (2000 * id), fileName, src, srcHSV, srcDepth, angles, objBB,
+        idCounter + (2000 * id), fileName, diameter, src, srcHSV, srcDepth, angles, objBB,
         cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone(),
         cv::Vec3d(vCamTm2c[0], vCamTm2c[1], vCamTm2c[2])
     };
@@ -125,3 +130,24 @@ void Parser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
     tpl.mode = mode;
     tpl.camK = cv::Mat(3, 3, CV_32FC1, vCamK.data()).clone();
 }
+
+void Parser::parseModelsInfo(const std::string &modelsPath) {
+    // Load modelsPath/info.yml
+    cv::FileStorage fs;
+    fs.open(modelsPath + "info.yml", cv::FileStorage::READ);
+    assert(fs.isOpened());
+
+    float diameter = 0;
+    std::ostringstream oss;
+
+    // Parse only diameters for now
+    for (uint i = 0; i < modelCount; i++) {
+        oss.str("");
+        oss << "model_" << i;
+
+        cv::FileNode modelNode = fs[oss.str()];
+        modelNode["diameter"] >> diameter;
+        diameters.push_back(diameter);
+    }
+};
+

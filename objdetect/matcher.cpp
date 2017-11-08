@@ -10,13 +10,7 @@
 #include "../processing/processing.h"
 #include "../core/template.h"
 #include "../core/classifier_criteria.h"
-
-int Matcher::median(std::vector<int> &values) {
-    assert(!values.empty());
-
-    std::nth_element(values.begin(), values.begin() + values.size() / 2, values.end());
-    return values[values.size() / 2];
-}
+#include "../utils/utils.h"
 
 uchar Matcher::quantizeOrientationGradient(float deg) {
     // Checks
@@ -131,6 +125,7 @@ void Matcher::generateFeaturePoints(std::vector<Template> &templates) {
     }
 }
 
+// TODO do something with invalid depth values
 void Matcher::extractFeatures(std::vector<Template> &templates) {
     const size_t iSize = templates.size();
 
@@ -141,6 +136,7 @@ void Matcher::extractFeatures(std::vector<Template> &templates) {
         assert(!t.srcGray.empty());
         assert(!t.srcHSV.empty());
         assert(!t.srcDepth.empty());
+        std::vector<float> depths;
 
         for (int j = 0; j < criteria->trainParams.matcher.pointsCount; j++) {
             // Create offsets to object bounding box
@@ -148,16 +144,27 @@ void Matcher::extractFeatures(std::vector<Template> &templates) {
             cv::Point edgePOff(t.edgePoints[j].x + t.objBB.x, t.edgePoints[j].y + t.objBB.y);
 
             // Save features
-            t.features.depths.emplace_back(t.srcDepth.at<float>(stablePOff));
-            t.features.gradients.emplace_back(quantizeOrientationGradient(t.angles.at<float>(edgePOff)));
-            t.features.normals.emplace_back(Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff)));
-            t.features.colors.emplace_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(stablePOff)));
+            float depth = t.srcDepth.at<float>(stablePOff);
+            t.features.depths.emplace_back(depth);
+            t.features.gradients.push_back(quantizeOrientationGradient(t.angles.at<float>(edgePOff)));
+            t.features.normals.push_back(Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff)));
+            t.features.colors.push_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(stablePOff)));
+
+            // Save only valid depths (skip 0)
+            if (depth != 0) {
+                depths.push_back(depth);
+            }
 
             assert(t.features.gradients[j] >= 0);
             assert(t.features.gradients[j] < 5);
             assert(t.features.normals[j] >= 0);
             assert(t.features.normals[j] < 8);
         }
+
+        // Calculate median of depths
+        t.features.depthMedian = Utils::median<float>(depths);
+        std::cout << t.diameter << std::endl;
+        depths.clear();
 
 #ifndef NDEBUG
 //            Visualizer::visualizeTemplate(t, "data/", 0, "Template feature points");
@@ -176,26 +183,35 @@ void Matcher::train(std::vector<Template> &templates) {
 }
 
 // TODO implement object size test
-int Matcher::testObjectSize(float scale, Window &window, cv::Mat &sceneDepth, std::vector<cv::Point> &stablePoints, std::vector<float> &depths) {
+int Matcher::testObjectSize(float scale, float depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
     const unsigned long fSize = criteria->detectParams.matcher.depthDeviationFunction.size();
-    int depthsC = 0;
-    float ratio = 0;
 
-    #pragma omp parallel for reduction(+:depthsC)
-    for (int i = 0; i < criteria->trainParams.matcher.pointsCount; ++i) {
-        float sDepth = sceneDepth.at<float>(stablePoints[i] + window.tl());
+    for (int y = criteria->detectParams.matcher.neighbourhood.start; y <= criteria->detectParams.matcher.neighbourhood.end; ++y) {
+        for (int x = criteria->detectParams.matcher.neighbourhood.start; x <= criteria->detectParams.matcher.neighbourhood.end; ++x) {
+            // Apply needed offsets to feature point
+            cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
 
-        for (int j = 0; j < fSize - 1; j++) {
-            if (sDepth < criteria->detectParams.matcher.depthDeviationFunction[j + 1][0]) {
-                ratio = criteria->detectParams.matcher.depthDeviationFunction[j + 1][1];
-                break;
+            // Template points in larger templates can go beyond scene boundaries (don't count)
+            if (offsetP.x >= sceneDepth.cols || offsetP.y >= sceneDepth.rows ||
+                offsetP.x < 0 || offsetP.y < 0) continue;
+
+            // Get depth value at point
+            float ratio = 0;
+            float sDepth = sceneDepth.at<float>(offsetP);
+
+            // Get correct deviation ratio
+            for (int j = 0; j < fSize - 1; j++) {
+                if (sDepth < criteria->detectParams.matcher.depthDeviationFunction[j + 1][0]) {
+                    ratio = criteria->detectParams.matcher.depthDeviationFunction[j + 1][1];
+                    break;
+                }
+            }
+
+            if (sDepth > ((depth * scale) * ratio) && sDepth < ((depth * scale) / ratio)) {
+                return 1;
             }
         }
-
-        depthsC += (sDepth > ((depths[i] * scale) * ratio) && sDepth < ((depths[i] * scale) / ratio)) ? 1 : 0;
     }
-
-    return depthsC;
 }
 
 // TODO Use bitwise operations using response maps
@@ -209,7 +225,9 @@ int Matcher::testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfa
             if (offsetP.x >= sceneSurfaceNormals.cols || offsetP.y >= sceneSurfaceNormals.rows ||
                 offsetP.x < 0 || offsetP.y < 0) continue;
 
-            if (sceneSurfaceNormals.at<uchar>(offsetP) == normal) return 1;
+            if (sceneSurfaceNormals.at<uchar>(offsetP) == normal) {
+                return 1;
+            }
         }
     }
 
@@ -217,8 +235,7 @@ int Matcher::testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfa
 }
 
 // TODO Use bitwise operations using response maps
-int Matcher::testGradients(uchar gradient, Window &window, cv::Mat &sceneAngles, cv::Mat &sceneMagnitude,
-                           cv::Point &edge) {
+int Matcher::testGradients(uchar gradient, Window &window, cv::Mat &sceneAngles, cv::Mat &sceneMagnitude, cv::Point &edge) {
     for (int y = criteria->detectParams.matcher.neighbourhood.start; y <= criteria->detectParams.matcher.neighbourhood.end; ++y) {
         for (int x = criteria->detectParams.matcher.neighbourhood.start; x <= criteria->detectParams.matcher.neighbourhood.end; ++x) {
             // Apply needed offsets to feature point
@@ -238,17 +255,24 @@ int Matcher::testGradients(uchar gradient, Window &window, cv::Mat &sceneAngles,
     return 0;
 }
 
-// TODO use proper value of k constant (physical diameter)
-int Matcher::testDepth(int physicalDiameter, std::vector<int> &depths) {
-    const float k = 0.8f;
-    int dm = median(depths), score = 0;
+int Matcher::testDepth(float scale, float diameter, float depthMedian, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
+    for (int y = criteria->detectParams.matcher.neighbourhood.start; y <= criteria->detectParams.matcher.neighbourhood.end; ++y) {
+        for (int x = criteria->detectParams.matcher.neighbourhood.start; x <= criteria->detectParams.matcher.neighbourhood.end; ++x) {
+            // Apply needed offsets to feature point
+            cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
 
-    #pragma omp parallel for reduction(+:score)
-    for (size_t i = 0; i < depths.size(); ++i) {
-        score += (std::abs(depths[i] - dm) < k * physicalDiameter) ? 1 : 0;
+            // Template points in larger templates can go beyond scene boundaries (don't count)
+            if (offsetP.x >= sceneDepth.cols || offsetP.y >= sceneDepth.rows ||
+                offsetP.x < 0 || offsetP.y < 0)
+                continue;
+
+            if ((sceneDepth.at<float>(offsetP) - depthMedian * scale) < (criteria->detectParams.matcher.depthK * diameter * criteria->info.depthScaleFactor)) {
+                return 1;
+            }
+        }
     }
 
-    return score;
+    return 0;
 }
 
 // TODO consider eroding object in training stage to be more tolerant to inaccuracy on the edges
@@ -266,7 +290,9 @@ int Matcher::testColor(cv::Vec3b HSV, Window &window, cv::Mat &sceneHSV, cv::Poi
             auto hT = static_cast<int>(HSV[0]);
             auto hS = static_cast<int>(normalizeHSV(sceneHSV.at<cv::Vec3b>(offsetP))[0]);
 
-            if (std::abs(hT - hS) < criteria->detectParams.matcher.tColorTest) return 1;
+            if (std::abs(hT - hS) < criteria->detectParams.matcher.tColorTest) {
+                return 1;
+            }
         }
     }
 
@@ -377,10 +403,13 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat 
 
             // Scores for each test
             float sI = 0, sII = 0, sIII = 0, sIV = 0, sV = 0;
-            std::vector<int> depths;
 
             // Test I
-            sI = testObjectSize(scale, windows[l], sceneDepth, candidate->stablePoints, candidate->features.depths);
+            #pragma omp parallel for reduction(+:sI)
+            for (int i = 0; i < N; i++) {
+                sI += testObjectSize(scale, candidate->features.depths[i], windows[l], sceneDepth, candidate->stablePoints[i]);
+            }
+
             if (sI < minThreshold) continue;
 
             // Test II
@@ -426,11 +455,11 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat 
             if (sIII < minThreshold) continue;
 
             // Test IV
+            #pragma omp parallel for reduction(+:sIV)
             for (int i = 0; i < N; i++) {
-                depths.emplace_back(static_cast<int>(sceneDepth.at<float>(candidate->stablePoints[i]) - candidate->features.depths[i]));
+                sIV += testDepth(scale, candidate->diameter, candidate->features.depthMedian, windows[l], sceneDepth, candidate->stablePoints[i]);
             }
 
-            sIV = testDepth(candidate->objBB.width, depths);
             if (sIV < minThreshold) continue;
 
             // Test V

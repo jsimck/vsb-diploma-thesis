@@ -49,6 +49,7 @@ public:
             uchar tColorTest; // HUE value max threshold to pass comparing colors between scene and template [0-180]
             cv::Range neighbourhood; // area to search around feature point to look for match [-num, num]
             std::vector<cv::Vec2f> depthDeviationFunction; // Correction function returning error in percentage for given depth
+            float depthK; // Constant used in IV test (depth test)
         } matcher;
 
         // Objectness
@@ -61,6 +62,7 @@ public:
     // Data set info
     struct {
         int minEdgels;
+        float depthScaleFactor; // in our cases 1 => 0.1mm so to get 1mm we need to multiply values by 10
         cv::Size smallestTemplate;
         cv::Size maxTemplate;
     } info;

@@ -29,15 +29,12 @@ private:
     void nonMaximaSuppression(std::vector<Match> &matches);
 
     // Tests
-    int testObjectSize(float scale, Window &window, cv::Mat &sceneDepth, std::vector<cv::Point> &stablePoints, std::vector<float> &depths); // Test I
+    int testObjectSize(float scale, float depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test I
     int testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormals, cv::Point &stable); // Test II
     int testGradients(uchar gradient, Window &window, cv::Mat &sceneAngle, cv::Mat &sceneMagnitude, cv::Point &edge); // Test III
-    int testDepth(int physicalDiameter, std::vector<int> &depths); // Test IV
+    int testDepth(float scale, float diameter, float depthMedian, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test IV
     int testColor(cv::Vec3b HSV, Window &window, cv::Mat &sceneHSV, cv::Point &stable); // Test V
 public:
-    // Static methods
-    static int median(std::vector<int> &values);
-
     // Constructor
     Matcher() = default;
 
