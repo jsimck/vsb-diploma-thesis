@@ -29,7 +29,7 @@ private:
     void nonMaximaSuppression(std::vector<Match> &matches);
 
     // Tests
-    bool testObjectSize(float scale); // Test I
+    int testObjectSize(float scale, Window &window, cv::Mat &sceneDepth, std::vector<cv::Point> &stablePoints, std::vector<float> &depths); // Test I
     int testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test II
     int testGradients(uchar gradient, Window &window, cv::Mat &sceneAngle, cv::Mat &sceneMagnitude, cv::Point &edge); // Test III
     int testDepth(int physicalDiameter, std::vector<int> &depths); // Test IV

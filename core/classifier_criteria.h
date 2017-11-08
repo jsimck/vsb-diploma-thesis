@@ -48,6 +48,7 @@ public:
             float tOverlap; // overlap threshold, how much should 2 windows overlap in order to calculate non-maxima suppression [0.0 - 1.0]
             uchar tColorTest; // HUE value max threshold to pass comparing colors between scene and template [0-180]
             cv::Range neighbourhood; // area to search around feature point to look for match [-num, num]
+            std::vector<cv::Vec2f> depthDeviationFunction; // Correction function returning error in percentage for given depth
         } matcher;
 
         // Objectness

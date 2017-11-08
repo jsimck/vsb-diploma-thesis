@@ -34,6 +34,7 @@ Classifier::Classifier() {
     criteria->detectParams.matcher.tOverlap = 0.1f;
     criteria->detectParams.matcher.neighbourhood = cv::Range(-2, 2);
     criteria->detectParams.matcher.tColorTest = 3;
+    criteria->detectParams.matcher.depthDeviationFunction = {{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {65600, 0.08f}};
 
 
     // Init classifiers
@@ -200,21 +201,21 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
         assert(criteria->info.smallestTemplate.area() > 0);
         assert(criteria->info.minEdgels > 0);
 
-        std::cout << "Objectness detection started... " << std::endl;
+//        std::cout << "Objectness detection started... " << std::endl;
         Timer tObjectness;
         objectness.objectness(sceneDepthNorm, windows);
-        std::cout << "  |_ Windows classified as containing object extracted: " << windows.size() << std::endl;
-        std::cout << "DONE! took: " << tObjectness.elapsed() << "s" << std::endl << std::endl;
+//        std::cout << "  |_ Windows classified as containing object extracted: " << windows.size() << std::endl;
+//        std::cout << "DONE! took: " << tObjectness.elapsed() << "s" << std::endl << std::endl;
 
 //        Visualizer::visualizeWindows(this->scene, windows, false, 1, "Locations detected");
 
         /// Verification and filtering of template candidates
         assert(!tables.empty());
 
-        std::cout << "Verification of template candidates, using trained HashTables started... " << std::endl;
+//        std::cout << "Verification of template candidates, using trained HashTables started... " << std::endl;
         Timer tVerification;
         hasher.verifyCandidates(sceneDepth, tables, windows);
-        std::cout << "DONE! took: " << tVerification.elapsed() << "s" << std::endl << std::endl;
+//        std::cout << "DONE! took: " << tVerification.elapsed() << "s" << std::endl << std::endl;
 
 //        Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, info, hasher.getGrid(), false);
 //        Visualizer::visualizeWindows(this->scene, windows, false, 1, "Filtered locations");
@@ -222,14 +223,14 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
         /// Match templates
         assert(!windows.empty());
 
-        std::cout << "Template matching started... " << std::endl;
+//        std::cout << "Template matching started... " << std::endl;
         Timer tMatching;
         matcher.match(1.2f, sceneHSV, sceneGray, sceneDepth, windows, matches);
-        std::cout << "DONE! " << matches.size() << " matches found, took: " << tMatching.elapsed() << "s" << std::endl << std::endl;
+//        std::cout << "DONE! " << matches.size() << " matches found, took: " << tMatching.elapsed() << "s" << std::endl << std::endl;
         std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
 
         /// Show matched template results
-        Visualizer::visualizeMatches(scene, matches, "data/", 0);
+        Visualizer::visualizeMatches(scene, matches, "data/", 1);
 
         // Cleanup
         windows.clear();

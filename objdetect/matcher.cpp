@@ -176,8 +176,25 @@ void Matcher::train(std::vector<Template> &templates) {
 }
 
 // TODO implement object size test
-bool Matcher::testObjectSize(float scale) {
-    return true;
+int Matcher::testObjectSize(float scale, Window &window, cv::Mat &sceneDepth, std::vector<cv::Point> &stablePoints, std::vector<float> &depths) {
+    const unsigned long fSize = criteria->detectParams.matcher.depthDeviationFunction.size();
+    int depthsC = 0;
+    float ratio = 0;
+
+    for (int i = 0; i < criteria->trainParams.matcher.pointsCount; ++i) {
+        float sDepth = sceneDepth.at<float>(stablePoints[i] + window.tl());
+
+        for (int j = 0; j < fSize - 1; j++) {
+            if (sDepth < criteria->detectParams.matcher.depthDeviationFunction[j + 1][0]) {
+                ratio = criteria->detectParams.matcher.depthDeviationFunction[j + 1][1];
+                break;
+            }
+        }
+
+        depthsC += (sDepth > ((depths[i] * scale) * ratio) && sDepth < ((depths[i] * scale) / ratio)) ? 1 : 0;
+    }
+
+    return depthsC;
 }
 
 // TODO Use bitwise operations using response maps
@@ -312,7 +329,7 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
 }
 
 // Enable/disable visualization for function below
-#define VISUALIZE_MATCH
+//#define VISUALIZE_MATCH
 void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat &sceneDepth,
                     std::vector<Window> &windows, std::vector<Match> &matches) {
     // Checks
@@ -336,42 +353,32 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat 
     cv::Mat sceneAngle, sceneMagnitude;
     Processing::orientationGradients(sceneGray, sceneAngle, sceneMagnitude);
 
-#if not defined NDEBUG and not defined VISUALIZE_MATCH
+#ifndef VISUALIZE_MATCH
     #pragma omp parallel for
 #endif
     for (long l = lSize - 1; l >= 0; l--) { // TODO - should run from start, not end
         for (auto &candidate : windows[l].candidates) {
             assert(candidate != nullptr);
 
-#if not defined NDEBUG and defined VISUALIZE_MATCH
+#ifdef VISUALIZE_MATCH
             bool continuous = false;
-            std::vector<int> tIITrue, tIIITrue, tVTrue;
+            std::vector<int> tITrue, tIITrue, tIIITrue, tVTrue;
 #endif
 
             // Scores for each test
-            float sII = 0, sIII = 0, sIV = 0, sV = 0;
+            float sI = 0, sII = 0, sIII = 0, sIV = 0, sV = 0;
             std::vector<int> depths;
 
             // Test I
-            for (auto &depth : candidate->features.depths) {
-                std::cout << depth << " (" << (depth * 1.2f) << ")";
-
-                for (auto &point : candidate->edgePoints) {
-                    std::cout << " == " << sceneDepth.at<float>(point) << ", ";
-                }
-
-                std::cout << std::endl;
-            }
-
-            std::cout << std::endl << std::endl;
-            if (!testObjectSize(scale)) continue;
+            sI = testObjectSize(scale, windows[l], sceneDepth, candidate->stablePoints, candidate->features.depths);
+            if (sI < minThreshold) continue;
 
             // Test II
-#if not defined NDEBUG and not defined VISUALIZE_MATCH
+#ifndef VISUALIZE_MATCH
             #pragma omp parallel for reduction(+:sII)
 #endif
             for (int i = 0; i < N; i++) {
-#if not defined NDEBUG and defined VISUALIZE_MATCH
+#ifdef VISUALIZE_MATCH
                 int tmpResult = testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
                 sII += tmpResult;
                 tIITrue.emplace_back(tmpResult);
@@ -380,7 +387,7 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat 
 #endif
             }
 
-#if not defined NDEBUG and defined VISUALIZE_MATCH
+#ifdef VISUALIZE_MATCH
             Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints,
                                        criteria->detectParams.matcher.neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, N, minThreshold, continuous);
 #endif
@@ -388,11 +395,11 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat 
             if (sII < minThreshold) continue;
 
             // Test III
-#if not defined NDEBUG and not defined VISUALIZE_MATCH
+#ifndef VISUALIZE_MATCH
             #pragma omp parallel for reduction(+:sIII)
 #endif
             for (int i = 0; i < N; i++) {
-#if not defined NDEBUG and defined VISUALIZE_MATCH
+#ifdef VISUALIZE_MATCH
                 int tmpResult = testGradients(candidate->features.gradients[i], windows[l], sceneAngle, sceneMagnitude, candidate->edgePoints[i]);
                 sIII += tmpResult;
                 tIIITrue.emplace_back(tmpResult);
@@ -401,7 +408,7 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat 
 #endif
             }
 
-#if not defined NDEBUG and defined VISUALIZE_MATCH
+#ifdef VISUALIZE_MATCH
             Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints,
                                        criteria->detectParams.matcher.neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, N, minThreshold, continuous);
 #endif
@@ -417,11 +424,11 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat 
             if (sIV < minThreshold) continue;
 
             // Test V
-#if not defined NDEBUG and not defined VISUALIZE_MATCH
+#ifndef VISUALIZE_MATCH
             #pragma omp parallel for reduction(+:sV)
 #endif
             for (int i = 0; i < N; i++) {
-#if not defined NDEBUG and defined VISUALIZE_MATCH
+#ifdef VISUALIZE_MATCH
                 int tmpResult = testColor(candidate->features.colors[i], windows[l], sceneHSV, candidate->stablePoints[i]);
                 sV += tmpResult;
                 tVTrue.emplace_back(tmpResult);
@@ -430,7 +437,7 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat 
 #endif
             }
 
-#if not defined NDEBUG and defined VISUALIZE_MATCH
+#ifdef VISUALIZE_MATCH
             Visualizer::visualizeTests(*candidate, sceneHSV, windows[l], candidate->stablePoints, candidate->edgePoints,
                                        criteria->detectParams.matcher.neighbourhood, tIITrue, tIIITrue, sIV, tVTrue, N, minThreshold, continuous);
 #endif
@@ -439,6 +446,7 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat 
 
             // Push template that passed all tests to matches array
             float score = (sII / N) + (sIII / N) + (sIV / N) + (sV / N);
+            score *= (windows[l].size().area() / scale);
             cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
 
             #pragma omp critical
@@ -449,6 +457,7 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat 
                 << "  |_ id: " << candidate->id
                 << ", window: " << l
                 << ", score: " << score
+                << ", score I: " << sI
                 << ", score II: " << sII
                 << ", score III: " << sIII
                 << ", score IV: " << sIV
