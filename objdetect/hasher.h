@@ -27,7 +27,6 @@ public:
     // Static methods
     static uchar quantizeDepth(float depth, std::vector<cv::Range> &ranges);
     static uchar quantizeSurfaceNormal(const cv::Vec3f &normal);
-    static cv::Vec3f surfaceNormal(cv::Mat &src, cv::Point &c);
     static cv::Vec2i relativeDepths(cv::Mat &src, cv::Point &c, cv::Point &p1, cv::Point &p2);
 
     // Constructors
@@ -35,7 +34,7 @@ public:
 
     // Methods
     void train(std::vector<Template> &templates, std::vector<HashTable> &tables);
-    void verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows);
+    void verifyCandidates(cv::Mat &sceneDepth, cv::Mat &sceneSurfaceNormalsQuantized, std::vector<HashTable> &tables, std::vector<Window> &windows);
 
     void setCriteria(std::shared_ptr<ClassifierCriteria> criteria);
 };

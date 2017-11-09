@@ -6,7 +6,7 @@ std::string Utils::matType2Str(int type) {
     std::string r;
 
     uchar depth = static_cast<uchar>(type & CV_MAT_DEPTH_MASK);
-    uchar chans = static_cast<uchar>(1 + (type >> CV_CN_SHIFT));
+    uchar channels = static_cast<uchar>(1 + (type >> CV_CN_SHIFT));
 
     switch (depth) {
         case CV_8U:  r = "8U"; break;
@@ -20,7 +20,7 @@ std::string Utils::matType2Str(int type) {
     }
 
     r += "C";
-    r += (chans + '0');
+    r += (channels + '0');
 
     return r;
 }

@@ -2,6 +2,7 @@
 #include "../utils/timer.h"
 #include "../utils/visualizer.h"
 #include "../core/classifier_criteria.h"
+#include "../processing/processing.h"
 
 Classifier::Classifier() {
     criteria = std::make_shared<ClassifierCriteria>();
@@ -36,6 +37,7 @@ Classifier::Classifier() {
     criteria->detectParams.matcher.tColorTest = 3;
     criteria->detectParams.matcher.depthDeviationFunction = {{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {65600, 0.08f}};
     criteria->detectParams.matcher.depthK = 0.05f;
+    criteria->detectParams.matcher.tMinGradMag = 0.1f;
 
 
     // Init classifiers
@@ -184,19 +186,45 @@ void Classifier::loadScene(const std::string &scenePath, const std::string &scen
     assert(sceneGray.type() == CV_32FC1);
     assert(sceneDepth.type() == CV_32FC1);
     assert(sceneDepthNorm.type() == CV_32FC1);
+
+    // TODO speed could be improved by only computing part of scene which is in objectness bounding box
+    // Init quantized surface normals and angles
+    cv::Mat sceneAngels, sceneSurfaceNormals;
+    Processing::orientationGradients(sceneGray, sceneAngels, sceneMagnitudes);
+    Processing::surfaceNormals(sceneDepth, sceneSurfaceNormals);
+
+    // Quantize surfaceNormals and orientation gradients
+    sceneAnglesQuantized = cv::Mat(sceneDepth.size(), CV_8UC1);
+    sceneSurfaceNormalsQuantized = cv::Mat(sceneDepth.size(), CV_8UC1);
+
+    #pragma omp parallel for
+    for (int y = 0; y < sceneAngels.rows; y++) {
+        for (int x = 0; x < sceneAngels.cols; x++) {
+            sceneAnglesQuantized.at<uchar>(y, x) = Matcher::quantizeOrientationGradient(sceneAngels.at<float>(y, x));
+        }
+    }
+
+    for (int y = 1; y < sceneSurfaceNormals.rows - 1; y++) {
+        for (int x = 1; x < sceneSurfaceNormals.cols - 1; x++) {
+            sceneSurfaceNormalsQuantized.at<uchar>(y, x) = Hasher::quantizeSurfaceNormal(sceneSurfaceNormals.at<cv::Vec3f>(y, x));
+        }
+    }
 }
 
 void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath) {
-    // Load trained template data and scene
+    // Load trained template data
     load(trainedTemplatesListPath, trainedPath);
     std::ostringstream oss;
 
     for (int i = 0; i < 503; ++i) {
+        Timer tTotal;
+
         // Load scene
+        Timer tSceneLoading;
+        oss.str("");
         oss << std::setfill('0') << std::setw(4) << i;
         loadScene(scenePath, oss.str());
-
-        Timer tTotal;
+        std::cout << "  |_ Scene loaded in: " << tSceneLoading.elapsed() << "s" << std::endl;
 
         /// Objectness detection
         assert(criteria->info.smallestTemplate.area() > 0);
@@ -212,7 +240,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
         assert(!tables.empty());
 
         Timer tVerification;
-        hasher.verifyCandidates(sceneDepth, tables, windows);
+        hasher.verifyCandidates(sceneDepth, sceneSurfaceNormalsQuantized, tables, windows);
         std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
 
 //        Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, info, hasher.getGrid(), false);
@@ -222,7 +250,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
         assert(!windows.empty());
 
         Timer tMatching;
-        matcher.match(1.2f, sceneHSV, sceneGray, sceneDepth, windows, matches);
+        matcher.match(1.2f, sceneHSV, sceneDepth, sceneMagnitudes, sceneAnglesQuantized, sceneSurfaceNormalsQuantized, windows, matches);
         std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
 
         /// Show matched template results
@@ -231,6 +259,5 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
         // Cleanup
         windows.clear();
         matches.clear();
-        oss.str("");
     }
 }

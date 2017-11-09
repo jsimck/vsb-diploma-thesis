@@ -2,6 +2,7 @@
 #include <opencv2/opencv.hpp>
 #include "visualizer.h"
 #include "../objdetect/hasher.h"
+#include "../processing/processing.h"
 
 cv::Vec3b Visualizer::heatMapValue(int min, int max, int value) {
     float range = max - min;
@@ -218,6 +219,10 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
     cv::Scalar colorRed(0, 0, 255);
     std::ostringstream oss;
 
+    // Init surface normals
+    cv::Mat sceneSurfaceNormals;
+    Processing::surfaceNormals(sceneDepth, sceneSurfaceNormals);
+
     for (size_t i = 0, windowsSize = windows.size(); i < windowsSize; ++i) {
         cv::Mat result = scene.clone();
         int matched = 0;
@@ -239,20 +244,20 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
             cv::Point p2 = table.triplet.getP2(params);
 
             // If any point of triplet is out of scene boundaries, ignore it to not get false data
-            if ((c.x < 0 || c.x >= sceneDepth.cols || c.y < 0 || c.y >= sceneDepth.rows) ||
-                (p1.x < 0 || p1.x >= sceneDepth.cols || p1.y < 0 || p1.y >= sceneDepth.rows) ||
-                (p2.x < 0 || p2.x >= sceneDepth.cols || p2.y < 0 || p2.y >= sceneDepth.rows)) continue;
+            if ((c.x < 0 || c.x >= sceneSurfaceNormals.cols || c.y < 0 || c.y >= sceneSurfaceNormals.rows) ||
+                (p1.x < 0 || p1.x >= sceneSurfaceNormals.cols || p1.y < 0 || p1.y >= sceneSurfaceNormals.rows) ||
+                (p2.x < 0 || p2.x >= sceneSurfaceNormals.cols || p2.y < 0 || p2.y >= sceneSurfaceNormals.rows)) continue;
 
             // Relative depths
-            cv::Vec2i d = Hasher::relativeDepths(sceneDepth, c, p1, p2);
+            cv::Vec2i d = Hasher::relativeDepths(sceneSurfaceNormals, c, p1, p2);
 
             // Generate hash key
             HashKey key(
                 Hasher::quantizeDepth(d[0], table.binRanges),
                 Hasher::quantizeDepth(d[1], table.binRanges),
-                Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, c)),
-                Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, p1)),
-                Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, p2))
+                Hasher::quantizeSurfaceNormal(sceneSurfaceNormals.at<cv::Vec3f>(c)),
+                Hasher::quantizeSurfaceNormal(sceneSurfaceNormals.at<cv::Vec3f>(p1)),
+                Hasher::quantizeSurfaceNormal(sceneSurfaceNormals.at<cv::Vec3f>(p2))
             );
 
             // Draw only triplets that are matched

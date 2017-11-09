@@ -5,7 +5,7 @@
 #include <iostream>
 #include <opencv/cv.hpp>
 
-void Processing::filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter, bool yFilter) {
+void Processing::filterSobel(cv::Mat &src, cv::Mat &dst, bool xFilter, bool yFilter) {
     assert(!src.empty());
     assert(src.type() == CV_32FC1);
 
@@ -41,7 +41,7 @@ void Processing::filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter, boo
     }
 }
 
-void Processing::thresholdMinMax(const cv::Mat &src, cv::Mat &dst, float min, float max) {
+void Processing::thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float max) {
     assert(!src.empty());
     assert(!dst.empty());
     assert(src.type() == CV_32FC1);
@@ -61,7 +61,7 @@ void Processing::thresholdMinMax(const cv::Mat &src, cv::Mat &dst, float min, fl
     }
 }
 
-void Processing::orientationGradients(const cv::Mat &src, cv::Mat &angle, cv::Mat &magnitude, bool angleInDegrees) {
+void Processing::orientationGradients(cv::Mat &src, cv::Mat &angle, cv::Mat &magnitude, bool angleInDegrees) {
     // Checks
     assert(!src.empty());
     assert(src.type() == CV_32FC1);
@@ -73,4 +73,25 @@ void Processing::orientationGradients(const cv::Mat &src, cv::Mat &angle, cv::Ma
 
     // Calc orientationGradients
     cv::cartToPolar(sobelX, sobelY, magnitude, angle, angleInDegrees);
+}
+
+void Processing::surfaceNormals(cv::Mat &src, cv::Mat &dst) {
+    assert(!src.empty());
+    assert(src.type() == CV_32FC1);
+
+    // Blur image to reduce noise
+    cv::Mat srcBlurred;
+    cv::GaussianBlur(src, srcBlurred, cv::Size(9, 9), 0, 0);
+    dst = cv::Mat(src.size(), CV_32FC3, cv::Vec3f(0, 0, 0));
+
+    for (int y = 0; y < srcBlurred.rows - 1; y++) {
+        for (int x = 0; x < srcBlurred.cols - 1; x++) {
+            float dzdx = (srcBlurred.at<float>(y, x + 1) - srcBlurred.at<float>(y, x - 1)) / 2.0f;
+            float dzdy = (srcBlurred.at<float>(y + 1, x) - srcBlurred.at<float>(y - 1, x)) / 2.0f;
+            cv::Vec3f d(-dzdy, -dzdx, 1.0f);
+
+            // Normalize and save normal
+            dst.at<cv::Vec3f>(y, x) = cv::normalize(d);
+        }
+    }
 }

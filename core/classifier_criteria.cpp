@@ -30,6 +30,7 @@ ClassifierCriteria::ClassifierCriteria() {
     detectParams.matcher.tColorTest = 3;
     detectParams.matcher.depthDeviationFunction = {{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {65600, 0.08f}};
     detectParams.matcher.depthK = 0.05f;
+    detectParams.matcher.tMinGradMag = 0.1f;
 
     // Initialize info
     info.depthScaleFactor = 10.0f;

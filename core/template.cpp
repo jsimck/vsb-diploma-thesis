@@ -108,6 +108,8 @@ std::ostream &operator<<(std::ostream &os, const Template &t) {
        << "diameter: " << t.diameter << std::endl
        << "srcGray (size): " << t.srcGray.size()  << std::endl
        << "srcDepth (size): " << t.srcDepth.size() << std::endl
+       << "angles (size): " << t.angles.size() << std::endl
+       << "normals (size): " << t.normals.size() << std::endl
        << "objBB: " << t.objBB  << std::endl
        << "camK: " << t.camK  << std::endl
        << "camRm2c: " << t.camRm2c << std::endl

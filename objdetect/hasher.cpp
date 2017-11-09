@@ -7,17 +7,6 @@
 
 const int Hasher::IMG_16BIT_MAX = 65535; // <0, 65535> => 65536 values
 
-cv::Vec3f Hasher::surfaceNormal(cv::Mat &src, cv::Point &c) {
-    assert(!src.empty());
-    assert(src.type() == CV_32FC1);
-
-    float dzdx = (src.at<float>(c.y, c.x + 1) - src.at<float>(c.y, c.x - 1)) / 2.0f;
-    float dzdy = (src.at<float>(c.y + 1, c.x) - src.at<float>(c.y - 1, c.x)) / 2.0f;
-    cv::Vec3f d(-dzdy, -dzdx, 1.0f);
-
-    return cv::normalize(d);
-}
-
 cv::Vec2i Hasher::relativeDepths(cv::Mat &src, cv::Point &c, cv::Point &p1, cv::Point &p2) {
     assert(!src.empty());
     assert(src.type() == CV_32FC1);
@@ -32,7 +21,6 @@ uchar Hasher::quantizeSurfaceNormal(const cv::Vec3f &normal) {
     // Normal z coordinate should not be < 0
     assert(normal[2] >= 0);
 
-    // TODO - asi spis nefunguje
     // In our case z is always positive, that's why we're using
     // 8 octants in top half of sphere only to quantize into 8 bins
     static cv::Vec3f octantNormals[8] = {
@@ -224,9 +212,9 @@ void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tab
             HashKey key(
                 quantizeDepth(d[0], tables[i].binRanges),
                 quantizeDepth(d[1], tables[i].binRanges),
-                quantizeSurfaceNormal(surfaceNormal(t.srcDepth, c)),
-                quantizeSurfaceNormal(surfaceNormal(t.srcDepth, p1)),
-                quantizeSurfaceNormal(surfaceNormal(t.srcDepth, p2))
+                quantizeSurfaceNormal(t.normals.at<cv::Vec3f>(c)),
+                quantizeSurfaceNormal(t.normals.at<cv::Vec3f>(p1)),
+                quantizeSurfaceNormal(t.normals.at<cv::Vec3f>(p2))
             );
 
             // Check if key exists, if not initialize it
@@ -235,8 +223,9 @@ void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tab
     }
 }
 
-void Hasher::verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows) {
+void Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &sceneSurfaceNormalsQuantized, std::vector<HashTable> &tables, std::vector<Window> &windows) {
     // Checks
+    assert(!sceneSurfaceNormalsQuantized.empty());
     assert(!sceneDepth.empty());
     assert(!windows.empty());
     assert(!tables.empty());
@@ -260,15 +249,16 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, std::vector<HashTable> &table
                 (p2.x < 0 || p2.x >= sceneDepth.cols || p2.y < 0 || p2.y >= sceneDepth.rows)) continue;
 
             // Relative depths
+            // TODO pre-compute relative depths
             cv::Vec2i d = relativeDepths(sceneDepth, c, p1, p2);
 
             // Generate hash key
             HashKey key(
                 quantizeDepth(d[0], table.binRanges),
                 quantizeDepth(d[1], table.binRanges),
-                quantizeSurfaceNormal(surfaceNormal(sceneDepth, c)),
-                quantizeSurfaceNormal(surfaceNormal(sceneDepth, p1)),
-                quantizeSurfaceNormal(surfaceNormal(sceneDepth, p2))
+                sceneSurfaceNormalsQuantized.at<uchar>(c),
+                sceneSurfaceNormalsQuantized.at<uchar>(p1),
+                sceneSurfaceNormalsQuantized.at<uchar>(p2)
             );
 
             // Vote for each template in hash table at specific key and push unique to window candidates

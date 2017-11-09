@@ -50,6 +50,7 @@ public:
             cv::Range neighbourhood; // area to search around feature point to look for match [-num, num]
             std::vector<cv::Vec2f> depthDeviationFunction; // Correction function returning error in percentage for given depth
             float depthK; // Constant used in IV test (depth test)
+            float tMinGradMag; // Minimal gradient magnitude to classify as gradient
         } matcher;
 
         // Objectness

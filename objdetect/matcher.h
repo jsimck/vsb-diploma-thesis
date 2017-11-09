@@ -21,7 +21,6 @@ private:
 
     // Methods
     cv::Vec3b normalizeHSV(cv::Vec3b &hsv);
-    uchar quantizeOrientationGradient(float deg);
 
     void extractFeatures(std::vector<Template> &templates);
     void generateFeaturePoints(std::vector<Template> &templates);
@@ -30,16 +29,19 @@ private:
 
     // Tests
     int testObjectSize(float scale, float depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test I
-    int testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormals, cv::Point &stable); // Test II
-    int testGradients(uchar gradient, Window &window, cv::Mat &sceneAngle, cv::Mat &sceneMagnitude, cv::Point &edge); // Test III
+    int testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormalsQuantized, cv::Point &stable); // Test II
+    int testGradients(uchar gradient, Window &window, cv::Mat &sceneAnglesQuantized, cv::Mat &sceneMagnitudes, cv::Point &edge); // Test III
     int testDepth(float scale, float diameter, float depthMedian, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test IV
     int testColor(cv::Vec3b HSV, Window &window, cv::Mat &sceneHSV, cv::Point &stable); // Test V
 public:
+    // Statics
+    static uchar quantizeOrientationGradient(float deg);
+
     // Constructor
     Matcher() = default;
 
     // Methods
-    void match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat &sceneDepth, std::vector<Window> &windows, std::vector<Match> &matches);
+    void match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat &sceneMagnitudes, cv::Mat &sceneAnglesQuantized, cv::Mat &sceneSurfaceNormalsQuantized, std::vector<Window> &windows, std::vector<Match> &matches);
     void train(std::vector<Template> &templates);
 
     void setCriteria(std::shared_ptr<ClassifierCriteria> criteria);

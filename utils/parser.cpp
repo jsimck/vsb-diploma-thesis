@@ -89,9 +89,10 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
         criteria->info.maxTemplate.height = objBB.height;
     }
 
-    // Calculate angles
-    cv::Mat angles, magnitude;
+    // Calculate angles and normals
+    cv::Mat angles, magnitude, normals;
     Processing::orientationGradients(src, angles, magnitude);
+    Processing::surfaceNormals(src, normals);
 
     // Checks
     assert(!vObjBB.empty());
@@ -106,8 +107,8 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
     assert(srcDepth.type() == CV_32FC1);
 
     return {
-        idCounter + (2000 * id), fileName, diameter, src, srcHSV, srcDepth, angles, objBB,
-        cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone(),
+        idCounter + (2000 * id), fileName, diameter, src, srcHSV, srcDepth,
+        angles, normals, objBB, cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone(),
         cv::Vec3d(vCamTm2c[0], vCamTm2c[1], vCamTm2c[2])
     };
 }
@@ -149,5 +150,5 @@ void Parser::parseModelsInfo(const std::string &modelsPath) {
         modelNode["diameter"] >> diameter;
         diameters.push_back(diameter);
     }
-};
+}
 

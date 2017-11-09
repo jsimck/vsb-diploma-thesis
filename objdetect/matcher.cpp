@@ -147,7 +147,7 @@ void Matcher::extractFeatures(std::vector<Template> &templates) {
             float depth = t.srcDepth.at<float>(stablePOff);
             t.features.depths.emplace_back(depth);
             t.features.gradients.push_back(quantizeOrientationGradient(t.angles.at<float>(edgePOff)));
-            t.features.normals.push_back(Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(t.srcDepth, stablePOff)));
+            t.features.normals.push_back(Hasher::quantizeSurfaceNormal(t.normals.at<cv::Vec3f>(stablePOff)));
             t.features.colors.push_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(stablePOff)));
 
             // Save only valid depths (skip 0)
@@ -200,7 +200,7 @@ int Matcher::testObjectSize(float scale, float depth, Window &window, cv::Mat &s
             float sDepth = sceneDepth.at<float>(offsetP);
 
             // Get correct deviation ratio
-            for (int j = 0; j < fSize - 1; j++) {
+            for (size_t j = 0; j < fSize - 1; j++) {
                 if (sDepth < criteria->detectParams.matcher.depthDeviationFunction[j + 1][0]) {
                     ratio = criteria->detectParams.matcher.depthDeviationFunction[j + 1][1];
                     break;
@@ -215,17 +215,17 @@ int Matcher::testObjectSize(float scale, float depth, Window &window, cv::Mat &s
 }
 
 // TODO Use bitwise operations using response maps
-int Matcher::testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormals, cv::Point &stable) {
+int Matcher::testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormalsQuantized, cv::Point &stable) {
     for (int y = criteria->detectParams.matcher.neighbourhood.start; y <= criteria->detectParams.matcher.neighbourhood.end; ++y) {
         for (int x = criteria->detectParams.matcher.neighbourhood.start; x <= criteria->detectParams.matcher.neighbourhood.end; ++x) {
             // Apply needed offsets to feature point
             cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
 
             // Template points in larger templates can go beyond scene boundaries (don't count)
-            if (offsetP.x >= sceneSurfaceNormals.cols || offsetP.y >= sceneSurfaceNormals.rows ||
+            if (offsetP.x >= sceneSurfaceNormalsQuantized.cols || offsetP.y >= sceneSurfaceNormalsQuantized.rows ||
                 offsetP.x < 0 || offsetP.y < 0) continue;
 
-            if (sceneSurfaceNormals.at<uchar>(offsetP) == normal) {
+            if (sceneSurfaceNormalsQuantized.at<uchar>(offsetP) == normal) {
                 return 1;
             }
         }
@@ -235,18 +235,18 @@ int Matcher::testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfa
 }
 
 // TODO Use bitwise operations using response maps
-int Matcher::testGradients(uchar gradient, Window &window, cv::Mat &sceneAngles, cv::Mat &sceneMagnitude, cv::Point &edge) {
+int Matcher::testGradients(uchar gradient, Window &window, cv::Mat &sceneAnglesQuantized, cv::Mat &sceneMagnitudes, cv::Point &edge) {
     for (int y = criteria->detectParams.matcher.neighbourhood.start; y <= criteria->detectParams.matcher.neighbourhood.end; ++y) {
         for (int x = criteria->detectParams.matcher.neighbourhood.start; x <= criteria->detectParams.matcher.neighbourhood.end; ++x) {
             // Apply needed offsets to feature point
             cv::Point offsetP(edge.x + window.tl().x + x, edge.y + window.tl().y + y);
 
             // Template points in larger templates can go beyond scene boundaries (don't count)
-            if (offsetP.x >= sceneAngles.cols || offsetP.y >= sceneAngles.rows ||
+            if (offsetP.x >= sceneAnglesQuantized.cols || offsetP.y >= sceneAnglesQuantized.rows ||
                 offsetP.x < 0 || offsetP.y < 0) continue;
 
             // TODO - make member threshold (detect automatically based on training values)
-            if (quantizeOrientationGradient(sceneAngles.at<float>(offsetP)) == gradient && sceneMagnitude.at<float>(offsetP) > 0.1f) {
+            if (sceneAnglesQuantized.at<uchar>(offsetP) == gradient && sceneMagnitudes.at<float>(offsetP) > criteria->detectParams.matcher.tMinGradMag) {
                 return 1;
             }
         }
@@ -357,15 +357,17 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
 
 // Enable/disable visualization for function below
 //#define VISUALIZE_MATCH
-void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat &sceneDepth,
-                    std::vector<Window> &windows, std::vector<Match> &matches) {
+void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat &sceneMagnitudes, cv::Mat &sceneAnglesQuantized,
+                    cv::Mat &sceneSurfaceNormalsQuantized, std::vector<Window> &windows, std::vector<Match> &matches) {
     // Checks
-    assert(!sceneHSV.empty());
-    assert(!sceneGray.empty());
     assert(!sceneDepth.empty());
+    assert(!sceneMagnitudes.empty());
+    assert(!sceneAnglesQuantized.empty());
+    assert(!sceneSurfaceNormalsQuantized.empty());
     assert(sceneHSV.type() == CV_8UC3);
-    assert(sceneGray.type() == CV_32FC1);
     assert(sceneDepth.type() == CV_32FC1);
+    assert(sceneAnglesQuantized.type() == CV_8UC1);
+    assert(sceneSurfaceNormalsQuantized.type() == CV_8UC1);
     assert(!windows.empty());
 
     // Min threshold of matched feature points
@@ -375,19 +377,6 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat 
 
     // Stop template matching time
     Timer tMatching;
-
-    // Calculate angels and magnitudes
-    cv::Mat sceneAngle, sceneMagnitude, sceneSurfaceNormals = cv::Mat(sceneDepth.size(), CV_8UC1);
-    Processing::orientationGradients(sceneGray, sceneAngle, sceneMagnitude);
-
-    // Calculate quantized surface normal matric for scene
-    #pragma omp parallel for
-    for (int y = 1; y < sceneDepth.rows - 1; y++) {
-        for (int x = 1; x < sceneDepth.cols - 1; x++) {
-            cv::Point p(y, x);
-            sceneSurfaceNormals.at<uchar>(p) = Hasher::quantizeSurfaceNormal(Hasher::surfaceNormal(sceneDepth, p));
-        }
-    }
 
 #ifndef VISUALIZE_MATCH
     #pragma omp parallel for
@@ -422,7 +411,7 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat 
                 sII += tmpResult;
                 tIITrue.emplace_back(tmpResult);
 #else
-                sII += testSurfaceNormal(candidate->features.normals[i], windows[l], sceneSurfaceNormals, candidate->stablePoints[i]);
+                sII += testSurfaceNormal(candidate->features.normals[i], windows[l], sceneSurfaceNormalsQuantized, candidate->stablePoints[i]);
 #endif
             }
 
@@ -439,11 +428,11 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneGray, cv::Mat 
 #endif
             for (int i = 0; i < N; i++) {
 #ifdef VISUALIZE_MATCH
-                int tmpResult = testGradients(candidate->features.gradients[i], windows[l], sceneAngle, sceneMagnitude, candidate->edgePoints[i]);
+                int tmpResult = testGradients(candidate->features.gradients[i], windows[l], sceneAngles, sceneMagnitude, candidate->edgePoints[i]);
                 sIII += tmpResult;
                 tIIITrue.emplace_back(tmpResult);
 #else
-                sIII += testGradients(candidate->features.gradients[i], windows[l], sceneAngle, sceneMagnitude, candidate->edgePoints[i]);
+                sIII += testGradients(candidate->features.gradients[i], windows[l], sceneAnglesQuantized, sceneMagnitudes, candidate->edgePoints[i]);
 #endif
             }
 

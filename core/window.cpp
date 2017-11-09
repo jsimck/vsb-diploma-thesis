@@ -24,7 +24,7 @@ bool Window::hasCandidates() {
     return !candidates.empty();
 }
 
-void Window::pushUnique(Template *t, uint N, int v) {
+void Window::pushUnique(Template *t, int N, int v) {
     if (t->votes < v) return;
 
     // Check if candidate list is not full
