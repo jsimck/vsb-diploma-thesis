@@ -9,7 +9,7 @@ bool Match::operator!=(const Match &rhs) const {
 }
 
 bool Match::operator<(const Match &rhs) const {
-    return score < rhs.score;
+    return areaScore < rhs.areaScore;
 }
 
 bool Match::operator>(const Match &rhs) const {
@@ -25,6 +25,6 @@ bool Match::operator>=(const Match &rhs) const {
 }
 
 std::ostream &operator<<(std::ostream &os, const Match &match) {
-    os << "objBB: " << match.objBB << " tpl: " << match.tpl << " score: " << match.score;
+    os << "objBB: " << match.objBB << " tpl: " << match.tpl << " score: " << match.score <<  "areaScore: " << match.areaScore;
     return os;
 }

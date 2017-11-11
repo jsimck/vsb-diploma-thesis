@@ -35,8 +35,8 @@ void Template::save(cv::FileStorage &fs) {
     fs << "edgePoints" << edgePoints;
     fs << "stablePoints" << stablePoints;
     fs << "depthMedian" << features.depthMedian;
-    fs << "gradients" << features.gradients;
-    fs << "normals" << features.normals;
+    fs << "quantizedGradients" << features.gradients;
+    fs << "quantizedNormals" << features.normals;
     fs << "depths" << features.depths;
     fs << "colors" << features.colors;
     fs << "objBB" << objBB;
@@ -57,8 +57,8 @@ Template Template::load(cv::FileNode node) {
     node["edgePoints"] >> t.edgePoints;
     node["stablePoints"] >> t.stablePoints;
     node["depthMedian"] >> t.features.depthMedian;
-    node["gradients"] >> t.features.gradients;
-    node["normals"] >> t.features.normals;
+    node["quantizedGradients"] >> t.features.gradients;
+    node["quantizedNormals"] >> t.features.normals;
     node["depths"] >> t.features.depths;
     node["colors"] >> t.features.colors;
     node["objBB"] >> t.objBB;
@@ -108,8 +108,8 @@ std::ostream &operator<<(std::ostream &os, const Template &t) {
        << "diameter: " << t.diameter << std::endl
        << "srcGray (size): " << t.srcGray.size()  << std::endl
        << "srcDepth (size): " << t.srcDepth.size() << std::endl
-       << "angles (size): " << t.angles.size() << std::endl
-       << "normals (size): " << t.normals.size() << std::endl
+       << "quantizedGradients (size): " << t.quantizedGradients.size() << std::endl
+       << "quantizedNormals (size): " << t.quantizedNormals.size() << std::endl
        << "objBB: " << t.objBB  << std::endl
        << "camK: " << t.camK  << std::endl
        << "camRm2c: " << t.camRm2c << std::endl
@@ -117,8 +117,8 @@ std::ostream &operator<<(std::ostream &os, const Template &t) {
        << "elev: " << t.elev  << std::endl
        << "mode: " << t.mode << std::endl
        << "votes: " << t.votes << std::endl
-       << "gradients size: " << t.features.gradients.size() << std::endl
-       << "normals size: " << t.features.normals.size() << std::endl
+       << "quantizedGradients size: " << t.features.gradients.size() << std::endl
+       << "quantizedNormals size: " << t.features.normals.size() << std::endl
        << "depths size: " << t.features.depths.size() << std::endl
        << "colors size: " << t.features.colors.size() << std::endl;
 

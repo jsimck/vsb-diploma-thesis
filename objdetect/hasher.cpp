@@ -4,6 +4,7 @@
 #include "../utils/utils.h"
 #include "../utils/timer.h"
 #include "../core/classifier_criteria.h"
+#include "../processing/processing.h"
 
 const int Hasher::IMG_16BIT_MAX = 65535; // <0, 65535> => 65536 values
 
@@ -15,59 +16,6 @@ cv::Vec2i Hasher::relativeDepths(cv::Mat &src, cv::Point &c, cv::Point &p1, cv::
         static_cast<int>(src.at<float>(p1) - src.at<float>(c)),
         static_cast<int>(src.at<float>(p2) - src.at<float>(c))
     );
-}
-
-uchar Hasher::quantizeSurfaceNormal(const cv::Vec3f &normal) {
-    // Normal z coordinate should not be < 0
-    assert(normal[2] >= 0);
-
-    // In our case z is always positive, that's why we're using
-    // 8 octants in top half of sphere only to quantize into 8 bins
-    static cv::Vec3f octantNormals[8] = {
-        cv::Vec3f(0.707107f, 0.0f, 0.707107f), // 0. octant
-        cv::Vec3f(0.57735f, 0.57735f, 0.57735f), // 1. octant
-        cv::Vec3f(0.0f, 0.707107f, 0.707107f), // 2. octant
-        cv::Vec3f(-0.57735f, 0.57735f, 0.57735f), // 3. octant
-        cv::Vec3f(-0.707107f, 0.0f, 0.707107f), // 4. octant
-        cv::Vec3f(-0.57735f, -0.57735f, 0.57735f), // 5. octant
-        cv::Vec3f(0.0f, -0.707107f, 0.707107f), // 6. octant
-        cv::Vec3f(0.57735f, -0.57735f, 0.57735f), // 7. octant
-    };
-
-    uchar minIndex = 9;
-    float maxDot = 0, dot = 0;
-    for (uchar i = 0; i < 8; i++) {
-        // By doing dot product between octant octantNormals and calculated normal
-        // we can find maximum -> index of octant where the vector belongs to
-        dot = normal.dot(octantNormals[i]);
-
-        if (dot > maxDot) {
-            maxDot = dot;
-            minIndex = i;
-        }
-    }
-
-    // Index should in interval <0,7>
-    assert(minIndex >= 0 && minIndex < 8);
-
-    return minIndex;
-}
-
-uchar Hasher::quantizeDepth(float depth, std::vector<cv::Range> &ranges) {
-    // Depth should have max value of <-65536, +65536>
-    assert(depth >= -IMG_16BIT_MAX && depth <= IMG_16BIT_MAX);
-    assert(!ranges.empty());
-
-    // Loop through histogram ranges and return quantized index
-    const size_t iSize = ranges.size();
-    for (size_t i = 0; i < iSize; i++) {
-        if (ranges[i].start >= depth && depth < ranges[i].end) {
-            return static_cast<uchar>(i);
-        }
-    }
-
-    // If value is IMG_16BIT_MAX it belongs to last bin
-    return static_cast<uchar>(iSize - 1);
 }
 
 void Hasher::generateTriplets(std::vector<HashTable> &tables) {
@@ -210,11 +158,11 @@ void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tab
 
             // Generate hash key
             HashKey key(
-                quantizeDepth(d[0], tables[i].binRanges),
-                quantizeDepth(d[1], tables[i].binRanges),
-                quantizeSurfaceNormal(t.normals.at<cv::Vec3f>(c)),
-                quantizeSurfaceNormal(t.normals.at<cv::Vec3f>(p1)),
-                quantizeSurfaceNormal(t.normals.at<cv::Vec3f>(p2))
+                Processing::quantizeDepth(d[0], tables[i].binRanges),
+                Processing::quantizeDepth(d[1], tables[i].binRanges),
+                t.quantizedNormals.at<uchar>(c),
+                t.quantizedNormals.at<uchar>(p1),
+                t.quantizedNormals.at<uchar>(p2)
             );
 
             // Check if key exists, if not initialize it
@@ -254,8 +202,8 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &sceneSurfaceNormalsQ
 
             // Generate hash key
             HashKey key(
-                quantizeDepth(d[0], table.binRanges),
-                quantizeDepth(d[1], table.binRanges),
+                Processing::quantizeDepth(d[0], table.binRanges),
+                Processing::quantizeDepth(d[1], table.binRanges),
                 sceneSurfaceNormalsQuantized.at<uchar>(c),
                 sceneSurfaceNormalsQuantized.at<uchar>(p1),
                 sceneSurfaceNormalsQuantized.at<uchar>(p2)
@@ -287,7 +235,6 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &sceneSurfaceNormalsQ
 
     // Remove empty windows
     Utils::removeIndex<Window>(windows, emptyIndexes);
-    std::cout << "  |_ Number of windows pass to next stage: " << windows.size() << std::endl;
 }
 
 void Hasher::setCriteria(std::shared_ptr<ClassifierCriteria> criteria) {

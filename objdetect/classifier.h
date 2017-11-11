@@ -27,8 +27,8 @@ private:
     cv::Mat sceneDepth;
     cv::Mat sceneDepthNorm;
     cv::Mat sceneMagnitudes;
-    cv::Mat sceneAnglesQuantized;
-    cv::Mat sceneSurfaceNormalsQuantized;
+    cv::Mat sceneQuantizedAngles;
+    cv::Mat sceneQuantizedSurfaceNormals;
 
     std::vector<Template> templates;
     std::vector<HashTable> tables;

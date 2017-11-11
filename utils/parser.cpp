@@ -1,5 +1,7 @@
 #include "parser.h"
 #include "../processing/processing.h"
+#include "../objdetect/matcher.h"
+#include "../objdetect/hasher.h"
 
 void Parser::parse(std::string basePath, std::string modelsPath, std::vector<Template> &templates) {
     // Load obj_gt
@@ -89,10 +91,10 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
         criteria->info.maxTemplate.height = objBB.height;
     }
 
-    // Calculate angles and normals
-    cv::Mat angles, magnitude, normals;
-    Processing::orientationGradients(src, angles, magnitude);
-    Processing::surfaceNormals(src, normals);
+    // Calculate quantizedGradients and quantizedNormals
+    cv::Mat gradients, magnitudes, normals;
+    Processing::quantizedOrientationGradients(src, gradients, magnitudes);
+    Processing::quantizedSurfaceNormals(srcDepth, normals);
 
     // Checks
     assert(!vObjBB.empty());
@@ -108,7 +110,7 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
 
     return {
         idCounter + (2000 * id), fileName, diameter, src, srcHSV, srcDepth,
-        angles, normals, objBB, cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone(),
+        gradients, normals, objBB, cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone(),
         cv::Vec3d(vCamTm2c[0], vCamTm2c[1], vCamTm2c[2])
     };
 }

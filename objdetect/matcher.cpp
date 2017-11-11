@@ -12,28 +12,6 @@
 #include "../core/classifier_criteria.h"
 #include "../utils/utils.h"
 
-uchar Matcher::quantizeOrientationGradient(float deg) {
-    // Checks
-    assert(deg >= 0);
-    assert(deg <= 360);
-
-    // We only work in first 2 quadrants (PI)
-    int degPI = static_cast<int>(deg) % 180;
-
-    // Quantize
-    if (degPI >= 0 && degPI < 36) {
-        return 0;
-    } else if (degPI >= 36 && degPI < 72) {
-        return 1;
-    } else if (degPI >= 72 && degPI < 108) {
-        return 2;
-    } else if (degPI >= 108 && degPI < 144) {
-        return 3;
-    } else {
-        return 4;
-    }
-}
-
 cv::Vec3b Matcher::normalizeHSV(cv::Vec3b &hsv) {
     const uchar tV = 22; // 0.12 of hue threshold
     const uchar tS = 31; // 0.12 of saturation threshold
@@ -146,8 +124,8 @@ void Matcher::extractFeatures(std::vector<Template> &templates) {
             // Save features
             float depth = t.srcDepth.at<float>(stablePOff);
             t.features.depths.emplace_back(depth);
-            t.features.gradients.push_back(quantizeOrientationGradient(t.angles.at<float>(edgePOff)));
-            t.features.normals.push_back(Hasher::quantizeSurfaceNormal(t.normals.at<cv::Vec3f>(stablePOff)));
+            t.features.gradients.emplace_back(t.quantizedGradients.at<uchar>(edgePOff));
+            t.features.normals.emplace_back(t.quantizedNormals.at<uchar>(stablePOff));
             t.features.colors.push_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(stablePOff)));
 
             // Save only valid depths (skip 0)
@@ -163,7 +141,6 @@ void Matcher::extractFeatures(std::vector<Template> &templates) {
 
         // Calculate median of depths
         t.features.depthMedian = Utils::median<float>(depths);
-        std::cout << t.diameter << std::endl;
         depths.clear();
 
 #ifndef NDEBUG
@@ -407,7 +384,7 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat
 #endif
             for (int i = 0; i < N; i++) {
 #ifdef VISUALIZE_MATCH
-                int tmpResult = testSurfaceNormal(candidate->features.normals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
+                int tmpResult = testSurfaceNormal(candidate->features.quantizedNormals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
                 sII += tmpResult;
                 tIITrue.emplace_back(tmpResult);
 #else
@@ -428,7 +405,7 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat
 #endif
             for (int i = 0; i < N; i++) {
 #ifdef VISUALIZE_MATCH
-                int tmpResult = testGradients(candidate->features.gradients[i], windows[l], sceneAngles, sceneMagnitude, candidate->edgePoints[i]);
+                int tmpResult = testGradients(candidate->features.quantizedGradients[i], windows[l], sceneAngles, sceneMagnitude, candidate->edgePoints[i]);
                 sIII += tmpResult;
                 tIIITrue.emplace_back(tmpResult);
 #else
@@ -474,11 +451,10 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat
 
             // Push template that passed all tests to matches array
             float score = (sII / N) + (sIII / N) + (sIV / N) + (sV / N);
-            score *= (windows[l].size().area() / scale);
             cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
 
             #pragma omp critical
-            matches.emplace_back(Match(candidate, matchBB, score));
+            matches.emplace_back(Match(candidate, matchBB, score, score * (candidate->objBB.area() / scale)));
 
 #ifndef NDEBUG
             std::cout

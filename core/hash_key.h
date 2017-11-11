@@ -17,7 +17,7 @@
 struct HashKey {
 public:
     uchar d1, d2; // d1, d2 relative depths are quantization into 5 bins each [index 0 - 4]
-    uchar n1, n2, n3; // n1, n2, n3 surface normals are quantized into 8 discrete values each [index 0 - 7]
+    uchar n1, n2, n3; // n1, n2, n3 surface quantizedNormals are quantized into 8 discrete values each [index 0 - 7]
 
     // Constructors
     HashKey(uchar d1 = 0, uchar d2 = 0, uchar n1 = 0, uchar n2 = 0, uchar n3 = 0) : d1(d1), d2(d2), n1(n1), n2(n2), n3(n3) {}

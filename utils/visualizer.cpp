@@ -195,10 +195,10 @@ void Visualizer::visualizeTemplate(Template &tpl, const std::string &templatesPa
     oss << "elev: " << tpl.elev;
     setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 46));
     oss.str("");
-    oss << "gradients: " << tpl.features.gradients.size();
+    oss << "quantizedGradients: " << tpl.features.gradients.size();
     setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 64));
     oss.str("");
-    oss << "normals: " << tpl.features.normals.size();
+    oss << "quantizedNormals: " << tpl.features.normals.size();
     setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 82));
     oss.str("");
     oss << "depths: " << tpl.features.depths.size();
@@ -219,9 +219,9 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
     cv::Scalar colorRed(0, 0, 255);
     std::ostringstream oss;
 
-    // Init surface normals
+    // Init surface quantizedNormals
     cv::Mat sceneSurfaceNormals;
-    Processing::surfaceNormals(sceneDepth, sceneSurfaceNormals);
+    Processing::quantizedSurfaceNormals(sceneDepth, sceneSurfaceNormals);
 
     for (size_t i = 0, windowsSize = windows.size(); i < windowsSize; ++i) {
         cv::Mat result = scene.clone();
@@ -253,11 +253,11 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
 
             // Generate hash key
             HashKey key(
-                Hasher::quantizeDepth(d[0], table.binRanges),
-                Hasher::quantizeDepth(d[1], table.binRanges),
-                Hasher::quantizeSurfaceNormal(sceneSurfaceNormals.at<cv::Vec3f>(c)),
-                Hasher::quantizeSurfaceNormal(sceneSurfaceNormals.at<cv::Vec3f>(p1)),
-                Hasher::quantizeSurfaceNormal(sceneSurfaceNormals.at<cv::Vec3f>(p2))
+                Processing::quantizeDepth(d[0], table.binRanges),
+                Processing::quantizeDepth(d[1], table.binRanges),
+                Processing::quantizeSurfaceNormal(sceneSurfaceNormals.at<cv::Vec3f>(c)),
+                Processing::quantizeSurfaceNormal(sceneSurfaceNormals.at<cv::Vec3f>(p1)),
+                Processing::quantizeSurfaceNormal(sceneSurfaceNormals.at<cv::Vec3f>(p2))
             );
 
             // Draw only triplets that are matched

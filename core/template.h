@@ -24,16 +24,16 @@ public:
     cv::Mat srcDepth;
 
     // Extracted template feature points
-    cv::Mat angles;
-    cv::Mat normals;
+    cv::Mat quantizedGradients;
+    cv::Mat quantizedNormals;
     std::vector<cv::Point> edgePoints;
     std::vector<cv::Point> stablePoints;
 
     // Matching Features
     struct {
         float depthMedian; // median value over all feature points
-        std::vector<uchar> gradients; // quantized oriented gradients
-        std::vector<uchar> normals; // quantized surface normals
+        std::vector<uchar> gradients; // quantized oriented quantizedGradients
+        std::vector<uchar> normals; // quantized surface quantizedNormals
         std::vector<float> depths; // depth value
         std::vector<cv::Vec3b> colors; // HSV color space value
     } features;
@@ -52,9 +52,9 @@ public:
     // Constructors
     Template() {}
     Template(uint id, std::string &fileName, float diameter, cv::Mat src, cv::Mat srcHSV, cv::Mat srcDepth,
-                 cv::Mat angles, cv::Mat normals, cv::Rect &objBB, cv::Mat camRm2c, const cv::Vec3d &camTm2c)
-        : id(id), fileName(fileName), diameter(diameter), srcGray(src), srcHSV(srcHSV), srcDepth(srcDepth), angles(angles),
-          normals(normals), objBB(objBB), camRm2c(std::move(camRm2c)), camTm2c(camTm2c), elev(0), mode(0), votes(0) {}
+                 cv::Mat quantizedGradients, cv::Mat normals, cv::Rect &objBB, cv::Mat camRm2c, const cv::Vec3d &camTm2c)
+        : id(id), fileName(fileName), diameter(diameter), srcGray(src), srcHSV(srcHSV), srcDepth(srcDepth), quantizedGradients(quantizedGradients),
+          quantizedNormals(normals), objBB(objBB), camRm2c(std::move(camRm2c)), camTm2c(camTm2c), elev(0), mode(0), votes(0) {}
 
     // Persist and load methods
     static Template load(cv::FileNode node);

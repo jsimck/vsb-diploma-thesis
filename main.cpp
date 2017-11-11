@@ -11,5 +11,9 @@ int main() {
 //    classifier.train("data/templates.txt", "data/trained/", "data/models/");
     classifier.detect("data/trained_templates.txt", "data/trained/", "data/scene_01/");
 
+    // TODO
+    // 1) orientation gradients are being quantized only to 0-2 values (degrees are only in 0-90 range)
+    // 2) Visualizer for hashing is probably broken
+
     return 0;
 }

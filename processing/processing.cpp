@@ -1,5 +1,6 @@
 #include "processing.h"
 #include "../utils/utils.h"
+#include "../objdetect/hasher.h"
 #include <cassert>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
@@ -50,6 +51,7 @@ void Processing::thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float ma
     assert(max >= 0 && max > min);
 
     // Apply very simple min/max thresholding for the source image
+    #pragma omp parallel for
     for (int y = 0; y < src.rows; y++) {
         for (int x = 0; x < src.cols; x++) {
             if (src.at<float>(y, x) >= min && src.at<float>(y, x) <= max) {
@@ -61,37 +63,123 @@ void Processing::thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float ma
     }
 }
 
-void Processing::orientationGradients(cv::Mat &src, cv::Mat &angle, cv::Mat &magnitude, bool angleInDegrees) {
-    // Checks
-    assert(!src.empty());
-    assert(src.type() == CV_32FC1);
-
-    // Calc sobel
-    cv::Mat sobelX, sobelY;
-    filterSobel(src, sobelX, true, false);
-    filterSobel(src, sobelY, false, true);
-
-    // Calc orientationGradients
-    cv::cartToPolar(sobelX, sobelY, magnitude, angle, angleInDegrees);
-}
-
-void Processing::surfaceNormals(cv::Mat &src, cv::Mat &dst) {
-    assert(!src.empty());
-    assert(src.type() == CV_32FC1);
+void Processing::quantizedSurfaceNormals(cv::Mat &srcDepth, cv::Mat &quantizedSurfaceNormals) {
+    assert(!srcDepth.empty());
+    assert(srcDepth.type() == CV_32FC1);
 
     // Blur image to reduce noise
     cv::Mat srcBlurred;
-    cv::GaussianBlur(src, srcBlurred, cv::Size(9, 9), 0, 0);
-    dst = cv::Mat(src.size(), CV_32FC3, cv::Vec3f(0, 0, 0));
+    cv::GaussianBlur(srcDepth, srcBlurred, cv::Size(9, 9), 0, 0);
+    quantizedSurfaceNormals = cv::Mat::zeros(srcDepth.size(), CV_8UC1);
 
-    for (int y = 0; y < srcBlurred.rows - 1; y++) {
-        for (int x = 0; x < srcBlurred.cols - 1; x++) {
+    #pragma omp parallel for
+    for (int y = 1; y < srcBlurred.rows - 1; y++) {
+        for (int x = 1; x < srcBlurred.cols - 1; x++) {
             float dzdx = (srcBlurred.at<float>(y, x + 1) - srcBlurred.at<float>(y, x - 1)) / 2.0f;
             float dzdy = (srcBlurred.at<float>(y + 1, x) - srcBlurred.at<float>(y - 1, x)) / 2.0f;
             cv::Vec3f d(-dzdy, -dzdx, 1.0f);
 
             // Normalize and save normal
-            dst.at<cv::Vec3f>(y, x) = cv::normalize(d);
+            quantizedSurfaceNormals.at<uchar>(y, x) = quantizeSurfaceNormal(cv::normalize(d));
         }
+    }
+}
+
+void Processing::quantizedOrientationGradients(cv::Mat &srcGray, cv::Mat &quantizedOrientations, cv::Mat &magnitude) {
+    // Checks
+    assert(!srcGray.empty());
+    assert(srcGray.type() == CV_32FC1);
+
+    // Calc sobel
+    cv::Mat sobelX, sobelY, angles;
+    filterSobel(srcGray, sobelX, true, false);
+    filterSobel(srcGray, sobelY, false, true);
+
+    // Calc orientationGradients
+    cv::cartToPolar(sobelX, sobelY, magnitude, angles, true);
+
+    // Quantize orientations
+    quantizedOrientations = cv::Mat(angles.size(), CV_8UC1);
+
+    #pragma omp parallel for
+    for (int y = 0; y < angles.rows; y++) {
+        for (int x = 0; x < angles.cols; x++) {
+            quantizedOrientations.at<uchar>(y, x) = quantizeOrientationGradient(angles.at<float>(y, x));
+        }
+    }
+}
+
+uchar Processing::quantizeDepth(float depth, std::vector<cv::Range> &ranges) {
+    // Depth should have max value of <-65536, +65536>
+    assert(depth >= -Hasher::IMG_16BIT_MAX && depth <= Hasher::IMG_16BIT_MAX);
+    assert(!ranges.empty());
+
+    // Loop through histogram ranges and return quantized index
+    const size_t iSize = ranges.size();
+    for (size_t i = 0; i < iSize; i++) {
+        if (ranges[i].start >= depth && depth < ranges[i].end) {
+            return static_cast<uchar>(i);
+        }
+    }
+
+    // If value is IMG_16BIT_MAX it belongs to last bin
+    return static_cast<uchar>(iSize - 1);
+}
+
+uchar Processing::quantizeSurfaceNormal(const cv::Vec3f &normal) {
+    // Normal z coordinate should not be < 0
+    assert(normal[2] >= 0);
+
+    // In our case z is always positive, that's why we're using
+    // 8 octants in top half of sphere only to quantize into 8 bins
+    static cv::Vec3f octantNormals[8] = {
+            cv::Vec3f(0.707107f, 0.0f, 0.707107f), // 0. octant
+            cv::Vec3f(0.57735f, 0.57735f, 0.57735f), // 1. octant
+            cv::Vec3f(0.0f, 0.707107f, 0.707107f), // 2. octant
+            cv::Vec3f(-0.57735f, 0.57735f, 0.57735f), // 3. octant
+            cv::Vec3f(-0.707107f, 0.0f, 0.707107f), // 4. octant
+            cv::Vec3f(-0.57735f, -0.57735f, 0.57735f), // 5. octant
+            cv::Vec3f(0.0f, -0.707107f, 0.707107f), // 6. octant
+            cv::Vec3f(0.57735f, -0.57735f, 0.57735f), // 7. octant
+    };
+
+    uchar minIndex = 9;
+    float maxDot = 0, dot = 0;
+    for (uchar i = 0; i < 8; i++) {
+        // By doing dot product between octant octantNormals and calculated normal
+        // we can find maximum -> index of octant where the vector belongs to
+        dot = normal.dot(octantNormals[i]);
+
+        if (dot > maxDot) {
+            maxDot = dot;
+            minIndex = i;
+        }
+    }
+
+    // Index should in interval <0,7>
+    assert(minIndex >= 0 && minIndex < 8);
+
+    return minIndex;
+}
+
+uchar Processing::quantizeOrientationGradient(float deg) {
+    // Checks
+    assert(deg >= 0);
+    assert(deg <= 360);
+
+    // We only work in first 2 quadrants (PI)
+    int degPI = static_cast<int>(deg) % 180;
+
+    // Quantize
+    if (degPI >= 0 && degPI < 36) {
+        return 0;
+    } else if (degPI >= 36 && degPI < 72) {
+        return 1;
+    } else if (degPI >= 72 && degPI < 108) {
+        return 2;
+    } else if (degPI >= 108 && degPI < 144) {
+        return 3;
+    } else {
+        return 4;
     }
 }

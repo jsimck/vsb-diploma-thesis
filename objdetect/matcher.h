@@ -34,9 +34,6 @@ private:
     int testDepth(float scale, float diameter, float depthMedian, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test IV
     int testColor(cv::Vec3b HSV, Window &window, cv::Mat &sceneHSV, cv::Point &stable); // Test V
 public:
-    // Statics
-    static uchar quantizeOrientationGradient(float deg);
-
     // Constructor
     Matcher() = default;
 

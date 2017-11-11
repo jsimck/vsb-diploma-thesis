@@ -188,27 +188,23 @@ void Classifier::loadScene(const std::string &scenePath, const std::string &scen
     assert(sceneDepthNorm.type() == CV_32FC1);
 
     // TODO speed could be improved by only computing part of scene which is in objectness bounding box
-    // Init quantized surface normals and angles
-    cv::Mat sceneAngels, sceneSurfaceNormals;
-    Processing::orientationGradients(sceneGray, sceneAngels, sceneMagnitudes);
-    Processing::surfaceNormals(sceneDepth, sceneSurfaceNormals);
+    // Compute quantized surface normals and orientation gradients
+    Processing::quantizedOrientationGradients(sceneGray, sceneQuantizedAngles, sceneMagnitudes);
+    Processing::quantizedSurfaceNormals(sceneDepth, sceneQuantizedSurfaceNormals);
 
-    // Quantize surfaceNormals and orientation gradients
-    sceneAnglesQuantized = cv::Mat(sceneDepth.size(), CV_8UC1);
-    sceneSurfaceNormalsQuantized = cv::Mat(sceneDepth.size(), CV_8UC1);
-
-    #pragma omp parallel for
-    for (int y = 0; y < sceneAngels.rows; y++) {
-        for (int x = 0; x < sceneAngels.cols; x++) {
-            sceneAnglesQuantized.at<uchar>(y, x) = Matcher::quantizeOrientationGradient(sceneAngels.at<float>(y, x));
-        }
-    }
-
-    for (int y = 1; y < sceneSurfaceNormals.rows - 1; y++) {
-        for (int x = 1; x < sceneSurfaceNormals.cols - 1; x++) {
-            sceneSurfaceNormalsQuantized.at<uchar>(y, x) = Hasher::quantizeSurfaceNormal(sceneSurfaceNormals.at<cv::Vec3f>(y, x));
-        }
-    }
+    // Visualize scene
+//    cv::Mat normals = sceneQuantizedSurfaceNormals.clone();
+//    cv::Mat gradients = sceneQuantizedAngles.clone();
+//    cv::Mat magnitudes = sceneMagnitudes.clone();
+//
+//    cv::normalize(normals, normals, 0, 255, CV_MINMAX);
+//    cv::normalize(gradients, gradients, 0, 255, CV_MINMAX);
+//    cv::normalize(magnitudes, magnitudes, 0, 1, CV_MINMAX);
+//
+//    cv::imshow("magnitudes", magnitudes);
+//    cv::imshow("quantizedNormals", normals);
+//    cv::imshow("quantizedGradients", gradients);
+//    cv::waitKey(0);
 }
 
 void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath) {
@@ -240,7 +236,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
         assert(!tables.empty());
 
         Timer tVerification;
-        hasher.verifyCandidates(sceneDepth, sceneSurfaceNormalsQuantized, tables, windows);
+        hasher.verifyCandidates(sceneDepth, sceneQuantizedSurfaceNormals, tables, windows);
         std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
 
 //        Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, info, hasher.getGrid(), false);
@@ -250,7 +246,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
         assert(!windows.empty());
 
         Timer tMatching;
-        matcher.match(1.2f, sceneHSV, sceneDepth, sceneMagnitudes, sceneAnglesQuantized, sceneSurfaceNormalsQuantized, windows, matches);
+        matcher.match(1.2f, sceneHSV, sceneDepth, sceneMagnitudes, sceneQuantizedAngles, sceneQuantizedSurfaceNormals, windows, matches);
         std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
 
         /// Show matched template results
