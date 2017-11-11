@@ -92,8 +92,8 @@ void Processing::quantizedOrientationGradients(cv::Mat &srcGray, cv::Mat &quanti
 
     // Calc sobel
     cv::Mat sobelX, sobelY, angles;
-    filterSobel(srcGray, sobelX, true, false);
-    filterSobel(srcGray, sobelY, false, true);
+    cv::Sobel(srcGray, sobelX, CV_32F, 1, 0, 3, 1, 0);
+    cv::Sobel(srcGray, sobelY, CV_32F, 0, 1, 3, 1, 0);
 
     // Calc orientationGradients
     cv::cartToPolar(sobelX, sobelY, magnitude, angles, true);
