@@ -249,7 +249,7 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
                 (p2.x < 0 || p2.x >= sceneSurfaceNormals.cols || p2.y < 0 || p2.y >= sceneSurfaceNormals.rows)) continue;
 
             // Relative depths
-            cv::Vec2i d = Hasher::relativeDepths(sceneSurfaceNormals, c, p1, p2);
+            cv::Vec2i d = Processing::relativeDepths(sceneSurfaceNormals, c, p1, p2);
 
             // Generate hash key
             HashKey key(

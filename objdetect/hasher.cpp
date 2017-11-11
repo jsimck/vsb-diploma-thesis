@@ -8,16 +8,6 @@
 
 const int Hasher::IMG_16BIT_MAX = 65535; // <0, 65535> => 65536 values
 
-cv::Vec2i Hasher::relativeDepths(cv::Mat &src, cv::Point &c, cv::Point &p1, cv::Point &p2) {
-    assert(!src.empty());
-    assert(src.type() == CV_32FC1);
-
-    return cv::Vec2i(
-        static_cast<int>(src.at<float>(p1) - src.at<float>(c)),
-        static_cast<int>(src.at<float>(p2) - src.at<float>(c))
-    );
-}
-
 void Hasher::generateTriplets(std::vector<HashTable> &tables) {
     // Generate triplets
     for (int i = 0; i < criteria->trainParams.hasher.tablesCount; ++i) {
@@ -79,7 +69,7 @@ void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<H
             assert(p2.y >= 0 && p2.y < t.srcDepth.rows);
 
             // Relative depths
-            cv::Vec2i d = relativeDepths(t.srcDepth, c, p1, p2);
+            cv::Vec2i d = Processing::relativeDepths(t.srcDepth, c, p1, p2);
             rDepths.emplace_back(d[0]);
             rDepths.emplace_back(d[1]);
         }
@@ -154,7 +144,7 @@ void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tab
             assert(p2.y >= 0 && p2.y < t.srcGray.rows);
 
             // Relative depths
-            cv::Vec2i d = relativeDepths(t.srcDepth, c, p1, p2);
+            cv::Vec2i d = Processing::relativeDepths(t.srcDepth, c, p1, p2);
 
             // Generate hash key
             HashKey key(
@@ -197,8 +187,7 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &sceneSurfaceNormalsQ
                 (p2.x < 0 || p2.x >= sceneDepth.cols || p2.y < 0 || p2.y >= sceneDepth.rows)) continue;
 
             // Relative depths
-            // TODO pre-compute relative depths
-            cv::Vec2i d = relativeDepths(sceneDepth, c, p1, p2);
+            cv::Vec2i d = Processing::relativeDepths(sceneDepth, c, p1, p2);
 
             // Generate hash key
             HashKey key(

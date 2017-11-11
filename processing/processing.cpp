@@ -183,3 +183,13 @@ uchar Processing::quantizeOrientationGradient(float deg) {
         return 4;
     }
 }
+
+cv::Vec2i Processing::relativeDepths(cv::Mat &src, cv::Point &c, cv::Point &p1, cv::Point &p2) {
+    assert(!src.empty());
+    assert(src.type() == CV_32FC1);
+
+    return cv::Vec2i(
+        static_cast<int>(src.at<float>(p1) - src.at<float>(c)),
+        static_cast<int>(src.at<float>(p2) - src.at<float>(c))
+    );
+}

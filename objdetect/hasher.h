@@ -24,9 +24,6 @@ public:
     // Statics
     static const int IMG_16BIT_MAX;
 
-    // Static methods
-    static cv::Vec2i relativeDepths(cv::Mat &src, cv::Point &c, cv::Point &p1, cv::Point &p2);
-
     // Constructors
     Hasher() = default;
 

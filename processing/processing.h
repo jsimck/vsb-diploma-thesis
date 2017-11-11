@@ -17,6 +17,7 @@ public:
     static uchar quantizeOrientationGradient(float deg);
     static uchar quantizeSurfaceNormal(const cv::Vec3f &normal);
     static uchar quantizeDepth(float depth, std::vector<cv::Range> &ranges);
+    static cv::Vec2i relativeDepths(cv::Mat &src, cv::Point &c, cv::Point &p1, cv::Point &p2);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_PROCESSING_H

@@ -28,7 +28,7 @@ ClassifierCriteria::ClassifierCriteria() {
     detectParams.matcher.tOverlap = 0.1f;
     detectParams.matcher.neighbourhood = cv::Range(-2, 2); // 5x5 -> [-2, -1, 0, 1, 2]
     detectParams.matcher.tColorTest = 3;
-    detectParams.matcher.depthDeviationFunction = {{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {65600, 0.08f}};
+    detectParams.matcher.depthDeviationFunction = {{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {70000, 0.08f}};
     detectParams.matcher.depthK = 0.05f;
     detectParams.matcher.tMinGradMag = 0.1f;
 
