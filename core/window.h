@@ -31,7 +31,6 @@ public:
 
     cv::Size size();
     bool hasCandidates();
-    void pushUnique(Template *t, int N = 100, int v = 3);
 
     // Overloads
     bool operator==(const Window &rhs) const;

@@ -186,9 +186,6 @@ void Visualizer::visualizeTemplate(Template &tpl, const std::string &templatesPa
 
     // Put text data to template image
     std::ostringstream oss;
-    oss << "votes: " << tpl.votes;
-    setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 10));
-    oss.str("");
     oss << "mode: " << tpl.mode;
     setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 28));
     oss.str("");

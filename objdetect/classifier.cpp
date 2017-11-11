@@ -35,7 +35,7 @@ Classifier::Classifier() {
     criteria->detectParams.matcher.tOverlap = 0.1f;
     criteria->detectParams.matcher.neighbourhood = cv::Range(-2, 2);
     criteria->detectParams.matcher.tColorTest = 3;
-    criteria->detectParams.matcher.depthDeviationFunction = {{10000, 0.24f}, {15000, 0.22f}, {20000, 0.2f}, {70000, 0.08f}};
+    criteria->detectParams.matcher.depthDeviationFunction = {{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {70000, 0.08f}};
     criteria->detectParams.matcher.depthK = 0.05f;
     criteria->detectParams.matcher.tMinGradMag = 0.1f;
 
@@ -244,15 +244,13 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
 
         /// Match templates
         assert(!windows.empty());
-
-        Timer tMatching;
         matcher.match(1.2f, sceneHSV, sceneDepth, sceneMagnitudes, sceneQuantizedAngles, sceneQuantizedSurfaceNormals, windows, matches);
-        std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
 
         /// Show matched template results
         Visualizer::visualizeMatches(scene, matches, "data/", 1);
 
         // Cleanup
+        std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
         windows.clear();
         matches.clear();
     }
