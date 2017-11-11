@@ -5,6 +5,7 @@
 #include "../utils/timer.h"
 #include "../core/classifier_criteria.h"
 #include "../processing/processing.h"
+#include "../core/hash_table_candidate.h"
 
 const int Hasher::IMG_16BIT_MAX = 65535; // <0, 65535> => 65536 values
 
@@ -170,10 +171,11 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &sceneSurfaceNormalsQ
     assert(criteria->info.maxTemplate.area() > 0);
 
     const size_t windowsSize = windows.size();
-    std::vector<Template *> usedTemplates;
-    std::vector<size_t> emptyIndexes;
 
+    #pragma omp parallel for
     for (size_t i = 0; i < windowsSize; ++i) {
+        std::unordered_map<int, HashTableCandidate> tableCandidates;
+
         for (auto &table : tables) {
             // Get triplet points
             TripletParams tParams(criteria->info.maxTemplate.width, criteria->info.maxTemplate.height, criteria->trainParams.hasher.grid, windows[i].tl().x, windows[i].tl().y);
@@ -198,32 +200,39 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &sceneSurfaceNormalsQ
                 sceneSurfaceNormalsQuantized.at<uchar>(p2)
             );
 
-            // Vote for each template in hash table at specific key and push unique to window candidates
+            // Put each candidate to hash table, increase votes for existing tableCandidates
             for (auto &entry : table.templates[key]) {
-                entry->vote();
+                if (tableCandidates.count(entry->id) == 0) {
+                    tableCandidates[entry->id] = HashTableCandidate(entry);
+                }
 
-                // pushes only unique templates with minimum of votes (minVotes) building vector of size up to N
-                windows[i].pushUnique(entry, criteria->trainParams.hasher.tablesCount, criteria->detectParams.hasher.minVotes);
-                usedTemplates.emplace_back(entry);
+                // Increase votes for candidate
+                tableCandidates[entry->id].vote();
             }
         }
 
-        // Reset votes for all used templates
-        for (auto &t : usedTemplates) {
-            t->resetVotes();
+        Timer t;
+        // Insert all tableCandidates with above min votes to helper vector
+        std::vector<HashTableCandidate> passedCandidates;
+        for (auto &c : tableCandidates) {
+            if (c.second.votes >= criteria->detectParams.hasher.minVotes) {
+                passedCandidates.push_back(c.second);
+            }
         }
 
-        // Clear used templates vector
-        usedTemplates.clear();
+        // Sort and pick first 100 (DESCENDING)
+        if (!passedCandidates.empty()) {
+            std::sort(passedCandidates.rbegin(), passedCandidates.rend());
 
-        // Save empty windows indexes
-        if (!windows[i].hasCandidates()) {
-            emptyIndexes.emplace_back(i);
+            // Put only first 100 candidates
+            size_t pcSize = passedCandidates.size();
+            pcSize = (pcSize > criteria->trainParams.hasher.tablesCount) ? criteria->trainParams.hasher.tablesCount : pcSize;
+
+            for (int j = 0; j < pcSize; ++j) {
+                windows[i].candidates.push_back(passedCandidates[j].candidate);
+            }
         }
     }
-
-    // Remove empty windows
-    Utils::removeIndex<Window>(windows, emptyIndexes);
 }
 
 void Hasher::setCriteria(std::shared_ptr<ClassifierCriteria> criteria) {
