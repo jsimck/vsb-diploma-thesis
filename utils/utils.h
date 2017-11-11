@@ -25,19 +25,6 @@ public:
     static std::string matType2Str(int type);
 
     template<typename T>
-    static void removeIndex(std::vector<T> &vector, const std::vector<size_t> &to_remove) {
-        auto vector_base = vector.begin();
-        auto down_by = 0;
-
-        for (auto iter = to_remove.cbegin(); iter < to_remove.cend(); iter++, down_by++) {
-            auto next = (iter + 1 == to_remove.cend() ? vector.size() : *(iter + 1));
-            std::move(vector_base + *iter + 1, vector_base + next, vector_base + *iter - down_by);
-        }
-
-        vector.resize(vector.size() - to_remove.size());
-    }
-
-    template<typename T>
     static float median(std::vector<T> &values) {
         float median;
         const size_t size = values.size();

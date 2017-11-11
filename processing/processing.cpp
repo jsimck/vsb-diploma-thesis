@@ -69,7 +69,7 @@ void Processing::quantizedSurfaceNormals(cv::Mat &srcDepth, cv::Mat &quantizedSu
 
     // Blur image to reduce noise
     cv::Mat srcBlurred;
-    cv::GaussianBlur(srcDepth, srcBlurred, cv::Size(9, 9), 0, 0);
+    cv::GaussianBlur(srcDepth, srcBlurred, cv::Size(3, 3), 0, 0);
     quantizedSurfaceNormals = cv::Mat::zeros(srcDepth.size(), CV_8UC1);
 
     #pragma omp parallel for

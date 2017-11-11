@@ -31,11 +31,11 @@ Classifier::Classifier() {
     criteria->detectParams.hasher.minVotes = 3;
 
     // Matcher
-    criteria->detectParams.matcher.tMatch = 0.6f;
+    criteria->detectParams.matcher.tMatch = 0.4f;
     criteria->detectParams.matcher.tOverlap = 0.1f;
     criteria->detectParams.matcher.neighbourhood = cv::Range(-2, 2);
     criteria->detectParams.matcher.tColorTest = 3;
-    criteria->detectParams.matcher.depthDeviationFunction = {{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {70000, 0.08f}};
+    criteria->detectParams.matcher.depthDeviationFunction = {{10000, 0.24f}, {15000, 0.22f}, {20000, 0.2f}, {70000, 0.08f}};
     criteria->detectParams.matcher.depthK = 0.05f;
     criteria->detectParams.matcher.tMinGradMag = 0.1f;
 

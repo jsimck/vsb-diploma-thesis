@@ -170,6 +170,8 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &sceneSurfaceNormalsQ
     assert(!tables.empty());
     assert(criteria->info.maxTemplate.area() > 0);
 
+    std::vector<Window> newWindows;
+    std::vector<size_t> emptyIndexes;
     const size_t windowsSize = windows.size();
 
     #pragma omp parallel for
@@ -216,7 +218,7 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &sceneSurfaceNormalsQ
         std::vector<HashTableCandidate> passedCandidates;
         for (auto &c : tableCandidates) {
             if (c.second.votes >= criteria->detectParams.hasher.minVotes) {
-                passedCandidates.push_back(c.second);
+                passedCandidates.push_back(std::move(c.second));
             }
         }
 
@@ -228,11 +230,21 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &sceneSurfaceNormalsQ
             size_t pcSize = passedCandidates.size();
             pcSize = (pcSize > criteria->trainParams.hasher.tablesCount) ? criteria->trainParams.hasher.tablesCount : pcSize;
 
-            for (int j = 0; j < pcSize; ++j) {
-                windows[i].candidates.push_back(passedCandidates[j].candidate);
+            for (size_t j = 0; j < pcSize; ++j) {
+                windows[i].candidates.push_back(std::move(passedCandidates[j].candidate));
             }
+
+            #pragma omp critical
+            newWindows.push_back(std::move(windows[i]));
+        } else {
+            // Save empty windows indexes
+            #pragma omp critical
+            emptyIndexes.push_back(i);
         }
     }
+
+    // Remove empty windows
+    windows = newWindows;
 }
 
 void Hasher::setCriteria(std::shared_ptr<ClassifierCriteria> criteria) {

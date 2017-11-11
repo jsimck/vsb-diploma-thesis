@@ -1,13 +1,5 @@
 #include "template.h"
 
-void Template::vote() {
-    votes++;
-}
-
-void Template::resetVotes() {
-    votes = 0;
-}
-
 void Template::applyROI() {
     // Apply roi to both sources
     srcGray = srcGray(objBB);
@@ -116,7 +108,6 @@ std::ostream &operator<<(std::ostream &os, const Template &t) {
        << "camTm2c: " << t.camTm2c  << std::endl
        << "elev: " << t.elev  << std::endl
        << "mode: " << t.mode << std::endl
-       << "votes: " << t.votes << std::endl
        << "quantizedGradients size: " << t.features.gradients.size() << std::endl
        << "quantizedNormals size: " << t.features.normals.size() << std::endl
        << "depths size: " << t.features.depths.size() << std::endl
