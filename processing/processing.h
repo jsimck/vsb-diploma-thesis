@@ -6,18 +6,18 @@
 class Processing {
 public:
     // Filters
-    static void filterSobel(cv::Mat &src, cv::Mat &dst, bool xFilter = true, bool yFilter = true);
-    static void thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float max);
+    static void filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter = true, bool yFilter = true);
+    static void thresholdMinMax(const cv::Mat &src, cv::Mat &dst, float min, float max);
 
     // Computation
-    static void quantizedSurfaceNormals(cv::Mat &srcDepth, cv::Mat &quantizedSurfaceNormals);
-    static void quantizedOrientationGradients(cv::Mat &srcGray, cv::Mat &quantizedOrientations, cv::Mat &magnitude);
+    static void quantizedSurfaceNormals(const cv::Mat &srcDepth, cv::Mat &quantizedSurfaceNormals);
+    static void quantizedOrientationGradients(const cv::Mat &srcGray, cv::Mat &quantizedOrientations, cv::Mat &magnitude);
 
     // Quantization & discretization functions
     static uchar quantizeOrientationGradient(float deg);
     static uchar quantizeSurfaceNormal(const cv::Vec3f &normal);
     static uchar quantizeDepth(float depth, std::vector<cv::Range> &ranges);
-    static cv::Vec2i relativeDepths(cv::Mat &src, cv::Point &c, cv::Point &p1, cv::Point &p2);
+    static cv::Vec2i relativeDepths(const cv::Mat &src, cv::Point &c, cv::Point &p1, cv::Point &p2);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_PROCESSING_H

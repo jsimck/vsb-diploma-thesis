@@ -6,12 +6,12 @@
 #include <iostream>
 #include <opencv/cv.hpp>
 
-void Processing::filterSobel(cv::Mat &src, cv::Mat &dst, bool xFilter, bool yFilter) {
+void Processing::filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter, bool yFilter) {
     assert(!src.empty());
     assert(src.type() == CV_32FC1);
 
-    int filterX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
-    int filterY[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
+    const int filterX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
+    const int filterY[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
 
     if (dst.empty()) {
         dst = cv::Mat(src.size(), src.type());
@@ -20,7 +20,7 @@ void Processing::filterSobel(cv::Mat &src, cv::Mat &dst, bool xFilter, bool yFil
     // Blur image little bit to reduce noise
     cv::GaussianBlur(src, dst, cv::Size(3, 3), 0, 0);
 
-    #pragma omp parallel for
+    #pragma omp parallel for default(none) shared(src, dst, filterX, filterY) firstprivate(xFilter, yFilter)
     for (int y = 1; y < src.rows - 1; y++) {
         for (int x = 1; x < src.cols - 1; x++) {
             int i = 0;
@@ -42,7 +42,7 @@ void Processing::filterSobel(cv::Mat &src, cv::Mat &dst, bool xFilter, bool yFil
     }
 }
 
-void Processing::thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float max) {
+void Processing::thresholdMinMax(const cv::Mat &src, cv::Mat &dst, float min, float max) {
     assert(!src.empty());
     assert(!dst.empty());
     assert(src.type() == CV_32FC1);
@@ -51,7 +51,7 @@ void Processing::thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float ma
     assert(max >= 0 && max > min);
 
     // Apply very simple min/max thresholding for the source image
-    #pragma omp parallel for
+    #pragma omp parallel for default(none) firstprivate(min, max) shared(dst, src)
     for (int y = 0; y < src.rows; y++) {
         for (int x = 0; x < src.cols; x++) {
             if (src.at<float>(y, x) >= min && src.at<float>(y, x) <= max) {
@@ -63,7 +63,7 @@ void Processing::thresholdMinMax(cv::Mat &src, cv::Mat &dst, float min, float ma
     }
 }
 
-void Processing::quantizedSurfaceNormals(cv::Mat &srcDepth, cv::Mat &quantizedSurfaceNormals) {
+void Processing::quantizedSurfaceNormals(const cv::Mat &srcDepth, cv::Mat &quantizedSurfaceNormals) {
     assert(!srcDepth.empty());
     assert(srcDepth.type() == CV_32FC1);
 
@@ -72,7 +72,7 @@ void Processing::quantizedSurfaceNormals(cv::Mat &srcDepth, cv::Mat &quantizedSu
     cv::GaussianBlur(srcDepth, srcBlurred, cv::Size(3, 3), 0, 0);
     quantizedSurfaceNormals = cv::Mat::zeros(srcDepth.size(), CV_8UC1);
 
-    #pragma omp parallel for
+    #pragma omp parallel for default(none) shared(srcBlurred, quantizedSurfaceNormals)
     for (int y = 1; y < srcBlurred.rows - 1; y++) {
         for (int x = 1; x < srcBlurred.cols - 1; x++) {
             float dzdx = (srcBlurred.at<float>(y, x + 1) - srcBlurred.at<float>(y, x - 1)) / 2.0f;
@@ -85,7 +85,7 @@ void Processing::quantizedSurfaceNormals(cv::Mat &srcDepth, cv::Mat &quantizedSu
     }
 }
 
-void Processing::quantizedOrientationGradients(cv::Mat &srcGray, cv::Mat &quantizedOrientations, cv::Mat &magnitude) {
+void Processing::quantizedOrientationGradients(const cv::Mat &srcGray, cv::Mat &quantizedOrientations, cv::Mat &magnitude) {
     // Checks
     assert(!srcGray.empty());
     assert(srcGray.type() == CV_32FC1);
@@ -101,7 +101,7 @@ void Processing::quantizedOrientationGradients(cv::Mat &srcGray, cv::Mat &quanti
     // Quantize orientations
     quantizedOrientations = cv::Mat(angles.size(), CV_8UC1);
 
-    #pragma omp parallel for
+    #pragma omp parallel for default(none) shared(quantizedOrientations, angles)
     for (int y = 0; y < angles.rows; y++) {
         for (int x = 0; x < angles.cols; x++) {
             quantizedOrientations.at<uchar>(y, x) = quantizeOrientationGradient(angles.at<float>(y, x));
@@ -184,7 +184,7 @@ uchar Processing::quantizeOrientationGradient(float deg) {
     }
 }
 
-cv::Vec2i Processing::relativeDepths(cv::Mat &src, cv::Point &c, cv::Point &p1, cv::Point &p2) {
+cv::Vec2i Processing::relativeDepths(const cv::Mat &src, cv::Point &c, cv::Point &p1, cv::Point &p2) {
     assert(!src.empty());
     assert(src.type() == CV_32FC1);
 
