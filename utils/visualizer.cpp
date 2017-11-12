@@ -3,6 +3,7 @@
 #include "visualizer.h"
 #include "../objdetect/hasher.h"
 #include "../processing/processing.h"
+#include "../core/classifier_criteria.h"
 
 cv::Vec3b Visualizer::heatMapValue(int min, int max, int value) {
     float range = max - min;
@@ -211,7 +212,7 @@ void Visualizer::visualizeTemplate(Template &tpl, const std::string &templatesPa
 }
 
 void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows,
-                                  std::shared_ptr<ClassifierCriteria> &criteria, const cv::Size &grid, bool continuous, const char *title) {
+                                  std::shared_ptr<ClassifierCriteria> &criteria, bool continuous, int wait, const char *title) {
     // Init common
     cv::Scalar colorRed(0, 0, 255);
     std::ostringstream oss;
@@ -235,7 +236,8 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
 
         for (auto &table : tables) {
             // Prepare trainParams to load hash key
-            TripletParams params(criteria->info.maxTemplate.width, criteria->info.maxTemplate.height, grid, windows[i].tl().x, windows[i].tl().y);
+            TripletParams params(criteria->info.maxTemplate.width, criteria->info.maxTemplate.height,
+                                 criteria->trainParams.hasher.grid, windows[i].tl().x, windows[i].tl().y);
             cv::Point c = table.triplet.getCenter(params);
             cv::Point p1 = table.triplet.getP1(params);
             cv::Point p2 = table.triplet.getP2(params);
@@ -246,15 +248,15 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
                 (p2.x < 0 || p2.x >= sceneSurfaceNormals.cols || p2.y < 0 || p2.y >= sceneSurfaceNormals.rows)) continue;
 
             // Relative depths
-            cv::Vec2i d = Processing::relativeDepths(sceneSurfaceNormals, c, p1, p2);
+            cv::Vec2i d = Processing::relativeDepths(sceneDepth, c, p1, p2);
 
             // Generate hash key
             HashKey key(
                 Processing::quantizeDepth(d[0], table.binRanges),
                 Processing::quantizeDepth(d[1], table.binRanges),
-                Processing::quantizeSurfaceNormal(sceneSurfaceNormals.at<cv::Vec3f>(c)),
-                Processing::quantizeSurfaceNormal(sceneSurfaceNormals.at<cv::Vec3f>(p1)),
-                Processing::quantizeSurfaceNormal(sceneSurfaceNormals.at<cv::Vec3f>(p2))
+                sceneSurfaceNormals.at<uchar>(c),
+                sceneSurfaceNormals.at<uchar>(p1),
+                sceneSurfaceNormals.at<uchar>(p2)
             );
 
             // Draw only triplets that are matched
