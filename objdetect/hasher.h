@@ -29,7 +29,8 @@ public:
 
     // Methods
     void train(std::vector<Template> &templates, std::vector<HashTable> &tables);
-    void verifyCandidates(cv::Mat &sceneDepth, cv::Mat &sceneSurfaceNormalsQuantized, std::vector<HashTable> &tables, std::vector<Window> &windows);
+    void verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSurfaceNormalsQuantized,
+                          std::vector<HashTable> &tables, std::vector<Window> &windows);
 
     void setCriteria(std::shared_ptr<ClassifierCriteria> criteria);
 };

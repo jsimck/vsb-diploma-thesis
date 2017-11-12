@@ -41,7 +41,7 @@ void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<H
 
     const size_t iSize = tables.size();
 
-    #pragma omp parallel for
+    #pragma omp parallel for shared(templates, tables) firstprivate(criteria)
     for (size_t i = 0; i < iSize; i++) {
         std::vector<int> rDepths;
 
@@ -71,8 +71,8 @@ void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<H
 
             // Relative depths
             cv::Vec2i d = Processing::relativeDepths(t.srcDepth, c, p1, p2);
-            rDepths.emplace_back(d[0]);
-            rDepths.emplace_back(d[1]);
+            rDepths.push_back(d[0]);
+            rDepths.push_back(d[1]);
         }
 
         // Sort depths Calculate bin ranges
@@ -95,7 +95,7 @@ void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<H
         }
 
         // Set table bin ranges
-        assert(ranges.size() == criteria->trainParams.hasher.binCount);
+        assert(static_cast<int>(ranges.size()) == criteria->trainParams.hasher.binCount);
         tables[i].binRanges = ranges;
     }
 }
@@ -124,7 +124,7 @@ void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tab
     const size_t iSize = tables.size();
 
     // Fill hash tables with templates and keys quantized from measured values
-    #pragma omp parallel for
+    #pragma omp parallel for shared(templates, tables) firstprivate(criteria)
     for (size_t i = 0; i < iSize; i++) {
         for (auto &t : templates) {
             // Checks
@@ -162,7 +162,8 @@ void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tab
     }
 }
 
-void Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &sceneSurfaceNormalsQuantized, std::vector<HashTable> &tables, std::vector<Window> &windows) {
+void Hasher::verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSurfaceNormalsQuantized,
+                              std::vector<HashTable> &tables, std::vector<Window> &windows) {
     // Checks
     assert(!sceneSurfaceNormalsQuantized.empty());
     assert(!sceneDepth.empty());
@@ -171,10 +172,9 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &sceneSurfaceNormalsQ
     assert(criteria->info.maxTemplate.area() > 0);
 
     std::vector<Window> newWindows;
-    std::vector<size_t> emptyIndexes;
     const size_t windowsSize = windows.size();
 
-    #pragma omp parallel for
+    #pragma omp parallel for default(none) shared(windows, newWindows, sceneDepth, sceneSurfaceNormalsQuantized, tables) firstprivate(criteria)
     for (size_t i = 0; i < windowsSize; ++i) {
         std::unordered_map<int, HashTableCandidate> tableCandidates;
 
@@ -231,15 +231,11 @@ void Hasher::verifyCandidates(cv::Mat &sceneDepth, cv::Mat &sceneSurfaceNormalsQ
             pcSize = (pcSize > criteria->trainParams.hasher.tablesCount) ? criteria->trainParams.hasher.tablesCount : pcSize;
 
             for (size_t j = 0; j < pcSize; ++j) {
-                windows[i].candidates.push_back(std::move(passedCandidates[j].candidate));
+                windows[i].candidates.push_back(passedCandidates[j].candidate);
             }
 
             #pragma omp critical
             newWindows.push_back(std::move(windows[i]));
-        } else {
-            // Save empty windows indexes
-            #pragma omp critical
-            emptyIndexes.push_back(i);
         }
     }
 

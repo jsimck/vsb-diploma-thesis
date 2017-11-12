@@ -116,33 +116,6 @@ cv::Point Triplet::getP2(const TripletParams &params) {
     return getPoint(2, params);
 }
 
-void Triplet::visualize(const cv::Mat &src, const cv::Size &grid, bool showGrid) {
-    // Checks
-    assert(!src.empty());
-    assert(src.rows >= grid.height);
-    assert(src.cols >= grid.width);
-    assert(src.type() == CV_32FC3);
-
-    // Get TripletCoord trainParams
-    TripletParams params(src.cols, src.rows, grid);
-
-    // Generate grid
-    if (showGrid) {
-        for (int y = 0; y < grid.height; ++y) {
-            for (int x = 0; x < grid.width; ++x) {
-                cv::circle(src, getPoint(x, y, params), 1, cv::Scalar(1, 1, 1), -1);
-            }
-        }
-    }
-
-    // Draw triplets
-    cv::line(src, getCenter(params), getP1(params), cv::Scalar(0, 0.5f, 0));
-    cv::line(src, getCenter(params), getP2(params), cv::Scalar(0, 0.5f, 0));
-    cv::circle(src, getCenter(params), 3, cv::Scalar(0, 0, 1), -1);
-    cv::circle(src, getP1(params), 2, cv::Scalar(0, 1, 0), -1);
-    cv::circle(src, getP2(params), 2, cv::Scalar(0, 1, 0), -1);
-}
-
 std::ostream &operator<<(std::ostream &os, const Triplet &triplet) {
     os << "c(" << triplet.c.x  << ", " << triplet.c.y << "), ";
     os << "p1(" << triplet.p1.x  << ", " << triplet.p1.y << "), ";

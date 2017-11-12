@@ -55,9 +55,9 @@ void Processing::thresholdMinMax(const cv::Mat &src, cv::Mat &dst, float min, fl
     for (int y = 0; y < src.rows; y++) {
         for (int x = 0; x < src.cols; x++) {
             if (src.at<float>(y, x) >= min && src.at<float>(y, x) <= max) {
-                dst.at<float>(y, x) = 1.0;
+                dst.at<float>(y, x) = 1.0f;
             } else {
-                dst.at<float>(y, x) = 0.0;
+                dst.at<float>(y, x) = 0.0f;
             }
         }
     }

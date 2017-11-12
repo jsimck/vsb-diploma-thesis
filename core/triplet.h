@@ -40,8 +40,6 @@ public:
     cv::Point getP1(const TripletParams &params);
     cv::Point getP2(const TripletParams &params);
 
-    void visualize(const cv::Mat &src, const cv::Size &grid, bool showGrid = true);
-
     // Operators
     friend std::ostream &operator<<(std::ostream &os, const Triplet &triplet);
     bool operator==(const Triplet &rhs) const;

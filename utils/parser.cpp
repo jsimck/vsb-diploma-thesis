@@ -22,7 +22,7 @@ void Parser::parse(std::string basePath, std::string modelsPath, std::vector<Tem
         cv::FileNode objGt = fs[index];
 
         // Parse template gt file
-        templates.emplace_back(parseGt(tplIndex, basePath, objGt));
+        templates.push_back(parseGt(tplIndex, basePath, objGt));
         idCounter++;
     }
 

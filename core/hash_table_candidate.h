@@ -9,7 +9,7 @@ public:
     Template *candidate;
 
     // Constructor
-    HashTableCandidate(Template *candidate = nullptr) : candidate(candidate), votes(0) {}
+    HashTableCandidate(Template *candidate = nullptr) : votes(0), candidate(candidate) {}
 
     // Methods
     void vote();

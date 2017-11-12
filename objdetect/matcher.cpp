@@ -29,8 +29,7 @@ cv::Vec3b Matcher::normalizeHSV(cv::Vec3b &hsv) {
     return hsv;
 }
 
-void Matcher::cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, double tMinDistance, int pointsCount,
-                                      std::vector<cv::Point> &out) {
+void Matcher::cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, double tMinDistance, int pointsCount, std::vector<cv::Point> &out) {
     double minDst = tMinDistance;
     const size_t pointsSize = points.size();
 
@@ -53,7 +52,7 @@ void Matcher::cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, do
                 continue;
             }
 
-            out.emplace_back(points[k].p);
+            out.push_back(points[k].p);
         }
     }
 
@@ -64,7 +63,7 @@ void Matcher::cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, do
 void Matcher::generateFeaturePoints(std::vector<Template> &templates) {
     const size_t iSize = templates.size();
 
-    #pragma omp parallel for
+    #pragma omp parallel for shared(templates) firstprivate(criteria)
     for (size_t i = 0; i < iSize; i++) {
         // Get template by reference for better access
         Template &t = templates[i];
@@ -81,9 +80,9 @@ void Matcher::generateFeaturePoints(std::vector<Template> &templates) {
                 float stableValue = t.srcGray.at<float>(y, x);
 
                 if (sobelValue > 0.3f) {
-                    edgePoints.emplace_back(ValuePoint<float>(cv::Point(x, y) - t.objBB.tl(), sobelValue));
+                    edgePoints.push_back(ValuePoint<float>(cv::Point(x, y) - t.objBB.tl(), sobelValue));
                 } else if (stableValue > 0.2f) {
-                    stablePoints.emplace_back(ValuePoint<float>(cv::Point(x, y) - t.objBB.tl(), stableValue));
+                    stablePoints.push_back(ValuePoint<float>(cv::Point(x, y) - t.objBB.tl(), stableValue));
                 }
             }
         }
@@ -107,7 +106,7 @@ void Matcher::generateFeaturePoints(std::vector<Template> &templates) {
 void Matcher::extractFeatures(std::vector<Template> &templates) {
     const size_t iSize = templates.size();
 
-    #pragma omp parallel for
+    #pragma omp parallel for shared(templates) firstprivate(criteria)
     for (size_t i = 0; i < iSize; i++) {
         // Get template by reference for better access
         Template &t = templates[i];
@@ -123,7 +122,7 @@ void Matcher::extractFeatures(std::vector<Template> &templates) {
 
             // Save features
             float depth = t.srcDepth.at<float>(stablePOff);
-            t.features.depths.emplace_back(depth);
+            t.features.depths.push_back(depth);
             t.features.gradients.emplace_back(t.quantizedGradients.at<uchar>(edgePOff));
             t.features.normals.emplace_back(t.quantizedNormals.at<uchar>(stablePOff));
             t.features.colors.push_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(stablePOff)));
@@ -144,7 +143,7 @@ void Matcher::extractFeatures(std::vector<Template> &templates) {
         depths.clear();
 
 #ifndef NDEBUG
-//            Visualizer::visualizeTemplate(t, "data/", 0, "Template feature points");
+//        Visualizer::visualizeTemplate(t, "data/", 0, "Template feature points");
 #endif
     }
 }
@@ -288,17 +287,18 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
     std::vector<int> suppress(matches.size()); // Indexes of matches to remove
     std::vector<int> idx(matches.size()); // Indexes of bounding boxes to check
     std::iota(idx.begin(), idx.end(), 0);
+    float tOverlap = criteria->detectParams.matcher.tOverlap;
 
     while (!idx.empty()) {
         // Pick first element with highest score
         Match &firstMatch = matches[idx[0]];
 
         // Store this index into suppress array and push to final matches, we won't check against this match again
-        suppress.emplace_back(idx[0]);
-        pick.emplace_back(firstMatch);
+        suppress.push_back(idx[0]);
+        pick.push_back(firstMatch);
 
         // Check overlaps with all other bounding boxes, skipping first one (since it is the one we're checking with)
-        #pragma omp parallel for
+        #pragma omp parallel for default(none) shared(firstMatch, matches, idx, suppress) firstprivate(tOverlap)
         for (size_t i = 1; i < idx.size(); i++) {
             // Get overlap BB coordinates of each other bounding box and compare with the first one
             cv::Rect bb = matches[idx[i]].objBB;
@@ -313,9 +313,9 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
             float overlap = static_cast<float>(h * w) / static_cast<float>(firstMatch.objBB.area());
 
             // If overlap is bigger than min threshold, remove the match
-            if (overlap > criteria->detectParams.matcher.tOverlap) {
+            if (overlap > tOverlap) {
                 #pragma omp critical
-                suppress.emplace_back(idx[i]);
+                suppress.push_back(idx[i]);
             }
         }
 
@@ -356,10 +356,13 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat
     Timer tMatching;
 
 #ifndef VISUALIZE_MATCH
-    #pragma omp parallel for
+    #pragma omp parallel for \
+        shared(sceneHSV, sceneDepth, sceneMagnitudes, sceneAnglesQuantized, sceneSurfaceNormalsQuantized, windows, matches) \
+        firstprivate(N, minThreshold, scale)
 #endif
     for (long l = lSize - 1; l >= 0; l--) { // TODO - should run from start, not end
         for (auto &candidate : windows[l].candidates) {
+            // Checks
             assert(candidate != nullptr);
 
 #ifdef VISUALIZE_MATCH
@@ -386,7 +389,7 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat
 #ifdef VISUALIZE_MATCH
                 int tmpResult = testSurfaceNormal(candidate->features.quantizedNormals[i], windows[l], sceneDepth, candidate->stablePoints[i]);
                 sII += tmpResult;
-                tIITrue.emplace_back(tmpResult);
+                tIITrue.push_back(tmpResult);
 #else
                 sII += testSurfaceNormal(candidate->features.normals[i], windows[l], sceneSurfaceNormalsQuantized, candidate->stablePoints[i]);
 #endif
@@ -407,7 +410,7 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat
 #ifdef VISUALIZE_MATCH
                 int tmpResult = testGradients(candidate->features.quantizedGradients[i], windows[l], sceneAngles, sceneMagnitude, candidate->edgePoints[i]);
                 sIII += tmpResult;
-                tIIITrue.emplace_back(tmpResult);
+                tIIITrue.push_back(tmpResult);
 #else
                 sIII += testGradients(candidate->features.gradients[i], windows[l], sceneAnglesQuantized, sceneMagnitudes, candidate->edgePoints[i]);
 #endif
@@ -436,7 +439,7 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat
 #ifdef VISUALIZE_MATCH
                 int tmpResult = testColor(candidate->features.colors[i], windows[l], sceneHSV, candidate->stablePoints[i]);
                 sV += tmpResult;
-                tVTrue.emplace_back(tmpResult);
+                tVTrue.push_back(tmpResult);
 #else
                 sV += testColor(candidate->features.colors[i], windows[l], sceneHSV, candidate->stablePoints[i]);
 #endif
