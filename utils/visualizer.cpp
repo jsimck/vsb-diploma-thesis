@@ -291,18 +291,25 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
     cv::waitKey(0);
 }
 
-void Visualizer::visualizeTests(Template &tpl, const cv::Mat &sceneHSV, Window &window, std::vector<cv::Point> &stablePoints, std::vector<cv::Point> &edgePoints,
-                                cv::Range &neighbourhood, std::vector<int> &scoreII, std::vector<int> &scoreIII, float scoreIV, std::vector<int> &scoreV,
-                                int pointsCount, int minThreshold, bool continuous, const std::string &templatesPath, int wait, const char *title) {
+bool Visualizer::visualizeTests(Template &tpl, const cv::Mat &sceneHSV, const cv::Mat &sceneDepth, Window &window,
+                               std::vector<cv::Point> &stablePoints, std::vector<cv::Point> &edgePoints,
+                               cv::Range &neighbourhood, std::vector<int> &scoreI, std::vector<int> &scoreII,
+                               std::vector<int> &scoreIII, std::vector<int> &scoreIV, std::vector<int> &scoreV,
+                               int pointsCount, int minThreshold, int currentTest, bool continuous,
+                               const std::string &templatesPath, int wait, const char *title) {
     // Init common
     std::ostringstream oss;
     cv::Scalar colorRed(0, 0, 255), colorGreen(0, 255, 0), colorWhite(255, 255, 255), colorBlue(0, 255, 0);
     cv::Point offsetPStart(neighbourhood.start, neighbourhood.start), offsetPEnd(neighbourhood.end, neighbourhood.end);
 
     // Convert matrices
-    cv::Mat result, resultScene;
+    cv::Mat result, resultScene, resultSceneDepth;
     cv::cvtColor(sceneHSV, resultScene, CV_HSV2BGR);
-    int scoreVTrue = 0, scoreIIITrue = 0, scoreIITrue = 0, currentTest = 0;
+    int scoreVTrue = 0, scoreIVTrue = 0, scoreIIITrue = 0, scoreIITrue = 0, scoreITrue = 0;
+
+    // Normalize depth scene
+    resultSceneDepth = sceneDepth.clone();
+    cv::normalize(resultSceneDepth, resultSceneDepth, 0, 1.0f, CV_MINMAX);
 
     // Dynamically load template src
     if (tpl.srcHSV.empty()) {
@@ -311,83 +318,97 @@ void Visualizer::visualizeTests(Template &tpl, const cv::Mat &sceneHSV, Window &
         cv::cvtColor(tpl.srcHSV, result, CV_HSV2BGR);
     }
 
-    // Draw from end to enable continuous drawing
-    if (!scoreV.empty()) {
-        currentTest = 5;
-        for (int i = 0; i < pointsCount; i++) {
-            const cv::Scalar color = scoreV[i] == 0 ? colorRed : colorGreen;
-            cv::rectangle(resultScene, window.tl() + stablePoints[i] + offsetPStart, window.tl() + stablePoints[i] + offsetPEnd, color, 1);
-            cv::circle(result, tpl.objBB.tl() + stablePoints[i], 1, color, -1);
-        }
-    } else if (!scoreIII.empty()) {
-        currentTest = 3;
-        for (int i = 0; i < pointsCount; i++) {
-            const cv::Scalar color = scoreIII[i] == 0 ? colorRed : colorGreen;
-            cv::rectangle(resultScene, window.tl() + edgePoints[i] + offsetPStart, window.tl() + edgePoints[i] + offsetPEnd, color, 1);
-            cv::circle(result, tpl.objBB.tl() + edgePoints[i], 1, color, -1);
-        }
-    } else if (!scoreII.empty()) {
-        currentTest = 2;
-        for (int i = 0; i < pointsCount; i++) {
-            const cv::Scalar color = scoreII[i] == 0 ? colorRed : colorGreen;
-            cv::rectangle(resultScene, window.tl() + stablePoints[i] + offsetPStart, window.tl() + stablePoints[i] + offsetPEnd, color, 1);
-            cv::circle(result, tpl.objBB.tl() + stablePoints[i], 1, color, -1);
-        }
-    }
-
-    // Count points
+    // Draw results
     for (int i = 0; i < pointsCount; i++) {
-        if (!scoreII.empty()) {
-            scoreIITrue += scoreII[i] == 0 ? 0 : 1;
+        cv::Scalar color, bwColor;
+        cv::Point point = (currentTest == 3) ? edgePoints[i] : stablePoints[i];
+
+        // Count scores
+        scoreITrue += (!scoreI.empty() && scoreI[i] == 0) ? 0 : 1;
+        scoreIITrue += (!scoreII.empty() && scoreII[i] == 0) ? 0 : 1;
+        scoreIIITrue += (!scoreIII.empty() && scoreIII[i] == 0) ? 0 : 1;
+        scoreIVTrue += (!scoreIV.empty() && scoreIV[i] == 0) ? 0 : 1;
+        scoreVTrue += (!scoreV.empty() && scoreV[i] == 0) ? 0 : 1;
+
+        // Check if point has been matched
+        if (currentTest == 1) {
+            color = scoreI[i] == 0 ? colorRed : colorGreen;
+            bwColor = scoreI[i] == 0 ? cv::Scalar(0) : cv::Scalar(1.0f);
+        } else if (currentTest == 2) {
+            color = scoreII[i] == 0 ? colorRed : colorGreen;
+            bwColor = scoreII[i] == 0 ? cv::Scalar(0) : cv::Scalar(1.0f);
+        } else if (currentTest == 3) {
+            color = scoreIII[i] == 0 ? colorRed : colorGreen;
+            bwColor = scoreIII[i] == 0 ? cv::Scalar(0) : cv::Scalar(1.0f);
+        } else if (currentTest == 4) {
+            color = scoreIV[i] == 0 ? colorRed : colorGreen;
+            bwColor = scoreIV[i] == 0 ? cv::Scalar(0) : cv::Scalar(1.0f);
+        } else if (currentTest == 5) {
+            color = scoreV[i] == 0 ? colorRed : colorGreen;
+            bwColor = scoreV[i] == 0 ? cv::Scalar(0) : cv::Scalar(1.0f);
         }
 
-        if (!scoreIII.empty()) {
-            scoreIIITrue += scoreIII[i] == 0 ? 0 : 1;
-        }
-
-        if (!scoreV.empty()) {
-            scoreVTrue += scoreV[i] == 0 ? 0 : 1;
-        }
+        cv::rectangle(resultScene, window.tl() + point + offsetPStart, window.tl() + point + offsetPEnd, color, 1);
+        cv::rectangle(resultSceneDepth, window.tl() + point + offsetPStart, window.tl() + point + offsetPEnd, bwColor, 1);
+        cv::circle(result, tpl.objBB.tl() + point, 1, color, -1);
     }
 
-    // Draw window rect and info labels
+    // Draw window rects
     cv::rectangle(resultScene, window.tl(), window.tl() + cv::Point(tpl.objBB.width, tpl.objBB.height), colorWhite, 1);
+    cv::rectangle(resultSceneDepth, window.tl(), window.tl() + cv::Point(tpl.objBB.width, tpl.objBB.height), cv::Scalar(1.0f), 1);
+
+    // Draw info labels
+    oss.str("");
+    oss << "I: " << scoreITrue << "/" << pointsCount;
+    Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 10), 1, 0, 0.4,
+                         currentTest == 1 ? (scoreITrue > minThreshold ? colorGreen : colorRed) : colorWhite);
     oss.str("");
     oss << "II: " << scoreIITrue << "/" << pointsCount;
-    Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 10), 1, 0, 0.4,
-                         currentTest >= 2 ? (scoreIITrue > minThreshold ? colorGreen : colorRed) : colorWhite);
+    Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 28), 1, 0, 0.4,
+                         currentTest == 2 ? (scoreIITrue > minThreshold ? colorGreen : colorRed) : colorWhite);
     oss.str("");
     oss << "III: " << scoreIIITrue << "/" << pointsCount;
-    Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 28), 1, 0, 0.4,
-                         currentTest >= 3 ? (scoreIIITrue > minThreshold ? colorGreen : colorRed) : colorWhite);
-    oss.str("");
-    oss << "IV: " << scoreIV;
     Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 46), 1, 0, 0.4,
-                         currentTest >= 4 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite);
+                         currentTest == 3 ? (scoreIIITrue > minThreshold ? colorGreen : colorRed) : colorWhite);
+    oss.str("");
+    oss << "IV: " << scoreIVTrue << "/" << pointsCount;
+    Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 64), 1, 0, 0.4,
+                         currentTest == 4 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite);
     oss.str("");
     oss << "V: " << scoreVTrue << "/" << pointsCount;
-    Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 64), 1, 0, 0.4,
-                         currentTest >= 5 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite);
+    Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 82), 1, 0, 0.4,
+                         currentTest == 5 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite);
     oss.str("");
     oss.precision(2);
-    oss << "score: " << std::fixed << scoreIITrue / static_cast<float>(pointsCount) + scoreIIITrue / static_cast<float>(pointsCount) +
-                         scoreVTrue / static_cast<float>(pointsCount) + scoreIV / pointsCount;
-    Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 82), 1, 0, 0.4,
+    oss << "score: " << std::fixed << scoreITrue / static_cast<float>(pointsCount) + scoreIITrue / static_cast<float>(pointsCount) +
+            scoreIIITrue / static_cast<float>(pointsCount) + scoreIVTrue / static_cast<float>(pointsCount) + scoreVTrue / static_cast<float>(pointsCount);
+    Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 100), 1, 0, 0.4,
                          currentTest >= 5 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite);
 
-    // Form title
+    // Number of candidates on this window
     oss.str("");
-    oss << title;
-    oss << " - scene";
+    oss << "candidates: " << window.candidates.size();
+    Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(0, -15), 1, 0, 0.4, colorWhite);
 
     // Show results
     cv::imshow(title == nullptr ? "Hashing visualization" : oss.str(), result);
+    oss.str("");
+    oss << title;
+    oss << " - scene";
     cv::imshow(title == nullptr ? "Hashing visualization scene" : title, resultScene);
+    oss.str("");
+    oss << title;
+    oss << " - depth";
+    cv::imshow(title == nullptr ? "Hashing visualization scene depth" : title, resultSceneDepth);
 
     // Continuous till match (scoreV > than min threshold)
+    int keyPressed = 0;
     if (continuous) {
-        cv::waitKey(scoreVTrue > minThreshold ? 0 : 1);
+        keyPressed = cv::waitKey(scoreVTrue > minThreshold ? 0 : 1);
     } else {
-        cv::waitKey(wait);
+        keyPressed = cv::waitKey(wait);
     }
+
+    // Spacebar pressed
+    return keyPressed == 32;
 }

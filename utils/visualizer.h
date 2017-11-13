@@ -15,14 +15,23 @@ private:
     static void visualizeWindow(cv::Mat &scene, Window &window);
     static cv::Vec3b heatMapValue(int min, int max, int value);
 public:
+    // Hashing
     static void visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows,
                                      std::shared_ptr<ClassifierCriteria> &criteria, bool continuous, int wait = 0, const char *title = nullptr);
+
+    // Objectness
     static void visualizeMatches(cv::Mat &scene, std::vector<Match> &matches, const std::string &templatesPath = "data/", int wait = 0, const char *title = nullptr);
+
+    // Results
     static void visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, bool continuous, int wait = 0, const char *title = nullptr);
-    static void visualizeTests(Template &tpl, const cv::Mat &sceneHSV, Window &window, std::vector<cv::Point> &stablePoints, std::vector<cv::Point> &edgePoints,
-                               cv::Range &neighbourhood, std::vector<int> &scoreII, std::vector<int> &scoreIII, float scoreIV, std::vector<int> &scoreV,
-                               int pointsCount, int minThreshold, bool continuous = true, const std::string &templatesPath = "data/",
-                               int wait = 0, const char *title = nullptr);
+
+    // Tests
+    static bool visualizeTests(Template &tpl, const cv::Mat &sceneHSV, const cv::Mat &sceneDepth, Window &window,
+                               std::vector<cv::Point> &stablePoints, std::vector<cv::Point> &edgePoints,
+                               cv::Range &neighbourhood, std::vector<int> &scoreI, std::vector<int> &scoreII,
+                               std::vector<int> &scoreIII, std::vector<int> &scoreIV, std::vector<int> &scoreV,
+                               int pointsCount, int minThreshold, int currentTest, bool continuous,
+                               const std::string &templatesPath, int wait, const char *title);
 
     // Templates
     static void visualizeTemplate(Template &tpl, const std::string &templatesPath = "data/", int wait = 0, const char *title = nullptr);
