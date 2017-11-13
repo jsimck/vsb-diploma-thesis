@@ -532,5 +532,5 @@ void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat
 }
 
 void Matcher::setCriteria(std::shared_ptr<ClassifierCriteria> criteria) {
-    this->criteria = std::move(criteria);
+    this->criteria = criteria;
 }

@@ -69,5 +69,5 @@ void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &window
 }
 
 void Objectness::setCriteria(std::shared_ptr<ClassifierCriteria> criteria) {
-    this->criteria = std::move(criteria);
+    this->criteria = criteria;
 }

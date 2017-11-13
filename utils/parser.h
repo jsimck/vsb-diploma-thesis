@@ -27,7 +27,7 @@ public:
     uint tplCount, modelCount;
 
     Parser(std::shared_ptr<ClassifierCriteria> criteria, uint tplCount = 1296, uint modelCount = 30)
-            : criteria(std::move(criteria)), tplCount(tplCount), modelCount(modelCount) {}
+            : criteria(criteria), tplCount(tplCount), modelCount(modelCount) {}
 
     void parse(std::string basePath, std::string modelsPath, std::vector<Template> &templates);
 };

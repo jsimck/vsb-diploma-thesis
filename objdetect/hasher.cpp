@@ -27,7 +27,7 @@ void Hasher::generateTriplets(std::vector<HashTable> &tables) {
                 if (tables[i].triplet == tables[j].triplet) {
                     // Duplicate, generate new triplet
                     duplicate = true;
-                    tables[j].triplet = Triplet::create(criteria->trainParams.hasher.grid);
+                    tables[j].triplet = std::move(Triplet::create(criteria->trainParams.hasher.grid));
                 }
             }
         }
@@ -253,5 +253,5 @@ void Hasher::verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSur
 }
 
 void Hasher::setCriteria(std::shared_ptr<ClassifierCriteria> criteria) {
-    this->criteria = std::move(criteria);
+    this->criteria = criteria;
 }

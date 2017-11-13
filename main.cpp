@@ -11,10 +11,5 @@ int main() {
 //    classifier.train("data/templates.txt", "data/trained/", "data/models/");
     classifier.detect("data/trained_templates.txt", "data/trained/", "data/scene_01/");
 
-    // TODO
-    // 1) Test I - depth not being filtered as it should
-    // 2) Visualizer for hashing is probably broken
-    // 3) consider adding minimum magnitude for edges for feature extraction
-
     return 0;
 }

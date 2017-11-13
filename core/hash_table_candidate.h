@@ -1,15 +1,17 @@
 #ifndef VSB_SEMESTRAL_PROJECT_HASH_TABLE_CANDIDATE_H
 #define VSB_SEMESTRAL_PROJECT_HASH_TABLE_CANDIDATE_H
 
+#include <memory>
+#include <utility>
 #include "template.h"
 
 struct HashTableCandidate {
 public:
     int votes;
-    Template *candidate;
+    std::shared_ptr<Template> candidate;
 
     // Constructor
-    HashTableCandidate(Template *candidate = nullptr) : votes(0), candidate(candidate) {}
+    HashTableCandidate(std::shared_ptr<Template> candidate = nullptr) : votes(0), candidate(candidate) {}
 
     // Methods
     void vote();

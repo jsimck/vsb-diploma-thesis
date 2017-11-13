@@ -3,12 +3,12 @@
 void HashTable::pushUnique(const HashKey &key, Template &t) {
     // Check if key exists, if not initialize it
     if (templates.find(key) == templates.end()) {
-        std::vector<Template *> hashTemplates;
+        std::vector<std::shared_ptr<Template>> hashTemplates;
         templates[key] = hashTemplates;
     }
 
     // Check for duplicates and push unique
-    auto found = std::find_if(templates[key].begin(), templates[key].end(), [&t](const Template* tt) { return t == *tt; });
+    auto found = std::find_if(templates[key].begin(), templates[key].end(), [&t](const std::shared_ptr<Template> &tt) { return t == *tt; });
     if (found == templates[key].end()) {
         templates[key].emplace_back(&t);
     }
@@ -70,12 +70,12 @@ HashTable HashTable::load(cv::FileNode &node, std::vector<Template> &templates) 
                 if (id == tpl.id) {
                     // Check if key exists, if not initialize it
                     if (table.templates.find(key) == table.templates.end()) {
-                        std::vector<Template *> hashTemplates;
+                        std::vector<std::shared_ptr<Template>> hashTemplates;
                         table.templates[key] = hashTemplates;
                     }
 
                     // Push to table
-                    table.templates[key].push_back(&tpl);
+                    table.templates[key].emplace_back(&tpl);
                     break;
                 }
             }

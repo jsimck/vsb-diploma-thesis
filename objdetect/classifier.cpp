@@ -240,7 +240,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
         std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
 
 //        Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, criteria, true);
-        Visualizer::visualizeWindows(this->scene, windows, false, 1, "Filtered locations");
+//        Visualizer::visualizeWindows(this->scene, windows, false, 1, "Filtered locations");
 
         /// Match templates
         assert(!windows.empty());

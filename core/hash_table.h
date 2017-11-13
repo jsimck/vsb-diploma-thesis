@@ -5,7 +5,9 @@
 #include "hash_key.h"
 #include "template.h"
 #include <unordered_map>
+#include <memory>
 #include <ostream>
+#include <utility>
 
 /**
  * struct HashTable
@@ -19,11 +21,11 @@ struct HashTable {
 public:
     Triplet triplet;
     std::vector<cv::Range> binRanges;
-    std::unordered_map<HashKey, std::vector<Template *>, HashKeyHasher> templates;
+    std::unordered_map<HashKey, std::vector<std::shared_ptr<Template>>, HashKeyHasher> templates;
 
     // Constructors
     HashTable() {}
-    HashTable(const Triplet &triplet) : triplet(triplet) {}
+    HashTable(Triplet triplet) : triplet(triplet) {}
 
     // Persistence
     static HashTable load(cv::FileNode &node, std::vector<Template> &templates);

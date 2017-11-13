@@ -2,6 +2,7 @@
 #define VSB_SEMESTRAL_PROJECT_WINDOW_H
 
 #include <opencv2/core/types.hpp>
+#include <memory>
 #include "template.h"
 
 /**
@@ -17,11 +18,11 @@ public:
     int width;
     int height;
     int edgels;
-    std::vector<Template *> candidates;
+    std::vector<std::shared_ptr<Template>> candidates;
 
     // Constructors
-    explicit Window(int x = 0, int y = 0, int width = 0, int height = 0, int edgels = 0, const std::vector<Template *> &candidates = {})
-        : x(x), y(y), width(width), height(height), edgels(edgels), candidates(candidates) {}
+    explicit Window(int x = 0, int y = 0, int width = 0, int height = 0, int edgels = 0)
+        : x(x), y(y), width(width), height(height), edgels(edgels) {}
 
     // Methods
     cv::Point tl();

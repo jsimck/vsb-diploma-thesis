@@ -109,8 +109,8 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
     assert(srcDepth.type() == CV_32FC1);
 
     return {
-        idCounter + (2000 * id), fileName, diameter, src, srcHSV, srcDepth,
-        gradients, normals, objBB, cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone(),
+        idCounter + (2000 * id), fileName, diameter, std::move(src), std::move(srcHSV), std::move(srcDepth),
+        std::move(gradients), std::move(normals), objBB, cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone(),
         cv::Vec3d(vCamTm2c[0], vCamTm2c[1], vCamTm2c[2])
     };
 }

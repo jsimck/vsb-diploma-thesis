@@ -51,7 +51,7 @@ public:
     Template(int id, std::string &fileName, float diameter, cv::Mat src, cv::Mat srcHSV, cv::Mat srcDepth,
                  cv::Mat quantizedGradients, cv::Mat normals, cv::Rect &objBB, cv::Mat camRm2c, const cv::Vec3d &camTm2c)
         : id(id), fileName(fileName), diameter(diameter), srcGray(src), srcHSV(srcHSV), srcDepth(srcDepth), quantizedGradients(quantizedGradients),
-          quantizedNormals(normals), objBB(objBB), camRm2c(std::move(camRm2c)), camTm2c(camTm2c), elev(0), mode(0) {}
+          quantizedNormals(normals), objBB(objBB), camRm2c(camRm2c), camTm2c(camTm2c), elev(0), mode(0) {}
 
     // Persist and load methods
     static Template load(cv::FileNode node);
