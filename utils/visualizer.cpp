@@ -220,7 +220,7 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
     // TODO user proper fx and fy
     // Init surface quantizedNormals
     cv::Mat sceneSurfaceNormals;
-    Processing::quantizedNormals(sceneDepth, sceneSurfaceNormals, 1150, 1150, 15000, 50);
+    Processing::quantizedNormals(sceneDepth, sceneSurfaceNormals, 1150, 1150, criteria->info.maxDepth, criteria->detect.matcher.maxDifference);
 
     for (size_t i = 0, windowsSize = windows.size(); i < windowsSize; ++i) {
         cv::Mat result = scene.clone();

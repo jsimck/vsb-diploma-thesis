@@ -7,38 +7,8 @@
 Classifier::Classifier() {
     criteria = std::make_shared<ClassifierCriteria>();
 
-    // ------- Train params -------
-    // Objectness
-    criteria->train.objectness.tEdgesMin = 0.01f;
-    criteria->train.objectness.tEdgesMax = 0.1f;
-
-    // Hasher
-    criteria->train.hasher.grid = cv::Size(12, 12);
-    criteria->train.hasher.tablesCount = 100;
-    criteria->train.hasher.binCount = 5;
-    criteria->train.hasher.maxDistance = 3;
-
-    // Matcher
-    criteria->train.matcher.pointsCount = 100;
-
-
-    // ------- Detect params -------
-    // Objectness
-    criteria->detect.objectness.step = 5;
-    criteria->detect.objectness.tMatch = 0.3f;
-
-    // Hasher
-    criteria->detect.hasher.minVotes = 3;
-
-    // Matcher
+    // Override default settings
     criteria->detect.matcher.tMatch = 0.4f;
-    criteria->detect.matcher.tOverlap = 0.1f;
-    criteria->detect.matcher.neighbourhood = cv::Range(-2, 2);
-    criteria->detect.matcher.tColorTest = 3;
-    criteria->detect.matcher.depthDeviationFunction = {{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {70000, 0.08f}};
-    criteria->detect.matcher.depthK = 0.05f;
-    criteria->detect.matcher.tMinGradMag = 0.1f;
-
 
     // Init classifiers
     objectness.setCriteria(criteria);
@@ -162,13 +132,15 @@ void Classifier::loadScene(const std::string &scenePath, const std::string &scen
     assert(scenePath.length() > 0);
     assert(sceneName.length() > 0);
 
+    const float scale = 1.2f;
+
     // Load scenes
     cv::Mat srcScene = cv::imread(scenePath + "rgb/" + sceneName + ".png", CV_LOAD_IMAGE_COLOR);
     cv::Mat srcSceneDepth = cv::imread(scenePath + "depth/" + sceneName + ".png", CV_LOAD_IMAGE_UNCHANGED);
 
     // Resize - TODO remove and add scale pyramid functionality
-    cv::resize(srcScene, scene, cv::Size(), 1.2, 1.2);
-    cv::resize(srcSceneDepth, sceneDepth, cv::Size(), 1.2, 1.2);
+    cv::resize(srcScene, scene, cv::Size(), scale, scale);
+    cv::resize(srcSceneDepth, sceneDepth, cv::Size(), scale, scale);
 
     // Convert and normalize
     cv::cvtColor(scene, sceneHSV, CV_BGR2HSV);
@@ -189,21 +161,32 @@ void Classifier::loadScene(const std::string &scenePath, const std::string &scen
     // TODO speed could be improved by only computing part of scene which is in objectness bounding box
     // Compute quantized surface normals and orientation gradients
     Processing::quantizedOrientationGradients(sceneGray, sceneQuantizedAngles, sceneMagnitudes);
+
+    // TODO better handling of max depth optimization
+    float ratio = 0;
+    for (size_t j = 0; j < criteria->detect.matcher.depthDeviationFunction.size() - 1; j++) {
+        if (criteria->info.maxDepth < criteria->detect.matcher.depthDeviationFunction[j + 1][0]) {
+            ratio = (1 - criteria->detect.matcher.depthDeviationFunction[j + 1][1]);
+            break;
+        }
+    }
+
     // TODO parse camera params and use proper fx and fy and distances etc
-    Processing::quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f, 15000, 100);
+    Processing::quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
+                                 static_cast<int>((criteria->info.maxDepth * scale) / ratio), criteria->detect.matcher.maxDifference);
 
     // Visualize scene
-//    cv::Mat normals = sceneQuantizedNormals.clone();
-//    cv::Mat gradients = sceneQuantizedAngles.clone();
-//    cv::Mat magnitudes = sceneMagnitudes.clone();
-//
-//    cv::normalize(gradients, gradients, 0, 255, CV_MINMAX);
-//    cv::normalize(magnitudes, magnitudes, 0, 1, CV_MINMAX);
-//
-//    cv::imshow("magnitudes", magnitudes);
-//    cv::imshow("quantizedNormals", normals);
-//    cv::imshow("quantizedGradients", gradients);
-//    cv::waitKey(0);
+    cv::Mat normals = sceneQuantizedNormals.clone();
+    cv::Mat gradients = sceneQuantizedAngles.clone();
+    cv::Mat magnitudes = sceneMagnitudes.clone();
+
+    cv::normalize(gradients, gradients, 0, 255, CV_MINMAX);
+    cv::normalize(magnitudes, magnitudes, 0, 1, CV_MINMAX);
+
+    cv::imshow("magnitudes", magnitudes);
+    cv::imshow("quantizedNormals", normals);
+    cv::imshow("quantizedGradients", gradients);
+    cv::waitKey(1);
 }
 
 void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath) {

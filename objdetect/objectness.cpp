@@ -27,16 +27,6 @@ void Objectness::extractMinEdgels(std::vector<Template> &templates) {
         if (edgels < criteria->info.minEdgels) {
             criteria->info.minEdgels = edgels;
         }
-
-        // Extract max depth from the image
-        for (int y = t.objBB.tl().y; y < t.objBB.br().y; y++) {
-            for (int x = t.objBB.tl().y; x < t.objBB.br().x; x++) {
-                ushort val = t.srcDepth.at<ushort>(y, x);
-                if (criteria->info.maxDepth < val) {
-                    criteria->info.maxDepth = val;
-                }
-            }
-        }
     }
 }
 

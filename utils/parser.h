@@ -19,7 +19,7 @@ private:
     std::shared_ptr<ClassifierCriteria> criteria;
 
     Template parseGt(uint index, const std::string &path, cv::FileNode &gtNode);
-    void parseInfo(Template &tpl, cv::FileNode &infoNode);
+    void parseInfo(Template &t, cv::FileNode &infoNode);
     void parseModelsInfo(const std::string &modelsPath);
 public:
     std::vector<uint> indices;

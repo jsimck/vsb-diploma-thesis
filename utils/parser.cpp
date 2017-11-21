@@ -2,6 +2,7 @@
 #include "../processing/processing.h"
 #include "../objdetect/matcher.h"
 #include "../objdetect/hasher.h"
+#include "../core/classifier_criteria.h"
 
 void Parser::parse(std::string basePath, std::string modelsPath, std::vector<Template> &templates) {
     // Load obj_gt
@@ -112,7 +113,7 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
     );
 }
 
-void Parser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
+void Parser::parseInfo(Template &t, cv::FileNode &infoNode) {
     // Init template param matrices
     std::vector<float> vCamK;
     int elev, mode;
@@ -122,18 +123,42 @@ void Parser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
     infoNode["elev"] >> elev;
     infoNode["mode"] >> mode;
 
-    // TODO max distance etc should be in criteria
-    // Compute normals based on camK params
-    Processing::quantizedNormals(tpl.srcDepth, tpl.quantizedNormals, vCamK[0], vCamK[4], 15000, 50);
-
-    // Checks
-    assert(!vCamK.empty());
-
     // Assign new train to template
-    tpl.elev = elev;
-    tpl.mode = mode;
-    tpl.azimuth = 5 * ((tpl.id % 2000) % 72); // Training templates are sampled in 5 step azimuth
-    tpl.camK = cv::Mat(3, 3, CV_32FC1, vCamK.data()).clone();
+    t.elev = elev;
+    t.mode = mode;
+    t.azimuth = 5 * ((t.id % 2000) % 72); // Training templates are sampled in 5 step azimuth
+    t.camK = cv::Mat(3, 3, CV_32FC1, vCamK.data()).clone();
+
+    // Find max depth and max local depth for depth quantization
+    ushort localMax = 0;
+    float ratio = 0;
+
+    for (int y = t.objBB.tl().y; y < t.objBB.br().y; y++) {
+        for (int x = t.objBB.tl().y; x < t.objBB.br().x; x++) {
+            ushort val = t.srcDepth.at<ushort>(y, x);
+
+            if (localMax < val) {
+                localMax = val;
+            }
+
+            if (criteria->info.maxDepth < val) {
+                criteria->info.maxDepth = val;
+            }
+        }
+    }
+
+    // TODO fix deviation function based on the other paper
+    // Normalize local max with depth deviation function function
+    for (size_t j = 0; j < criteria->detect.matcher.depthDeviationFunction.size() - 1; j++) {
+        if (localMax < criteria->detect.matcher.depthDeviationFunction[j + 1][0]) {
+            ratio = (1 - criteria->detect.matcher.depthDeviationFunction[j + 1][1]);
+            break;
+        }
+    }
+
+    // Compute normals
+    Processing::quantizedNormals(t.srcDepth, t.quantizedNormals, vCamK[0], vCamK[4],
+                                 static_cast<int>(localMax / ratio), criteria->detect.matcher.maxDifference);
 }
 
 void Parser::parseModelsInfo(const std::string &modelsPath) {
