@@ -36,9 +36,6 @@ void Parser::parse(std::string basePath, std::string modelsPath, std::vector<Tem
 
         // Parse template info file
         parseInfo(templates[i], objGt);
-        
-        cv::imshow("templates[i]depth", templates[i].quantizedNormals);
-        cv::waitKey(0);
     }
 
     fs.release();
@@ -120,7 +117,7 @@ void Parser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
     std::vector<float> vCamK;
     int elev, mode;
 
-    // Parse trainParams contained in info.yml
+    // Parse train contained in info.yml
     infoNode["cam_K"] >> vCamK;
     infoNode["elev"] >> elev;
     infoNode["mode"] >> mode;
@@ -132,7 +129,7 @@ void Parser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
     // Checks
     assert(!vCamK.empty());
 
-    // Assign new trainParams to template
+    // Assign new train to template
     tpl.elev = elev;
     tpl.mode = mode;
     tpl.azimuth = 5 * ((tpl.id % 2000) % 72); // Training templates are sampled in 5 step azimuth

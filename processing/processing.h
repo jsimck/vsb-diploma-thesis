@@ -61,7 +61,6 @@ public:
 
     // Quantization & discretization functions
     static uchar quantizeOrientationGradient(float deg);
-    static uchar quantizeSurfaceNormal(const cv::Vec3f &normal);
     static uchar quantizeDepth(float depth, std::vector<cv::Range> &ranges);
 };
 

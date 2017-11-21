@@ -3,6 +3,7 @@
 
 #include <ostream>
 #include <opencv2/core/hal/interface.h>
+#include <boost/functional/hash.hpp>
 
 /**
  * struct HashKey
@@ -16,8 +17,8 @@
  */
 struct HashKey {
 public:
-    uchar d1, d2; // d1, d2 relative depths are quantization into 5 bins each [index 0 - 4]
-    uchar n1, n2, n3; // n1, n2, n3 surface quantizedNormals are quantized into 8 discrete values each [index 0 - 7]
+    uchar d1, d2; // d1, d2 relative depths are quantization into 5 bins each
+    uchar n1, n2, n3; // n1, n2, n3 surface quantizedNormals are quantized into 8 discrete values each
 
     // Constructors
     HashKey(uchar d1 = 0, uchar d2 = 0, uchar n1 = 0, uchar n2 = 0, uchar n3 = 0) : d1(d1), d2(d2), n1(n1), n2(n2), n3(n3) {}
@@ -30,8 +31,15 @@ public:
 
 struct HashKeyHasher {
     std::size_t operator()(const HashKey& k) const {
-        std::hash<int> h;
-        return h(k.d1 << 0 | k.d2 << 3 | k.n1 << 6 | k.n2 << 9 | k.n3 << 12);
+        std::size_t seed = 0;
+
+        boost::hash_combine(seed, boost::hash_value(k.d1));
+        boost::hash_combine(seed, boost::hash_value(k.d2));
+        boost::hash_combine(seed, boost::hash_value(k.n1));
+        boost::hash_combine(seed, boost::hash_value(k.n2));
+        boost::hash_combine(seed, boost::hash_value(k.n3));
+
+        return seed;
     }
 };
 

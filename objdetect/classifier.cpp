@@ -9,35 +9,35 @@ Classifier::Classifier() {
 
     // ------- Train params -------
     // Objectness
-    criteria->trainParams.objectness.tEdgesMin = 0.01f;
-    criteria->trainParams.objectness.tEdgesMax = 0.1f;
+    criteria->train.objectness.tEdgesMin = 0.01f;
+    criteria->train.objectness.tEdgesMax = 0.1f;
 
     // Hasher
-    criteria->trainParams.hasher.grid = cv::Size(12, 12);
-    criteria->trainParams.hasher.tablesCount = 100;
-    criteria->trainParams.hasher.binCount = 5;
-    criteria->trainParams.hasher.maxDistance = 3;
+    criteria->train.hasher.grid = cv::Size(12, 12);
+    criteria->train.hasher.tablesCount = 100;
+    criteria->train.hasher.binCount = 5;
+    criteria->train.hasher.maxDistance = 3;
 
     // Matcher
-    criteria->trainParams.matcher.pointsCount = 100;
+    criteria->train.matcher.pointsCount = 100;
 
 
     // ------- Detect params -------
     // Objectness
-    criteria->detectParams.objectness.step = 5;
-    criteria->detectParams.objectness.tMatch = 0.3f;
+    criteria->detect.objectness.step = 5;
+    criteria->detect.objectness.tMatch = 0.3f;
 
     // Hasher
-    criteria->detectParams.hasher.minVotes = 3;
+    criteria->detect.hasher.minVotes = 3;
 
     // Matcher
-    criteria->detectParams.matcher.tMatch = 0.4f;
-    criteria->detectParams.matcher.tOverlap = 0.1f;
-    criteria->detectParams.matcher.neighbourhood = cv::Range(-2, 2);
-    criteria->detectParams.matcher.tColorTest = 3;
-    criteria->detectParams.matcher.depthDeviationFunction = {{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {70000, 0.08f}};
-    criteria->detectParams.matcher.depthK = 0.05f;
-    criteria->detectParams.matcher.tMinGradMag = 0.1f;
+    criteria->detect.matcher.tMatch = 0.4f;
+    criteria->detect.matcher.tOverlap = 0.1f;
+    criteria->detect.matcher.neighbourhood = cv::Range(-2, 2);
+    criteria->detect.matcher.tColorTest = 3;
+    criteria->detect.matcher.depthDeviationFunction = {{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {70000, 0.08f}};
+    criteria->detect.matcher.depthK = 0.05f;
+    criteria->detect.matcher.tMinGradMag = 0.1f;
 
 
     // Init classifiers
@@ -193,17 +193,17 @@ void Classifier::loadScene(const std::string &scenePath, const std::string &scen
     Processing::quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f, 15000, 100);
 
     // Visualize scene
-    cv::Mat normals = sceneQuantizedNormals.clone();
-    cv::Mat gradients = sceneQuantizedAngles.clone();
-    cv::Mat magnitudes = sceneMagnitudes.clone();
-
-    cv::normalize(gradients, gradients, 0, 255, CV_MINMAX);
-    cv::normalize(magnitudes, magnitudes, 0, 1, CV_MINMAX);
-
-    cv::imshow("magnitudes", magnitudes);
-    cv::imshow("quantizedNormals", normals);
-    cv::imshow("quantizedGradients", gradients);
-    cv::waitKey(0);
+//    cv::Mat normals = sceneQuantizedNormals.clone();
+//    cv::Mat gradients = sceneQuantizedAngles.clone();
+//    cv::Mat magnitudes = sceneMagnitudes.clone();
+//
+//    cv::normalize(gradients, gradients, 0, 255, CV_MINMAX);
+//    cv::normalize(magnitudes, magnitudes, 0, 1, CV_MINMAX);
+//
+//    cv::imshow("magnitudes", magnitudes);
+//    cv::imshow("quantizedNormals", normals);
+//    cv::imshow("quantizedGradients", gradients);
+//    cv::waitKey(0);
 }
 
 void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath) {
@@ -211,7 +211,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
     load(trainedTemplatesListPath, trainedPath);
     std::ostringstream oss;
 
-    for (int i = 400; i < 503; ++i) {
+    for (int i = 0; i < 503; ++i) {
         Timer tTotal;
 
         // Load scene
@@ -229,7 +229,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
         objectness.objectness(sceneDepthNorm, windows);
         std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
 
-//        Visualizer::visualizeWindows(this->scene, windows, false, 1, "Locations detected");
+//        Visualizer::visualizeWindows(this->scene, windows, false, 0, "Locations detected");
 
         /// Verification and filtering of template candidates
         assert(!tables.empty());

@@ -236,9 +236,9 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
         cv::rectangle(result, windows[i].tl(), windows[i].br(), cv::Scalar(0, 255, 0));
 
         for (auto &table : tables) {
-            // Prepare trainParams to load hash key
+            // Prepare train to load hash key
             TripletParams params(criteria->info.maxTemplate.width, criteria->info.maxTemplate.height,
-                                 criteria->trainParams.hasher.grid, windows[i].tl().x, windows[i].tl().y);
+                                 criteria->train.hasher.grid, windows[i].tl().x, windows[i].tl().y);
             cv::Point c = table.triplet.getCenter(params);
             cv::Point p1 = table.triplet.getP1(params);
             cv::Point p2 = table.triplet.getP2(params);

@@ -16,7 +16,7 @@ void Objectness::extractMinEdgels(std::vector<Template> &templates) {
         tNorm = tNorm(t.objBB);
 
         Processing::filterSobel(tNorm, tSobel, true, true);
-        Processing::thresholdMinMax(tSobel, tSobel, criteria->trainParams.objectness.tEdgesMin, criteria->trainParams.objectness.tEdgesMax);
+        Processing::thresholdMinMax(tSobel, tSobel, criteria->train.objectness.tEdgesMin, criteria->train.objectness.tEdgesMax);
 
         // Compute integral image for easier computation of edgels
         cv::integral(tNorm, tIntegral, CV_32F);
@@ -32,26 +32,26 @@ void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &window
     // Check thresholds and min edgels
     assert(criteria->info.smallestTemplate.area() > 0);
     assert(criteria->info.minEdgels > 0);
-    assert(criteria->detectParams.objectness.tMatch > 0);
+    assert(criteria->detect.objectness.tMatch > 0);
     assert(!sceneDepthNorm.empty());
     assert(sceneDepthNorm.type() == CV_32FC1);
 
     // Apply sobel filter and thresholding on normalized Depth scene (<0, 1> px values)
     cv::Mat sSobel;
     Processing::filterSobel(sceneDepthNorm, sSobel, true, true);
-    Processing::thresholdMinMax(sSobel, sSobel, criteria->trainParams.objectness.tEdgesMin, criteria->trainParams.objectness.tEdgesMax);
+    Processing::thresholdMinMax(sSobel, sSobel, criteria->train.objectness.tEdgesMin, criteria->train.objectness.tEdgesMax);
 
     // Calculate image integral
     cv::Mat sIntegral;
     cv::integral(sSobel, sIntegral, CV_32F);
 
-    auto edgels = static_cast<uint>(criteria->info.minEdgels * criteria->detectParams.objectness.tMatch);
+    auto edgels = static_cast<uint>(criteria->info.minEdgels * criteria->detect.objectness.tMatch);
     int sizeX = criteria->info.smallestTemplate.width;
     int sizeY = criteria->info.smallestTemplate.height;
 
     // Slide window over scene and calculate edge count for each overlap
-    for (int y = 0; y < sSobel.rows - sizeY; y += criteria->detectParams.objectness.step) {
-        for (int x = 0; x < sSobel.cols - sizeX; x += criteria->detectParams.objectness.step) {
+    for (int y = 0; y < sSobel.rows - sizeY; y += criteria->detect.objectness.step) {
+        for (int x = 0; x < sSobel.cols - sizeX; x += criteria->detect.objectness.step) {
 
             // Calc edge value in current sliding window with help of image integral
             auto sceneEdgels = static_cast<uint>(

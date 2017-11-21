@@ -33,7 +33,7 @@ public:
             float tEdgesMin; // Min threshold applied in sobel filtered image thresholding [0.01f]
             float tEdgesMax; // Max threshold applied in sobel filtered image thresholding [0.1f]
         } objectness;
-    } trainParams;
+    } train;
 
     // Detect params and thresholds
     struct {
@@ -58,7 +58,7 @@ public:
             int step; // Stepping for sliding window
             float tMatch; // Factor of minEdgels window should contain to be classified as valid [30% -> 0.3f]
         } objectness;
-    } detectParams;
+    } detect;
 
     // Data set info
     struct {

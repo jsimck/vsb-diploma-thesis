@@ -1,7 +1,5 @@
 #include <iostream>
-#include "utils/timer.h"
 #include "objdetect/classifier.h"
-#include "utils/utils.h"
 
 int main() {
     // Init classifier
