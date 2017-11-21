@@ -121,7 +121,7 @@ void Matcher::extractFeatures(std::vector<Template> &templates) {
             cv::Point edgePOff(t.edgePoints[j].x + t.objBB.x, t.edgePoints[j].y + t.objBB.y);
 
             // Save features
-            float depth = t.srcDepth.at<float>(stablePOff);
+            float depth = t.srcDepth.at<ushort>(stablePOff);
             t.features.depths.push_back(depth);
             t.features.gradients.emplace_back(t.quantizedGradients.at<uchar>(edgePOff));
             t.features.normals.emplace_back(t.quantizedNormals.at<uchar>(stablePOff));
@@ -173,7 +173,7 @@ int Matcher::testObjectSize(float scale, float depth, Window &window, cv::Mat &s
 
             // Get depth value at point
             float ratio = 0;
-            float sDepth = sceneDepth.at<float>(offsetP);
+            float sDepth = sceneDepth.at<ushort>(offsetP);
 
             // TODO better wrong depth handling
             if (sDepth == 0) continue;
@@ -247,7 +247,7 @@ int Matcher::testDepth(float scale, float diameter, float depthMedian, Window &w
                 offsetP.x < 0 || offsetP.y < 0)
                 continue;
 
-            if ((sceneDepth.at<float>(offsetP) - depthMedian * scale) < (criteria->detect.matcher.depthK * diameter * criteria->info.depthScaleFactor)) {
+            if ((sceneDepth.at<ushort>(offsetP) - depthMedian * scale) < (criteria->detect.matcher.depthK * diameter * criteria->info.depthScaleFactor)) {
                 return 1;
             }
         }
@@ -337,7 +337,7 @@ void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
     matches.swap(pick);
 }
 
-#define VISUALIZE
+//#define VISUALIZE
 void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat &sceneMagnitudes, cv::Mat &sceneAnglesQuantized,
                     cv::Mat &sceneSurfaceNormalsQuantized, std::vector<Window> &windows, std::vector<Match> &matches) {
     // Checks

@@ -29,6 +29,8 @@ const uchar Processing::NORMAL_LUT[Processing::NORMAL_LUT_SIZE][Processing::NORM
         {8,  8,  8,  8,  8,  8,  8,  4,  4,  4,  4,  4,   4,   4,   2,   2,   2,   2,   2,   2}
 };
 
+const uchar Processing::DEPTH_LUT[Processing::DEPTH_LUT_SIZE] = {1, 2, 4, 8, 16};
+
 void Processing::accumulateBilateral(long delta, long xShift, long yShift, long *A, long *b, int maxDifference) {
     long f = std::abs(delta) < maxDifference ? 1 : 0;
 
@@ -212,12 +214,12 @@ uchar Processing::quantizeDepth(float depth, std::vector<cv::Range> &ranges) {
     const size_t iSize = ranges.size();
     for (size_t i = 0; i < iSize; i++) {
         if (ranges[i].start >= depth && depth < ranges[i].end) {
-            return static_cast<uchar>(i);
+            return DEPTH_LUT[i];
         }
     }
 
     // If value is IMG_16BIT_MAX it belongs to last bin
-    return static_cast<uchar>(iSize - 1);
+    return DEPTH_LUT[iSize - 1];
 }
 
 uchar Processing::quantizeOrientationGradient(float deg) {

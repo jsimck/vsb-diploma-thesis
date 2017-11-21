@@ -7,8 +7,12 @@
 
 class Processing {
 private:
+    // Lookup tables
     static const int NORMAL_LUT_SIZE = 20;
     static const uchar NORMAL_LUT[NORMAL_LUT_SIZE][NORMAL_LUT_SIZE];
+
+    static const int DEPTH_LUT_SIZE = 5;
+    static const uchar DEPTH_LUT[DEPTH_LUT_SIZE];
 
     /**
      * Applies bilateral filtering around each point A computing optimal gradient in b.

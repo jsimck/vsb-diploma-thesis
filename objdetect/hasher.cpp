@@ -165,6 +165,7 @@ void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tab
 }
 
 // #define VISUALIZE
+// TODO skip wrong depths
 void Hasher::verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSurfaceNormalsQuantized,
                               std::vector<HashTable> &tables, std::vector<Window> &windows) {
     // Checks
@@ -179,9 +180,9 @@ void Hasher::verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSur
 
     // TODO find and fix memory leak
 #ifdef VISUALIZE
-    #pragma omp parallel for default(none) shared(windows, newWindows, sceneDepth, sceneSurfaceNormalsQuantized, tables) firstprivate(criteria) ordered
+//    #pragma omp parallel for default(none) shared(windows, newWindows, sceneDepth, sceneSurfaceNormalsQuantized, tables) firstprivate(criteria) ordered
 #else
-    #pragma omp parallel for default(none) shared(windows, newWindows, sceneDepth, sceneSurfaceNormalsQuantized, tables) firstprivate(criteria)
+//    #pragma omp parallel for default(none) shared(windows, newWindows, sceneDepth, sceneSurfaceNormalsQuantized, tables) firstprivate(criteria)
 #endif
     for (size_t i = 0; i < windowsSize; ++i) {
         std::unordered_map<int, HashTableCandidate> tableCandidates;
@@ -244,9 +245,9 @@ void Hasher::verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSur
             }
 
 #ifdef VISUALIZE
-            #pragma omp ordered
+//            #pragma omp ordered
 #else
-            #pragma omp critical
+//            #pragma omp critical
 #endif
             newWindows.push_back(std::move(windows[i]));
         }
