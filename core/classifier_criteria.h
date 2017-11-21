@@ -11,6 +11,7 @@
  *
  * Holds information about loaded data set and all thresholds for further computation
  */
+
 struct ClassifierCriteria {
 public:
     // Train params and thresholds
@@ -51,6 +52,7 @@ public:
             std::vector<cv::Vec2f> depthDeviationFunction; // Correction function returning error in percentage for given depth
             float depthK; // Constant used in IV test (depth test)
             float tMinGradMag; // Minimal gradient magnitude to classify as gradient
+            ushort maxDifference; // Max difference in surface normal quantization
         } matcher;
 
         // Objectness
@@ -65,7 +67,8 @@ public:
         int minEdgels;
         float depthScaleFactor; // in our cases 1 => 0.1mm so to get 1mm we need to multiply values by 10
         cv::Size smallestTemplate;
-        cv::Size maxTemplate;
+        cv::Size largestTemplate;
+        int maxDepth; // Max depth within object bounding box
     } info;
 
     // Constructors
@@ -74,9 +77,6 @@ public:
     // Persistence
     static void load(cv::FileStorage fsr, std::shared_ptr<ClassifierCriteria> criteria);
     void save(cv::FileStorage &fsw);
-    
-    // Methods
-    void resetInfo();
 
     friend std::ostream &operator<<(std::ostream &os, const ClassifierCriteria &criteria);
 };

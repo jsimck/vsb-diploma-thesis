@@ -51,12 +51,12 @@ void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<H
 
             // Offset for the triplet grid
             cv::Point gridOffset(
-                t.objBB.tl().x - (criteria->info.maxTemplate.width - t.objBB.width) / 2,
-                t.objBB.tl().y - (criteria->info.maxTemplate.height - t.objBB.height) / 2
+                t.objBB.tl().x - (criteria->info.largestTemplate.width - t.objBB.width) / 2,
+                t.objBB.tl().y - (criteria->info.largestTemplate.height - t.objBB.height) / 2
             );
 
             // Absolute triplet points
-            TripletParams tParams(criteria->info.maxTemplate.width, criteria->info.maxTemplate.height, criteria->train.hasher.grid, gridOffset.x, gridOffset.y);
+            TripletParams tParams(criteria->info.largestTemplate.width, criteria->info.largestTemplate.height, criteria->train.hasher.grid, gridOffset.x, gridOffset.y);
             cv::Point c = tables[i].triplet.getCenter(tParams);
             cv::Point p1 = tables[i].triplet.getP1(tParams);
             cv::Point p2 = tables[i].triplet.getP2(tParams);
@@ -118,7 +118,7 @@ void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tab
     assert(criteria->train.hasher.tablesCount > 0);
     assert(criteria->train.hasher.grid.width > 0);
     assert(criteria->train.hasher.grid.height > 0);
-    assert(criteria->info.maxTemplate.area() > 0);
+    assert(criteria->info.largestTemplate.area() > 0);
 
     // Prepare hash tables and histogram bin ranges
     initialize(templates, tables);
@@ -132,7 +132,7 @@ void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tab
             assert(!t.srcDepth.empty());
 
             // Get triplet points
-            TripletParams coordParams(criteria->info.maxTemplate.width, criteria->info.maxTemplate.height, criteria->train.hasher.grid, t.objBB.tl().x, t.objBB.tl().y);
+            TripletParams coordParams(criteria->info.largestTemplate.width, criteria->info.largestTemplate.height, criteria->train.hasher.grid, t.objBB.tl().x, t.objBB.tl().y);
             cv::Point c = tables[i].triplet.getCenter(coordParams);
             cv::Point p1 = tables[i].triplet.getP1(coordParams);
             cv::Point p2 = tables[i].triplet.getP2(coordParams);
@@ -173,7 +173,7 @@ void Hasher::verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSur
     assert(!sceneDepth.empty());
     assert(!windows.empty());
     assert(!tables.empty());
-    assert(criteria->info.maxTemplate.area() > 0);
+    assert(criteria->info.largestTemplate.area() > 0);
 
     std::vector<Window> newWindows;
     const size_t windowsSize = windows.size();
@@ -189,7 +189,7 @@ void Hasher::verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSur
 
         for (auto &table : tables) {
             // Get triplet points
-            TripletParams tParams(criteria->info.maxTemplate.width, criteria->info.maxTemplate.height, criteria->train.hasher.grid, windows[i].tl().x, windows[i].tl().y);
+            TripletParams tParams(criteria->info.largestTemplate.width, criteria->info.largestTemplate.height, criteria->train.hasher.grid, windows[i].tl().x, windows[i].tl().y);
             cv::Point c = table.triplet.getCenter(tParams);
             cv::Point p1 = table.triplet.getP1(tParams);
             cv::Point p2 = table.triplet.getP2(tParams);

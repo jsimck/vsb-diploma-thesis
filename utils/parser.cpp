@@ -81,11 +81,11 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
     }
 
     // Find largest object
-    if (objBB.width >= criteria->info.maxTemplate.width) {
-        criteria->info.maxTemplate.width = objBB.width;
+    if (objBB.width >= criteria->info.largestTemplate.width) {
+        criteria->info.largestTemplate.width = objBB.width;
     }
-    if (objBB.height >= criteria->info.maxTemplate.height) {
-        criteria->info.maxTemplate.height = objBB.height;
+    if (objBB.height >= criteria->info.largestTemplate.height) {
+        criteria->info.largestTemplate.height = objBB.height;
     }
 
     // Calculate quantizedGradients and quantizedNormals

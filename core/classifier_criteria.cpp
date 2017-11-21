@@ -31,16 +31,14 @@ ClassifierCriteria::ClassifierCriteria() {
     detect.matcher.depthDeviationFunction = {{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {70000, 0.08f}};
     detect.matcher.depthK = 0.05f;
     detect.matcher.tMinGradMag = 0.1f;
+    detect.matcher.maxDifference = 100;
 
     // Initialize info
     info.depthScaleFactor = 10.0f;
-    resetInfo();
-}
-
-void ClassifierCriteria::resetInfo() {
     info.smallestTemplate = cv::Size(500, 500); // There are no templates larger than 400x400
-    info.maxTemplate = cv::Size(0, 0);
+    info.largestTemplate = cv::Size(0, 0);
     info.minEdgels = INT_MAX;
+    info.maxDepth = 0;
 }
 
 void ClassifierCriteria::load(cv::FileStorage fsr, std::shared_ptr<ClassifierCriteria> criteria) {
@@ -60,8 +58,9 @@ void ClassifierCriteria::load(cv::FileStorage fsr, std::shared_ptr<ClassifierCri
 
     infoNode["depthScaleFactor"] >> criteria->info.depthScaleFactor;
     infoNode["smallestTemplate"] >> criteria->info.smallestTemplate;
-    infoNode["maxTemplate"] >> criteria->info.maxTemplate;
+    infoNode["largestTemplate"] >> criteria->info.largestTemplate;
     infoNode["minEdgels"] >> criteria->info.minEdgels;
+    infoNode["maxDepth"] >> criteria->info.maxDepth;
 }
 
 void ClassifierCriteria::save(cv::FileStorage &fsw) {
@@ -84,8 +83,9 @@ void ClassifierCriteria::save(cv::FileStorage &fsw) {
         fsw << "info" << "{";
             fsw << "depthScaleFactor" << info.depthScaleFactor;
             fsw << "smallestTemplate" << info.smallestTemplate;
-            fsw << "maxTemplate" << info.maxTemplate;
+            fsw << "largestTemplate" << info.largestTemplate;
             fsw << "minEdgels" << info.minEdgels;
+            fsw << "maxDepth" << info.maxDepth;
         fsw << "}";
     fsw << "}";
 }
@@ -113,7 +113,8 @@ std::ostream &operator<<(std::ostream &os, const ClassifierCriteria &criteria) {
     os << "  |_ depthScaleFactor: " << criteria.info.depthScaleFactor << std::endl;
     os << "  |_ smallestTemplate: " << criteria.info.smallestTemplate << std::endl;
     os << "  |_ minEdgels: " << criteria.info.minEdgels << std::endl;
-    os << "  |_ maxTemplate: " << criteria.info.maxTemplate << std::endl;
+    os << "  |_ largestTemplate: " << criteria.info.largestTemplate << std::endl;
+    os << "  |_ maxDepth: " << criteria.info.maxDepth << std::endl;
 
     return os;
 }

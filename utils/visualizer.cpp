@@ -232,12 +232,12 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
         }
 
         // Draw window and searched box rectangles
-        cv::rectangle(result, windows[i].tl(), windows[i].tl() + cv::Point(criteria->info.maxTemplate), cv::Scalar::all(255));
+        cv::rectangle(result, windows[i].tl(), windows[i].tl() + cv::Point(criteria->info.largestTemplate), cv::Scalar::all(255));
         cv::rectangle(result, windows[i].tl(), windows[i].br(), cv::Scalar(0, 255, 0));
 
         for (auto &table : tables) {
             // Prepare train to load hash key
-            TripletParams params(criteria->info.maxTemplate.width, criteria->info.maxTemplate.height,
+            TripletParams params(criteria->info.largestTemplate.width, criteria->info.largestTemplate.height,
                                  criteria->train.hasher.grid, windows[i].tl().x, windows[i].tl().y);
             cv::Point c = table.triplet.getCenter(params);
             cv::Point p1 = table.triplet.getP1(params);
@@ -275,13 +275,13 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
         // Labels
         oss.str("");
         oss << "candidates: " << windows[i].candidates.size();
-        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(criteria->info.maxTemplate.width + 5, 10));
+        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(criteria->info.largestTemplate.width + 5, 10));
         oss.str("");
         oss << "matched: " << matched << "/" << tables.size();
-        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(criteria->info.maxTemplate.width + 5, 28));
+        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(criteria->info.largestTemplate.width + 5, 28));
         oss.str("");
         oss << "edgels: " << windows[i].edgels;
-        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(criteria->info.maxTemplate.width + 5, 46));
+        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(criteria->info.largestTemplate.width + 5, 46));
 
         // Show results
         cv::imshow(title == nullptr ? "Hashing visualization" : title, result);
