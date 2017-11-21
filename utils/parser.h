@@ -15,7 +15,6 @@
  */
 class Parser {
 private:
-    uint idCounter;
     std::vector<float> diameters;
     std::shared_ptr<ClassifierCriteria> criteria;
 

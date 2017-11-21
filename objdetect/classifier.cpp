@@ -174,7 +174,6 @@ void Classifier::loadScene(const std::string &scenePath, const std::string &scen
     cv::cvtColor(scene, sceneHSV, CV_BGR2HSV);
     cv::cvtColor(scene, sceneGray, CV_BGR2GRAY);
     sceneGray.convertTo(sceneGray, CV_32F, 1.0f / 255.0f);
-    sceneDepth.convertTo(sceneDepth, CV_32F); // TODO work with 16U (int) rather than floats
     sceneDepth.convertTo(sceneDepthNorm, CV_32F, 1.0f / 65536.0f);
 
     // Check if conversion went ok
@@ -182,22 +181,22 @@ void Classifier::loadScene(const std::string &scenePath, const std::string &scen
     assert(!sceneGray.empty());
     assert(!sceneDepthNorm.empty());
     assert(scene.type() == CV_8UC3);
+    assert(sceneDepth.type() == CV_16U);
     assert(sceneHSV.type() == CV_8UC3);
     assert(sceneGray.type() == CV_32FC1);
-    assert(sceneDepth.type() == CV_32FC1);
     assert(sceneDepthNorm.type() == CV_32FC1);
 
     // TODO speed could be improved by only computing part of scene which is in objectness bounding box
     // Compute quantized surface normals and orientation gradients
     Processing::quantizedOrientationGradients(sceneGray, sceneQuantizedAngles, sceneMagnitudes);
-    Processing::quantizedSurfaceNormals(sceneDepth, sceneQuantizedSurfaceNormals);
+    // TODO parse camera params and use proper fx and fy and distances etc
+    Processing::quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f, 15000, 100);
 
     // Visualize scene
-//    cv::Mat normals = sceneQuantizedSurfaceNormals.clone();
+//    cv::Mat normals = sceneQuantizedNormals.clone();
 //    cv::Mat gradients = sceneQuantizedAngles.clone();
 //    cv::Mat magnitudes = sceneMagnitudes.clone();
 //
-//    cv::normalize(normals, normals, 0, 255, CV_MINMAX);
 //    cv::normalize(gradients, gradients, 0, 255, CV_MINMAX);
 //    cv::normalize(magnitudes, magnitudes, 0, 1, CV_MINMAX);
 //
@@ -212,7 +211,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
     load(trainedTemplatesListPath, trainedPath);
     std::ostringstream oss;
 
-    for (int i = 0; i < 503; ++i) {
+    for (int i = 400; i < 503; ++i) {
         Timer tTotal;
 
         // Load scene
@@ -236,7 +235,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
         assert(!tables.empty());
 
         Timer tVerification;
-        hasher.verifyCandidates(sceneDepth, sceneQuantizedSurfaceNormals, tables, windows);
+        hasher.verifyCandidates(sceneDepth, sceneQuantizedNormals, tables, windows);
         std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
 
 //        Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, criteria, true);
@@ -244,7 +243,7 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
 
         /// Match templates
         assert(!windows.empty());
-        matcher.match(1.2f, sceneHSV, sceneDepth, sceneMagnitudes, sceneQuantizedAngles, sceneQuantizedSurfaceNormals, windows, matches);
+        matcher.match(1.2f, sceneHSV, sceneDepth, sceneMagnitudes, sceneQuantizedAngles, sceneQuantizedNormals, windows, matches);
 
         /// Show matched template results
         Visualizer::visualizeMatches(scene, matches, "data/", 1);

@@ -5,7 +5,6 @@
 
 void Parser::parse(std::string basePath, std::string modelsPath, std::vector<Template> &templates) {
     // Load obj_gt
-    idCounter = 0;
     cv::FileStorage fs;
     fs.open(basePath + "/gt.yml", cv::FileStorage::READ);
     assert(fs.isOpened());
@@ -23,7 +22,6 @@ void Parser::parse(std::string basePath, std::string modelsPath, std::vector<Tem
 
         // Parse template gt file
         templates.push_back(parseGt(tplIndex, basePath, objGt));
-        idCounter++;
     }
 
     // Load obj_info
@@ -32,12 +30,15 @@ void Parser::parse(std::string basePath, std::string modelsPath, std::vector<Tem
     assert(fs.isOpened());
 
     for (uint i = 0; i < size; i++) {
-        uint tplIndex = static_cast<uint>((!indices.empty()) ? indices[i] : i);
+        auto tplIndex = static_cast<uint>((!indices.empty()) ? indices[i] : i);
         std::string index = "tpl_" + std::to_string(tplIndex);
         cv::FileNode objGt = fs[index];
 
         // Parse template info file
         parseInfo(templates[i], objGt);
+        
+        cv::imshow("templates[i]depth", templates[i].quantizedNormals);
+        cv::waitKey(0);
     }
 
     fs.release();
@@ -69,13 +70,12 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
     cv::Mat src = cv::imread(path + "/rgb/" + fileName + ".png", CV_LOAD_IMAGE_COLOR);
     cv::Mat srcDepth = cv::imread(path + "/depth/" + fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
 
-    // Convert to grayscale and HSV
+    // Convert to gray and HSV
     cv::cvtColor(src, srcHSV, CV_BGR2HSV);
     cv::cvtColor(src, src, CV_BGR2GRAY);
 
     // Convert to float
     src.convertTo(src, CV_32F, 1.0f / 255.0f);
-    srcDepth.convertTo(srcDepth, CV_32F); // because of surface normal calculation, don'tpl doo normalization
 
     // Find smallest object
     if (objBB.area() < criteria->info.smallestTemplate.area()) {
@@ -92,9 +92,8 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
     }
 
     // Calculate quantizedGradients and quantizedNormals
-    cv::Mat gradients, magnitudes, normals;
+    cv::Mat gradients, magnitudes;
     Processing::quantizedOrientationGradients(src, gradients, magnitudes);
-    Processing::quantizedSurfaceNormals(srcDepth, normals);
 
     // Checks
     assert(!vObjBB.empty());
@@ -106,13 +105,14 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
 
     // Matrix type checks
     assert(src.type() == CV_32FC1);
-    assert(srcDepth.type() == CV_32FC1);
+    assert(srcDepth.type() == CV_16U);
 
-    return {
-        idCounter + (2000 * id), fileName, diameter, std::move(src), std::move(srcHSV), std::move(srcDepth),
-        std::move(gradients), std::move(normals), objBB, cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone(),
+    // TODO cleanup Template constructor (initializing empty normal matrix, since it needs to be done parseInfo) in  etc.
+    return Template(
+        index + (2000 * id), fileName, diameter, std::move(src), std::move(srcHSV), std::move(srcDepth),
+        std::move(gradients), cv::Mat(), objBB, cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone(),
         cv::Vec3d(vCamTm2c[0], vCamTm2c[1], vCamTm2c[2])
-    };
+    );
 }
 
 void Parser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
@@ -125,12 +125,17 @@ void Parser::parseInfo(Template &tpl, cv::FileNode &infoNode) {
     infoNode["elev"] >> elev;
     infoNode["mode"] >> mode;
 
+    // TODO max distance etc should be in criteria
+    // Compute normals based on camK params
+    Processing::quantizedNormals(tpl.srcDepth, tpl.quantizedNormals, vCamK[0], vCamK[4], 15000, 50);
+
     // Checks
     assert(!vCamK.empty());
 
     // Assign new trainParams to template
     tpl.elev = elev;
     tpl.mode = mode;
+    tpl.azimuth = 5 * ((tpl.id % 2000) % 72); // Training templates are sampled in 5 step azimuth
     tpl.camK = cv::Mat(3, 3, CV_32FC1, vCamK.data()).clone();
 }
 

@@ -37,6 +37,7 @@ void Template::save(cv::FileStorage &fs) {
     fs << "camTm2c" << camTm2c;
     fs << "elev" << elev;
     fs << "mode" << mode;
+    fs << "azimuth" << azimuth;
     fs << "}";
 }
 
@@ -59,6 +60,7 @@ Template Template::load(cv::FileNode node) {
     node["camTm2c"] >> t.camTm2c;
     node["elev"] >> t.elev;
     node["mode"] >> t.mode;
+    node["azimuth"] >> t.azimuth;
 
     return t;
 }
@@ -84,10 +86,7 @@ cv::Mat Template::loadSrc(const std::string &basePath, const Template &tpl, int 
 }
 
 bool Template::operator==(const Template &rhs) const {
-    return id == rhs.id &&
-           fileName == rhs.fileName &&
-           elev == rhs.elev &&
-           mode == rhs.mode;
+    return id == rhs.id;
 }
 
 bool Template::operator!=(const Template &rhs) const {
@@ -108,6 +107,7 @@ std::ostream &operator<<(std::ostream &os, const Template &t) {
        << "camTm2c: " << t.camTm2c  << std::endl
        << "elev: " << t.elev  << std::endl
        << "mode: " << t.mode << std::endl
+       << "azimuth: " << t.azimuth << std::endl
        << "quantizedGradients size: " << t.features.gradients.size() << std::endl
        << "quantizedNormals size: " << t.features.normals.size() << std::endl
        << "depths size: " << t.features.depths.size() << std::endl

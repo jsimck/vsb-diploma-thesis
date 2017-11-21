@@ -175,6 +175,7 @@ void Hasher::verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSur
     std::vector<Window> newWindows;
     const size_t windowsSize = windows.size();
 
+    // TODO find and fix memory leak
 #ifdef VISUALIZE
     #pragma omp parallel for default(none) shared(windows, newWindows, sceneDepth, sceneSurfaceNormalsQuantized, tables) firstprivate(criteria) ordered
 #else
