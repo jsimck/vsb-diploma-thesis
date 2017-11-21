@@ -43,14 +43,15 @@ void Processing::accumulateBilateral(long delta, long xShift, long yShift, long 
 }
 
 void Processing::quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, float fy, int maxDistance, int maxDifference) {
-    assert(src.type() == CV_16U); // 16-bit depth image
+    assert(!src.empty());
+    assert(src.type() == CV_16U);
 
     dst = cv::Mat::zeros(src.size(), CV_8U);
-    const int PS = 5; // patch size
+    int PS = 5; // patch size
+    auto offsetX = static_cast<int>(Processing::NORMAL_LUT_SIZE * 0.5f);
+    auto offsetY = static_cast<int>(Processing::NORMAL_LUT_SIZE * 0.5f);
 
-    const int offsetX = Processing::NORMAL_LUT_SIZE / 2;
-    const int offsetY = Processing::NORMAL_LUT_SIZE / 2;
-
+    #pragma omp parallel for default(none) shared(src, dst) firstprivate(fx, fy, maxDistance, maxDifference, PS, offsetX, offsetY)
     for (int y = PS; y < src.rows - PS; y++) {
         for (int x = PS; x < src.cols - PS; x++) {
             // Get depth value at (x,y)
@@ -90,12 +91,12 @@ void Processing::quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, fl
                     // Normalize normal
                     Nx *= normInv;
                     Ny *= normInv;
-                    Nz *= normInv;
+                    // Nz *= normInv;
 
                     // Get values for pre-generated Normal look up table
                     auto vX = static_cast<int>(Nx * offsetX + offsetX);
                     auto vY = static_cast<int>(Ny * offsetY + offsetY);
-                    auto vZ = static_cast<int>(Nz * Processing::NORMAL_LUT_SIZE + Processing::NORMAL_LUT_SIZE);
+                    // auto vZ = static_cast<int>(Nz * Processing::NORMAL_LUT_SIZE + Processing::NORMAL_LUT_SIZE);
 
                     // Save quantized normals, ignore vZ, we quantize only in top half of sphere (cone)
                     dst.at<uchar>(y, x) = NORMAL_LUT[vY][vX];
@@ -111,6 +112,15 @@ void Processing::quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, fl
 
     cv::medianBlur(dst, dst, 5);
 }
+
+void Processing::relativeDepths(const cv::Mat &src, cv::Point c, cv::Point p1, cv::Point p2, int *depths) {
+    assert(!src.empty());
+    assert(src.type() == CV_16U);
+
+    depths[0] = static_cast<int>(src.at<ushort>(p1) - src.at<ushort>(c));
+    depths[1] = static_cast<int>(src.at<ushort>(p2) - src.at<ushort>(c));
+}
+
 
 void Processing::filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter, bool yFilter) {
     assert(!src.empty());
@@ -169,29 +179,6 @@ void Processing::thresholdMinMax(const cv::Mat &src, cv::Mat &dst, float min, fl
     }
 }
 
-void Processing::quantizedSurfaceNormals(const cv::Mat &srcDepth, cv::Mat &quantizedSurfaceNormals) {
-    assert(!srcDepth.empty());
-    assert(srcDepth.type() == CV_32FC1);
-
-    // Blur image to reduce noise
-    cv::Mat srcBlurred;
-    cv::GaussianBlur(srcDepth, srcBlurred, cv::Size(3, 3), 0, 0);
-//    srcBlurred = srcDepth.clone();
-    quantizedSurfaceNormals = cv::Mat::zeros(srcDepth.size(), CV_8UC1);
-
-    #pragma omp parallel for default(none) shared(srcBlurred, quantizedSurfaceNormals)
-    for (int y = 1; y < srcBlurred.rows - 1; y++) {
-        for (int x = 1; x < srcBlurred.cols - 1; x++) {
-            float dzdx = (srcBlurred.at<float>(y, x + 1) - srcBlurred.at<float>(y, x - 1)) / 2.0f;
-            float dzdy = (srcBlurred.at<float>(y + 1, x) - srcBlurred.at<float>(y - 1, x)) / 2.0f;
-            cv::Vec3f d(-dzdy, -dzdx, 1.0f);
-
-            // Normalize and save normal
-            quantizedSurfaceNormals.at<uchar>(y, x) = quantizeSurfaceNormal(cv::normalize(d));
-        }
-    }
-}
-
 void Processing::quantizedOrientationGradients(const cv::Mat &srcGray, cv::Mat &quantizedOrientations, cv::Mat &magnitude) {
     // Checks
     assert(!srcGray.empty());
@@ -233,42 +220,6 @@ uchar Processing::quantizeDepth(float depth, std::vector<cv::Range> &ranges) {
     return static_cast<uchar>(iSize - 1);
 }
 
-uchar Processing::quantizeSurfaceNormal(const cv::Vec3f &normal) {
-    // Normal z coordinate should not be < 0
-    assert(normal[2] >= 0);
-
-    // In our case z is always positive, that's why we're using
-    // 8 octants in top half of sphere only to quantize into 8 bins
-    static cv::Vec3f octantNormals[8] = {
-            cv::Vec3f(0.707107f, 0.0f, 0.707107f), // 0. octant
-            cv::Vec3f(0.57735f, 0.57735f, 0.707107f), // 1. octant
-            cv::Vec3f(0.0f, 0.707107f, 0.707107f), // 2. octant
-            cv::Vec3f(-0.57735f, 0.57735f, 0.707107f), // 3. octant
-            cv::Vec3f(-0.707107f, 0.0f, 0.707107f), // 4. octant
-            cv::Vec3f(-0.57735f, -0.57735f, 0.707107f), // 5. octant
-            cv::Vec3f(0.0f, -0.707107f, 0.707107f), // 6. octant
-            cv::Vec3f(0.57735f, -0.57735f, 0.707107f), // 7. octant
-    };
-
-    uchar minIndex = 9;
-    float maxDot = 0, dot = 0;
-    for (uchar i = 0; i < 8; i++) {
-        // By doing dot product between octant octantNormals and calculated normal
-        // we can find maximum -> index of octant where the vector belongs to
-        dot = normal.dot(octantNormals[i]);
-
-        if (dot > maxDot) {
-            maxDot = dot;
-            minIndex = i;
-        }
-    }
-
-    // Index should in interval <0,7>
-    assert(minIndex >= 0 && minIndex < 8);
-
-    return minIndex;
-}
-
 uchar Processing::quantizeOrientationGradient(float deg) {
     // Checks
     assert(deg >= 0);
@@ -289,13 +240,4 @@ uchar Processing::quantizeOrientationGradient(float deg) {
     } else {
         return 4;
     }
-}
-
-void Processing::relativeDepths(const cv::Mat &src, cv::Point c, cv::Point p1, cv::Point p2, float *depths) {
-    assert(!src.empty());
-    assert(src.type() == CV_16U);
-
-    // Compute relative depths
-    depths[0] = src.at<float>(p1) - src.at<float>(c);
-    depths[1] = src.at<float>(p2) - src.at<float>(c);
 }

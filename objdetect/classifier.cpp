@@ -193,17 +193,17 @@ void Classifier::loadScene(const std::string &scenePath, const std::string &scen
     Processing::quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f, 15000, 100);
 
     // Visualize scene
-//    cv::Mat normals = sceneQuantizedNormals.clone();
-//    cv::Mat gradients = sceneQuantizedAngles.clone();
-//    cv::Mat magnitudes = sceneMagnitudes.clone();
-//
-//    cv::normalize(gradients, gradients, 0, 255, CV_MINMAX);
-//    cv::normalize(magnitudes, magnitudes, 0, 1, CV_MINMAX);
-//
-//    cv::imshow("magnitudes", magnitudes);
-//    cv::imshow("quantizedNormals", normals);
-//    cv::imshow("quantizedGradients", gradients);
-//    cv::waitKey(0);
+    cv::Mat normals = sceneQuantizedNormals.clone();
+    cv::Mat gradients = sceneQuantizedAngles.clone();
+    cv::Mat magnitudes = sceneMagnitudes.clone();
+
+    cv::normalize(gradients, gradients, 0, 255, CV_MINMAX);
+    cv::normalize(magnitudes, magnitudes, 0, 1, CV_MINMAX);
+
+    cv::imshow("magnitudes", magnitudes);
+    cv::imshow("quantizedNormals", normals);
+    cv::imshow("quantizedGradients", gradients);
+    cv::waitKey(0);
 }
 
 void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath) {

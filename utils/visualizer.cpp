@@ -217,9 +217,10 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
     cv::Scalar colorRed(0, 0, 255);
     std::ostringstream oss;
 
+    // TODO user proper fx and fy
     // Init surface quantizedNormals
     cv::Mat sceneSurfaceNormals;
-    Processing::quantizedSurfaceNormals(sceneDepth, sceneSurfaceNormals);
+    Processing::quantizedNormals(sceneDepth, sceneSurfaceNormals, 1150, 1150, 15000, 50);
 
     for (size_t i = 0, windowsSize = windows.size(); i < windowsSize; ++i) {
         cv::Mat result = scene.clone();
@@ -248,7 +249,8 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
                 (p2.x < 0 || p2.x >= sceneSurfaceNormals.cols || p2.y < 0 || p2.y >= sceneSurfaceNormals.rows)) continue;
 
             // Relative depths
-            cv::Vec2i d = Processing::relativeDepths(sceneDepth, c, p1, p2);
+            int d[2];
+            Processing::relativeDepths(sceneDepth, c, p1, p2, d);
 
             // Generate hash key
             HashKey key(

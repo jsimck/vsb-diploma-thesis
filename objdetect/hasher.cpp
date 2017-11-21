@@ -70,7 +70,8 @@ void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<H
             assert(p2.y >= 0 && p2.y < t.srcDepth.rows);
 
             // Relative depths
-            cv::Vec2i d = Processing::relativeDepths(t.srcDepth, c, p1, p2);
+            int d[2];
+            Processing::relativeDepths(t.srcDepth, c, p1, p2, d);
             rDepths.push_back(d[0]);
             rDepths.push_back(d[1]);
         }
@@ -145,7 +146,8 @@ void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tab
             assert(p2.y >= 0 && p2.y < t.srcGray.rows);
 
             // Relative depths
-            cv::Vec2i d = Processing::relativeDepths(t.srcDepth, c, p1, p2);
+            int d[2];
+            Processing::relativeDepths(t.srcDepth, c, p1, p2, d);
 
             // Generate hash key
             HashKey key(
@@ -197,7 +199,8 @@ void Hasher::verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSur
                 (p2.x < 0 || p2.x >= sceneDepth.cols || p2.y < 0 || p2.y >= sceneDepth.rows)) continue;
 
             // Relative depths
-            cv::Vec2i d = Processing::relativeDepths(sceneDepth, c, p1, p2);
+            int d[2];
+            Processing::relativeDepths(sceneDepth, c, p1, p2, d);
 
             // Generate hash key
             HashKey key(
