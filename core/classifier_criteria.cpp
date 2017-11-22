@@ -9,7 +9,6 @@ ClassifierCriteria::ClassifierCriteria() {
     // Hasher
     train.hasher.grid = cv::Size(12, 12);
     train.hasher.tablesCount = 100;
-    train.hasher.binCount = 5;
     train.hasher.maxDistance = 3;
 
     // Matcher
@@ -49,7 +48,6 @@ void ClassifierCriteria::load(cv::FileStorage fsr, std::shared_ptr<ClassifierCri
     hasherNode["grid" ] >> criteria->train.hasher.grid;
     hasherNode["tablesCount"] >> criteria->train.hasher.tablesCount;
     hasherNode["maxDistance"] >> criteria->train.hasher.maxDistance;
-    hasherNode["binCount"] >> criteria->train.hasher.binCount;
 
     matcherNode["pointsCount"] >> criteria-> train.matcher.pointsCount;
 
@@ -70,7 +68,6 @@ void ClassifierCriteria::save(cv::FileStorage &fsw) {
                 fsw << "grid" << train.hasher.grid;
                 fsw << "tablesCount" << train.hasher.tablesCount;
                 fsw << "maxDistance" << train.hasher.maxDistance;
-                fsw << "binCount" << train.hasher.binCount;
             fsw << "}";
             fsw << "matcher" << "{";
                 fsw << "pointsCount" << train.matcher.pointsCount;
@@ -97,7 +94,6 @@ std::ostream &operator<<(std::ostream &os, const ClassifierCriteria &criteria) {
     os << "    |_ minVotes: " << criteria.detect.hasher.minVotes << std::endl;
     os << "    |_ tablesCount: " << criteria.train.hasher.tablesCount << std::endl;
     os << "    |_ maxDistance: " << criteria.train.hasher.maxDistance << std::endl;
-    os << "    |_ binCount: " << criteria.train.hasher.binCount << std::endl;
     os << "  matcher: " << std::endl;
     os << "    |_ pointsCount: " << criteria.train.matcher.pointsCount << std::endl;
     os << "    |_ tMatch: " << criteria.detect.matcher.tMatch << std::endl;

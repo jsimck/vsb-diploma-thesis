@@ -21,7 +21,6 @@ public:
             cv::Size grid; // Triplet grid size
             int tablesCount; // Number of tables to generate
             int maxDistance; // Max distance between each point in triplet
-            int binCount; // Number of bins for depth ranges
         } hasher;
 
         // Matcher
@@ -64,11 +63,11 @@ public:
 
     // Data set info
     struct {
+        int maxDepth; // Max depth within object bounding box
         int minEdgels;
         float depthScaleFactor; // in our cases 1 => 0.1mm so to get 1mm we need to multiply values by 10
         cv::Size smallestTemplate;
         cv::Size largestTemplate;
-        int maxDepth; // Max depth within object bounding box
     } info;
 
     // Constructors

@@ -43,6 +43,7 @@ void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<H
 
     #pragma omp parallel for shared(templates, tables) firstprivate(criteria)
     for (size_t i = 0; i < iSize; i++) {
+        const int binCount = 5;
         std::vector<int> rDepths;
 
         for (auto &t : templates) {
@@ -79,16 +80,16 @@ void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<H
         // Sort depths Calculate bin ranges
         std::sort(rDepths.begin(), rDepths.end());
         const size_t rDSize = rDepths.size();
-        const size_t binSize = rDSize / criteria->train.hasher.binCount;
+        const size_t binSize = rDSize / binCount;
         std::vector<cv::Range> ranges;
 
-        for (int j = 0; j < criteria->train.hasher.binCount; j++) {
+        for (int j = 0; j < binCount; j++) {
             int min = rDepths[j * binSize];
             int max = rDepths[(j + 1) * binSize];
 
             if (j == 0) {
                 min = -IMG_16BIT_MAX;
-            } else if (j + 1 == criteria->train.hasher.binCount) {
+            } else if (j + 1 == binCount) {
                 max = IMG_16BIT_MAX;
             }
 
@@ -96,7 +97,7 @@ void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<H
         }
 
         // Set table bin ranges
-        assert(static_cast<int>(ranges.size()) == criteria->train.hasher.binCount);
+        assert(static_cast<int>(ranges.size()) == binCount);
         tables[i].binRanges = ranges;
     }
 }
