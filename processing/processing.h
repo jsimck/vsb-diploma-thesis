@@ -66,4 +66,4 @@ public:
     static uchar quantizeDepth(float depth, std::vector<cv::Range> &ranges);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_PROCESSING_H
+#endif

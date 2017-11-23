@@ -6,12 +6,9 @@
 #include "template.h"
 
 /**
- * struct Window
- *
- * After objectness detection, each sliding window containing object is represented using this structure.
- * These windows are then used further down the cascade in template matching.
+ * @brief Contains location of windows that passed objectness detection
  */
-struct Window {
+class Window {
 public:
     int x;
     int y;
@@ -43,4 +40,4 @@ public:
     friend std::ostream &operator<<(std::ostream &os, const Window &w);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_WINDOW_H
+#endif

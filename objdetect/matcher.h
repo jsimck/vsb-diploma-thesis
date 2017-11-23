@@ -42,4 +42,4 @@ public:
     void train(std::vector<Template> &templates);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_MATCHER_H
+#endif

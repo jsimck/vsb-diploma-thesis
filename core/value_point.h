@@ -5,7 +5,7 @@
 #include <opencv2/core/types.hpp>
 
 template <typename T>
-struct ValuePoint {
+class ValuePoint {
 public:
     cv::Point p;
     T value;
@@ -35,4 +35,4 @@ public:
     }
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_VALUE_POINT_H
+#endif

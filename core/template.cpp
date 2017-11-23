@@ -1,70 +1,5 @@
 #include "template.h"
 
-void Template::applyROI() {
-    // Apply roi to both sources
-    srcGray = srcGray(objBB);
-    srcHSV = srcHSV(objBB);
-    srcDepth = srcDepth(objBB);
-}
-
-void Template::resetROI() {
-    // Locate ROI
-    cv::Point offset;
-    cv::Size size;
-    srcGray.locateROI(size, offset);
-
-    // Set to original [disable ROI]
-    srcGray.adjustROI(offset.y, size.height, offset.x, size.width);
-    srcDepth.adjustROI(offset.y, size.height, offset.x, size.width);
-    srcHSV.adjustROI(offset.y, size.height, offset.x, size.width);
-}
-
-void Template::save(cv::FileStorage &fs) {
-    fs << "{";
-    fs << "id" << id;
-    fs << "fileName" << fileName;
-    fs << "diameter" << diameter;
-    fs << "edgePoints" << edgePoints;
-    fs << "stablePoints" << stablePoints;
-    fs << "depthMedian" << features.depthMedian;
-    fs << "quantizedGradients" << features.gradients;
-    fs << "quantizedNormals" << features.normals;
-    fs << "depths" << features.depths;
-    fs << "colors" << features.colors;
-    fs << "objBB" << objBB;
-    fs << "camK" << camK;
-    fs << "camRm2c" << camRm2c;
-    fs << "camTm2c" << camTm2c;
-    fs << "elev" << elev;
-    fs << "mode" << mode;
-    fs << "azimuth" << azimuth;
-    fs << "}";
-}
-
-Template Template::load(cv::FileNode node) {
-    Template t;
-
-    node["id"] >> t.id;
-    t.fileName = (std::string) node["fileName"];
-    node["diameter"] >> t.diameter;
-    node["edgePoints"] >> t.edgePoints;
-    node["stablePoints"] >> t.stablePoints;
-    node["depthMedian"] >> t.features.depthMedian;
-    node["quantizedGradients"] >> t.features.gradients;
-    node["quantizedNormals"] >> t.features.normals;
-    node["depths"] >> t.features.depths;
-    node["colors"] >> t.features.colors;
-    node["objBB"] >> t.objBB;
-    node["camK"] >> t.camK;
-    node["camRm2c"] >> t.camRm2c;
-    node["camTm2c"] >> t.camTm2c;
-    node["elev"] >> t.elev;
-    node["mode"] >> t.mode;
-    node["azimuth"] >> t.azimuth;
-
-    return t;
-}
-
 cv::Mat Template::loadSrc(const std::string &basePath, const Template &tpl, int ddepth) {
     cv::Mat src;
     std::ostringstream oss;
@@ -99,8 +34,8 @@ std::ostream &operator<<(std::ostream &os, const Template &t) {
        << "diameter: " << t.diameter << std::endl
        << "srcGray (size): " << t.srcGray.size()  << std::endl
        << "srcDepth (size): " << t.srcDepth.size() << std::endl
-       << "quantizedGradients (size): " << t.quantizedGradients.size() << std::endl
-       << "quantizedNormals (size): " << t.quantizedNormals.size() << std::endl
+       << "srcGradients (size): " << t.srcGradients.size() << std::endl
+       << "srcNormals (size): " << t.srcNormals.size() << std::endl
        << "objBB: " << t.objBB  << std::endl
        << "camK: " << t.camK  << std::endl
        << "camRm2c: " << t.camRm2c << std::endl
@@ -108,10 +43,56 @@ std::ostream &operator<<(std::ostream &os, const Template &t) {
        << "elev: " << t.elev  << std::endl
        << "mode: " << t.mode << std::endl
        << "azimuth: " << t.azimuth << std::endl
-       << "quantizedGradients size: " << t.features.gradients.size() << std::endl
-       << "quantizedNormals size: " << t.features.normals.size() << std::endl
+       << "srcGradients size: " << t.features.gradients.size() << std::endl
+       << "srcNormals size: " << t.features.normals.size() << std::endl
        << "depths size: " << t.features.depths.size() << std::endl
        << "colors size: " << t.features.colors.size() << std::endl;
 
     return os;
+}
+
+void operator>>(const cv::FileNode &node, Template &t) {
+    int id;
+    node["id"] >> id;
+    t.id = static_cast<uint>(id);
+    t.fileName = (std::string) node["fileName"];
+    node["diameter"] >> t.diameter;
+    node["edgePoints"] >> t.edgePoints;
+    node["stablePoints"] >> t.stablePoints;
+    node["depthMedian"] >> t.features.depthMedian;
+    node["gradients"] >> t.features.gradients;
+    node["normals"] >> t.features.normals;
+    node["depths"] >> t.features.depths;
+    node["colors"] >> t.features.colors;
+    node["objBB"] >> t.objBB;
+    node["camK"] >> t.camK;
+    node["camRm2c"] >> t.camRm2c;
+    node["camTm2c"] >> t.camTm2c;
+    node["elev"] >> t.elev;
+    node["mode"] >> t.mode;
+    node["azimuth"] >> t.azimuth;
+}
+
+cv::FileStorage &operator<<(cv::FileStorage &fs, const Template &t) {
+    fs << "{";
+    fs << "id" << static_cast<int>(t.id);
+    fs << "fileName" << t.fileName;
+    fs << "diameter" << t.diameter;
+    fs << "edgePoints" << t.edgePoints;
+    fs << "stablePoints" << t.stablePoints;
+    fs << "depthMedian" << t.features.depthMedian;
+    fs << "gradients" << t.features.gradients;
+    fs << "normals" << t.features.normals;
+    fs << "depths" << t.features.depths;
+    fs << "colors" << t.features.colors;
+    fs << "objBB" << t.objBB;
+    fs << "camK" << t.camK;
+    fs << "camRm2c" << t.camRm2c;
+    fs << "camTm2c" << t.camTm2c;
+    fs << "elev" << t.elev;
+    fs << "mode" << t.mode;
+    fs << "azimuth" << t.azimuth;
+    fs << "}";
+
+    return fs;
 }

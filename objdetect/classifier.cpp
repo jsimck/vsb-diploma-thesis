@@ -8,14 +8,14 @@ void Classifier::train(std::string templatesListPath, std::string resultPath, st
     std::ifstream ifs(templatesListPath);
     assert(ifs.is_open());
 
-    // Init parser and common
-    Parser parser(criteria);
-    parser.indices.swap(indices);
-
     // Init classifiers
     Objectness objectness(criteria);
     Hasher hasher(criteria);
     Matcher matcher(criteria);
+
+    // Init parser and common
+    Parser parser(criteria);
+    parser.indices.swap(indices);
 
     std::ostringstream oss;
     std::vector<Template> tpls, allTemplates;
@@ -47,7 +47,7 @@ void Classifier::train(std::string templatesListPath, std::string resultPath, st
 
         fsw << "templates" << "[";
         for (auto &tpl : tpls) {
-            tpl.save(fsw);
+            fsw << tpl;
         }
         fsw << "]";
 
@@ -70,7 +70,7 @@ void Classifier::train(std::string templatesListPath, std::string resultPath, st
     // Persist hashTables
     fsw << "tables" << "[";
     for (auto &table : tables) {
-        table.save(fsw);
+        fsw << table;
     }
     fsw << "]";
     fsw.release();
@@ -96,7 +96,9 @@ void Classifier::load(const std::string &trainedTemplatesListPath, const std::st
 
         // Loop through templates
         for (auto &&tpl : tpls) {
-            templates.emplace_back(Template::load(tpl));
+            Template nTpl;
+            tpl >> nTpl;
+            templates.push_back(nTpl);
         }
 
         fsr.release();
@@ -166,7 +168,7 @@ void Classifier::loadScene(const std::string &scenePath, const std::string &scen
 
     // TODO parse camera params and use proper fx and fy and distances etc
     Timer timer;
-//    Processing::quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
+//    Processing::srcNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
 //                                 static_cast<int>((criteria.info.maxDepth * scale) / ratio), criteria.maxDepthDiff);
     Processing::quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
                                  static_cast<int>((criteria.info.maxDepth * scale) / ratio), 100);
@@ -193,8 +195,8 @@ void Classifier::loadScene(const std::string &scenePath, const std::string &scen
     cv::normalize(magnitudes, magnitudes, 0, 1, CV_MINMAX);
 
     cv::imshow("magnitudes", magnitudes);
-    cv::imshow("quantizedNormals", sceneQuantizedNormals);
-    cv::imshow("quantizedGradients", gradients);
+    cv::imshow("srcNormals", sceneQuantizedNormals);
+    cv::imshow("srcGradients", gradients);
     cv::waitKey(0);
 }
 

@@ -5,13 +5,13 @@
 #include <utility>
 #include "template.h"
 
-struct HashTableCandidate {
+class HashTableCandidate {
 public:
-    int votes;
+    int votes = 0;
     std::shared_ptr<Template> candidate;
 
     // Constructor
-    HashTableCandidate(std::shared_ptr<Template> candidate = nullptr) : votes(0), candidate(candidate) {}
+    HashTableCandidate(std::shared_ptr<Template> candidate = nullptr) : candidate(candidate) {}
 
     // Methods
     void vote();
@@ -23,4 +23,4 @@ public:
     bool operator>=(const HashTableCandidate &rhs) const;
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_HASH_TABLE_CANDIDATE_H
+#endif

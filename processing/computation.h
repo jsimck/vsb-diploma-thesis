@@ -8,4 +8,4 @@ public:
     static float deg(float rad);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_COMPUTATION_H
+#endif

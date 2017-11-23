@@ -3,6 +3,7 @@
 
 #include <opencv2/core/types.hpp>
 
+// TOdo refactor tripletParams + triplet
 /**
  * struct TripletParams
  *
@@ -10,7 +11,7 @@
  * parameters needed in each function. All steps are relative to the current template and
  * reference points grid, that's why we use real numbers to avoid rounding issues.
  */
-struct TripletParams {
+class TripletParams {
 public:
     float offsetX;
     float offsetY;
@@ -25,4 +26,4 @@ public:
     TripletParams(int width, int height, const cv::Size &grid, int sOffsetX = 0, int sOffsetY = 0);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_TRIPLET_PARAMS_H
+#endif

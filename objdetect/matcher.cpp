@@ -123,8 +123,8 @@ void Matcher::extractFeatures(std::vector<Template> &templates) {
             // Save features
             float depth = t.srcDepth.at<ushort>(stablePOff);
             t.features.depths.push_back(depth);
-            t.features.gradients.emplace_back(t.quantizedGradients.at<uchar>(edgePOff));
-            t.features.normals.emplace_back(t.quantizedNormals.at<uchar>(stablePOff));
+            t.features.gradients.emplace_back(t.srcGradients.at<uchar>(edgePOff));
+            t.features.normals.emplace_back(t.srcNormals.at<uchar>(stablePOff));
             t.features.colors.push_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(stablePOff)));
 
             // Save only valid depths (skip 0)

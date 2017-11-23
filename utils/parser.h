@@ -31,4 +31,4 @@ public:
     void parse(std::string basePath, std::string modelsPath, std::vector<Template> &templates);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_PARSER_H
+#endif

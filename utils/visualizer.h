@@ -42,4 +42,4 @@ public:
 };
 
 
-#endif //VSB_SEMESTRAL_PROJECT_VISUALIZER_H
+#endif

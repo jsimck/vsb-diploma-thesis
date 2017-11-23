@@ -27,6 +27,7 @@ public:
     float overlapFactor = 0.3f; //!< Permitted factor of which two templates can overlap
     float depthK = 0.05f; //!< Constant used in depth test in template matching phase
 
+    // Dataset info
     struct {
         ushort minDepth = 0; //!< Minimum depth found across all templates withing their bounding box
         ushort maxDepth = 0; //!< Maximum depth found across all templates withing their bounding box

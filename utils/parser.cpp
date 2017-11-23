@@ -89,7 +89,7 @@ Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNo
         criteria.info.largestTemplate.height = objBB.height;
     }
 
-    // Calculate quantizedGradients and quantizedNormals
+    // Calculate srcGradients and srcNormals
     cv::Mat gradients, magnitudes;
     Processing::quantizedOrientationGradients(src, gradients, magnitudes);
 
@@ -157,7 +157,7 @@ void Parser::parseInfo(Template &t, cv::FileNode &infoNode) {
     }
 
     // Compute normals
-    Processing::quantizedNormals(t.srcDepth, t.quantizedNormals, vCamK[0], vCamK[4],
+    Processing::quantizedNormals(t.srcDepth, t.srcNormals, vCamK[0], vCamK[4],
                                  static_cast<int>(localMax / ratio), criteria.maxDepthDiff);
 }
 

@@ -30,4 +30,4 @@ public:
     void objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &windows);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_OBJECTNESS_H
+#endif

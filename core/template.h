@@ -7,16 +7,13 @@
 #include <utility>
 
 /**
- * struct Template
- *
- * Holds one template and all it's data that are either extracted at initialization
- * or earned throught the process of template matching.
+ * @brief Template wrapper, holds all template images and info available.
  */
-struct Template {
+class Template {
 public:
-    int id;
+    uint id = 0;
     std::string fileName;
-    float diameter;
+    float diameter = 0;
 
     // Image sources
     cv::Mat srcGray;
@@ -24,43 +21,35 @@ public:
     cv::Mat srcDepth;
 
     // Extracted template feature points
-    cv::Mat quantizedGradients;
-    cv::Mat quantizedNormals;
+    cv::Mat srcGradients;
+    cv::Mat srcNormals;
     std::vector<cv::Point> edgePoints;
     std::vector<cv::Point> stablePoints;
 
     // Matching Features
     struct {
-        float depthMedian; // median value over all feature points
-        std::vector<uchar> gradients; // quantized oriented quantizedGradients
-        std::vector<uchar> normals; // quantized surface quantizedNormals
-        std::vector<float> depths; // depth value
-        std::vector<cv::Vec3b> colors; // HSV color space value
+        float depthMedian = 0; //!< median value over all feature points
+        std::vector<uchar> gradients; //!< quantized oriented gradients
+        std::vector<uchar> normals; //!< quantized surface normals
+        std::vector<float> depths; //!< depth value
+        std::vector<cv::Vec3b> colors; //!< HSV color space value
     } features;
 
     // Template .yml parameters
-    cv::Rect objBB; // Object bounding box
-    cv::Mat camK; // Intrinsic camera matrix K
-    cv::Mat camRm2c; // Rotation matrix R_m2c
-    cv::Vec3f camTm2c; // Translation vector t_m2c
-    int elev;
-    int azimuth;
-    int mode;
+    cv::Rect objBB; //!< Object bounding box
+    cv::Mat camK; //!< Intrinsic camera matrix K
+    cv::Mat camRm2c; //!< Rotation matrix R_m2c
+    cv::Vec3f camTm2c; //!< Translation vector t_m2c
+    int elev = 0;
+    int azimuth = 0;
+    int mode = 0;
 
     // Constructors
     Template() {}
     Template(int id, std::string &fileName, float diameter, cv::Mat src, cv::Mat srcHSV, cv::Mat srcDepth,
-                 cv::Mat quantizedGradients, cv::Mat normals, cv::Rect &objBB, cv::Mat camRm2c, const cv::Vec3d &camTm2c)
-        : id(id), fileName(fileName), diameter(diameter), srcGray(src), srcHSV(srcHSV), srcDepth(srcDepth), quantizedGradients(quantizedGradients),
-          quantizedNormals(normals), objBB(objBB), camRm2c(camRm2c), camTm2c(camTm2c), elev(0), azimuth(0), mode(0) {}
-
-    // Persist and load methods
-    static Template load(cv::FileNode node);
-    void save(cv::FileStorage &fs);
-
-    // Methods
-    void applyROI();
-    void resetROI();
+                 cv::Mat srcGradients, cv::Mat srcNormals, cv::Rect &objBB, cv::Mat camRm2c, const cv::Vec3d &camTm2c)
+        : id(id), fileName(fileName), diameter(diameter), srcGray(src), srcHSV(srcHSV), srcDepth(srcDepth), srcGradients(srcGradients),
+          srcNormals(srcNormals), objBB(objBB), camRm2c(camRm2c), camTm2c(camTm2c) {}
 
     // Dynamic image loading for visualization purposes mostly
     static cv::Mat loadSrc(const std::string &basePath, const Template &tpl, int ddepth);
@@ -68,7 +57,11 @@ public:
     // Operators
     bool operator==(const Template &rhs) const;
     bool operator!=(const Template &rhs) const;
+
+    // Friends
+    friend void operator>>(const cv::FileNode &node, Template &t);
+    friend cv::FileStorage &operator<<(cv::FileStorage &fs, const Template &t);
     friend std::ostream &operator<<(std::ostream &os, const Template &t);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_TEMPLATE_H
+#endif

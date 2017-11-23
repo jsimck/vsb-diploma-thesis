@@ -17,4 +17,4 @@ public:
 };
 
 
-#endif //VSB_SEMESTRAL_PROJECT_TIMER_H
+#endif

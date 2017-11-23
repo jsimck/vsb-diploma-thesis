@@ -154,9 +154,9 @@ void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tab
             HashKey key(
                 Processing::quantizeDepth(d[0], tables[i].binRanges),
                 Processing::quantizeDepth(d[1], tables[i].binRanges),
-                t.quantizedNormals.at<uchar>(c),
-                t.quantizedNormals.at<uchar>(p1),
-                t.quantizedNormals.at<uchar>(p2)
+                t.srcNormals.at<uchar>(c),
+                t.srcNormals.at<uchar>(p1),
+                t.srcNormals.at<uchar>(p2)
             );
 
             // Check if key exists, if not initialize it

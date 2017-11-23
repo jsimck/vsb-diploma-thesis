@@ -7,12 +7,9 @@
 #include "template.h"
 
 /**
- * struct Match
- *
- * Holds template that passed all tests in template matching, stores object bounding box
- * relative to the current scene and score computed from template matching tests.
+ * @brief Holds matched templates along with their location and final score
  */
-struct Match {
+class Match {
 public:
     std::shared_ptr<Template> tpl;
     cv::Rect objBB;
@@ -31,4 +28,4 @@ public:
     friend std::ostream &operator<<(std::ostream &os, const Match &match);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_TEMPLATE_MATCH_H
+#endif

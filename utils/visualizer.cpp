@@ -193,10 +193,10 @@ void Visualizer::visualizeTemplate(Template &tpl, const std::string &templatesPa
     oss << "elev: " << tpl.elev;
     setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 46));
     oss.str("");
-    oss << "quantizedGradients: " << tpl.features.gradients.size();
+    oss << "srcGradients: " << tpl.features.gradients.size();
     setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 64));
     oss.str("");
-    oss << "quantizedNormals: " << tpl.features.normals.size();
+    oss << "srcNormals: " << tpl.features.normals.size();
     setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 82));
     oss.str("");
     oss << "depths: " << tpl.features.depths.size();
@@ -218,7 +218,7 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
     std::ostringstream oss;
 
     // TODO user proper fx and fy
-    // Init surface quantizedNormals
+    // Init surface srcNormals
     cv::Mat sceneSurfaceNormals;
     Processing::quantizedNormals(sceneDepth, sceneSurfaceNormals, 1150, 1150, criteria.info.maxDepth, criteria.maxDepthDiff);
 

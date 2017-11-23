@@ -6,20 +6,21 @@
 #include <random>
 #include "triplet_params.h"
 
+// TODO refactor
 /**
- * struct Triplet
+ * @brief Represents set of 3 points in relative coordinates, to compute hash table key on.
  *
- * All generated points are stored in relative locations, we use 12x12 reference points, so every
+ * All generated points are stored in relative coordinates, we use 12x12 reference points, so every
  * point has x and y coordinates in interval <0, 11>. This allows to adapt reference point locations
- * to each template bounding box.
+ * to each template bounding box. Grid size can be changed through classifier criteria
  */
-struct Triplet {
+class Triplet {
 private:
     static std::random_device seed;
     static std::mt19937 rng;
 
     static cv::Point randPoint(cv::Size grid);
-    static cv::Point randChildPoint(int min = -4, int max = 4);
+    static cv::Point randChildPoint(int min = -3, int max = 3);
 public:
     cv::Point c;
     cv::Point p1;
@@ -46,4 +47,4 @@ public:
     bool operator!=(const Triplet &rhs) const;
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_TRIPLET_H
+#endif

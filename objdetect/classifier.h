@@ -49,4 +49,4 @@ public:
     void detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_CLASSIFIER_H
+#endif

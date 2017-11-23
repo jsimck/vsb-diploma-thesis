@@ -10,14 +10,12 @@
 #include <utility>
 
 /**
- * struct HashTable
+ * @brief Represents 1 hash table identified by unique triplet.
  *
- * Hash table used to store template candidates with discretizied values into
- * coresponding bins, forming hash key of (d1, d2, n1, n2, n3). Each hash table is
- * represented with one triplet used to train and separate all templates into different
- * hash keys.
+ * Each hash table is then filled with set of valid candidates, based
+ * on the custom hash key, that's formed on template quantized values.
  */
-struct HashTable {
+class HashTable {
 public:
     Triplet triplet;
     std::vector<cv::Range> binRanges;
@@ -27,15 +25,13 @@ public:
     HashTable() {}
     HashTable(Triplet triplet) : triplet(triplet) {}
 
-    // Persistence
-    static HashTable load(cv::FileNode &node, std::vector<Template> &templates);
-    void save(cv::FileStorage &fsw);
-
     // Methods
+    static HashTable load(cv::FileNode &node, std::vector<Template> &templates);
     void pushUnique(const HashKey &key, Template &t);
 
-    // Operators
+    // Operators & friends
+    friend cv::FileStorage &operator<<(cv::FileStorage &fs, const HashTable &crit);
     friend std::ostream &operator<<(std::ostream &os, const HashTable &table);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_HASHTABLE_H
+#endif

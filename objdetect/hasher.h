@@ -33,4 +33,4 @@ public:
                           std::vector<HashTable> &tables, std::vector<Window> &windows);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_HASHING_H
+#endif
