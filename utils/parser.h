@@ -16,7 +16,7 @@
 class Parser {
 private:
     std::vector<float> diameters;
-    std::shared_ptr<ClassifierCriteria> criteria;
+    ClassifierCriteria criteria;
 
     Template parseGt(uint index, const std::string &path, cv::FileNode &gtNode);
     void parseInfo(Template &t, cv::FileNode &infoNode);
@@ -25,7 +25,7 @@ public:
     std::vector<uint> indices;
     uint tplCount, modelCount;
 
-    Parser(std::shared_ptr<ClassifierCriteria> criteria, uint tplCount = 1296, uint modelCount = 30)
+    Parser(ClassifierCriteria &criteria, uint tplCount = 1296, uint modelCount = 30)
             : criteria(criteria), tplCount(tplCount), modelCount(modelCount) {}
 
     void parse(std::string basePath, std::string modelsPath, std::vector<Template> &templates);

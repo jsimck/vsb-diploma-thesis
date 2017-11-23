@@ -15,7 +15,7 @@
  */
 class Hasher {
 private:
-    std::shared_ptr<ClassifierCriteria> criteria;
+    ClassifierCriteria criteria;
 
     void generateTriplets(std::vector<HashTable> &tables);
     void initializeBinRanges(std::vector<Template> &templates, std::vector<HashTable> &tables);
@@ -25,14 +25,12 @@ public:
     static const int IMG_16BIT_MAX;
 
     // Constructors
-    Hasher() = default;
+    Hasher(ClassifierCriteria criteria) : criteria(criteria) {}
 
     // Methods
     void train(std::vector<Template> &templates, std::vector<HashTable> &tables);
     void verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSurfaceNormalsQuantized,
                           std::vector<HashTable> &tables, std::vector<Window> &windows);
-
-    void setCriteria(std::shared_ptr<ClassifierCriteria> criteria);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_HASHING_H

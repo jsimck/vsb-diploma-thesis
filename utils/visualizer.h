@@ -17,7 +17,7 @@ private:
 public:
     // Hashing
     static void visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows,
-                                     std::shared_ptr<ClassifierCriteria> &criteria, bool continuous, int wait = 0, const char *title = nullptr);
+                                     ClassifierCriteria &criteria, bool continuous, int wait = 0, const char *title = nullptr);
 
     // Objectness
     static void visualizeMatches(cv::Mat &scene, std::vector<Match> &matches, const std::string &templatesPath = "data/", int wait = 0, const char *title = nullptr);

@@ -8,11 +8,9 @@
 class Processing {
 private:
     // Lookup tables
-    static const int NORMAL_LUT_SIZE = 20;
-    static const uchar NORMAL_LUT[NORMAL_LUT_SIZE][NORMAL_LUT_SIZE];
-
-    static const int DEPTH_LUT_SIZE = 5;
+    static const int NORMAL_LUT_SIZE = 20, DEPTH_LUT_SIZE = 5;
     static const uchar DEPTH_LUT[DEPTH_LUT_SIZE];
+    static const uchar NORMAL_LUT[NORMAL_LUT_SIZE][NORMAL_LUT_SIZE];
 
     /**
      * Applies bilateral filtering around each point A computing optimal gradient in b.
@@ -33,7 +31,7 @@ private:
 
 public:
     /**
-     * Computes quantized surface normals from 16-bit depth image.
+     * @brief Computes quantized surface normals from 16-bit depth image.
      *
      * @param[in]  src           Source 16-bit depth image (in mm)
      * @param[out] dst           Destination 8-bit image, where each bit represents one bin of view cone
@@ -46,7 +44,7 @@ public:
     static void quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, float fy, int maxDistance, int maxDifference);
 
     /**
-     * Computes relative depths from 16-bit depth image on (triplet) given points.
+     * @brief Computes relative depths from 16-bit depth image on (triplet) given points.
      *
      * @param[in]  src    Source 16-bit depth image (in mm)
      * @param[in]  c      Center triplet point

@@ -17,7 +17,7 @@
  */
 class Matcher {
 private:
-    std::shared_ptr<ClassifierCriteria> criteria;
+    ClassifierCriteria criteria;
 
     // Methods
     cv::Vec3b normalizeHSV(cv::Vec3b &hsv);
@@ -35,13 +35,11 @@ private:
     int testColor(cv::Vec3b HSV, Window &window, cv::Mat &sceneHSV, cv::Point &stable); // Test V
 public:
     // Constructor
-    Matcher() = default;
+    Matcher(ClassifierCriteria criteria) : criteria(criteria) {}
 
     // Methods
     void match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat &sceneMagnitudes, cv::Mat &sceneAnglesQuantized, cv::Mat &sceneSurfaceNormalsQuantized, std::vector<Window> &windows, std::vector<Match> &matches);
     void train(std::vector<Template> &templates);
-
-    void setCriteria(std::shared_ptr<ClassifierCriteria> criteria);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_MATCHER_H

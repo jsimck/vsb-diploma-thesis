@@ -20,16 +20,14 @@
  */
 class Objectness {
 private:
-    std::shared_ptr<ClassifierCriteria> criteria;
+    ClassifierCriteria criteria;
 public:
     // Constructors
-    Objectness() = default;
+    Objectness(ClassifierCriteria criteria) : criteria(criteria) {}
 
     // Methods
     void extractMinEdgels(std::vector<Template> &templates);
     void objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &windows);
-
-    void setCriteria(std::shared_ptr<ClassifierCriteria> criteria);
 };
 
 #endif //VSB_SEMESTRAL_PROJECT_OBJECTNESS_H

@@ -18,42 +18,43 @@ void Objectness::extractMinEdgels(std::vector<Template> &templates) {
         tNorm = tNorm(t.objBB);
 
         Processing::filterSobel(tNorm, tSobel, true, true);
-        Processing::thresholdMinMax(tSobel, tSobel, criteria->train.objectness.tEdgesMin, criteria->train.objectness.tEdgesMax);
+        Processing::thresholdMinMax(tSobel, tSobel, 0.01f, 0.1f);
 
         // Compute integral image for easier computation of edgels
         cv::integral(tNorm, tIntegral, CV_32F);
         edgels = static_cast<int>(tIntegral.at<float>(tIntegral.rows - 1, tIntegral.cols - 1));
 
-        if (edgels < criteria->info.minEdgels) {
-            criteria->info.minEdgels = edgels;
+        if (edgels < criteria.info.minEdgels) {
+            criteria.info.minEdgels = edgels;
         }
     }
 }
 
+// TODO replace sobel filter thresholdMinMax params with actual depth values
 void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &windows) {
     // Check thresholds and min edgels
-    assert(criteria->info.smallestTemplate.area() > 0);
-    assert(criteria->info.minEdgels > 0);
-    assert(criteria->detect.objectness.tMatch > 0);
+    assert(criteria.info.smallestTemplate.area() > 0);
+    assert(criteria.info.minEdgels > 0);
+    assert(criteria.objectnessFactor > 0);
     assert(!sceneDepthNorm.empty());
     assert(sceneDepthNorm.type() == CV_32FC1);
 
     // Apply sobel filter and thresholding on normalized Depth scene (<0, 1> px values)
     cv::Mat sSobel;
     Processing::filterSobel(sceneDepthNorm, sSobel, true, true);
-    Processing::thresholdMinMax(sSobel, sSobel, criteria->train.objectness.tEdgesMin, criteria->train.objectness.tEdgesMax);
+    Processing::thresholdMinMax(sSobel, sSobel, 0.01f, 0.1f);
 
     // Calculate image integral
     cv::Mat sIntegral;
     cv::integral(sSobel, sIntegral, CV_32F);
 
-    auto edgels = static_cast<uint>(criteria->info.minEdgels * criteria->detect.objectness.tMatch);
-    int sizeX = criteria->info.smallestTemplate.width;
-    int sizeY = criteria->info.smallestTemplate.height;
+    const auto edgels = static_cast<uint>(criteria.info.minEdgels * criteria.windowStep);
+    const int sizeX = criteria.info.smallestTemplate.width;
+    const int sizeY = criteria.info.smallestTemplate.height;
 
     // Slide window over scene and calculate edge count for each overlap
-    for (int y = 0; y < sSobel.rows - sizeY; y += criteria->detect.objectness.step) {
-        for (int x = 0; x < sSobel.cols - sizeX; x += criteria->detect.objectness.step) {
+    for (int y = 0; y < sSobel.rows - sizeY; y += criteria.windowStep) {
+        for (int x = 0; x < sSobel.cols - sizeX; x += criteria.windowStep) {
 
             // Calc edge value in current sliding window with help of image integral
             auto sceneEdgels = static_cast<uint>(
@@ -68,8 +69,4 @@ void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &window
             }
         }
     }
-}
-
-void Objectness::setCriteria(std::shared_ptr<ClassifierCriteria> criteria) {
-    this->criteria = criteria;
 }

@@ -6,6 +6,7 @@
 #include <iostream>
 #include <opencv/cv.hpp>
 
+const uchar Processing::DEPTH_LUT[Processing::DEPTH_LUT_SIZE] = {1, 2, 4, 8, 16};
 const uchar Processing::NORMAL_LUT[Processing::NORMAL_LUT_SIZE][Processing::NORMAL_LUT_SIZE] = {
         {32, 32, 32, 32, 32, 32, 64, 64, 64, 64, 64, 64,  64,  64,  64,  128, 128, 128, 128, 128},
         {32, 32, 32, 32, 32, 32, 32, 64, 64, 64, 64, 64,  64,  64,  128, 128, 128, 128, 128, 128},
@@ -28,8 +29,6 @@ const uchar Processing::NORMAL_LUT[Processing::NORMAL_LUT_SIZE][Processing::NORM
         {8,  8,  8,  8,  8,  8,  8,  4,  4,  4,  4,  4,   4,   4,   2,   2,   2,   2,   2,   2},
         {8,  8,  8,  8,  8,  8,  8,  4,  4,  4,  4,  4,   4,   4,   2,   2,   2,   2,   2,   2}
 };
-
-const uchar Processing::DEPTH_LUT[Processing::DEPTH_LUT_SIZE] = {1, 2, 4, 8, 16};
 
 void Processing::accumulateBilateral(long delta, long xShift, long yShift, long *A, long *b, int maxDifference) {
     long f = std::abs(delta) < maxDifference ? 1 : 0;

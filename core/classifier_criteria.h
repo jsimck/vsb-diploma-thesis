@@ -2,82 +2,43 @@
 #define VSB_SEMESTRAL_PROJECT_CLASSIFIER_CRITERIA_H
 
 #include <opencv2/core/types.hpp>
-#include <ostream>
-#include <memory>
-#include "template.h"
+#include <opencv2/core/persistence.hpp>
 
 /**
- * struct ClassifierCriteria
- *
- * Holds information about loaded data set and all thresholds for further computation
+ * @brief Class defining parameters for classifier behaviour and holds info about dataset
  */
-
-struct ClassifierCriteria {
+class ClassifierCriteria {
 public:
-    // Train params and thresholds
+    // Train params
+    cv::Size tripletGrid{12, 12}; //!< Relative size of the triplet grid, 12x12 yields 144 possible locations
+    uint maxTripletDist = 3; //!< Maximum distance between p1, p2 from center in hash table triplets
+    uint tablesCount = 100;  //!< Amount of tables to generate for hashing verification
+    uint featurePointsCount = 100; //!< Amount of points to generate for feature points matching
+    float minMagnitude = 0.1f; //!< Minimal magnitude of edge gradient to classify it as valid
+    ushort maxDepthDiff = 100; //!< When computing surface normals, contribution of pixel is ignored if the depth difference with central pixel is above this threshold
+    std::vector<cv::Vec2f> depthDeviationFun{{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {70000, 0.08f}}; //!< Depth error function, allowing depth values to be match within giveninterval
+
+    // Detect Params
+    uint minVotes = 3; //!< Minimum amount of votes to classify template as a valid candidate for given window
+    uint windowStep = 5; //!< Objectness sliding window step
+    int patchOffset = 2; //!< +-offset, defining neighbourhood to look for a feature point match
+    float objectnessFactor = 0.3f; //!< Amount of edgels window must contain (30% of minimum) to classify as containing object in objectness detection
+    float matchFactor = 0.6f; //!< Amount of feature points that needs to match to classify candidate as a match (at least 60%)
+    float overlapFactor = 0.3f; //!< Permitted factor of which two templates can overlap
+    float depthK = 0.05f; //!< Constant used in depth test in template matching phase
+
     struct {
-        // Hasher
-        struct {
-            cv::Size grid; // Triplet grid size
-            int tablesCount; // Number of tables to generate
-            int maxDistance; // Max distance between each point in triplet
-        } hasher;
-
-        // Matcher
-        struct {
-            int pointsCount; // Number of feature points to extract for each template
-        } matcher;
-
-        // Objectness
-        struct {
-            float tEdgesMin; // Min threshold applied in sobel filtered image thresholding [0.01f]
-            float tEdgesMax; // Max threshold applied in sobel filtered image thresholding [0.1f]
-        } objectness;
-    } train;
-
-    // Detect params and thresholds
-    struct {
-        // Hasher
-        struct {
-            int minVotes; // Minimum number of votes to classify template as window candidate
-        } hasher;
-
-        // Matcher
-        struct {
-            float tMatch; // number indicating how many percentage of points should match [0.0 - 1.0]
-            float tOverlap; // overlap threshold, how much should 2 windows overlap in order to calculate non-maxima suppression [0.0 - 1.0]
-            uchar tColorTest; // HUE value max threshold to pass comparing colors between scene and template [0-180]
-            cv::Range neighbourhood; // area to search around feature point to look for match [-num, num]
-            std::vector<cv::Vec2f> depthDeviationFunction; // Correction function returning error in percentage for given depth
-            float depthK; // Constant used in IV test (depth test)
-            float tMinGradMag; // Minimal gradient magnitude to classify as gradient
-            ushort maxDifference; // Max difference in surface normal quantization
-        } matcher;
-
-        // Objectness
-        struct {
-            int step; // Stepping for sliding window
-            float tMatch; // Factor of minEdgels window should contain to be classified as valid [30% -> 0.3f]
-        } objectness;
-    } detect;
-
-    // Data set info
-    struct {
-        int maxDepth; // Max depth within object bounding box
-        int minEdgels;
-        float depthScaleFactor; // in our cases 1 => 0.1mm so to get 1mm we need to multiply values by 10
-        cv::Size smallestTemplate;
-        cv::Size largestTemplate;
+        ushort minDepth = 0; //!< Minimum depth found across all templates withing their bounding box
+        ushort maxDepth = 0; //!< Maximum depth found across all templates withing their bounding box
+        int minEdgels = INT_MAX; //!< Minimum number of edgels found in any template
+        float depthScaleFactor = 10.0f; //!< Depth scaling factor to convert depth value to millimeters
+        cv::Size smallestTemplate{500, 500}; //!< Size of the largest template found across all templates
+        cv::Size largestTemplate{0, 0}; //!< Size of the smallest template found across all templates
     } info;
 
-    // Constructors
-    ClassifierCriteria();
-
-    // Persistence
-    static void load(cv::FileStorage fsr, std::shared_ptr<ClassifierCriteria> criteria);
-    void save(cv::FileStorage &fsw);
-
-    friend std::ostream &operator<<(std::ostream &os, const ClassifierCriteria &criteria);
+    friend void operator>>(const cv::FileNode &node, ClassifierCriteria &crit);
+    friend cv::FileStorage &operator<<(cv::FileStorage &fs, const ClassifierCriteria &crit);
+    friend std::ostream &operator<<(std::ostream &os, const ClassifierCriteria &crit);
 };
 
-#endif //VSB_SEMESTRAL_PROJECT_CLASSIFIER_CRITERIA_H
+#endif

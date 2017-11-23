@@ -212,7 +212,7 @@ void Visualizer::visualizeTemplate(Template &tpl, const std::string &templatesPa
 }
 
 void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables, std::vector<Window> &windows,
-                                  std::shared_ptr<ClassifierCriteria> &criteria, bool continuous, int wait, const char *title) {
+                                  ClassifierCriteria &criteria, bool continuous, int wait, const char *title) {
     // Init common
     cv::Scalar colorRed(0, 0, 255);
     std::ostringstream oss;
@@ -220,7 +220,7 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
     // TODO user proper fx and fy
     // Init surface quantizedNormals
     cv::Mat sceneSurfaceNormals;
-    Processing::quantizedNormals(sceneDepth, sceneSurfaceNormals, 1150, 1150, criteria->info.maxDepth, criteria->detect.matcher.maxDifference);
+    Processing::quantizedNormals(sceneDepth, sceneSurfaceNormals, 1150, 1150, criteria.info.maxDepth, criteria.maxDepthDiff);
 
     for (size_t i = 0, windowsSize = windows.size(); i < windowsSize; ++i) {
         cv::Mat result = scene.clone();
@@ -232,13 +232,13 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
         }
 
         // Draw window and searched box rectangles
-        cv::rectangle(result, windows[i].tl(), windows[i].tl() + cv::Point(criteria->info.largestTemplate), cv::Scalar::all(255));
+        cv::rectangle(result, windows[i].tl(), windows[i].tl() + cv::Point(criteria.info.largestTemplate), cv::Scalar::all(255));
         cv::rectangle(result, windows[i].tl(), windows[i].br(), cv::Scalar(0, 255, 0));
 
         for (auto &table : tables) {
             // Prepare train to load hash key
-            TripletParams params(criteria->info.largestTemplate.width, criteria->info.largestTemplate.height,
-                                 criteria->train.hasher.grid, windows[i].tl().x, windows[i].tl().y);
+            TripletParams params(criteria.info.largestTemplate.width, criteria.info.largestTemplate.height,
+                                 criteria.tripletGrid, windows[i].tl().x, windows[i].tl().y);
             cv::Point c = table.triplet.getCenter(params);
             cv::Point p1 = table.triplet.getP1(params);
             cv::Point p2 = table.triplet.getP2(params);
@@ -275,13 +275,13 @@ void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vect
         // Labels
         oss.str("");
         oss << "candidates: " << windows[i].candidates.size();
-        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(criteria->info.largestTemplate.width + 5, 10));
+        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(criteria.info.largestTemplate.width + 5, 10));
         oss.str("");
         oss << "matched: " << matched << "/" << tables.size();
-        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(criteria->info.largestTemplate.width + 5, 28));
+        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(criteria.info.largestTemplate.width + 5, 28));
         oss.str("");
         oss << "edgels: " << windows[i].edgels;
-        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(criteria->info.largestTemplate.width + 5, 46));
+        Visualizer::setLabel(result, oss.str(), windows[i].tl() + cv::Point(criteria.info.largestTemplate.width + 5, 46));
 
         // Show results
         cv::imshow(title == nullptr ? "Hashing visualization" : title, result);

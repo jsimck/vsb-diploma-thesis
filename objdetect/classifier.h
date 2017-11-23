@@ -21,6 +21,8 @@
  */
 class Classifier {
 private:
+    ClassifierCriteria criteria;
+
     cv::Mat scene;
     cv::Mat sceneHSV;
     cv::Mat sceneGray;
@@ -39,13 +41,8 @@ private:
     void loadScene(const std::string &scenePath, const std::string &sceneName);
     void load(const std::string &trainedTemplatesListPath, const std::string &trainedPath);
 public:
-    std::shared_ptr<ClassifierCriteria> criteria;
-    Objectness objectness;
-    Hasher hasher;
-    Matcher matcher;
-
     // Constructors
-    Classifier();
+    Classifier(ClassifierCriteria criteria) : criteria(criteria) {}
 
     // Methods
     void train(std::string templatesListPath, std::string resultPath, std::string modelsPath, std::vector<uint> indices = {});

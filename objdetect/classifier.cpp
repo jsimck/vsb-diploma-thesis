@@ -4,18 +4,6 @@
 #include "../core/classifier_criteria.h"
 #include "../processing/processing.h"
 
-Classifier::Classifier() {
-    criteria = std::make_shared<ClassifierCriteria>();
-
-    // Override default settings
-    criteria->detect.matcher.tMatch = 0.4f;
-
-    // Init classifiers
-    objectness.setCriteria(criteria);
-    hasher.setCriteria(criteria);
-    matcher.setCriteria(criteria);
-}
-
 void Classifier::train(std::string templatesListPath, std::string resultPath, std::string modelsPath, std::vector<uint> indices) {
     std::ifstream ifs(templatesListPath);
     assert(ifs.is_open());
@@ -23,6 +11,11 @@ void Classifier::train(std::string templatesListPath, std::string resultPath, st
     // Init parser and common
     Parser parser(criteria);
     parser.indices.swap(indices);
+
+    // Init classifiers
+    Objectness objectness(criteria);
+    Hasher hasher(criteria);
+    Matcher matcher(criteria);
 
     std::ostringstream oss;
     std::vector<Template> tpls, allTemplates;
@@ -65,7 +58,7 @@ void Classifier::train(std::string templatesListPath, std::string resultPath, st
 
     // Save data set
     cv::FileStorage fsw(resultPath + "classifier.yml.gz", cv::FileStorage::WRITE);
-    criteria->save(fsw);
+    fsw << "criteria" << criteria;
     std::cout << "  |_ info -> " << resultPath + "classifier.yml.gz" << std::endl;
 
     // Train hash tables
@@ -112,7 +105,7 @@ void Classifier::load(const std::string &trainedTemplatesListPath, const std::st
 
     // Load data set
     cv::FileStorage fsr(trainedPath + "classifier.yml.gz", cv::FileStorage::READ);
-    ClassifierCriteria::load(fsr, criteria);
+//    ClassifierCriteria::load(fsr, criteria);
     std::cout << "  |_ info -> LOADED" << std::endl;
 
     // Load hash tables
@@ -164,16 +157,16 @@ void Classifier::loadScene(const std::string &scenePath, const std::string &scen
 
     // TODO better handling of max depth optimization
     float ratio = 0;
-    for (size_t j = 0; j < criteria->detect.matcher.depthDeviationFunction.size() - 1; j++) {
-        if (criteria->info.maxDepth < criteria->detect.matcher.depthDeviationFunction[j + 1][0]) {
-            ratio = (1 - criteria->detect.matcher.depthDeviationFunction[j + 1][1]);
+    for (size_t j = 0; j < criteria.depthDeviationFun.size() - 1; j++) {
+        if (criteria.info.maxDepth < criteria.depthDeviationFun[j + 1][0]) {
+            ratio = (1 - criteria.depthDeviationFun[j + 1][1]);
             break;
         }
     }
 
     // TODO parse camera params and use proper fx and fy and distances etc
     Processing::quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
-                                 static_cast<int>((criteria->info.maxDepth * scale) / ratio), criteria->detect.matcher.maxDifference);
+                                 static_cast<int>((criteria.info.maxDepth * scale) / ratio), criteria.maxDepthDiff);
 
     // Visualize scene
     cv::Mat normals = sceneQuantizedNormals.clone();
@@ -190,6 +183,11 @@ void Classifier::loadScene(const std::string &scenePath, const std::string &scen
 }
 
 void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath) {
+    // Init classifiers
+    Objectness objectness(criteria);
+    Hasher hasher(criteria);
+    Matcher matcher(criteria);
+
     // Load trained template data
     load(trainedTemplatesListPath, trainedPath);
     std::ostringstream oss;
@@ -205,8 +203,8 @@ void Classifier::detect(std::string trainedTemplatesListPath, std::string traine
         std::cout << "  |_ Scene loaded in: " << tSceneLoading.elapsed() << "s" << std::endl;
 
         /// Objectness detection
-        assert(criteria->info.smallestTemplate.area() > 0);
-        assert(criteria->info.minEdgels > 0);
+        assert(criteria.info.smallestTemplate.area() > 0);
+        assert(criteria.info.minEdgels > 0);
 
         Timer tObjectness;
         objectness.objectness(sceneDepthNorm, windows);
