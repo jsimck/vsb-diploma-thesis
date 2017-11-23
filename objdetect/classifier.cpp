@@ -105,7 +105,7 @@ void Classifier::load(const std::string &trainedTemplatesListPath, const std::st
 
     // Load data set
     cv::FileStorage fsr(trainedPath + "classifier.yml.gz", cv::FileStorage::READ);
-//    ClassifierCriteria::load(fsr, criteria);
+    fsr["criteria"] >> criteria;
     std::cout << "  |_ info -> LOADED" << std::endl;
 
     // Load hash tables
@@ -165,11 +165,27 @@ void Classifier::loadScene(const std::string &scenePath, const std::string &scen
     }
 
     // TODO parse camera params and use proper fx and fy and distances etc
+    Timer timer;
+//    Processing::quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
+//                                 static_cast<int>((criteria.info.maxDepth * scale) / ratio), criteria.maxDepthDiff);
     Processing::quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
-                                 static_cast<int>((criteria.info.maxDepth * scale) / ratio), criteria.maxDepthDiff);
+                                 static_cast<int>((criteria.info.maxDepth * scale) / ratio), 100);
+    std::cout << timer.elapsed() << std::endl;
+    timer.reset();
+    Processing::quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
+                                 static_cast<int>((criteria.info.maxDepth * scale) / ratio), 100);
+    std::cout << timer.elapsed() << std::endl;
+    timer.reset();
+    Processing::quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
+                                 static_cast<int>((criteria.info.maxDepth * scale) / ratio), 100);
+    std::cout << timer.elapsed() << std::endl;
+    timer.reset();
+    Processing::quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
+                                 static_cast<int>((criteria.info.maxDepth * scale) / ratio), 100);
+    std::cout << timer.elapsed() << std::endl;
+    timer.reset();
 
     // Visualize scene
-    cv::Mat normals = sceneQuantizedNormals.clone();
     cv::Mat gradients = sceneQuantizedAngles.clone();
     cv::Mat magnitudes = sceneMagnitudes.clone();
 
@@ -177,9 +193,9 @@ void Classifier::loadScene(const std::string &scenePath, const std::string &scen
     cv::normalize(magnitudes, magnitudes, 0, 1, CV_MINMAX);
 
     cv::imshow("magnitudes", magnitudes);
-    cv::imshow("quantizedNormals", normals);
+    cv::imshow("quantizedNormals", sceneQuantizedNormals);
     cv::imshow("quantizedGradients", gradients);
-    cv::waitKey(1);
+    cv::waitKey(0);
 }
 
 void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath) {

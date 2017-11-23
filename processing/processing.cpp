@@ -45,10 +45,10 @@ void Processing::accumulateBilateral(long delta, long xShift, long yShift, long 
 
 void Processing::quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, float fy, int maxDistance, int maxDifference) {
     assert(!src.empty());
-    assert(src.type() == CV_16U);
+    assert(src.type() == CV_16UC1);
 
-    dst = cv::Mat::zeros(src.size(), CV_8U);
     int PS = 5; // patch size
+    dst = cv::Mat::zeros(src.size(), CV_8UC1);
     auto offsetX = static_cast<int>(Processing::NORMAL_LUT_SIZE * 0.5f);
     auto offsetY = static_cast<int>(Processing::NORMAL_LUT_SIZE * 0.5f);
 
