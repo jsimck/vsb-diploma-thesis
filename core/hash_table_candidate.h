@@ -5,22 +5,24 @@
 #include <utility>
 #include "template.h"
 
-class HashTableCandidate {
-public:
-    int votes = 0;
-    std::shared_ptr<Template> candidate;
+namespace tless {
+    class HashTableCandidate {
+    public:
+        uint votes = 0;
+        std::shared_ptr<Template> candidate;
 
-    // Constructor
-    HashTableCandidate(std::shared_ptr<Template> candidate = nullptr) : candidate(candidate) {}
+        // Constructor
+        HashTableCandidate(std::shared_ptr<Template> candidate = nullptr) : candidate(candidate) {}
 
-    // Methods
-    void vote();
+        // Methods
+        void vote();
 
-    // Operators
-    bool operator<(const HashTableCandidate &rhs) const;
-    bool operator>(const HashTableCandidate &rhs) const;
-    bool operator<=(const HashTableCandidate &rhs) const;
-    bool operator>=(const HashTableCandidate &rhs) const;
-};
+        // Operators
+        bool operator<(const HashTableCandidate &rhs) const;
+        bool operator>(const HashTableCandidate &rhs) const;
+        bool operator<=(const HashTableCandidate &rhs) const;
+        bool operator>=(const HashTableCandidate &rhs) const;
+    };
+}
 
 #endif

@@ -7,30 +7,34 @@
 #include "../core/classifier_criteria.h"
 #include "../core/window.h"
 
-/**
- * class Hasher
- *
- * Used to train HashTables and quickly verify what templates should be matched
- * per each window passed form objectness detection
- */
-class Hasher {
-private:
-    ClassifierCriteria criteria;
+namespace tless {
+    /**
+     * class Hasher
+     *
+     * Used to train HashTables and quickly verify what templates should be matched
+     * per each window passed form objectness detection
+     */
+    class Hasher {
+    private:
+        ClassifierCriteria criteria;
 
-    void generateTriplets(std::vector<HashTable> &tables);
-    void initializeBinRanges(std::vector<Template> &templates, std::vector<HashTable> &tables);
-    void initialize(std::vector<Template> &templates, std::vector<HashTable> &tables);
-public:
-    // Statics
-    static const int IMG_16BIT_MAX;
+        // Methods
+        void generateTriplets(std::vector<HashTable> &tables);
+        void initializeBinRanges(std::vector<Template> &templates, std::vector<HashTable> &tables);
+        void initialize(std::vector<Template> &templates, std::vector<HashTable> &tables);
 
-    // Constructors
-    Hasher(ClassifierCriteria criteria) : criteria(criteria) {}
+    public:
+        // Statics
+        static const int IMG_16BIT_MAX = 65535;
 
-    // Methods
-    void train(std::vector<Template> &templates, std::vector<HashTable> &tables);
-    void verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSurfaceNormalsQuantized,
-                          std::vector<HashTable> &tables, std::vector<Window> &windows);
-};
+        // Constructors
+        Hasher(ClassifierCriteria criteria) : criteria(criteria) {}
+
+        // Methods
+        void train(std::vector<Template> &templates, std::vector<HashTable> &tables);
+        void verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSurfaceNormalsQuantized,
+                              std::vector<HashTable> &tables, std::vector<Window> &windows);
+    };
+}
 
 #endif

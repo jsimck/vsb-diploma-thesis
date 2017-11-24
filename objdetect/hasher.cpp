@@ -1,259 +1,262 @@
 #include <unordered_set>
 #include <utility>
 #include "hasher.h"
-#include "../utils/utils.h"
 #include "../utils/timer.h"
 #include "../core/classifier_criteria.h"
 #include "../processing/processing.h"
 #include "../core/hash_table_candidate.h"
 
-const int Hasher::IMG_16BIT_MAX = 65535; // <0, 65535> => 65536 values
+namespace tless {
+    void Hasher::generateTriplets(std::vector<HashTable> &tables) {
+        // Generate triplets
+        for (uint i = 0; i < criteria.tablesCount; ++i) {
+            tables.emplace_back(Triplet::create(criteria.tripletGrid, criteria.maxTripletDist));
+        }
 
-void Hasher::generateTriplets(std::vector<HashTable> &tables) {
-    // Generate triplets
-    for (int i = 0; i < criteria.tablesCount; ++i) {
-        tables.emplace_back(Triplet::create(criteria.tripletGrid, criteria.maxTripletDist));
-    }
-
-    // TODO - joint entropy of 5k triplets, instead of 100 random triplets
-    // Check for unique triplets, and regenerate duplicates
-    bool duplicate;
-    do {
-        duplicate = false;
-        for (int i = 0; i < criteria.tablesCount; ++i) {
-            for (int j = 0; j < criteria.tablesCount; ++j) {
-                // Don't compare same triplets
-                if (i == j) continue;
-                if (tables[i].triplet == tables[j].triplet) {
-                    // Duplicate, generate new triplet
-                    duplicate = true;
-                    tables[j].triplet = std::move(Triplet::create(criteria.tripletGrid));
+        // TODO - joint entropy of 5k triplets, instead of 100 random triplets
+        // Check for unique triplets, and regenerate duplicates
+        bool duplicate;
+        do {
+            duplicate = false;
+            for (uint i = 0; i < criteria.tablesCount; ++i) {
+                for (uint j = 0; j < criteria.tablesCount; ++j) {
+                    // Don't compare same triplets
+                    if (i == j) continue;
+                    if (tables[i].triplet == tables[j].triplet) {
+                        // Duplicate, generate new triplet
+                        duplicate = true;
+                        tables[j].triplet = std::move(Triplet::create(criteria.tripletGrid));
+                    }
                 }
             }
-        }
-    } while (duplicate);
-}
+        } while (duplicate);
+    }
 
-void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<HashTable> &tables) {
-    // Checks
-    assert(!tables.empty());
-    assert(!templates.empty());
+    void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<HashTable> &tables) {
+        // Checks
+        assert(!tables.empty());
+        assert(!templates.empty());
 
-    const size_t iSize = tables.size();
+        const size_t iSize = tables.size();
 
-    #pragma omp parallel for shared(templates, tables) firstprivate(criteria)
-    for (size_t i = 0; i < iSize; i++) {
-        const int binCount = 5;
-        std::vector<int> rDepths;
+#pragma omp parallel for shared(templates, tables) firstprivate(criteria)
+        for (size_t i = 0; i < iSize; i++) {
+            const int binCount = 5;
+            std::vector<int> rDepths;
 
-        for (auto &t : templates) {
-            // Checks
-            assert(!t.srcDepth.empty());
+            for (auto &t : templates) {
+                // Checks
+                assert(!t.srcDepth.empty());
 
-            // Offset for the triplet grid
-            cv::Point gridOffset(
-                t.objBB.tl().x - (criteria.info.largestTemplate.width - t.objBB.width) / 2,
-                t.objBB.tl().y - (criteria.info.largestTemplate.height - t.objBB.height) / 2
-            );
+                // Offset for the triplet grid
+                cv::Point gridOffset(
+                        t.objBB.tl().x - (criteria.info.largestTemplate.width - t.objBB.width) / 2,
+                        t.objBB.tl().y - (criteria.info.largestTemplate.height - t.objBB.height) / 2
+                );
 
-            // Absolute triplet points
-            TripletParams tParams(criteria.info.largestTemplate.width, criteria.info.largestTemplate.height, criteria.tripletGrid, gridOffset.x, gridOffset.y);
-            cv::Point c = tables[i].triplet.getCenter(tParams);
-            cv::Point p1 = tables[i].triplet.getP1(tParams);
-            cv::Point p2 = tables[i].triplet.getP2(tParams);
+                // Absolute triplet points
+                TripletParams tParams(criteria.info.largestTemplate.width, criteria.info.largestTemplate.height,
+                                      criteria.tripletGrid, gridOffset.x, gridOffset.y);
+                cv::Point c = tables[i].triplet.getCenter(tParams);
+                cv::Point p1 = tables[i].triplet.getP1(tParams);
+                cv::Point p2 = tables[i].triplet.getP2(tParams);
 
-            // Check if we're not out of bounds
-            assert(c.x >= 0 && c.x < t.srcDepth.cols);
-            assert(c.y >= 0 && c.y < t.srcDepth.rows);
-            assert(p1.x >= 0 && p1.x < t.srcDepth.cols);
-            assert(p1.y >= 0 && p1.y < t.srcDepth.rows);
-            assert(p2.x >= 0 && p2.x < t.srcDepth.cols);
-            assert(p2.y >= 0 && p2.y < t.srcDepth.rows);
+                // Check if we're not out of bounds
+                assert(c.x >= 0 && c.x < t.srcDepth.cols);
+                assert(c.y >= 0 && c.y < t.srcDepth.rows);
+                assert(p1.x >= 0 && p1.x < t.srcDepth.cols);
+                assert(p1.y >= 0 && p1.y < t.srcDepth.rows);
+                assert(p2.x >= 0 && p2.x < t.srcDepth.cols);
+                assert(p2.y >= 0 && p2.y < t.srcDepth.rows);
 
-            // Relative depths
-            int d[2];
-            Processing::relativeDepths(t.srcDepth, c, p1, p2, d);
-            rDepths.push_back(d[0]);
-            rDepths.push_back(d[1]);
-        }
-
-        // Sort depths Calculate bin ranges
-        std::sort(rDepths.begin(), rDepths.end());
-        const size_t rDSize = rDepths.size();
-        const size_t binSize = rDSize / binCount;
-        std::vector<cv::Range> ranges;
-
-        for (int j = 0; j < binCount; j++) {
-            int min = rDepths[j * binSize];
-            int max = rDepths[(j + 1) * binSize];
-
-            if (j == 0) {
-                min = -IMG_16BIT_MAX;
-            } else if (j + 1 == binCount) {
-                max = IMG_16BIT_MAX;
+                // Relative depths
+                int d[2];
+                relativeDepths(t.srcDepth, c, p1, p2, d);
+                rDepths.push_back(d[0]);
+                rDepths.push_back(d[1]);
             }
 
-            ranges.emplace_back(min, max);
-        }
+            // Sort depths Calculate bin ranges
+            std::sort(rDepths.begin(), rDepths.end());
+            const size_t rDSize = rDepths.size();
+            const size_t binSize = rDSize / binCount;
+            std::vector<cv::Range> ranges;
 
-        // Set table bin ranges
-        assert(static_cast<int>(ranges.size()) == binCount);
-        tables[i].binRanges = ranges;
-    }
-}
+            for (int j = 0; j < binCount; j++) {
+                int min = rDepths[j * binSize];
+                int max = rDepths[(j + 1) * binSize];
 
-void Hasher::initialize(std::vector<Template> &templates, std::vector<HashTable> &tables) {
-    // Init hash tables
-    tables.reserve(criteria.tablesCount);
-    std::cout << "    |_ Generating triplets... " << std::endl;
-    generateTriplets(tables);
+                if (j == 0) {
+                    min = -IMG_16BIT_MAX;
+                } else if (j + 1 == binCount) {
+                    max = IMG_16BIT_MAX;
+                }
 
-    // Calculate bin ranges for depth quantization
-    std::cout << "    |_ Calculating depths bin ranges... " << std::endl;
-    initializeBinRanges(templates, tables);
-}
+                ranges.emplace_back(min, max);
+            }
 
-void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tables) {
-    // Checks
-    assert(!templates.empty());
-    assert(criteria.tablesCount > 0);
-    assert(criteria.tripletGrid.width > 0);
-    assert(criteria.tripletGrid.height > 0);
-    assert(criteria.info.largestTemplate.area() > 0);
-
-    // Prepare hash tables and histogram bin ranges
-    initialize(templates, tables);
-    const size_t iSize = tables.size();
-
-    // Fill hash tables with templates and keys quantized from measured values
-    #pragma omp parallel for shared(templates, tables) firstprivate(criteria)
-    for (size_t i = 0; i < iSize; i++) {
-        for (auto &t : templates) {
-            // Checks
-            assert(!t.srcDepth.empty());
-
-            // Get triplet points
-            TripletParams coordParams(criteria.info.largestTemplate.width, criteria.info.largestTemplate.height, criteria.tripletGrid, t.objBB.tl().x, t.objBB.tl().y);
-            cv::Point c = tables[i].triplet.getCenter(coordParams);
-            cv::Point p1 = tables[i].triplet.getP1(coordParams);
-            cv::Point p2 = tables[i].triplet.getP2(coordParams);
-
-            // Check if we're not out of bounds
-            assert(c.x >= 0 && c.x < t.srcGray.cols);
-            assert(c.y >= 0 && c.y < t.srcGray.rows);
-            assert(p1.x >= 0 && p1.x < t.srcGray.cols);
-            assert(p1.y >= 0 && p1.y < t.srcGray.rows);
-            assert(p2.x >= 0 && p2.x < t.srcGray.cols);
-            assert(p2.y >= 0 && p2.y < t.srcGray.rows);
-
-            // Relative depths
-            int d[2];
-            Processing::relativeDepths(t.srcDepth, c, p1, p2, d);
-
-            // Generate hash key
-            HashKey key(
-                Processing::quantizeDepth(d[0], tables[i].binRanges),
-                Processing::quantizeDepth(d[1], tables[i].binRanges),
-                t.srcNormals.at<uchar>(c),
-                t.srcNormals.at<uchar>(p1),
-                t.srcNormals.at<uchar>(p2)
-            );
-
-            // Check if key exists, if not initialize it
-            tables[i].pushUnique(key, t);
+            // Set table bin ranges
+            assert(static_cast<int>(ranges.size()) == binCount);
+            tables[i].binRanges = ranges;
         }
     }
-}
+
+    void Hasher::initialize(std::vector<Template> &templates, std::vector<HashTable> &tables) {
+        // Init hash tables
+        tables.reserve(criteria.tablesCount);
+        std::cout << "    |_ Generating triplets... " << std::endl;
+        generateTriplets(tables);
+
+        // Calculate bin ranges for depth quantization
+        std::cout << "    |_ Calculating depths bin ranges... " << std::endl;
+        initializeBinRanges(templates, tables);
+    }
+
+    void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tables) {
+        // Checks
+        assert(!templates.empty());
+        assert(criteria.tablesCount > 0);
+        assert(criteria.tripletGrid.width > 0);
+        assert(criteria.tripletGrid.height > 0);
+        assert(criteria.info.largestTemplate.area() > 0);
+
+        // Prepare hash tables and histogram bin ranges
+        initialize(templates, tables);
+        const size_t iSize = tables.size();
+
+        // Fill hash tables with templates and keys quantized from measured values
+#pragma omp parallel for shared(templates, tables) firstprivate(criteria)
+        for (size_t i = 0; i < iSize; i++) {
+            for (auto &t : templates) {
+                // Checks
+                assert(!t.srcDepth.empty());
+
+                // Get triplet points
+                TripletParams coordParams(criteria.info.largestTemplate.width, criteria.info.largestTemplate.height,
+                                          criteria.tripletGrid, t.objBB.tl().x, t.objBB.tl().y);
+                cv::Point c = tables[i].triplet.getCenter(coordParams);
+                cv::Point p1 = tables[i].triplet.getP1(coordParams);
+                cv::Point p2 = tables[i].triplet.getP2(coordParams);
+
+                // Check if we're not out of bounds
+                assert(c.x >= 0 && c.x < t.srcGray.cols);
+                assert(c.y >= 0 && c.y < t.srcGray.rows);
+                assert(p1.x >= 0 && p1.x < t.srcGray.cols);
+                assert(p1.y >= 0 && p1.y < t.srcGray.rows);
+                assert(p2.x >= 0 && p2.x < t.srcGray.cols);
+                assert(p2.y >= 0 && p2.y < t.srcGray.rows);
+
+                // Relative depths
+                int d[2];
+                relativeDepths(t.srcDepth, c, p1, p2, d);
+
+                // Generate hash key
+                HashKey key(
+                        quantizeDepth(d[0], tables[i].binRanges),
+                        quantizeDepth(d[1], tables[i].binRanges),
+                        t.srcNormals.at<uchar>(c),
+                        t.srcNormals.at<uchar>(p1),
+                        t.srcNormals.at<uchar>(p2)
+                );
+
+                // Check if key exists, if not initialize it
+                tables[i].pushUnique(key, t);
+            }
+        }
+    }
 
 // #define VISUALIZE
 // TODO skip wrong depths
-void Hasher::verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSurfaceNormalsQuantized,
-                              std::vector<HashTable> &tables, std::vector<Window> &windows) {
-    // Checks
-    assert(!sceneSurfaceNormalsQuantized.empty());
-    assert(!sceneDepth.empty());
-    assert(!windows.empty());
-    assert(!tables.empty());
-    assert(criteria.info.largestTemplate.area() > 0);
+    void Hasher::verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSurfaceNormalsQuantized,
+                                         std::vector<HashTable> &tables, std::vector<Window> &windows) {
+        // Checks
+        assert(!sceneSurfaceNormalsQuantized.empty());
+        assert(!sceneDepth.empty());
+        assert(!windows.empty());
+        assert(!tables.empty());
+        assert(criteria.info.largestTemplate.area() > 0);
 
-    std::vector<Window> newWindows;
-    const size_t windowsSize = windows.size();
+        std::vector<Window> newWindows;
+        const size_t windowsSize = windows.size();
 
-    // TODO find and fix memory leak
+        // TODO find and fix memory leak
 #ifdef VISUALIZE
-//    #pragma omp parallel for default(none) shared(windows, newWindows, sceneDepth, sceneSurfaceNormalsQuantized, tables) firstprivate(criteria) ordered
+        //    #pragma omp parallel for default(none) shared(windows, newWindows, sceneDepth, sceneSurfaceNormalsQuantized, tables) firstprivate(criteria) ordered
 #else
 //    #pragma omp parallel for default(none) shared(windows, newWindows, sceneDepth, sceneSurfaceNormalsQuantized, tables) firstprivate(criteria)
 #endif
-    for (size_t i = 0; i < windowsSize; ++i) {
-        std::unordered_map<int, HashTableCandidate> tableCandidates;
+        for (size_t i = 0; i < windowsSize; ++i) {
+            std::unordered_map<int, HashTableCandidate> tableCandidates;
 
-        for (auto &table : tables) {
-            // Get triplet points
-            TripletParams tParams(criteria.info.largestTemplate.width, criteria.info.largestTemplate.height, criteria.tripletGrid, windows[i].tl().x, windows[i].tl().y);
-            cv::Point c = table.triplet.getCenter(tParams);
-            cv::Point p1 = table.triplet.getP1(tParams);
-            cv::Point p2 = table.triplet.getP2(tParams);
+            for (auto &table : tables) {
+                // Get triplet points
+                TripletParams tParams(criteria.info.largestTemplate.width, criteria.info.largestTemplate.height,
+                                      criteria.tripletGrid, windows[i].tl().x, windows[i].tl().y);
+                cv::Point c = table.triplet.getCenter(tParams);
+                cv::Point p1 = table.triplet.getP1(tParams);
+                cv::Point p2 = table.triplet.getP2(tParams);
 
-            // If any point of triplet is out of scene boundaries, ignore it to not get false data
-            if ((c.x < 0 || c.x >= sceneDepth.cols || c.y < 0 || c.y >= sceneDepth.rows) ||
-                (p1.x < 0 || p1.x >= sceneDepth.cols || p1.y < 0 || p1.y >= sceneDepth.rows) ||
-                (p2.x < 0 || p2.x >= sceneDepth.cols || p2.y < 0 || p2.y >= sceneDepth.rows)) continue;
+                // If any point of triplet is out of scene boundaries, ignore it to not get false data
+                if ((c.x < 0 || c.x >= sceneDepth.cols || c.y < 0 || c.y >= sceneDepth.rows) ||
+                    (p1.x < 0 || p1.x >= sceneDepth.cols || p1.y < 0 || p1.y >= sceneDepth.rows) ||
+                    (p2.x < 0 || p2.x >= sceneDepth.cols || p2.y < 0 || p2.y >= sceneDepth.rows))
+                    continue;
 
-            // Relative depths
-            int d[2];
-            Processing::relativeDepths(sceneDepth, c, p1, p2, d);
+                // Relative depths
+                int d[2];
+                relativeDepths(sceneDepth, c, p1, p2, d);
 
-            // Generate hash key
-            HashKey key(
-                Processing::quantizeDepth(d[0], table.binRanges),
-                Processing::quantizeDepth(d[1], table.binRanges),
-                sceneSurfaceNormalsQuantized.at<uchar>(c),
-                sceneSurfaceNormalsQuantized.at<uchar>(p1),
-                sceneSurfaceNormalsQuantized.at<uchar>(p2)
-            );
+                // Generate hash key
+                HashKey key(
+                        quantizeDepth(d[0], table.binRanges),
+                        quantizeDepth(d[1], table.binRanges),
+                        sceneSurfaceNormalsQuantized.at<uchar>(c),
+                        sceneSurfaceNormalsQuantized.at<uchar>(p1),
+                        sceneSurfaceNormalsQuantized.at<uchar>(p2)
+                );
 
-            // Put each candidate to hash table, increase votes for existing tableCandidates
-            for (auto &entry : table.templates[key]) {
-                if (tableCandidates.count(entry->id) == 0) {
-                    tableCandidates[entry->id] = HashTableCandidate(entry);
+                // Put each candidate to hash table, increase votes for existing tableCandidates
+                for (auto &entry : table.templates[key]) {
+                    if (tableCandidates.count(entry->id) == 0) {
+                        tableCandidates[entry->id] = HashTableCandidate(entry);
+                    }
+
+                    // Increase votes for candidate
+                    tableCandidates[entry->id].vote();
+                }
+            }
+
+            Timer t;
+            // Insert all tableCandidates with above min votes to helper vector
+            std::vector<HashTableCandidate> passedCandidates;
+            for (auto &c : tableCandidates) {
+                if (c.second.votes >= criteria.minVotes) {
+                    passedCandidates.push_back(c.second);
+                }
+            }
+
+            // Sort and pick first 100 (DESCENDING)
+            if (!passedCandidates.empty()) {
+                std::sort(passedCandidates.rbegin(), passedCandidates.rend());
+
+                // Put only first 100 candidates
+                size_t pcSize = passedCandidates.size();
+                pcSize = (pcSize > criteria.tablesCount) ? criteria.tablesCount : pcSize;
+
+                for (size_t j = 0; j < pcSize; ++j) {
+                    windows[i].candidates.push_back(passedCandidates[j].candidate);
                 }
 
-                // Increase votes for candidate
-                tableCandidates[entry->id].vote();
-            }
-        }
-
-        Timer t;
-        // Insert all tableCandidates with above min votes to helper vector
-        std::vector<HashTableCandidate> passedCandidates;
-        for (auto &c : tableCandidates) {
-            if (c.second.votes >= criteria.minVotes) {
-                passedCandidates.push_back(c.second);
-            }
-        }
-
-        // Sort and pick first 100 (DESCENDING)
-        if (!passedCandidates.empty()) {
-            std::sort(passedCandidates.rbegin(), passedCandidates.rend());
-
-            // Put only first 100 candidates
-            size_t pcSize = passedCandidates.size();
-            pcSize = (pcSize > criteria.tablesCount) ? criteria.tablesCount : pcSize;
-
-            for (size_t j = 0; j < pcSize; ++j) {
-                windows[i].candidates.push_back(passedCandidates[j].candidate);
-            }
-
 #ifdef VISUALIZE
-//            #pragma omp ordered
+                //            #pragma omp ordered
 #else
 //            #pragma omp critical
 #endif
-            newWindows.push_back(std::move(windows[i]));
+                newWindows.push_back(std::move(windows[i]));
+            }
         }
-    }
 
-    // Remove empty windows
-    windows = newWindows;
+        // Remove empty windows
+        windows = newWindows;
+    }
 }

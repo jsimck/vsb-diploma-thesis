@@ -3,14 +3,32 @@
 
 #include <opencv2/core/mat.hpp>
 
-// TODO move to namespaced functions rather than static
-
-class Processing {
-private:
+namespace tless {
     // Lookup tables
     static const int NORMAL_LUT_SIZE = 20, DEPTH_LUT_SIZE = 5;
-    static const uchar DEPTH_LUT[DEPTH_LUT_SIZE];
-    static const uchar NORMAL_LUT[NORMAL_LUT_SIZE][NORMAL_LUT_SIZE];
+    static const uchar DEPTH_LUT[DEPTH_LUT_SIZE] = {1, 2, 4, 8, 16};
+    static const uchar NORMAL_LUT[NORMAL_LUT_SIZE][NORMAL_LUT_SIZE] = {
+            {32, 32, 32, 32, 32, 32, 64, 64, 64, 64, 64, 64,  64,  64,  64,  128, 128, 128, 128, 128},
+            {32, 32, 32, 32, 32, 32, 32, 64, 64, 64, 64, 64,  64,  64,  128, 128, 128, 128, 128, 128},
+            {32, 32, 32, 32, 32, 32, 32, 64, 64, 64, 64, 64,  64,  64,  128, 128, 128, 128, 128, 128},
+            {32, 32, 32, 32, 32, 32, 32, 32, 64, 64, 64, 64,  64,  128, 128, 128, 128, 128, 128, 128},
+            {32, 32, 32, 32, 32, 32, 32, 32, 64, 64, 64, 64,  64,  128, 128, 128, 128, 128, 128, 128},
+            {32, 32, 32, 32, 32, 32, 32, 32, 64, 64, 64, 64,  64,  128, 128, 128, 128, 128, 128, 128},
+            {16, 32, 32, 32, 32, 32, 32, 32, 32, 64, 64, 64,  128, 128, 128, 128, 128, 128, 128, 128},
+            {16, 16, 16, 32, 32, 32, 32, 32, 32, 64, 64, 64,  128, 128, 128, 128, 128, 128, 1,   1},
+            {16, 16, 16, 16, 16, 16, 32, 32, 32, 32, 64, 128, 128, 128, 128, 1,   1,   1,   1,   1},
+            {16, 16, 16, 16, 16, 16, 16, 16, 32, 32, 64, 128, 128, 1,   1,   1,   1,   1,   1,   1},
+            {16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 1,  1,   1,   1,   1,   1,   1,   1,   1,   1},
+            {16, 16, 16, 16, 16, 16, 16, 16, 8,  8,  4,  2,   2,   1,   1,   1,   1,   1,   1,   1},
+            {16, 16, 16, 16, 16, 16, 8,  8,  8,  8,  4,  2,   2,   2,   2,   1,   1,   1,   1,   1},
+            {16, 16, 16, 8,  8,  8,  8,  8,  8,  4,  4,  4,   2,   2,   2,   2,   2,   2,   1,   1},
+            {16, 8,  8,  8,  8,  8,  8,  8,  8,  4,  4,  4,   2,   2,   2,   2,   2,   2,   2,   2},
+            {8,  8,  8,  8,  8,  8,  8,  8,  4,  4,  4,  4,   4,   2,   2,   2,   2,   2,   2,   2},
+            {8,  8,  8,  8,  8,  8,  8,  8,  4,  4,  4,  4,   4,   2,   2,   2,   2,   2,   2,   2},
+            {8,  8,  8,  8,  8,  8,  8,  8,  4,  4,  4,  4,   4,   2,   2,   2,   2,   2,   2,   2},
+            {8,  8,  8,  8,  8,  8,  8,  4,  4,  4,  4,  4,   4,   4,   2,   2,   2,   2,   2,   2},
+            {8,  8,  8,  8,  8,  8,  8,  4,  4,  4,  4,  4,   4,   4,   2,   2,   2,   2,   2,   2}
+    };
 
     /**
      * Applies bilateral filtering around each point A computing optimal gradient in b.
@@ -27,9 +45,8 @@ private:
      * @param[in]  maxDifference Ignore contributions of pixels whose depth difference with central
      *                            pixel is above this threshold
      */
-    static void accumulateBilateral(long delta, long xShift, long yShift, long *A, long *b, int maxDifference);
+    void accumulateBilateral(long delta, long xShift, long yShift, long *A, long *b, int maxDifference);
 
-public:
     /**
      * @brief Computes quantized surface normals from 16-bit depth image.
      *
@@ -41,7 +58,7 @@ public:
      * @param[in]  maxDifference When computing surface normals, ignore contributions of
      *                           pixels whose depth difference with central pixel is above this threshold
      */
-    static void quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, float fy, int maxDistance, int maxDifference);
+    void quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, float fy, int maxDistance, int maxDifference);
 
     /**
      * @brief Computes relative depths from 16-bit depth image on (triplet) given points.
@@ -52,18 +69,18 @@ public:
      * @param[in]  p2     P2 triplet point
      * @param[out] depths 2 value output array where: depths[0] = src.at(p1) - src.at(c); depths[1] = src.at(p2) - src.at(c);
      */
-    static void relativeDepths(const cv::Mat &src, cv::Point c, cv::Point p1, cv::Point p2, int *depths);
+    void relativeDepths(const cv::Mat &src, cv::Point c, cv::Point p1, cv::Point p2, int *depths);
 
     // Filters
-    static void filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter = true, bool yFilter = true);
-    static void thresholdMinMax(const cv::Mat &src, cv::Mat &dst, float min, float max);
+    void filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter = true, bool yFilter = true);
+    void thresholdMinMax(const cv::Mat &src, cv::Mat &dst, float min, float max);
 
     // Computation
-    static void quantizedOrientationGradients(const cv::Mat &srcGray, cv::Mat &quantizedOrientations, cv::Mat &magnitude);
+    void quantizedOrientationGradients(const cv::Mat &srcGray, cv::Mat &quantizedOrientations, cv::Mat &magnitude);
 
     // Quantization & discretization functions
-    static uchar quantizeOrientationGradient(float deg);
-    static uchar quantizeDepth(float depth, std::vector<cv::Range> &ranges);
-};
+    uchar quantizeOrientationGradient(float deg);
+    uchar quantizeDepth(float depth, std::vector<cv::Range> &ranges);
+}
 
 #endif

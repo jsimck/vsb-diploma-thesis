@@ -11,42 +11,43 @@
 #include "matcher.h"
 #include "../core/classifier_criteria.h"
 
-/**
- * class Classifier
- *
- * Main class which runs all other classifiers and template parsers in the correct order.
- * In this class it's also possible to fine-tune the resulted parameters of each verification stage
- * which can in the end produce different results. These params can be adapted to processed templates
- * and scenes.
- */
-class Classifier {
-private:
-    ClassifierCriteria criteria;
+namespace tless {
+    /**
+     * class Classifier
+     *
+     * Main class which runs all other classifiers and template parsers in the correct order.
+     * In this class it's also possible to fine-tune the resulted parameters of each verification stage
+     * which can in the end produce different results. These params can be adapted to processed templates
+     * and scenes.
+     */
+    class Classifier {
+    private:
+        ClassifierCriteria criteria;
+        cv::Mat scene;
+        cv::Mat sceneHSV;
+        cv::Mat sceneGray;
+        cv::Mat sceneDepth;
+        cv::Mat sceneDepthNorm;
+        cv::Mat sceneMagnitudes;
+        cv::Mat sceneQuantizedAngles;
+        cv::Mat sceneQuantizedNormals;
+        std::vector<Template> templates;
+        std::vector<HashTable> tables;
+        std::vector<Window> windows;
+        std::vector<Match> matches;
 
-    cv::Mat scene;
-    cv::Mat sceneHSV;
-    cv::Mat sceneGray;
-    cv::Mat sceneDepth;
-    cv::Mat sceneDepthNorm;
-    cv::Mat sceneMagnitudes;
-    cv::Mat sceneQuantizedAngles;
-    cv::Mat sceneQuantizedNormals;
+        // Methods
+        void loadScene(const std::string &scenePath, const std::string &sceneName);
+        void load(const std::string &trainedTemplatesListPath, const std::string &trainedPath);
 
-    std::vector<Template> templates;
-    std::vector<HashTable> tables;
-    std::vector<Window> windows;
-    std::vector<Match> matches;
+    public:
+        // Constructors
+        Classifier(ClassifierCriteria criteria) : criteria(criteria) {}
 
-    // Methods
-    void loadScene(const std::string &scenePath, const std::string &sceneName);
-    void load(const std::string &trainedTemplatesListPath, const std::string &trainedPath);
-public:
-    // Constructors
-    Classifier(ClassifierCriteria criteria) : criteria(criteria) {}
-
-    // Methods
-    void train(std::string templatesListPath, std::string resultPath, std::string modelsPath, std::vector<uint> indices = {});
-    void detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath);
-};
+        // Methods
+        void train(std::string templatesListPath, std::string resultPath, std::string modelsPath, std::vector<uint> indices = {});
+        void detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath);
+    };
+}
 
 #endif

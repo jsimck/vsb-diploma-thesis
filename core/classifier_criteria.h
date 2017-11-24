@@ -4,42 +4,45 @@
 #include <opencv2/core/types.hpp>
 #include <opencv2/core/persistence.hpp>
 
-/**
- * @brief Class defining parameters for classifier behaviour and holds info about dataset
- */
-class ClassifierCriteria {
-public:
-    // Train params
-    cv::Size tripletGrid{12, 12}; //!< Relative size of the triplet grid, 12x12 yields 144 possible locations
-    uint maxTripletDist = 3; //!< Maximum distance between p1, p2 from center in hash table triplets
-    uint tablesCount = 100;  //!< Amount of tables to generate for hashing verification
-    uint featurePointsCount = 100; //!< Amount of points to generate for feature points matching
-    float minMagnitude = 0.1f; //!< Minimal magnitude of edge gradient to classify it as valid
-    ushort maxDepthDiff = 100; //!< When computing surface normals, contribution of pixel is ignored if the depth difference with central pixel is above this threshold
-    std::vector<cv::Vec2f> depthDeviationFun{{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {70000, 0.08f}}; //!< Depth error function, allowing depth values to be match within giveninterval
+namespace tless {
+    /**
+     * @brief Class defining parameters for classifier behaviour and holds info about dataset
+     */
+    class ClassifierCriteria {
+    public:
+        // Train params
+        cv::Size tripletGrid{12, 12}; //!< Relative size of the triplet grid, 12x12 yields 144 possible locations
+        uint maxTripletDist = 3; //!< Maximum distance between p1, p2 from center in hash table triplets
+        uint tablesCount = 100;  //!< Amount of tables to generate for hashing verification
+        uint featurePointsCount = 100; //!< Amount of points to generate for feature points matching
+        float minMagnitude = 0.1f; //!< Minimal magnitude of edge gradient to classify it as valid
+        ushort maxDepthDiff = 100; //!< When computing surface normals, contribution of pixel is ignored if the depth difference with central pixel is above this threshold
+        std::vector<cv::Vec2f> depthDeviationFun{{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {70000, 0.08f}}; //!< Depth error function, allowing depth values to be match within giveninterval
 
-    // Detect Params
-    uint minVotes = 3; //!< Minimum amount of votes to classify template as a valid candidate for given window
-    uint windowStep = 5; //!< Objectness sliding window step
-    int patchOffset = 2; //!< +-offset, defining neighbourhood to look for a feature point match
-    float objectnessFactor = 0.3f; //!< Amount of edgels window must contain (30% of minimum) to classify as containing object in objectness detection
-    float matchFactor = 0.6f; //!< Amount of feature points that needs to match to classify candidate as a match (at least 60%)
-    float overlapFactor = 0.3f; //!< Permitted factor of which two templates can overlap
-    float depthK = 0.05f; //!< Constant used in depth test in template matching phase
+        // Detect Params
+        uint minVotes = 3; //!< Minimum amount of votes to classify template as a valid candidate for given window
+        uint windowStep = 5; //!< Objectness sliding window step
+        int patchOffset = 2; //!< +-offset, defining neighbourhood to look for a feature point match
+        float objectnessFactor = 0.3f; //!< Amount of edgels window must contain (30% of minimum) to classify as containing object in objectness detection
+        float matchFactor = 0.6f; //!< Amount of feature points that needs to match to classify candidate as a match (at least 60%)
+        float overlapFactor = 0.3f; //!< Permitted factor of which two templates can overlap
+        float depthK = 0.05f; //!< Constant used in depth test in template matching phase
 
-    // Dataset info
-    struct {
-        ushort minDepth = 0; //!< Minimum depth found across all templates withing their bounding box
-        ushort maxDepth = 0; //!< Maximum depth found across all templates withing their bounding box
-        int minEdgels = INT_MAX; //!< Minimum number of edgels found in any template
-        float depthScaleFactor = 10.0f; //!< Depth scaling factor to convert depth value to millimeters
-        cv::Size smallestTemplate{500, 500}; //!< Size of the largest template found across all templates
-        cv::Size largestTemplate{0, 0}; //!< Size of the smallest template found across all templates
-    } info;
+        // Dataset info
+        struct {
+            ushort minDepth = 0; //!< Minimum depth found across all templates withing their bounding box
+            ushort maxDepth = 0; //!< Maximum depth found across all templates withing their bounding box
+            int minEdgels = INT_MAX; //!< Minimum number of edgels found in any template
+            float depthScaleFactor = 10.0f; //!< Depth scaling factor to convert depth value to millimeters
+            cv::Size smallestTemplate{500, 500}; //!< Size of the largest template found across all templates
+            cv::Size largestTemplate{0, 0}; //!< Size of the smallest template found across all templates
+        } info;
 
-    friend void operator>>(const cv::FileNode &node, ClassifierCriteria &crit);
-    friend cv::FileStorage &operator<<(cv::FileStorage &fs, const ClassifierCriteria &crit);
-    friend std::ostream &operator<<(std::ostream &os, const ClassifierCriteria &crit);
-};
+        // Friends
+        friend void operator>>(const cv::FileNode &node, ClassifierCriteria &crit);
+        friend cv::FileStorage &operator<<(cv::FileStorage &fs, const ClassifierCriteria &crit);
+        friend std::ostream &operator<<(std::ostream &os, const ClassifierCriteria &crit);
+    };
+}
 
 #endif
