@@ -6,7 +6,7 @@
 #include "template.h"
 
 namespace tless {
-    class HashTableCandidate {
+    struct HashTableCandidate {
     public:
         uint votes = 0;
         std::shared_ptr<Template> candidate;

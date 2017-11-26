@@ -5,8 +5,15 @@
 #include <algorithm>
 
 namespace tless {
-    float rad(float deg);
-    float deg(float rad);
+    template <typename T>
+    T rad(T deg) {
+        return static_cast<T>(deg * (M_PI / 180.0f));
+    }
+
+    template <typename T>
+    T deg(T rad) {
+        return static_cast<T>(rad * (180.0f / M_PI));
+    }
 
     template<typename T>
     T sqr(T x) {

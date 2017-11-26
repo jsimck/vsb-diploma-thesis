@@ -10,7 +10,7 @@ namespace tless {
     /**
      * @brief Holds matched templates along with their location and final score
      */
-    class Match {
+    struct Match {
     public:
         std::shared_ptr<Template> tpl;
         cv::Rect objBB;

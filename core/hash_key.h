@@ -15,7 +15,7 @@ namespace tless {
      *   - n1, n2, n3 are quantized surface normals (8 bins) at (p1, p2, c)
      * this gives 5 * 5 * 8 * 8 * 8 = 12800 possible different keys.
      */
-    class HashKey {
+    struct HashKey {
     public:
         uchar d1 = 0, d2 = 0; //!< d1, d2 relative depths, quantization into 5 bins
         uchar n1 = 0, n2 = 0, n3 = 0; //!< n1, n2, n3 surface normals, quantized into 8 discrete values

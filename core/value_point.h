@@ -6,7 +6,7 @@
 
 namespace tless {
     template<typename T>
-    class ValuePoint {
+    struct ValuePoint {
     public:
         cv::Point p;
         T value;

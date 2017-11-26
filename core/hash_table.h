@@ -16,7 +16,7 @@ namespace tless {
      * Each hash table is then filled with set of valid candidates, based
      * on the custom hash key, that's formed on template quantized values.
      */
-    class HashTable {
+    struct HashTable {
     public:
         Triplet triplet;
         std::vector<cv::Range> binRanges;

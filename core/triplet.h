@@ -15,7 +15,7 @@ namespace tless {
      * point has x and y coordinates in interval <0, 11>. This allows to adapt reference point locations
      * to each template bounding box. Grid size can be changed through classifier criteria
      */
-    class Triplet {
+    struct Triplet {
     private:
         static std::random_device seed;
         static std::mt19937 rng;

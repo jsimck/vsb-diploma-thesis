@@ -9,10 +9,7 @@
 
 namespace tless {
     /**
-     * class Parser
-     *
-     * Utility class used to parse images downloaded from http://cmp.felk.cvut.cz/t-less/
-     * into form which can be then modified and further used in the code.
+     * @brief  Utility class to parse templates downloaded from http://cmp.felk.cvut.cz/t-less/
      */
     class Parser {
     private:

@@ -9,7 +9,7 @@ namespace tless {
     /**
      * @brief Contains location of windows that passed objectness detection
      */
-    class Window {
+    struct Window {
     public:
         int x;
         int y;

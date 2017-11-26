@@ -31,23 +31,6 @@ namespace tless {
     };
 
     /**
-     * Applies bilateral filtering around each point A computing optimal gradient in b.
-     *
-     * Each point A represents a filtered depth to compute normal from, where
-     * A[0] is origin. b represents optimal gradient computed across origin b[0]
-     * and
-     *
-     * @param[in]  delta         Current pixel depth value
-     * @param[in]  xShift        Patch shift in X direction (+/- patch), if shifted
-     * @param[in]  yShift        Patch shift in Y direction (+/- patch), if shifted
-     * @param[out] A             3 Points to compute bilateral filter for
-     * @param[out] b             2 Values, containing optimal[1] and depth gradient[0]
-     * @param[in]  maxDifference Ignore contributions of pixels whose depth difference with central
-     *                            pixel is above this threshold
-     */
-    void accumulateBilateral(long delta, long xShift, long yShift, long *A, long *b, int maxDifference);
-
-    /**
      * @brief Computes quantized surface normals from 16-bit depth image.
      *
      * @param[in]  src           Source 16-bit depth image (in mm)

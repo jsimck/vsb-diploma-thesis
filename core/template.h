@@ -10,7 +10,7 @@ namespace tless {
     /**
      * @brief Template wrapper, holds all template images and info available.
      */
-    class Template {
+    struct Template {
     public:
         uint id = 0;
         std::string fileName;

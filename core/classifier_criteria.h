@@ -6,9 +6,9 @@
 
 namespace tless {
     /**
-     * @brief Class defining parameters for classifier behaviour and holds info about dataset
+     * @brief struct defining parameters for classifier behaviour and holds info about dataset
      */
-    class ClassifierCriteria {
+    struct ClassifierCriteria {
     public:
         // Train params
         cv::Size tripletGrid{12, 12}; //!< Relative size of the triplet grid, 12x12 yields 144 possible locations

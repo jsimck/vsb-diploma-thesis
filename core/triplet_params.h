@@ -12,7 +12,7 @@ namespace tless {
      * parameters needed in each function. All steps are relative to the current template and
      * reference points grid, that's why we use real numbers to avoid rounding issues.
      */
-    class TripletParams {
+    struct TripletParams {
     public:
         float offsetX;
         float offsetY;
