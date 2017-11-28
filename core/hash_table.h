@@ -30,7 +30,7 @@ namespace tless {
         static HashTable load(cv::FileNode &node, std::vector<Template> &templates);
         void pushUnique(const HashKey &key, Template &t);
 
-        // Operators & friends
+        // Operators
         friend cv::FileStorage &operator<<(cv::FileStorage &fs, const HashTable &crit);
         friend std::ostream &operator<<(std::ostream &os, const HashTable &table);
     };

@@ -200,10 +200,10 @@ namespace tless {
 
         // Put text data to template image
         std::ostringstream oss;
-        oss << "mode: " << tpl.mode;
+        oss << "mode: " << tpl.camera.mode;
         setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 28));
         oss.str("");
-        oss << "elev: " << tpl.elev;
+        oss << "elev: " << tpl.camera.elev;
         setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 46));
         oss.str("");
         oss << "srcGradients: " << tpl.features.gradients.size();

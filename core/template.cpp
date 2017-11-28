@@ -38,12 +38,7 @@ namespace tless {
            << "srcGradients (size): " << t.srcGradients.size() << std::endl
            << "srcNormals (size): " << t.srcNormals.size() << std::endl
            << "objBB: " << t.objBB << std::endl
-           << "camK: " << t.camK << std::endl
-           << "camRm2c: " << t.camRm2c << std::endl
-           << "camTm2c: " << t.camTm2c << std::endl
-           << "elev: " << t.elev << std::endl
-           << "mode: " << t.mode << std::endl
-           << "azimuth: " << t.azimuth << std::endl
+           << "camera: " << t.camera << std::endl
            << "srcGradients size: " << t.features.gradients.size() << std::endl
            << "srcNormals size: " << t.features.normals.size() << std::endl
            << "depths size: " << t.features.depths.size() << std::endl
@@ -66,12 +61,7 @@ namespace tless {
         node["depths"] >> t.features.depths;
         node["colors"] >> t.features.colors;
         node["objBB"] >> t.objBB;
-        node["camK"] >> t.camK;
-        node["camRm2c"] >> t.camRm2c;
-        node["camTm2c"] >> t.camTm2c;
-        node["elev"] >> t.elev;
-        node["mode"] >> t.mode;
-        node["azimuth"] >> t.azimuth;
+        node["camera"] >> t.camera;
     }
 
     cv::FileStorage &operator<<(cv::FileStorage &fs, const Template &t) {
@@ -87,12 +77,7 @@ namespace tless {
         fs << "depths" << t.features.depths;
         fs << "colors" << t.features.colors;
         fs << "objBB" << t.objBB;
-        fs << "camK" << t.camK;
-        fs << "camRm2c" << t.camRm2c;
-        fs << "camTm2c" << t.camTm2c;
-        fs << "elev" << t.elev;
-        fs << "mode" << t.mode;
-        fs << "azimuth" << t.azimuth;
+        fs << "camera" << t.camera;
         fs << "}";
 
         return fs;

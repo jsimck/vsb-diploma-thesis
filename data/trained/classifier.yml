@@ -11,8 +11,8 @@ criteria:
        20000., 1.00000001e-01, 70000., 7.99999982e-02 ]
    info:
       depthScaleFactor: 10.
-      smallestTemplate: [ 78, 77 ]
-      largestArea: [ 224, 229 ]
-      minEdgels: 536
-      minDepth: 5563
-      maxDepth: 7503
+      smallestTemplate: [ 74, 73 ]
+      largestArea: [ 229, 234 ]
+      minEdgels: 417
+      minDepth: 4864
+      maxDepth: 53907

@@ -2,11 +2,9 @@
 #include "../processing/processing.h"
 #include "../objdetect/matcher.h"
 #include "../objdetect/hasher.h"
-#include "../core/classifier_criteria.h"
 
 namespace tless {
-    void Parser::parseTemplate(const std::string &path, const std::string &modelsPath, std::vector<Template> &templates,
-                               std::vector<uint> indices) {
+    void Parser::parseTemplate(const std::string &path, const std::string &modelsPath, std::vector<Template> &templates, std::vector<uint> indices) {
         cv::FileStorage fs;
 
         // Parse object diameters if empty
@@ -117,8 +115,10 @@ namespace tless {
         t.srcDepth = std::move(srcDepth);
         t.srcGradients = std::move(gradients);
         t.objBB = cv::Rect(vObjBB[0], vObjBB[1], vObjBB[2], vObjBB[3]);
-        t.camRm2c = cv::Mat(3, 3, CV_32FC1, vCamRm2c.data());
-        t.camTm2c = cv::Mat(3, 1, CV_32FC1, vCamTm2c.data());
+        t.camera = Camera(
+            cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()),
+            cv::Mat(3, 1, CV_32FC1, vCamTm2c.data())
+        );
 
         // Extract criteria
         if (t.objBB.area() < criteria->info.smallestTemplate.area()) {
@@ -137,18 +137,14 @@ namespace tless {
     }
 
     void Parser::parseTemplateInfo(Template &t, cv::FileNode &infoNode) {
-        // Parse info
         std::vector<float> vCamK;
-        int elev, mode;
 
         infoNode["cam_K"] >> vCamK;
-        infoNode["elev"] >> elev;
-        infoNode["mode"] >> mode;
+        infoNode["elev"] >> t.camera.elev;
+        infoNode["mode"] >> t.camera.mode;
 
-        t.elev = elev;
-        t.mode = mode;
-        t.azimuth = 5 * ((t.id % 2000) % 72); // Training templates are sampled in 5 step azimuth
-        t.camK = cv::Mat(3, 3, CV_32FC1, vCamK.data()).clone();
+        t.camera.azimuth = 5 * ((t.id % 2000) % 72); // Training templates are sampled in 5 step azimuth
+        t.camera.K = cv::Mat(3, 3, CV_32FC1, vCamK.data()).clone();
 
         // Find max/min depth and max local depth for depth quantization
         ushort localMax = 0;
@@ -182,6 +178,6 @@ namespace tless {
         }
 
         // Compute normals
-        quantizedNormals(t.srcDepth, t.srcNormals, vCamK[0], vCamK[4], static_cast<int>(localMax / ratio), criteria->maxDepthDiff);
+        quantizedNormals(t.srcDepth, t.srcNormals, t.camera.fx(), t.camera.fy(), static_cast<int>(localMax / ratio), criteria->maxDepthDiff);
     }
 }

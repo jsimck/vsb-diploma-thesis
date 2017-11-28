@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <ostream>
 #include <utility>
+#include "camera.h"
 
 namespace tless {
     /**
@@ -36,17 +37,11 @@ namespace tless {
             std::vector<cv::Vec3b> colors; //!< HSV color space value
         } features;
 
-        // Template .yml parameters
         cv::Rect objBB; //!< Object bounding box
-        cv::Mat camK; //!< Intrinsic camera matrix K
-        cv::Mat camRm2c; //!< Rotation matrix R_m2c
-        cv::Mat camTm2c; //!< Translation vector t_m2c
-        int elev = 0;
-        int azimuth = 0;
-        int mode = 0;
+        Camera camera; //!< Camera parameters
 
         // Constructors
-        Template() {}
+        Template() = default;
 
         // Dynamic image loading for visualization purposes mostly
         static cv::Mat loadSrc(const std::string &basePath, const Template &tpl, int ddepth);

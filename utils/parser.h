@@ -18,6 +18,7 @@ namespace tless {
 
         Template parseTemplateGt(uint index, const std::string &path, cv::FileNode &gtNode);
         void parseTemplateInfo(Template &t, cv::FileNode &infoNode);
+//        void parseSceneInfo(Template &t, cv::FileNode &infoNode);
 
     public:
         explicit Parser(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}

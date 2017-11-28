@@ -20,7 +20,7 @@ namespace tless {
         Match(std::shared_ptr<Template> tpl, cv::Rect &bb, float score, float areaScore)
                 : tpl(tpl), objBB(bb), score(score), areaScore(areaScore) {}
 
-        // Operators & friends
+        // Operators
         bool operator==(const Match &rhs) const;
         bool operator!=(const Match &rhs) const;
         bool operator<(const Match &rhs) const;
