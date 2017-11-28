@@ -16,19 +16,25 @@ namespace tless {
         std::vector<float> diameters;
         cv::Ptr<ClassifierCriteria> criteria;
 
-        Template parseGt(uint index, const std::string &path, cv::FileNode &gtNode);
-        void parseInfo(Template &t, cv::FileNode &infoNode);
-        void parseModelsInfo(const std::string &modelsPath);
-        void extractCriteria(Template &t);
+        Template parseTemplateGt(uint index, const std::string &path, cv::FileNode &gtNode);
+        void parseTemplateInfo(Template &t, cv::FileNode &infoNode);
 
     public:
-        std::vector<uint> indices;
-        uint tplCount, modelCount;
+        explicit Parser(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
 
-        Parser(cv::Ptr<ClassifierCriteria> criteria, uint tplCount = 1296, uint modelCount = 30)
-                : criteria(criteria), tplCount(tplCount), modelCount(modelCount) {}
-
-        void parse(std::string basePath, std::string modelsPath, std::vector<Template> &templates);
+        /**
+         * @brief Parses templates for one object in given path.
+         *
+         * Function expects rgb/, depth/ folders and gt.yml and info.yml
+         * files in root folder defined by path param.
+         *
+         * @param[in]  path       Path to object folder
+         * @param[in]  modelsPath Path to models folder (contains *.ply and info.yml files)
+         * @param[out] templates  Output vector containing all parsed templates
+         * @param[in]  indices    Optional parameter to parse only templates with defined indicies
+         */
+        void parseTemplate(const std::string &path, const std::string &modelsPath, std::vector<Template> &templates,
+                           std::vector<uint> indices = {});
     };
 }
 

@@ -40,17 +40,13 @@ namespace tless {
         cv::Rect objBB; //!< Object bounding box
         cv::Mat camK; //!< Intrinsic camera matrix K
         cv::Mat camRm2c; //!< Rotation matrix R_m2c
-        cv::Vec3f camTm2c; //!< Translation vector t_m2c
+        cv::Mat camTm2c; //!< Translation vector t_m2c
         int elev = 0;
         int azimuth = 0;
         int mode = 0;
 
         // Constructors
         Template() {}
-        Template(uint id, std::string &fileName, float diameter, cv::Mat src, cv::Mat srcHSV, cv::Mat srcDepth,
-                 cv::Mat srcGradients, cv::Mat srcNormals, cv::Rect &objBB, cv::Mat camRm2c, const cv::Vec3d &camTm2c)
-                : id(id), fileName(fileName), diameter(diameter), srcGray(src), srcHSV(srcHSV), srcDepth(srcDepth),
-                  srcGradients(srcGradients), srcNormals(srcNormals), objBB(objBB), camRm2c(camRm2c), camTm2c(camTm2c) {}
 
         // Dynamic image loading for visualization purposes mostly
         static cv::Mat loadSrc(const std::string &basePath, const Template &tpl, int ddepth);

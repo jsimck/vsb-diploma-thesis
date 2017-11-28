@@ -5,8 +5,7 @@
 #include "../processing/processing.h"
 
 namespace tless {
-    void Classifier::train(std::string templatesListPath, std::string resultPath, std::string modelsPath,
-                                  std::vector<uint> indices) {
+    void Classifier::train(std::string templatesListPath, std::string resultPath, std::string modelsPath, std::vector<uint> indices) {
         std::ifstream ifs(templatesListPath);
         assert(ifs.is_open());
 
@@ -17,7 +16,6 @@ namespace tless {
 
         // Init parser and common
         Parser parser(criteria);
-        parser.indices.swap(indices);
 
         std::ostringstream oss;
         std::vector<Template> tpls, allTemplates;
@@ -30,7 +28,7 @@ namespace tless {
             std::cout << "  |_ " << path;
 
             // Parse each object by one and save it
-            parser.parse(path, modelsPath, tpls);
+            parser.parseTemplate(path, modelsPath, tpls, indices);
 
             // Train features for loaded templates
             matcher.train(tpls);
@@ -170,7 +168,7 @@ namespace tless {
             }
         }
 
-        // TODO parse camera params and use proper fx and fy and distances etc
+        // TODO parseTemplate camera params and use proper fx and fy and distances etc
         Timer timer;
 //    srcNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
 //                                 static_cast<int>((criteria->info.maxDepth * scale) / ratio), criteria.maxDepthDiff);

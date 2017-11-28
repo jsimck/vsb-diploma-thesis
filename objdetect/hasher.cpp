@@ -50,12 +50,12 @@ namespace tless {
 
                 // Offset for the triplet grid
                 cv::Point gridOffset(
-                        t.objBB.tl().x - (criteria->info.largestTemplate.width - t.objBB.width) / 2,
-                        t.objBB.tl().y - (criteria->info.largestTemplate.height - t.objBB.height) / 2
+                        t.objBB.tl().x - (criteria->info.largestArea.width - t.objBB.width) / 2,
+                        t.objBB.tl().y - (criteria->info.largestArea.height - t.objBB.height) / 2
                 );
 
                 // Absolute triplet points
-                TripletParams tParams(criteria->info.largestTemplate.width, criteria->info.largestTemplate.height,
+                TripletParams tParams(criteria->info.largestArea.width, criteria->info.largestArea.height,
                                       criteria->tripletGrid, gridOffset.x, gridOffset.y);
                 cv::Point c = tables[i].triplet.getCenter(tParams);
                 cv::Point p1 = tables[i].triplet.getP1(tParams);
@@ -118,7 +118,7 @@ namespace tless {
         assert(criteria->tablesCount > 0);
         assert(criteria->tripletGrid.width > 0);
         assert(criteria->tripletGrid.height > 0);
-        assert(criteria->info.largestTemplate.area() > 0);
+        assert(criteria->info.largestArea.area() > 0);
 
         // Prepare hash tables and histogram bin ranges
         initialize(templates, tables);
@@ -132,7 +132,7 @@ namespace tless {
                 assert(!t.srcDepth.empty());
 
                 // Get triplet points
-                TripletParams coordParams(criteria->info.largestTemplate.width, criteria->info.largestTemplate.height,
+                TripletParams coordParams(criteria->info.largestArea.width, criteria->info.largestArea.height,
                                           criteria->tripletGrid, t.objBB.tl().x, t.objBB.tl().y);
                 cv::Point c = tables[i].triplet.getCenter(coordParams);
                 cv::Point p1 = tables[i].triplet.getP1(coordParams);
@@ -174,7 +174,7 @@ namespace tless {
         assert(!sceneDepth.empty());
         assert(!windows.empty());
         assert(!tables.empty());
-        assert(criteria->info.largestTemplate.area() > 0);
+        assert(criteria->info.largestArea.area() > 0);
 
         std::vector<Window> newWindows;
         const size_t windowsSize = windows.size();
@@ -190,7 +190,7 @@ namespace tless {
 
             for (auto &table : tables) {
                 // Get triplet points
-                TripletParams tParams(criteria->info.largestTemplate.width, criteria->info.largestTemplate.height,
+                TripletParams tParams(criteria->info.largestArea.width, criteria->info.largestArea.height,
                                       criteria->tripletGrid, windows[i].tl().x, windows[i].tl().y);
                 cv::Point c = table.triplet.getCenter(tParams);
                 cv::Point p1 = table.triplet.getP1(tParams);

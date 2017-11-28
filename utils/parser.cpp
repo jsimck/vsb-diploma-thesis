@@ -2,153 +2,178 @@
 #include "../processing/processing.h"
 #include "../objdetect/matcher.h"
 #include "../objdetect/hasher.h"
+#include "../core/classifier_criteria.h"
 
 namespace tless {
-    void Parser::parse(std::string basePath, std::string modelsPath, std::vector<Template> &templates) {
-        // Load obj_gt
+    void Parser::parseTemplate(const std::string &path, const std::string &modelsPath, std::vector<Template> &templates,
+                               std::vector<uint> indices) {
         cv::FileStorage fs;
-        fs.open(basePath + "/gt.yml", cv::FileStorage::READ);
-        assert(fs.isOpened());
 
-        // Parse diameters if empty
+        // Parse object diameters if empty
         if (diameters.empty()) {
-            parseModelsInfo(modelsPath);
+            fs.open(modelsPath + "info.yml", cv::FileStorage::READ);
+            assert(fs.isOpened());
+
+            // Parse only diameters for now
+            for (uint i = 1;; i++) {
+                float diameter;
+                std::string index = "model_" + std::to_string(i);
+                cv::FileNode modelNode = fs[index];
+
+                // Break if obj is empty (last model)
+                if (modelNode.empty()) break;
+
+                // Parse diameter
+                modelNode["diameter"] >> diameter;
+                diameters.push_back(diameter);
+            }
+
+            fs.release();
         }
 
-        const auto size = static_cast<uint>((!indices.empty()) ? indices.size() : tplCount);
-        for (uint i = 0; i < size; i++) {
+
+        // Load obj_gt
+        fs.open(path + "gt.yml", cv::FileStorage::READ);
+        assert(fs.isOpened());
+
+        // Parse obj_gt
+        for (uint i = 0;; i++) {
             auto tplIndex = static_cast<uint>((!indices.empty()) ? indices[i] : i);
             std::string index = "tpl_" + std::to_string(tplIndex);
             cv::FileNode objGt = fs[index];
+
+            // Break if obj is empty (last template)
+            if (objGt.empty()) break;
 
             // Parse template gt file
-            templates.push_back(parseGt(tplIndex, basePath, objGt));
+            templates.push_back(parseTemplateGt(tplIndex, path, objGt));
         }
 
-        // Load obj_info
         fs.release();
-        fs.open(basePath + "/info.yml", cv::FileStorage::READ);
+
+
+        // Load obj_info
+        fs.open(path + "info.yml", cv::FileStorage::READ);
         assert(fs.isOpened());
 
-        for (uint i = 0; i < size; i++) {
+        // Parse obj_info
+        for (uint i = 0;; i++) {
             auto tplIndex = static_cast<uint>((!indices.empty()) ? indices[i] : i);
             std::string index = "tpl_" + std::to_string(tplIndex);
-            cv::FileNode objGt = fs[index];
+            cv::FileNode objInfo = fs[index];
+
+            // Break if obj is empty (last template)
+            if (objInfo.empty()) break;
 
             // Parse template info file
-            parseInfo(templates[i], objGt);
+            parseTemplateInfo(templates[i], objInfo);
         }
 
         fs.release();
     }
 
-    Template Parser::parseGt(uint index, const std::string &path, cv::FileNode &gtNode) {
-        // Init template param matrices
+    Template Parser::parseTemplateGt(uint index, const std::string &path, cv::FileNode &gtNode) {
         int id;
         std::vector<float> vCamRm2c, vCamTm2c;
         std::vector<int> vObjBB;
 
-        // Nodes containing matrices and vectors to parseTemplate
         gtNode["obj_id"] >> id;
         gtNode["obj_bb"] >> vObjBB;
         gtNode["cam_R_m2c"] >> vCamRm2c;
         gtNode["cam_t_m2c"] >> vCamTm2c;
-        float diameter = diameters[id];
 
-        // Parse objBB
-        cv::Rect objBB(vObjBB[0], vObjBB[1], vObjBB[2], vObjBB[3]);
+        assert(!vObjBB.empty());
+        assert(!vCamRm2c.empty());
+        assert(!vCamTm2c.empty());
 
         // Create filename from index
         std::stringstream ss;
         ss << std::setw(4) << std::setfill('0') << index;
         std::string fileName = ss.str();
 
-        // Load image
-        cv::Mat srcHSV;
+        // Load source images
         cv::Mat src = cv::imread(path + "/rgb/" + fileName + ".png", CV_LOAD_IMAGE_COLOR);
         cv::Mat srcDepth = cv::imread(path + "/depth/" + fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
 
-        // Convert to gray and HSV
+        assert(src.type() == CV_8UC3);
+        assert(srcDepth.type() == CV_16U);
+
+        cv::Mat srcHSV;
         cv::cvtColor(src, srcHSV, CV_BGR2HSV);
         cv::cvtColor(src, src, CV_BGR2GRAY);
-
-        // Convert to float
         src.convertTo(src, CV_32F, 1.0f / 255.0f);
 
-        // Find smallest object
-        if (objBB.area() < criteria->info.smallestTemplate.area()) {
-            criteria->info.smallestTemplate.width = objBB.width;
-            criteria->info.smallestTemplate.height = objBB.height;
-        }
-
-        // Find largest object
-        if (objBB.width >= criteria->info.largestTemplate.width) {
-            criteria->info.largestTemplate.width = objBB.width;
-        }
-        if (objBB.height >= criteria->info.largestTemplate.height) {
-            criteria->info.largestTemplate.height = objBB.height;
-        }
-
-        // Calculate srcGradients and srcNormals
+        // Generate quantized orientations
         cv::Mat gradients, magnitudes;
         quantizedOrientationGradients(src, gradients, magnitudes);
 
-        // Checks
-        assert(!vObjBB.empty());
-        assert(!vCamRm2c.empty());
-        assert(!vCamTm2c.empty());
-        assert(!src.empty());
-        assert(!srcHSV.empty());
-        assert(!srcDepth.empty());
+        // Create template
+        Template t;
+        t.id = index + (2000 * id);
+        t.fileName = std::move(fileName);
+        t.diameter = diameters[id];
+        t.srcGray = std::move(src);
+        t.srcHSV = std::move(srcHSV);
+        t.srcDepth = std::move(srcDepth);
+        t.srcGradients = std::move(gradients);
+        t.objBB = cv::Rect(vObjBB[0], vObjBB[1], vObjBB[2], vObjBB[3]);
+        t.camRm2c = cv::Mat(3, 3, CV_32FC1, vCamRm2c.data());
+        t.camTm2c = cv::Mat(3, 1, CV_32FC1, vCamTm2c.data());
 
-        // Matrix type checks
-        assert(src.type() == CV_32F);
-        assert(srcDepth.type() == CV_16U);
+        // Extract criteria
+        if (t.objBB.area() < criteria->info.smallestTemplate.area()) {
+            criteria->info.smallestTemplate = t.objBB.size();
+        }
 
-        // TODO cleanup Template constructor (initializing empty normal matrix, since it needs to be done parseInfo) in  etc.
-        return Template(
-                index + (2000 * id), fileName, diameter, std::move(src), std::move(srcHSV), std::move(srcDepth),
-                std::move(gradients), cv::Mat(), objBB, cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone(),
-                cv::Vec3d(vCamTm2c[0], vCamTm2c[1], vCamTm2c[2])
-        );
+        if (t.objBB.width > criteria->info.largestArea.width) {
+            criteria->info.largestArea.width = t.objBB.width;
+        }
+
+        if (t.objBB.height > criteria->info.largestArea.height) {
+            criteria->info.largestArea.height = t.objBB.height;
+        }
+
+        return t;
     }
 
-    void Parser::parseInfo(Template &t, cv::FileNode &infoNode) {
-        // Init template param matrices
+    void Parser::parseTemplateInfo(Template &t, cv::FileNode &infoNode) {
+        // Parse info
         std::vector<float> vCamK;
         int elev, mode;
 
-        // Parse train contained in info.yml
         infoNode["cam_K"] >> vCamK;
         infoNode["elev"] >> elev;
         infoNode["mode"] >> mode;
 
-        // Assign new train to template
         t.elev = elev;
         t.mode = mode;
         t.azimuth = 5 * ((t.id % 2000) % 72); // Training templates are sampled in 5 step azimuth
         t.camK = cv::Mat(3, 3, CV_32FC1, vCamK.data()).clone();
 
-        // Find max depth and max local depth for depth quantization
+        // Find max/min depth and max local depth for depth quantization
         ushort localMax = 0;
-        float ratio = 0;
-
         for (int y = t.objBB.tl().y; y < t.objBB.br().y; y++) {
-            for (int x = t.objBB.tl().y; x < t.objBB.br().x; x++) {
+            for (int x = t.objBB.tl().x; x < t.objBB.br().x; x++) {
                 ushort val = t.srcDepth.at<ushort>(y, x);
 
-                if (localMax < val) {
+                // Extract local max
+                if (val > localMax) {
                     localMax = val;
                 }
 
-                if (criteria->info.maxDepth < val) {
+                // Extract criteria
+                if (val > criteria->info.maxDepth) {
                     criteria->info.maxDepth = val;
+                }
+
+                if (val < criteria->info.minDepth && val > 0) {
+                    criteria->info.minDepth = val;
                 }
             }
         }
 
-        // TODO fix deviation function based on the other paper
         // Normalize local max with depth deviation function function
+        float ratio = 0;
         for (size_t j = 0; j < criteria->depthDeviationFun.size() - 1; j++) {
             if (localMax < criteria->depthDeviationFun[j + 1][0]) {
                 ratio = (1 - criteria->depthDeviationFun[j + 1][1]);
@@ -158,29 +183,5 @@ namespace tless {
 
         // Compute normals
         quantizedNormals(t.srcDepth, t.srcNormals, vCamK[0], vCamK[4], static_cast<int>(localMax / ratio), criteria->maxDepthDiff);
-    }
-
-    void Parser::parseModelsInfo(const std::string &modelsPath) {
-        // Load modelsPath/info.yml
-        cv::FileStorage fs;
-        fs.open(modelsPath + "info.yml", cv::FileStorage::READ);
-        assert(fs.isOpened());
-
-        float diameter = 0;
-        std::ostringstream oss;
-
-        // Parse only diameters for now
-        for (uint i = 0; i < modelCount; i++) {
-            oss.str("");
-            oss << "model_" << i;
-
-            cv::FileNode modelNode = fs[oss.str()];
-            modelNode["diameter"] >> diameter;
-            diameters.push_back(diameter);
-        }
-    }
-
-    void Parser::extractCriteria(Template &t) {
-
     }
 }

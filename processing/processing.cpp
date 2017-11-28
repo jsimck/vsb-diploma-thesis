@@ -172,6 +172,7 @@ namespace tless {
         }
     }
 
+    // TODO define param for min magnitude
     void quantizedOrientationGradients(const cv::Mat &srcGray, cv::Mat &quantizedOrientations, cv::Mat &magnitude) {
         // Checks
         assert(!srcGray.empty());

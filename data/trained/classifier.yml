@@ -12,7 +12,7 @@ criteria:
    info:
       depthScaleFactor: 10.
       smallestTemplate: [ 78, 77 ]
-      largestTemplate: [ 224, 229 ]
+      largestArea: [ 224, 229 ]
       minEdgels: 536
-      minDepth: 0
+      minDepth: 5563
       maxDepth: 7503

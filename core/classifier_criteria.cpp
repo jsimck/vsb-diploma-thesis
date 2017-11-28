@@ -25,7 +25,7 @@ namespace tless {
         os << "  |_ depthScaleFactor: " << crit.info.depthScaleFactor << std::endl;
         os << "  |_ smallestTemplate: " << crit.info.smallestTemplate.width << "x" << crit.info.smallestTemplate.height
            << std::endl;
-        os << "  |_ largestTemplate: " << crit.info.largestTemplate.width << "x" << crit.info.largestTemplate.height
+        os << "  |_ largestArea: " << crit.info.largestArea.width << "x" << crit.info.largestArea.height
            << std::endl;
 
         return os;
@@ -49,7 +49,7 @@ namespace tless {
         cv::FileNode info = node["info"];
         info["depthScaleFactor"] >> crit.info.depthScaleFactor;
         info["smallestTemplate"] >> crit.info.smallestTemplate;
-        info["largestTemplate"] >> crit.info.largestTemplate;
+        info["largestArea"] >> crit.info.largestArea;
         info["minEdgels"] >> crit.info.minEdgels;
         info["minDepth"] >> crit.info.minDepth;
         info["maxDepth"] >> crit.info.maxDepth;
@@ -67,7 +67,7 @@ namespace tless {
         fs << "info" << "{";
         fs << "depthScaleFactor" << crit.info.depthScaleFactor;
         fs << "smallestTemplate" << crit.info.smallestTemplate;
-        fs << "largestTemplate" << crit.info.largestTemplate;
+        fs << "largestArea" << crit.info.largestArea;
         fs << "minEdgels" << crit.info.minEdgels;
         fs << "minDepth" << crit.info.minDepth;
         fs << "maxDepth" << crit.info.maxDepth;

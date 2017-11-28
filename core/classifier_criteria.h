@@ -17,6 +17,7 @@ namespace tless {
         uint featurePointsCount = 100; //!< Amount of points to generate for feature points matching
         float minMagnitude = 0.1f; //!< Minimal magnitude of edge gradient to classify it as valid
         ushort maxDepthDiff = 100; //!< When computing surface normals, contribution of pixel is ignored if the depth difference with central pixel is above this threshold
+        // TODO fix deviation function based on the other paper
         std::vector<cv::Vec2f> depthDeviationFun{{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {70000, 0.08f}}; //!< Depth error function, allowing depth values to be match within giveninterval
 
         // Detect Params
@@ -30,12 +31,12 @@ namespace tless {
 
         // Dataset info
         struct {
-            ushort minDepth = 0; //!< Minimum depth found across all templates withing their bounding box
+            ushort minDepth = (ushort) -1; //!< Minimum depth found across all templates withing their bounding box
             ushort maxDepth = 0; //!< Maximum depth found across all templates withing their bounding box
             int minEdgels = INT_MAX; //!< Minimum number of edgels found in any template
             float depthScaleFactor = 10.0f; //!< Depth scaling factor to convert depth value to millimeters
             cv::Size smallestTemplate{500, 500}; //!< Size of the largest template found across all templates
-            cv::Size largestTemplate{0, 0}; //!< Size of the smallest template found across all templates
+            cv::Size largestArea{0, 0}; //!< Size of the largest area (largest width and largest height) found across all templates
         } info;
 
         // Friends
