@@ -59,24 +59,26 @@ namespace tless {
         }
 
         // Save data set
-        cv::FileStorage fsw(resultPath + "classifier.yml.gz", cv::FileStorage::WRITE);
-        fsw << "criteria" << criteria;
-        std::cout << "  |_ info -> " << resultPath + "classifier.yml.gz" << std::endl;
+        cv::FileStorage fsw(resultPath + "classifier.yml", cv::FileStorage::WRITE);
+        fsw << "criteria" << *criteria;
+        std::cout << "  |_ info -> " << resultPath + "classifier.yml" << std::endl;
+
+        std::cout << *criteria << std::endl;
 
         // Train hash tables
-        std::cout << "  |_ Training hash tables... " << std::endl;
-        hasher.train(allTemplates, tables);
-        assert(!tables.empty());
-        std::cout << "    |_ " << tables.size() << " hash tables generated" << std::endl;
-
-        // Persist hashTables
-        fsw << "tables" << "[";
-        for (auto &table : tables) {
-            fsw << table;
-        }
-        fsw << "]";
-        fsw.release();
-        std::cout << "  |_ tables -> " << resultPath + "classifier.yml.gz" << std::endl;
+//        std::cout << "  |_ Training hash tables... " << std::endl;
+//        hasher.train(allTemplates, tables);
+//        assert(!tables.empty());
+//        std::cout << "    |_ " << tables.size() << " hash tables generated" << std::endl;
+//
+//        // Persist hashTables
+//        fsw << "tables" << "[";
+//        for (auto &table : tables) {
+//            fsw << table;
+//        }
+//        fsw << "]";
+//        fsw.release();
+//        std::cout << "  |_ tables -> " << resultPath + "classifier.yml.gz" << std::endl;
 
         std::cout << "DONE!, took: " << t.elapsed() << " s" << std::endl << std::endl;
     }
@@ -109,7 +111,7 @@ namespace tless {
 
         // Load data set
         cv::FileStorage fsr(trainedPath + "classifier.yml.gz", cv::FileStorage::READ);
-        fsr["criteria"] >> criteria;
+        fsr["criteria"] >> *criteria;
         std::cout << "  |_ info -> LOADED" << std::endl;
 
         // Load hash tables
@@ -161,9 +163,9 @@ namespace tless {
 
         // TODO better handling of max depth optimization
         float ratio = 0;
-        for (size_t j = 0; j < criteria.depthDeviationFun.size() - 1; j++) {
-            if (criteria.info.maxDepth < criteria.depthDeviationFun[j + 1][0]) {
-                ratio = (1 - criteria.depthDeviationFun[j + 1][1]);
+        for (size_t j = 0; j < criteria->depthDeviationFun.size() - 1; j++) {
+            if (criteria->info.maxDepth < criteria->depthDeviationFun[j + 1][0]) {
+                ratio = (1 - criteria->depthDeviationFun[j + 1][1]);
                 break;
             }
         }
@@ -171,21 +173,21 @@ namespace tless {
         // TODO parse camera params and use proper fx and fy and distances etc
         Timer timer;
 //    srcNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
-//                                 static_cast<int>((criteria.info.maxDepth * scale) / ratio), criteria.maxDepthDiff);
+//                                 static_cast<int>((criteria->info.maxDepth * scale) / ratio), criteria.maxDepthDiff);
         quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
-                         static_cast<int>((criteria.info.maxDepth * scale) / ratio), 100);
+                         static_cast<int>((criteria->info.maxDepth * scale) / ratio), 100);
         std::cout << timer.elapsed() << std::endl;
         timer.reset();
         quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
-                         static_cast<int>((criteria.info.maxDepth * scale) / ratio), 100);
+                         static_cast<int>((criteria->info.maxDepth * scale) / ratio), 100);
         std::cout << timer.elapsed() << std::endl;
         timer.reset();
         quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
-                         static_cast<int>((criteria.info.maxDepth * scale) / ratio), 100);
+                         static_cast<int>((criteria->info.maxDepth * scale) / ratio), 100);
         std::cout << timer.elapsed() << std::endl;
         timer.reset();
         quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
-                         static_cast<int>((criteria.info.maxDepth * scale) / ratio), 100);
+                         static_cast<int>((criteria->info.maxDepth * scale) / ratio), 100);
         std::cout << timer.elapsed() << std::endl;
         timer.reset();
 
@@ -223,8 +225,8 @@ namespace tless {
             std::cout << "  |_ Scene loaded in: " << tSceneLoading.elapsed() << "s" << std::endl;
 
             /// Objectness detection
-            assert(criteria.info.smallestTemplate.area() > 0);
-            assert(criteria.info.minEdgels > 0);
+            assert(criteria->info.smallestTemplate.area() > 0);
+            assert(criteria->info.minEdgels > 0);
 
             Timer tObjectness;
             objectness.objectness(sceneDepthNorm, windows);

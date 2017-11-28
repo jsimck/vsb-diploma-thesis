@@ -20,7 +20,7 @@ namespace tless {
         // Hashing
         static void visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables,
                                      std::vector<Window> &windows,
-                                     ClassifierCriteria &criteria, bool continuous, int wait = 0,
+                                     cv::Ptr<ClassifierCriteria> criteria, bool continuous, int wait = 0,
                                      const char *title = nullptr);
 
         // Objectness

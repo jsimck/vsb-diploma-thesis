@@ -16,7 +16,7 @@ namespace tless {
      */
     class Hasher {
     private:
-        ClassifierCriteria criteria;
+        cv::Ptr<ClassifierCriteria> criteria;
 
         // Methods
         void generateTriplets(std::vector<HashTable> &tables);
@@ -28,7 +28,7 @@ namespace tless {
         static const int IMG_16BIT_MAX = 65535;
 
         // Constructors
-        Hasher(ClassifierCriteria criteria) : criteria(criteria) {}
+        Hasher(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
 
         // Methods
         void train(std::vector<Template> &templates, std::vector<HashTable> &tables);

@@ -47,11 +47,10 @@ namespace tless {
 
         // Constructors
         Template() {}
-        Template(int id, std::string &fileName, float diameter, cv::Mat src, cv::Mat srcHSV, cv::Mat srcDepth,
+        Template(uint id, std::string &fileName, float diameter, cv::Mat src, cv::Mat srcHSV, cv::Mat srcDepth,
                  cv::Mat srcGradients, cv::Mat srcNormals, cv::Rect &objBB, cv::Mat camRm2c, const cv::Vec3d &camTm2c)
                 : id(id), fileName(fileName), diameter(diameter), srcGray(src), srcHSV(srcHSV), srcDepth(srcDepth),
-                  srcGradients(srcGradients),
-                  srcNormals(srcNormals), objBB(objBB), camRm2c(camRm2c), camTm2c(camTm2c) {}
+                  srcGradients(srcGradients), srcNormals(srcNormals), objBB(objBB), camRm2c(camRm2c), camTm2c(camTm2c) {}
 
         // Dynamic image loading for visualization purposes mostly
         static cv::Mat loadSrc(const std::string &basePath, const Template &tpl, int ddepth);

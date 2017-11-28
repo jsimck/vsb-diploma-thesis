@@ -90,20 +90,20 @@ namespace tless {
             }
 
             // Check if there's enough points to extract
-            assert(edgePoints.size() > criteria.featurePointsCount);
-            assert(stablePoints.size() > criteria.featurePointsCount);
+            assert(edgePoints.size() > criteria->featurePointsCount);
+            assert(stablePoints.size() > criteria->featurePointsCount);
 
             // Sort point values descending & cherry pick feature points
             std::sort(edgePoints.rbegin(), edgePoints.rend());
             std::shuffle(stablePoints.rbegin(), stablePoints.rend(),
                          std::mt19937(std::random_device()())); // Randomize stable points
-            cherryPickFeaturePoints(edgePoints, edgePoints.size() / criteria.featurePointsCount,
-                                    criteria.featurePointsCount, t.edgePoints);
-            cherryPickFeaturePoints(stablePoints, stablePoints.size() / criteria.featurePointsCount,
-                                    criteria.featurePointsCount, t.stablePoints);
+            cherryPickFeaturePoints(edgePoints, edgePoints.size() / criteria->featurePointsCount,
+                                    criteria->featurePointsCount, t.edgePoints);
+            cherryPickFeaturePoints(stablePoints, stablePoints.size() / criteria->featurePointsCount,
+                                    criteria->featurePointsCount, t.stablePoints);
 
-            assert(edgePoints.size() > criteria.featurePointsCount);
-            assert(stablePoints.size() > criteria.featurePointsCount);
+            assert(edgePoints.size() > criteria->featurePointsCount);
+            assert(stablePoints.size() > criteria->featurePointsCount);
         }
     }
 
@@ -120,7 +120,7 @@ namespace tless {
             assert(!t.srcDepth.empty());
             std::vector<float> depths;
 
-            for (uint j = 0; j < criteria.featurePointsCount; j++) {
+            for (uint j = 0; j < criteria->featurePointsCount; j++) {
                 // Create offsets to object bounding box
                 cv::Point stablePOff(t.stablePoints[j].x + t.objBB.x, t.stablePoints[j].y + t.objBB.y);
                 cv::Point edgePOff(t.edgePoints[j].x + t.objBB.x, t.edgePoints[j].y + t.objBB.y);
@@ -165,10 +165,10 @@ namespace tless {
 
 // TODO implement object size test
     int Matcher::testObjectSize(float scale, float depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
-        const unsigned long fSize = criteria.depthDeviationFun.size();
+        const unsigned long fSize = criteria->depthDeviationFun.size();
 
-        for (int y = -criteria.patchOffset; y <= criteria.patchOffset; ++y) {
-            for (int x = -criteria.patchOffset; x <= criteria.patchOffset; ++x) {
+        for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
+            for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
                 cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
 
@@ -186,8 +186,8 @@ namespace tless {
 
                 // Get correct deviation ratio
                 for (size_t j = 0; j < fSize - 1; j++) {
-                    if (sDepth < criteria.depthDeviationFun[j + 1][0]) {
-                        ratio = (1 - criteria.depthDeviationFun[j + 1][1]);
+                    if (sDepth < criteria->depthDeviationFun[j + 1][0]) {
+                        ratio = (1 - criteria->depthDeviationFun[j + 1][1]);
                         break;
                     }
                 }
@@ -204,8 +204,8 @@ namespace tless {
 // TODO Use bitwise operations using response maps
     int
     Matcher::testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormalsQuantized, cv::Point &stable) {
-        for (int y = -criteria.patchOffset; y <= criteria.patchOffset; ++y) {
-            for (int x = -criteria.patchOffset; x <= criteria.patchOffset; ++x) {
+        for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
+            for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
                 cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
 
@@ -226,8 +226,8 @@ namespace tless {
 // TODO Use bitwise operations using response maps
     int Matcher::testGradients(uchar gradient, Window &window, cv::Mat &sceneAnglesQuantized, cv::Mat &sceneMagnitudes,
                                cv::Point &edge) {
-        for (int y = -criteria.patchOffset; y <= criteria.patchOffset; ++y) {
-            for (int x = -criteria.patchOffset; x <= criteria.patchOffset; ++x) {
+        for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
+            for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
                 cv::Point offsetP(edge.x + window.tl().x + x, edge.y + window.tl().y + y);
 
@@ -238,7 +238,7 @@ namespace tless {
 
                 // TODO - make member threshold (detect automatically based on training values)
                 if (sceneAnglesQuantized.at<uchar>(offsetP) == gradient &&
-                    sceneMagnitudes.at<float>(offsetP) > criteria.minMagnitude) {
+                    sceneMagnitudes.at<float>(offsetP) > criteria->minMagnitude) {
                     return 1;
                 }
             }
@@ -249,8 +249,8 @@ namespace tless {
 
     int Matcher::testDepth(float scale, float diameter, float depthMedian, Window &window, cv::Mat &sceneDepth,
                            cv::Point &stable) {
-        for (int y = -criteria.patchOffset; y <= criteria.patchOffset; ++y) {
-            for (int x = -criteria.patchOffset; x <= criteria.patchOffset; ++x) {
+        for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
+            for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
                 cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
 
@@ -260,7 +260,7 @@ namespace tless {
                     continue;
 
                 if ((sceneDepth.at<ushort>(offsetP) - depthMedian * scale) <
-                    (criteria.depthK * diameter * criteria.info.depthScaleFactor)) {
+                    (criteria->depthK * diameter * criteria->info.depthScaleFactor)) {
                     return 1;
                 }
             }
@@ -271,8 +271,8 @@ namespace tless {
 
 // TODO consider eroding object in training stage to be more tolerant to inaccuracy on the edges
     int Matcher::testColor(cv::Vec3b HSV, Window &window, cv::Mat &sceneHSV, cv::Point &stable) {
-        for (int y = -criteria.patchOffset; y <= criteria.patchOffset; ++y) {
-            for (int x = -criteria.patchOffset; x <= criteria.patchOffset; ++x) {
+        for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
+            for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
                 cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
 
@@ -306,7 +306,7 @@ namespace tless {
         std::vector<int> suppress(matches.size()); // Indexes of matches to remove
         std::vector<int> idx(matches.size()); // Indexes of bounding boxes to check
         std::iota(idx.begin(), idx.end(), 0);
-        float tOverlap = criteria.overlapFactor;
+        float tOverlap = criteria->overlapFactor;
 
         while (!idx.empty()) {
             // Pick first element with highest score
@@ -368,8 +368,8 @@ namespace tless {
         assert(!windows.empty());
 
         // Min threshold of matched feature points
-        const auto N = criteria.featurePointsCount;
-        const auto minThreshold = static_cast<int>(criteria.featurePointsCount * criteria.matchFactor); // 60%
+        const auto N = criteria->featurePointsCount;
+        const auto minThreshold = static_cast<int>(criteria->featurePointsCount * criteria->matchFactor); // 60%
         const long lSize = windows.size();
 
         // Stop template matching time
@@ -410,7 +410,7 @@ namespace tless {
 
 #ifdef VISUALIZE
                 if (Visualizer::visualizeTests(*candidate, sceneHSV, sceneDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
-                                           criteria.detect.matcher.neighbourhood, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
+                                           criteria->detect.matcher.neighbourhood, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
                                            minThreshold, 1, continuous, "data/", 0, nullptr)) {
                     break;
                 }
@@ -435,7 +435,7 @@ namespace tless {
 
 #ifdef VISUALIZE
                 if (Visualizer::visualizeTests(*candidate, sceneHSV, sceneDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
-                                           criteria.detect.matcher.neighbourhood, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
+                                           criteria->detect.matcher.neighbourhood, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
                                            minThreshold, 2, continuous, "data/", 0, nullptr)) {
                     break;
                 }
@@ -460,7 +460,7 @@ namespace tless {
 
 #ifdef VISUALIZE
                 if (Visualizer::visualizeTests(*candidate, sceneHSV, sceneDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
-                                           criteria.detect.matcher.neighbourhood, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
+                                           criteria->detect.matcher.neighbourhood, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
                                            minThreshold, 3, continuous, "data/", 0, nullptr)) {
                     break;
                 }
@@ -485,7 +485,7 @@ namespace tless {
 
 #ifdef VISUALIZE
                 if (Visualizer::visualizeTests(*candidate, sceneHSV, sceneDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
-                                           criteria.detect.matcher.neighbourhood, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
+                                           criteria->detect.matcher.neighbourhood, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
                                            minThreshold, 4, continuous, "data/", 0, nullptr)) {
                     break;
                 }
@@ -510,7 +510,7 @@ namespace tless {
 
 #ifdef VISUALIZE
                 if (Visualizer::visualizeTests(*candidate, sceneHSV, sceneDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
-                                           criteria.detect.matcher.neighbourhood, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
+                                           criteria->detect.matcher.neighbourhood, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
                                            minThreshold, 5, continuous, "data/", 0, nullptr)) {
                     break;
                 }

@@ -22,7 +22,7 @@ namespace tless {
      */
     class Classifier {
     private:
-        ClassifierCriteria criteria;
+        cv::Ptr<ClassifierCriteria> criteria;
         cv::Mat scene;
         cv::Mat sceneHSV;
         cv::Mat sceneGray;
@@ -42,7 +42,7 @@ namespace tless {
 
     public:
         // Constructors
-        Classifier(ClassifierCriteria criteria) : criteria(criteria) {}
+        Classifier(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
 
         // Methods
         void train(std::string templatesListPath, std::string resultPath, std::string modelsPath, std::vector<uint> indices = {});

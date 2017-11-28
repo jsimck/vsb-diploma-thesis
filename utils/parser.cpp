@@ -76,17 +76,17 @@ namespace tless {
         src.convertTo(src, CV_32F, 1.0f / 255.0f);
 
         // Find smallest object
-        if (objBB.area() < criteria.info.smallestTemplate.area()) {
-            criteria.info.smallestTemplate.width = objBB.width;
-            criteria.info.smallestTemplate.height = objBB.height;
+        if (objBB.area() < criteria->info.smallestTemplate.area()) {
+            criteria->info.smallestTemplate.width = objBB.width;
+            criteria->info.smallestTemplate.height = objBB.height;
         }
 
         // Find largest object
-        if (objBB.width >= criteria.info.largestTemplate.width) {
-            criteria.info.largestTemplate.width = objBB.width;
+        if (objBB.width >= criteria->info.largestTemplate.width) {
+            criteria->info.largestTemplate.width = objBB.width;
         }
-        if (objBB.height >= criteria.info.largestTemplate.height) {
-            criteria.info.largestTemplate.height = objBB.height;
+        if (objBB.height >= criteria->info.largestTemplate.height) {
+            criteria->info.largestTemplate.height = objBB.height;
         }
 
         // Calculate srcGradients and srcNormals
@@ -102,7 +102,7 @@ namespace tless {
         assert(!srcDepth.empty());
 
         // Matrix type checks
-        assert(src.type() == CV_32FC1);
+        assert(src.type() == CV_32F);
         assert(srcDepth.type() == CV_16U);
 
         // TODO cleanup Template constructor (initializing empty normal matrix, since it needs to be done parseInfo) in  etc.
@@ -141,24 +141,23 @@ namespace tless {
                     localMax = val;
                 }
 
-                if (criteria.info.maxDepth < val) {
-                    criteria.info.maxDepth = val;
+                if (criteria->info.maxDepth < val) {
+                    criteria->info.maxDepth = val;
                 }
             }
         }
 
         // TODO fix deviation function based on the other paper
         // Normalize local max with depth deviation function function
-        for (size_t j = 0; j < criteria.depthDeviationFun.size() - 1; j++) {
-            if (localMax < criteria.depthDeviationFun[j + 1][0]) {
-                ratio = (1 - criteria.depthDeviationFun[j + 1][1]);
+        for (size_t j = 0; j < criteria->depthDeviationFun.size() - 1; j++) {
+            if (localMax < criteria->depthDeviationFun[j + 1][0]) {
+                ratio = (1 - criteria->depthDeviationFun[j + 1][1]);
                 break;
             }
         }
 
         // Compute normals
-        quantizedNormals(t.srcDepth, t.srcNormals, vCamK[0], vCamK[4],
-                         static_cast<int>(localMax / ratio), criteria.maxDepthDiff);
+        quantizedNormals(t.srcDepth, t.srcNormals, vCamK[0], vCamK[4], static_cast<int>(localMax / ratio), criteria->maxDepthDiff);
     }
 
     void Parser::parseModelsInfo(const std::string &modelsPath) {
@@ -179,5 +178,9 @@ namespace tless {
             modelNode["diameter"] >> diameter;
             diameters.push_back(diameter);
         }
+    }
+
+    void Parser::extractCriteria(Template &t) {
+
     }
 }

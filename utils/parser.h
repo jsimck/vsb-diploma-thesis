@@ -14,17 +14,18 @@ namespace tless {
     class Parser {
     private:
         std::vector<float> diameters;
-        ClassifierCriteria criteria;
+        cv::Ptr<ClassifierCriteria> criteria;
 
         Template parseGt(uint index, const std::string &path, cv::FileNode &gtNode);
         void parseInfo(Template &t, cv::FileNode &infoNode);
         void parseModelsInfo(const std::string &modelsPath);
+        void extractCriteria(Template &t);
 
     public:
         std::vector<uint> indices;
         uint tplCount, modelCount;
 
-        Parser(ClassifierCriteria &criteria, uint tplCount = 1296, uint modelCount = 30)
+        Parser(cv::Ptr<ClassifierCriteria> criteria, uint tplCount = 1296, uint modelCount = 30)
                 : criteria(criteria), tplCount(tplCount), modelCount(modelCount) {}
 
         void parse(std::string basePath, std::string modelsPath, std::vector<Template> &templates);

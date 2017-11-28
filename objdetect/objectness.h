@@ -21,11 +21,11 @@ namespace tless {
      */
     class Objectness {
     private:
-        ClassifierCriteria criteria;
+        cv::Ptr<ClassifierCriteria> criteria;
 
     public:
         // Constructors
-        Objectness(ClassifierCriteria criteria) : criteria(criteria) {}
+        Objectness(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
 
         // Methods
         void extractMinEdgels(std::vector<Template> &templates);

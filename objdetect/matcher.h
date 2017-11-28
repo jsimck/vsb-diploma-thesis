@@ -18,7 +18,7 @@ namespace tless {
      */
     class Matcher {
     private:
-        ClassifierCriteria criteria;
+        cv::Ptr<ClassifierCriteria> criteria;
 
         // Methods
         cv::Vec3b normalizeHSV(cv::Vec3b &hsv);
@@ -35,7 +35,7 @@ namespace tless {
         int testColor(cv::Vec3b HSV, Window &window, cv::Mat &sceneHSV, cv::Point &stable); // Test V
     public:
         // Constructor
-        Matcher(ClassifierCriteria criteria) : criteria(criteria) {}
+        Matcher(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
 
         // Methods
         void match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat &sceneMagnitudes, cv::Mat &sceneAnglesQuantized,

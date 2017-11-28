@@ -25,8 +25,8 @@ namespace tless {
             cv::integral(tNorm, tIntegral, CV_32F);
             edgels = static_cast<int>(tIntegral.at<float>(tIntegral.rows - 1, tIntegral.cols - 1));
 
-            if (edgels < criteria.info.minEdgels) {
-                criteria.info.minEdgels = edgels;
+            if (edgels < criteria->info.minEdgels) {
+                criteria->info.minEdgels = edgels;
             }
         }
     }
@@ -34,9 +34,9 @@ namespace tless {
 // TODO replace sobel filter thresholdMinMax params with actual depth values
     void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &windows) {
         // Check thresholds and min edgels
-        assert(criteria.info.smallestTemplate.area() > 0);
-        assert(criteria.info.minEdgels > 0);
-        assert(criteria.objectnessFactor > 0);
+        assert(criteria->info.smallestTemplate.area() > 0);
+        assert(criteria->info.minEdgels > 0);
+        assert(criteria->objectnessFactor > 0);
         assert(!sceneDepthNorm.empty());
         assert(sceneDepthNorm.type() == CV_32FC1);
 
@@ -49,13 +49,13 @@ namespace tless {
         cv::Mat sIntegral;
         cv::integral(sSobel, sIntegral, CV_32F);
 
-        const auto edgels = static_cast<uint>(criteria.info.minEdgels * criteria.windowStep);
-        const int sizeX = criteria.info.smallestTemplate.width;
-        const int sizeY = criteria.info.smallestTemplate.height;
+        const auto edgels = static_cast<uint>(criteria->info.minEdgels * criteria->windowStep);
+        const int sizeX = criteria->info.smallestTemplate.width;
+        const int sizeY = criteria->info.smallestTemplate.height;
 
         // Slide window over scene and calculate edge count for each overlap
-        for (int y = 0; y < sSobel.rows - sizeY; y += criteria.windowStep) {
-            for (int x = 0; x < sSobel.cols - sizeX; x += criteria.windowStep) {
+        for (int y = 0; y < sSobel.rows - sizeY; y += criteria->windowStep) {
+            for (int x = 0; x < sSobel.cols - sizeX; x += criteria->windowStep) {
 
                 // Calc edge value in current sliding window with help of image integral
                 auto sceneEdgels = static_cast<uint>(
