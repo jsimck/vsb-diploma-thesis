@@ -2,7 +2,7 @@
 
 namespace tless {
     bool Match::operator==(const Match &rhs) const {
-        return tpl->id == rhs.tpl->id;
+        return t->id == rhs.t->id;
     }
 
     bool Match::operator!=(const Match &rhs) const {
@@ -26,7 +26,7 @@ namespace tless {
     }
 
     std::ostream &operator<<(std::ostream &os, const Match &match) {
-        os << "objBB: " << match.objBB << " tpl: " << match.tpl << " score: " << match.score << "areaScore: "
+        os << "objBB: " << match.objBB << " t: " << match.t << " score: " << match.score << "areaScore: "
            << match.areaScore;
         return os;
     }

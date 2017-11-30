@@ -12,13 +12,13 @@ namespace tless {
      */
     struct Match {
     public:
-        std::shared_ptr<Template> tpl;
+        std::shared_ptr<Template> t;
         cv::Rect objBB;
         float score, areaScore;
 
         // Constructors
-        Match(std::shared_ptr<Template> tpl, cv::Rect &bb, float score, float areaScore)
-                : tpl(tpl), objBB(bb), score(score), areaScore(areaScore) {}
+        Match(std::shared_ptr<Template> t, cv::Rect &bb, float score, float areaScore)
+                : t(t), objBB(bb), score(score), areaScore(areaScore) {}
 
         // Operators
         bool operator==(const Match &rhs) const;

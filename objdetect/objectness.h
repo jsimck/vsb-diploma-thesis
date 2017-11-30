@@ -29,7 +29,14 @@ namespace tless {
 
         // Methods
         void extractMinEdgels(std::vector<Template> &templates);
-        void objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &windows);
+
+        /**
+         *
+         * @param src
+         * @param windows
+         * @param scale
+         */
+        void objectness(cv::Mat &src, std::vector<Window> &windows, float scale);
     };
 }
 

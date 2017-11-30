@@ -8,7 +8,7 @@
 namespace tless {
     struct HashTableCandidate {
     public:
-        uint votes = 0;
+        int votes = 0;
         std::shared_ptr<Template> candidate;
 
         // Constructor

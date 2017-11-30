@@ -2,6 +2,7 @@
 #define VSB_SEMESTRAL_PROJECT_PROCESSING_H
 
 #include <opencv2/core/mat.hpp>
+#include "../core/template.h"
 
 namespace tless {
     // Lookup tables
@@ -37,11 +38,11 @@ namespace tless {
      * @param[out] dst           Destination 8-bit image, where each bit represents one bin of view cone
      * @param[in]  fx            Camera focal length in X direction
      * @param[in]  fy            Camera focal length in Y direction
-     * @param[in]  maxDistance   Ignore pixels beyond this distance
+     * @param[in]  maxDepth      Ignore pixels beyond this depth
      * @param[in]  maxDifference When computing surface normals, ignore contributions of
      *                           pixels whose depth difference with central pixel is above this threshold
      */
-    void quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, float fy, int maxDistance, int maxDifference);
+    void quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, float fy, int maxDepth, int maxDifference);
 
     /**
      * @brief Computes relative depths from 16-bit depth image on (triplet) given points.
@@ -54,9 +55,19 @@ namespace tless {
      */
     void relativeDepths(const cv::Mat &src, cv::Point c, cv::Point p1, cv::Point p2, int *depths);
 
+    /**
+     * @brief Generates integral image of visible depth edgels, detected in depth image within (min, max) depths
+     *
+     * @param[in]  src      Source 16-bit depth image (in mm)
+     * @param[out] sum      Destination 32-bit signed integer integral image
+     * @param[in]  minDepth Ignore pixels with depth lower then this threshold
+     * @param[in]  maxDepth Ignore pixels with depth higher then this threshold
+     * @param[in]  minMag   Ignore pixels with edge magnitude lower than this
+     */
+    void filterDepthEdgels(const cv::Mat &src, cv::Mat &sum, int minDepth, int maxDepth, int minMag = 650);
+
     // Filters
     void filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter = true, bool yFilter = true);
-    void thresholdMinMax(const cv::Mat &src, cv::Mat &dst, float min, float max);
 
     // Computation
     void quantizedOrientationGradients(const cv::Mat &srcGray, cv::Mat &quantizedOrientations, cv::Mat &magnitude);

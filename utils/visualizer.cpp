@@ -137,7 +137,7 @@ namespace tless {
             cv::rectangle(viz, match.objBB.tl(), match.objBB.br(), cv::Scalar(0, 255, 0));
 
             oss.str("");
-            oss << "id: " << match.tpl->id;
+            oss << "id: " << match.t->id;
             setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 10));
             oss.str("");
             oss.precision(2);
@@ -145,13 +145,13 @@ namespace tless {
             setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 28));
 
             // Load matched template
-            cv::Mat tplSrc = Template::loadSrc(templatesPath, *match.tpl, CV_LOAD_IMAGE_COLOR);
+            cv::Mat tplSrc = Template::loadSrc(templatesPath, *match.t, CV_LOAD_IMAGE_COLOR);
 
             // draw label and bounding box
-            cv::rectangle(tplSrc, match.tpl->objBB.tl(), match.tpl->objBB.br(), cv::Scalar(0, 255, 0));
+            cv::rectangle(tplSrc, match.t->objBB.tl(), match.t->objBB.br(), cv::Scalar(0, 255, 0));
             oss.str("");
-            oss << "id: " << match.tpl->id;
-            setLabel(tplSrc, oss.str(), cv::Point(match.tpl->objBB.br().x + 5, match.tpl->objBB.tl().y + 10));
+            oss << "id: " << match.t->id;
+            setLabel(tplSrc, oss.str(), cv::Point(match.t->objBB.br().x + 5, match.t->objBB.tl().y + 10));
 
             oss.str("");
             oss << "Template: " << tplCounter;

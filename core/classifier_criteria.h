@@ -21,8 +21,8 @@ namespace tless {
         std::vector<cv::Vec2f> depthDeviationFun{{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {70000, 0.08f}}; //!< Depth error function, allowing depth values to be match within giveninterval
 
         // Detect Params
-        uint minVotes = 3; //!< Minimum amount of votes to classify template as a valid candidate for given window
-        uint windowStep = 5; //!< Objectness sliding window step
+        int minVotes = 3; //!< Minimum amount of votes to classify template as a valid candidate for given window
+        int windowStep = 5; //!< Objectness sliding window step
         int patchOffset = 2; //!< +-offset, defining neighbourhood to look for a feature point match
         float objectnessFactor = 0.3f; //!< Amount of edgels window must contain (30% of minimum) to classify as containing object in objectness detection
         float matchFactor = 0.6f; //!< Amount of feature points that needs to match to classify candidate as a match (at least 60%)

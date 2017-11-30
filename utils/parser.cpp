@@ -147,18 +147,18 @@ namespace tless {
         t.camera.K = cv::Mat(3, 3, CV_32FC1, vCamK.data()).clone();
 
         // Find max/min depth and max local depth for depth quantization
-        ushort localMax = 0;
+        ushort localMax = t.srcDepth.at<ushort>(t.objBB.tl());
         for (int y = t.objBB.tl().y; y < t.objBB.br().y; y++) {
             for (int x = t.objBB.tl().x; x < t.objBB.br().x; x++) {
                 ushort val = t.srcDepth.at<ushort>(y, x);
 
-                // Extract local max
-                if (val > localMax) {
+                // Extract local max (val shouldn't also be bigger than 3 times local max, there shouldn't be so much swinging)
+                if (val > localMax && val < 3 * localMax) {
                     localMax = val;
                 }
 
                 // Extract criteria
-                if (val > criteria->info.maxDepth) {
+                if (val > criteria->info.maxDepth && val < 3 * localMax) {
                     criteria->info.maxDepth = val;
                 }
 

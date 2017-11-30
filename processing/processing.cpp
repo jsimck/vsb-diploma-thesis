@@ -35,7 +35,7 @@ namespace tless {
         b[1] += fy * delta;
     }
 
-    void quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, float fy, int maxDistance, int maxDifference) {
+    void quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, float fy, int maxDepth, int maxDifference) {
         assert(!src.empty());
         assert(src.type() == CV_16UC1);
 
@@ -44,13 +44,13 @@ namespace tless {
         auto offsetX = static_cast<int>(NORMAL_LUT_SIZE * 0.5f);
         auto offsetY = static_cast<int>(NORMAL_LUT_SIZE * 0.5f);
 
-        #pragma omp parallel for default(none) shared(src, dst, NORMAL_LUT) firstprivate(fx, fy, maxDistance, maxDifference, PS, offsetX, offsetY)
+        #pragma omp parallel for default(none) shared(src, dst, NORMAL_LUT) firstprivate(fx, fy, maxDepth, maxDifference, PS, offsetX, offsetY)
         for (int y = PS; y < src.rows - PS; y++) {
             for (int x = PS; x < src.cols - PS; x++) {
                 // Get depth value at (x,y)
                 long d = src.at<ushort>(y, x);
 
-                if (d < maxDistance) {
+                if (d < maxDepth) {
                     long A[3], b[2];
                     A[0] = A[1] = A[2] = 0;
                     b[0] = b[1] = 0;
@@ -114,6 +114,48 @@ namespace tless {
         depths[1] = static_cast<int>(src.at<ushort>(p2) - src.at<ushort>(c));
     }
 
+    void filterDepthEdgels(const cv::Mat &src, cv::Mat &sum, int minDepth, int maxDepth, int minMag) {
+        assert(!src.empty());
+        assert(src.type() == CV_16U);
+
+        const int filterX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
+        const int filterY[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
+
+        cv::Mat srcBlurred = src.clone();
+        cv::Mat edgels = cv::Mat::zeros(src.size(), CV_8UC1);
+
+        #pragma omp parallel for default(none) shared(srcBlurred, edgels, filterX, filterY) firstprivate(minDepth, maxDepth, minMag)
+        for (int y = 1; y < srcBlurred.rows - 1; y++) {
+            for (int x = 1; x < srcBlurred.cols - 1; x++) {
+                int i = 0, sumX = 0, sumY = 0;
+                bool skip = false;
+
+                for (int yy = 0; yy < 3 && !skip; yy++) {
+                    for (int xx = 0; xx < 3; xx++) {
+                        int px = srcBlurred.at<ushort>(yy + y - 1, x + xx - 1);
+
+                        // Skip pixels out range
+                        if (px < minDepth || px > maxDepth) {
+                            skip = true;
+                            break;
+                        }
+
+                        sumX += px * filterX[i];
+                        sumY += px * filterY[i];
+                        i++;
+                    }
+                }
+
+                if (skip) {
+                    continue;
+                }
+
+                edgels.at<uchar>(y, x) = static_cast<uchar>((std::sqrt(sqr<float>(sumX) + sqr<float>(sumY)) > minMag) ? 1 : 0);
+            }
+        }
+
+        cv::integral(edgels, sum, CV_32S);
+    }
 
     void filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter, bool yFilter) {
         assert(!src.empty());
@@ -147,27 +189,6 @@ namespace tless {
                 }
 
                 dst.at<float>(y, x) = std::sqrt(sqr<float>(sumX) + sqr<float>(sumY));
-            }
-        }
-    }
-
-    void thresholdMinMax(const cv::Mat &src, cv::Mat &dst, float min, float max) {
-        assert(!src.empty());
-        assert(!dst.empty());
-        assert(src.type() == CV_32FC1);
-        assert(dst.type() == CV_32FC1);
-        assert(min >= 0);
-        assert(max >= 0 && max > min);
-
-        // Apply very simple min/max thresholding for the source image
-        #pragma omp parallel for default(none) firstprivate(min, max) shared(dst, src)
-        for (int y = 0; y < src.rows; y++) {
-            for (int x = 0; x < src.cols; x++) {
-                if (src.at<float>(y, x) >= min && src.at<float>(y, x) <= max) {
-                    dst.at<float>(y, x) = 1.0f;
-                } else {
-                    dst.at<float>(y, x) = 0.0f;
-                }
             }
         }
     }

@@ -19,7 +19,6 @@ namespace tless {
             tNorm = tNorm(t.objBB);
 
             filterSobel(tNorm, tSobel, true, true);
-            thresholdMinMax(tSobel, tSobel, 0.01f, 0.1f);
 
             // Compute integral image for easier computation of edgels
             cv::integral(tNorm, tIntegral, CV_32F);
@@ -31,41 +30,35 @@ namespace tless {
         }
     }
 
-// TODO replace sobel filter thresholdMinMax params with actual depth values
-    void Objectness::objectness(cv::Mat &sceneDepthNorm, std::vector<Window> &windows) {
-        // Check thresholds and min edgels
+    void Objectness::objectness(cv::Mat &src, std::vector<Window> &windows, float scale) {
         assert(criteria->info.smallestTemplate.area() > 0);
         assert(criteria->info.minEdgels > 0);
         assert(criteria->objectnessFactor > 0);
-        assert(!sceneDepthNorm.empty());
-        assert(sceneDepthNorm.type() == CV_32FC1);
+        assert(!src.empty());
+        assert(src.type() == CV_16U);
 
-        // Apply sobel filter and thresholding on normalized Depth scene (<0, 1> px values)
-        cv::Mat sSobel;
-        filterSobel(sceneDepthNorm, sSobel, true, true);
-        thresholdMinMax(sSobel, sSobel, 0.01f, 0.1f);
+        // TODO FIX DEVIATION FUNCTION
+        // Normalize min and max depths
+        float minDepth = (criteria->info.minDepth * scale) * 0.8f;
+        float maxDepth = (criteria->info.maxDepth * scale) * 1.2f;
 
-        // Calculate image integral
-        cv::Mat sIntegral;
-        cv::integral(sSobel, sIntegral, CV_32F);
+        // Generate minEdgels integral image
+        cv::Mat integral;
+        filterDepthEdgels(src, integral, static_cast<int>(minDepth), static_cast<int>(maxDepth));
 
-        const auto edgels = static_cast<uint>(criteria->info.minEdgels * criteria->windowStep);
+        const auto minEdgels = static_cast<const int>(criteria->info.minEdgels * criteria->objectnessFactor);
         const int sizeX = criteria->info.smallestTemplate.width;
         const int sizeY = criteria->info.smallestTemplate.height;
 
         // Slide window over scene and calculate edge count for each overlap
-        for (int y = 0; y < sSobel.rows - sizeY; y += criteria->windowStep) {
-            for (int x = 0; x < sSobel.cols - sizeX; x += criteria->windowStep) {
+        for (int y = 0; y < integral.rows - sizeY; y += criteria->windowStep) {
+            for (int x = 0; x < integral.cols - sizeX; x += criteria->windowStep) {
 
-                // Calc edge value in current sliding window with help of image integral
-                auto sceneEdgels = static_cast<uint>(
-                        sIntegral.at<float>(y + sizeY, x + sizeX)
-                        - sIntegral.at<float>(y, x + sizeX)
-                        - sIntegral.at<float>(y + sizeY, x)
-                        + sIntegral.at<float>(y, x)
-                );
+                // Calc edgel count value in current sliding window with help of image integral
+                int sceneEdgels = integral.at<int>(y + sizeY, x + sizeX) - integral.at<int>(y, x + sizeX)
+                                  - integral.at<int>(y + sizeY, x) + integral.at<int>(y, x);
 
-                if (sceneEdgels >= edgels) {
+                if (sceneEdgels >= minEdgels) {
                     windows.emplace_back(x, y, sizeX, sizeY, sceneEdgels);
                 }
             }

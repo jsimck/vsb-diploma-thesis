@@ -82,46 +82,45 @@ namespace tless {
     }
 
     void Classifier::load(const std::string &trainedTemplatesListPath, const std::string &trainedPath) {
-        std::ifstream ifs(trainedTemplatesListPath);
-        assert(ifs.is_open());
-
-        Timer t;
-        std::string path;
-        std::cout << "Loading trained templates... " << std::endl;
-
-        while (ifs >> path) {
-            std::cout << "  |_ " << path;
-
-            // Load trained data
-            cv::FileStorage fsr(path, cv::FileStorage::READ);
-            cv::FileNode tpls = fsr["templates"];
-
-            // Loop through templates
-            for (auto &&tpl : tpls) {
-                Template nTpl;
-                tpl >> nTpl;
-                templates.push_back(nTpl);
-            }
-
-            fsr.release();
-            std::cout << " -> LOADED" << std::endl;
-        }
+//        std::ifstream ifs(trainedTemplatesListPath);
+//        assert(ifs.is_open());
+//
+//        Timer t;
+//        std::string path;
+//        std::cout << "Loading trained templates... " << std::endl;
+//
+//        while (ifs >> path) {
+//            std::cout << "  |_ " << path;
+//
+//            // Load trained data
+//            cv::FileStorage fsr(path, cv::FileStorage::READ);
+//            cv::FileNode tpls = fsr["templates"];
+//
+//            // Loop through templates
+//            for (auto &&tpl : tpls) {
+//                Template nTpl;
+//                tpl >> nTpl;
+//                templates.push_back(nTpl);
+//            }
+//
+//            fsr.release();
+//            std::cout << " -> LOADED" << std::endl;
+//        }
 
         // Load data set
-        cv::FileStorage fsr(trainedPath + "classifier.yml.gz", cv::FileStorage::READ);
+        cv::FileStorage fsr(trainedPath + "classifier.yml", cv::FileStorage::READ);
         fsr["criteria"] >> *criteria;
         std::cout << "  |_ info -> LOADED" << std::endl;
 
         // Load hash tables
-        cv::FileNode hashTables = fsr["tables"];
-        for (auto &&table : hashTables) {
-            tables.emplace_back(HashTable::load(table, templates));
-        }
+//        cv::FileNode hashTables = fsr["tables"];
+//        for (auto &&table : hashTables) {
+//            tables.emplace_back(HashTable::load(table, templates));
+//        }
 
         fsr.release();
         std::cout << "  |_ hashTables -> LOADED (" << tables.size() << ")" << std::endl;
-
-        std::cout << "DONE!, took: " << t.elapsed() << " s" << std::endl << std::endl;
+//        std::cout << "DONE!, took: " << t.elapsed() << " s" << std::endl << std::endl;
     }
 
     void Classifier::loadScene(const std::string &scenePath, const std::string &sceneName) {
@@ -169,25 +168,8 @@ namespace tless {
         }
 
         // TODO parseTemplate camera params and use proper fx and fy and distances etc
-        Timer timer;
-//    srcNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
-//                                 static_cast<int>((criteria->info.maxDepth * scale) / ratio), criteria.maxDepthDiff);
         quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
                          static_cast<int>((criteria->info.maxDepth * scale) / ratio), 100);
-        std::cout << timer.elapsed() << std::endl;
-        timer.reset();
-        quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
-                         static_cast<int>((criteria->info.maxDepth * scale) / ratio), 100);
-        std::cout << timer.elapsed() << std::endl;
-        timer.reset();
-        quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
-                         static_cast<int>((criteria->info.maxDepth * scale) / ratio), 100);
-        std::cout << timer.elapsed() << std::endl;
-        timer.reset();
-        quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
-                         static_cast<int>((criteria->info.maxDepth * scale) / ratio), 100);
-        std::cout << timer.elapsed() << std::endl;
-        timer.reset();
 
         // Visualize scene
         cv::Mat gradients = sceneQuantizedAngles.clone();
@@ -196,10 +178,24 @@ namespace tless {
         cv::normalize(gradients, gradients, 0, 255, CV_MINMAX);
         cv::normalize(magnitudes, magnitudes, 0, 1, CV_MINMAX);
 
-        cv::imshow("magnitudes", magnitudes);
-        cv::imshow("srcNormals", sceneQuantizedNormals);
-        cv::imshow("srcGradients", gradients);
-        cv::waitKey(0);
+        windows.clear();
+        Objectness objectness(criteria);
+
+        Timer tSceneLoading;
+        objectness.objectness(sceneDepth, windows, 1.2f);
+
+        // Visualize results
+        cv::Mat result = scene.clone();
+        for (auto &item : windows) {
+            cv::rectangle(result, item.tl(), item.br(), cv::Scalar(0, 255, 0));
+        }
+
+        cv::imshow("result", result);
+        cv::imshow("sceneDepthNorm", sceneDepthNorm);
+//        cv::imshow("magnitudes", magnitudes);
+//        cv::imshow("srcNormals", sceneQuantizedNormals);
+//        cv::imshow("srcGradients", gradients);
+        cv::waitKey(2);
     }
 
     void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath) {
@@ -212,7 +208,7 @@ namespace tless {
         load(trainedTemplatesListPath, trainedPath);
         std::ostringstream oss;
 
-        for (int i = 0; i < 503; ++i) {
+        for (int i = 1; i < 503; ++i) {
             Timer tTotal;
 
             // Load scene
@@ -222,38 +218,38 @@ namespace tless {
             loadScene(scenePath, oss.str());
             std::cout << "  |_ Scene loaded in: " << tSceneLoading.elapsed() << "s" << std::endl;
 
-            /// Objectness detection
-            assert(criteria->info.smallestTemplate.area() > 0);
-            assert(criteria->info.minEdgels > 0);
-
-            Timer tObjectness;
-            objectness.objectness(sceneDepthNorm, windows);
-            std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
-
-//        Visualizer::visualizeWindows(this->scene, windows, false, 0, "Locations detected");
-
-            /// Verification and filtering of template candidates
-            assert(!tables.empty());
-
-            Timer tVerification;
-            hasher.verifyCandidates(sceneDepth, sceneQuantizedNormals, tables, windows);
-            std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
-
-//        Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, criteria, true);
-//        Visualizer::visualizeWindows(this->scene, windows, false, 1, "Filtered locations");
-
-            /// Match templates
-            assert(!windows.empty());
-            matcher.match(1.2f, sceneHSV, sceneDepth, sceneMagnitudes, sceneQuantizedAngles, sceneQuantizedNormals,
-                          windows, matches);
-
-            /// Show matched template results
-            Visualizer::visualizeMatches(scene, matches, "data/", 1);
-
-            // Cleanup
-            std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
-            windows.clear();
-            matches.clear();
+//            /// Objectness detection
+//            assert(criteria->info.smallestTemplate.area() > 0);
+//            assert(criteria->info.minEdgels > 0);
+//
+//            Timer tObjectness;
+//            objectness.objectness(sceneDepthNorm, windows);
+//            std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
+//
+////        Visualizer::visualizeWindows(this->scene, windows, false, 0, "Locations detected");
+//
+//            /// Verification and filtering of template candidates
+//            assert(!tables.empty());
+//
+//            Timer tVerification;
+//            hasher.verifyCandidates(sceneDepth, sceneQuantizedNormals, tables, windows);
+//            std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
+//
+////        Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, criteria, true);
+////        Visualizer::visualizeWindows(this->scene, windows, false, 1, "Filtered locations");
+//
+//            /// Match templates
+//            assert(!windows.empty());
+//            matcher.match(1.2f, sceneHSV, sceneDepth, sceneMagnitudes, sceneQuantizedAngles, sceneQuantizedNormals,
+//                          windows, matches);
+//
+//            /// Show matched template results
+//            Visualizer::visualizeMatches(scene, matches, "data/", 1);
+//
+//            // Cleanup
+//            std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
+//            windows.clear();
+//            matches.clear();
         }
     }
 }
