@@ -230,6 +230,7 @@ namespace tless {
         // Init common
         cv::Scalar colorRed(0, 0, 255);
         std::ostringstream oss;
+        std::cout << "find the bug \a" << std::endl;
 
         // TODO user proper fx and fy
         // Init surface srcNormals
@@ -254,9 +255,12 @@ namespace tless {
                 // Prepare train to load hash key
                 TripletParams params(criteria->info.largestArea.width, criteria->info.largestArea.height,
                                      criteria->tripletGrid, windows[i].tl().x, windows[i].tl().y);
-                cv::Point c = table.triplet.getCenter(params);
-                cv::Point p1 = table.triplet.getP1(params);
-                cv::Point p2 = table.triplet.getP2(params);
+//                cv::Point c = table.triplet.getCenter(params);
+//                cv::Point p1 = table.triplet.getP1(params);
+//                cv::Point p2 = table.triplet.getP2(params);
+                cv::Point c;
+                cv::Point p1;
+                cv::Point p2;
 
                 // If any point of triplet is out of scene boundaries, ignore it to not get false data
                 if ((c.x < 0 || c.x >= sceneSurfaceNormals.cols || c.y < 0 || c.y >= sceneSurfaceNormals.rows) ||
@@ -270,8 +274,8 @@ namespace tless {
 
                 // Generate hash key
                 HashKey key(
-                        quantizeDepth(d[0], table.binRanges),
-                        quantizeDepth(d[1], table.binRanges),
+                        quantizedDepth(d[0], table.binRanges),
+                        quantizedDepth(d[1], table.binRanges),
                         sceneSurfaceNormals.at<uchar>(c),
                         sceneSurfaceNormals.at<uchar>(p1),
                         sceneSurfaceNormals.at<uchar>(p2)

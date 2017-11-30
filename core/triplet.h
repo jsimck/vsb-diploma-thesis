@@ -6,41 +6,41 @@
 #include <random>
 #include "triplet_params.h"
 
-// TODO refactor
 namespace tless {
     /**
-     * @brief Represents set of 3 points in relative coordinates, to compute hash table key on.
+     * @brief Represents set of 3 points in absolute coordinates
      *
-     * All generated points are stored in relative coordinates, we use 12x12 reference points, so every
-     * point has x and y coordinates in interval <0, 11>. This allows to adapt reference point locations
-     * to each template bounding box. Grid size can be changed through classifier criteria
+     * Relative points coordinates are calculated inside of defined grid of (criteria.tripletGrid)
+     * these coordinates are then converted to absolute values (real x,y) based on criteria.info.largestTemplate
      */
-    struct Triplet {
+    class Triplet {
     private:
-        static std::random_device seed;
-        static std::mt19937 rng;
+        /**
+         * @brief Generate random points in normal distribution
+         *
+         * Generates positions in normal distributions, this allows us to generate
+         * more positions in top left corner where most templates are placed
+         *
+         * @param[in] grid Size of the grid, in which points are generated
+         * @return         Random point generated inside the grid rectangle
+         */
         static cv::Point randPoint(cv::Size grid);
-        static cv::Point randChildPoint(int min = -3, int max = 3);
 
     public:
-        cv::Point c;
-        cv::Point p1;
-        cv::Point p2;
+        cv::Point c, p1, p2;
 
-        // Statics
-        static float random(float min = 0.0f, float max = 1.0f);
-        static Triplet create(const cv::Size &grid, int distance = 3); // max distance from center triplet
+        /**
+         * @brief Generate random point in given grid, inside window sized rect
+         *
+         * @param[in] grid   Relative grid size to generate points in
+         * @param[in] window Size of the window to generate absolute coordinates when relative grid is placed over this window
+         * @return           Triplet with randomly generated points on given grid, inside window size rectangle
+         */
+        static Triplet create(cv::Size grid, cv::Size window);
 
         // Constructors
-        Triplet() {}
+        Triplet() = default;
         Triplet(cv::Point &c, cv::Point &p1, cv::Point &p2) : c(c), p1(p1), p2(p2) {}
-
-        // Methods
-        cv::Point getPoint(int index, const TripletParams &params);
-        cv::Point getPoint(int x, int y, const TripletParams &params);
-        cv::Point getCenter(const TripletParams &params);
-        cv::Point getP1(const TripletParams &params);
-        cv::Point getP2(const TripletParams &params);
 
         // Operators
         friend std::ostream &operator<<(std::ostream &os, const Triplet &triplet);

@@ -170,6 +170,22 @@ namespace tless {
         return ratio;
     }
 
+    uchar quantizedDepth(int depth, std::vector<cv::Range> &ranges) {
+        // Depth should have max value of <-65536, +65536>
+        assert(depth >= -Hasher::IMG_16BIT_MAX && depth <= Hasher::IMG_16BIT_MAX);
+        assert(!ranges.empty());
+
+        // Loop through histogram ranges and return quantized index
+        for (size_t i = 0; i < ranges.size(); i++) {
+            if (depth >= ranges[i].start && depth < ranges[i].end) {
+                return DEPTH_LUT[i];
+            }
+        }
+
+        // If value is IMG_16BIT_MAX it belongs to last bin
+        return DEPTH_LUT[ranges.size() - 1];
+    }
+
     void filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter, bool yFilter) {
         assert(!src.empty());
         assert(src.type() == CV_32FC1);
@@ -229,23 +245,6 @@ namespace tless {
                 quantizedOrientations.at<uchar>(y, x) = quantizeOrientationGradient(angles.at<float>(y, x));
             }
         }
-    }
-
-    uchar quantizeDepth(float depth, std::vector<cv::Range> &ranges) {
-        // Depth should have max value of <-65536, +65536>
-        assert(depth >= -Hasher::IMG_16BIT_MAX && depth <= Hasher::IMG_16BIT_MAX);
-        assert(!ranges.empty());
-
-        // Loop through histogram ranges and return quantized index
-        const size_t iSize = ranges.size();
-        for (size_t i = 0; i < iSize; i++) {
-            if (ranges[i].start >= depth && depth < ranges[i].end) {
-                return DEPTH_LUT[i];
-            }
-        }
-
-        // If value is IMG_16BIT_MAX it belongs to last bin
-        return DEPTH_LUT[iSize - 1];
     }
 
     uchar quantizeOrientationGradient(float deg) {

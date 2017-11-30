@@ -75,6 +75,15 @@ namespace tless {
      */
     float depthNormalizationFactor(float depth, std::vector<cv::Vec2f> errorFunction);
 
+    /**
+     * @brief Returns quantized depth into one of 5 bins defined in ranges
+     *
+     * @param[in] depth  Depth value (32-bit signed int)
+     * @param[in] ranges Vector of ranges defining bounds for each quantization bin
+     * @return           Quantized depth (1 | 2 | 4 | 8 | 16)
+     */
+    uchar quantizedDepth(int depth, std::vector<cv::Range> &ranges);
+
     // Filters
     void filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter = true, bool yFilter = true);
 
@@ -83,7 +92,6 @@ namespace tless {
 
     // Quantization & discretization functions
     uchar quantizeOrientationGradient(float deg);
-    uchar quantizeDepth(float depth, std::vector<cv::Range> &ranges);
 }
 
 #endif

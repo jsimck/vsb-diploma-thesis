@@ -17,7 +17,7 @@ namespace tless {
         cv::Ptr<ClassifierCriteria> criteria;
 
     public:
-        Objectness(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
+        explicit Objectness(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
 
         /**
          * @brief Applies simple objectness detection on source depth image based on depth discontinuities

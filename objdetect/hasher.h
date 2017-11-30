@@ -9,19 +9,19 @@
 
 namespace tless {
     /**
-     * class Hasher
-     *
-     * Used to train HashTables and quickly verify what templates should be matched
-     * per each window passed form objectness detection
+     * @brief Class used to train HashTables and quickly verify what templates should be matched per each window passed form objectness detection
      */
     class Hasher {
     private:
         cv::Ptr<ClassifierCriteria> criteria;
 
-        // Methods
-        void generateTriplets(std::vector<HashTable> &tables);
+        /**
+         * @brief Computes bin ranges for each table (triplet) across all templates based on relative depths
+         *
+         * @param[in]     templates Input array of all templates parsed for detection
+         * @param[in,out] tables    Input array of tables, which are then updated with their computed bin range
+         */
         void initializeBinRanges(std::vector<Template> &templates, std::vector<HashTable> &tables);
-        void initialize(std::vector<Template> &templates, std::vector<HashTable> &tables);
 
     public:
         // Statics
@@ -31,9 +31,11 @@ namespace tless {
         Hasher(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
 
         // Methods
-        void train(std::vector<Template> &templates, std::vector<HashTable> &tables);
         void verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSurfaceNormalsQuantized,
                               std::vector<HashTable> &tables, std::vector<Window> &windows);
+
+
+        void train(std::vector<Template> &templates, std::vector<HashTable> &tables);
     };
 }
 

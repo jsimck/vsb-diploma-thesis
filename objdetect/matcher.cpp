@@ -180,7 +180,7 @@ namespace tless {
                 // Get depth value at point
                 float ratio = 0;
                 float sDepth = sceneDepth.at<ushort>(offsetP);
-
+                std::cout << "find the bug \a" << std::endl;
                 // TODO better wrong depth handling
                 if (sDepth == 0) continue;
 
@@ -202,8 +202,7 @@ namespace tless {
     }
 
 // TODO Use bitwise operations using response maps
-    int
-    Matcher::testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormalsQuantized, cv::Point &stable) {
+    int Matcher::testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormalsQuantized, cv::Point &stable) {
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point

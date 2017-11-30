@@ -31,7 +31,7 @@ namespace tless {
             parser.parseTemplate(path, modelsPath, tpls, indices);
 
             // Train features for loaded templates
-            matcher.train(tpls);
+//            matcher.train(tpls);
 
             // Save templates for later hash table generation
             allTemplates.insert(allTemplates.end(), tpls.begin(), tpls.end());
@@ -61,19 +61,19 @@ namespace tless {
         std::cout << *criteria << std::endl;
 
         // Train hash tables
-//        std::cout << "  |_ Training hash tables... " << std::endl;
-//        hasher.train(allTemplates, tables);
-//        assert(!tables.empty());
-//        std::cout << "    |_ " << tables.size() << " hash tables generated" << std::endl;
-//
-//        // Persist hashTables
-//        fsw << "tables" << "[";
-//        for (auto &table : tables) {
-//            fsw << table;
-//        }
-//        fsw << "]";
-//        fsw.release();
-//        std::cout << "  |_ tables -> " << resultPath + "classifier.yml.gz" << std::endl;
+        std::cout << "  |_ Training hash tables... " << std::endl;
+        hasher.train(allTemplates, tables);
+        assert(!tables.empty());
+        std::cout << "    |_ " << tables.size() << " hash tables generated" << std::endl;
+
+        // Persist hashTables
+        fsw << "tables" << "[";
+        for (auto &table : tables) {
+            fsw << table;
+        }
+        fsw << "]";
+        fsw.release();
+        std::cout << "  |_ tables -> " << resultPath + "classifier.yml.gz" << std::endl;
 
         std::cout << "DONE!, took: " << t.elapsed() << " s" << std::endl << std::endl;
     }
@@ -130,6 +130,7 @@ namespace tless {
         // Load scenes
         cv::Mat srcScene = cv::imread(scenePath + "rgb/" + sceneName + ".png", CV_LOAD_IMAGE_COLOR);
         cv::Mat srcSceneDepth = cv::imread(scenePath + "depth/" + sceneName + ".png", CV_LOAD_IMAGE_UNCHANGED);
+        std::cout << "find the bug \a" << std::endl;
 
         // Resize - TODO remove and add scale pyramid functionality
         cv::resize(srcScene, scene, cv::Size(), scale, scale);

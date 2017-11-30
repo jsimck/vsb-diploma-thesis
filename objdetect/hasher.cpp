@@ -7,79 +7,46 @@
 #include "../core/hash_table_candidate.h"
 
 namespace tless {
-    void Hasher::generateTriplets(std::vector<HashTable> &tables) {
-        // Generate triplets
-        for (uint i = 0; i < criteria->tablesCount; ++i) {
-            tables.emplace_back(Triplet::create(criteria->tripletGrid, criteria->maxTripletDist));
-        }
-
-        // TODO - joint entropy of 5k triplets, instead of 100 random triplets
-        // Check for unique triplets, and regenerate duplicates
-        bool duplicate;
-        do {
-            duplicate = false;
-            for (uint i = 0; i < criteria->tablesCount; ++i) {
-                for (uint j = 0; j < criteria->tablesCount; ++j) {
-                    // Don't compare same triplets
-                    if (i == j) continue;
-                    if (tables[i].triplet == tables[j].triplet) {
-                        // Duplicate, generate new triplet
-                        duplicate = true;
-                        tables[j].triplet = std::move(Triplet::create(criteria->tripletGrid));
-                    }
-                }
-            }
-        } while (duplicate);
-    }
-
     void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<HashTable> &tables) {
-        // Checks
-        assert(!tables.empty());
-        assert(!templates.empty());
-
-        const size_t iSize = tables.size();
-
-#pragma omp parallel for shared(templates, tables) firstprivate(criteria)
-        for (size_t i = 0; i < iSize; i++) {
+        #pragma omp parallel for shared(templates, tables)
+        for (size_t i = 0; i < tables.size(); i++) {
             const int binCount = 5;
             std::vector<int> rDepths;
 
             for (auto &t : templates) {
-                // Checks
                 assert(!t.srcDepth.empty());
 
-                // Offset for the triplet grid
-                cv::Point gridOffset(
-                        t.objBB.tl().x - (criteria->info.largestArea.width - t.objBB.width) / 2,
-                        t.objBB.tl().y - (criteria->info.largestArea.height - t.objBB.height) / 2
-                );
+                // Offset triplet points by template bounding box
+                cv::Point c = tables[i].triplet.c + t.objBB.tl();
+                cv::Point p1 = tables[i].triplet.p1 + t.objBB.tl();
+                cv::Point p2 = tables[i].triplet.p2 + t.objBB.tl();
 
-                // Absolute triplet points
-                TripletParams tParams(criteria->info.largestArea.width, criteria->info.largestArea.height,
-                                      criteria->tripletGrid, gridOffset.x, gridOffset.y);
-                cv::Point c = tables[i].triplet.getCenter(tParams);
-                cv::Point p1 = tables[i].triplet.getP1(tParams);
-                cv::Point p2 = tables[i].triplet.getP2(tParams);
+                const int brX = t.objBB.br().x;
+                const int brY = t.objBB.br().y;
 
-                // Check if we're not out of bounds
-                assert(c.x >= 0 && c.x < t.srcDepth.cols);
-                assert(c.y >= 0 && c.y < t.srcDepth.rows);
-                assert(p1.x >= 0 && p1.x < t.srcDepth.cols);
-                assert(p1.y >= 0 && p1.y < t.srcDepth.rows);
-                assert(p2.x >= 0 && p2.x < t.srcDepth.cols);
-                assert(p2.y >= 0 && p2.y < t.srcDepth.rows);
+                // Ignore if we're out of object bounding box
+                if (c.x >= brX || p1.x >= brX || p2.x >= brX || c.y >= brY || p1.y >= brY || p2.y >= brY) {
+                    continue;
+                }
 
-                // Relative depths
-                int d[2];
-                relativeDepths(t.srcDepth, c, p1, p2, d);
-                rDepths.push_back(d[0]);
-                rDepths.push_back(d[1]);
+                // Get depth value at each triplet point
+                auto cD = static_cast<int>(t.srcDepth.at<ushort>(c));
+                auto p1D = static_cast<int>(t.srcDepth.at<ushort>(p1));
+                auto p2D = static_cast<int>(t.srcDepth.at<ushort>(p2));
+
+                // Ignore if there are any incorrect depth values
+                if (cD <= 0 || p1D <= 0 || p2D <= 0) {
+                    continue;
+                }
+
+                // Extract relative depths
+                rDepths.push_back(p1D - cD);
+                rDepths.push_back(p2D - cD);
             }
 
-            // Sort depths Calculate bin ranges
+            // Sort depths to calculate bin ranges
             std::sort(rDepths.begin(), rDepths.end());
-            const size_t rDSize = rDepths.size();
-            const size_t binSize = rDSize / binCount;
+            const size_t binSize = rDepths.size() / binCount;
             std::vector<cv::Range> ranges;
 
             for (int j = 0; j < binCount; j++) {
@@ -95,74 +62,70 @@ namespace tless {
                 ranges.emplace_back(min, max);
             }
 
-            // Set table bin ranges
             assert(static_cast<int>(ranges.size()) == binCount);
-            tables[i].binRanges = ranges;
+            tables[i].binRanges = std::move(ranges);
         }
     }
 
-    void Hasher::initialize(std::vector<Template> &templates, std::vector<HashTable> &tables) {
-        // Init hash tables
-        tables.reserve(criteria->tablesCount);
-        std::cout << "    |_ Generating triplets... " << std::endl;
-        generateTriplets(tables);
-
-        // Calculate bin ranges for depth quantization
-        std::cout << "    |_ Calculating depths bin ranges... " << std::endl;
-        initializeBinRanges(templates, tables);
-    }
-
     void Hasher::train(std::vector<Template> &templates, std::vector<HashTable> &tables) {
-        // Checks
         assert(!templates.empty());
         assert(criteria->tablesCount > 0);
         assert(criteria->tripletGrid.width > 0);
         assert(criteria->tripletGrid.height > 0);
         assert(criteria->info.largestArea.area() > 0);
 
-        // Prepare hash tables and histogram bin ranges
-        initialize(templates, tables);
-        const size_t iSize = tables.size();
-
-        // Fill hash tables with templates and keys quantized from measured values
-#pragma omp parallel for shared(templates, tables) firstprivate(criteria)
-        for (size_t i = 0; i < iSize; i++) {
-            for (auto &t : templates) {
-                // Checks
-                assert(!t.srcDepth.empty());
-
-                // Get triplet points
-                TripletParams coordParams(criteria->info.largestArea.width, criteria->info.largestArea.height,
-                                          criteria->tripletGrid, t.objBB.tl().x, t.objBB.tl().y);
-                cv::Point c = tables[i].triplet.getCenter(coordParams);
-                cv::Point p1 = tables[i].triplet.getP1(coordParams);
-                cv::Point p2 = tables[i].triplet.getP2(coordParams);
-
-                // Check if we're not out of bounds
-                assert(c.x >= 0 && c.x < t.srcGray.cols);
-                assert(c.y >= 0 && c.y < t.srcGray.rows);
-                assert(p1.x >= 0 && p1.x < t.srcGray.cols);
-                assert(p1.y >= 0 && p1.y < t.srcGray.rows);
-                assert(p2.x >= 0 && p2.x < t.srcGray.cols);
-                assert(p2.y >= 0 && p2.y < t.srcGray.rows);
-
-                // Relative depths
-                int d[2];
-                relativeDepths(t.srcDepth, c, p1, p2, d);
-
-                // Generate hash key
-                HashKey key(
-                        quantizeDepth(d[0], tables[i].binRanges),
-                        quantizeDepth(d[1], tables[i].binRanges),
-                        t.srcNormals.at<uchar>(c),
-                        t.srcNormals.at<uchar>(p1),
-                        t.srcNormals.at<uchar>(p2)
-                );
-
-                // Check if key exists, if not initialize it
-                tables[i].pushUnique(key, t);
-            }
+        // Generate triplets
+        const uint N = criteria->tablesCount * 50;
+        for (uint i = 0; i < N; ++i) {
+            tables.emplace_back(Triplet::create(criteria->tripletGrid, criteria->info.largestArea));
         }
+
+        // Initialize bin ranges for each table
+        initializeBinRanges(templates, tables);
+
+//        // Prepare hash tables and histogram bin ranges
+//        initialize(templates, tables);
+//        const size_t iSize = tables.size();
+//
+//        // Fill hash tables with templates and keys quantized from measured values
+//        #pragma omp parallel for shared(templates, tables) firstprivate(criteria)
+//        for (size_t i = 0; i < iSize; i++) {
+//            for (auto &t : templates) {
+//                // Checks
+//                assert(!t.srcDepth.empty());
+//
+//                // Get triplet points
+//                TripletParams coordParams(criteria->info.largestArea.width, criteria->info.largestArea.height,
+//                                          criteria->tripletGrid, t.objBB.tl().x, t.objBB.tl().y);
+//                cv::Point c = tables[i].triplet.getCenter(coordParams);
+//                cv::Point p1 = tables[i].triplet.getP1(coordParams);
+//                cv::Point p2 = tables[i].triplet.getP2(coordParams);
+//
+//                // Check if we're not out of bounds
+//                assert(c.x >= 0 && c.x < t.srcGray.cols);
+//                assert(c.y >= 0 && c.y < t.srcGray.rows);
+//                assert(p1.x >= 0 && p1.x < t.srcGray.cols);
+//                assert(p1.y >= 0 && p1.y < t.srcGray.rows);
+//                assert(p2.x >= 0 && p2.x < t.srcGray.cols);
+//                assert(p2.y >= 0 && p2.y < t.srcGray.rows);
+//
+//                // Relative depths
+//                int d[2];
+//                relativeDepths(t.srcDepth, c, p1, p2, d);
+//
+//                // Generate hash key
+//                HashKey key(
+//                        quantizedDepth(d[0], tables[i].binRanges),
+//                        quantizedDepth(d[1], tables[i].binRanges),
+//                        t.srcNormals.at<uchar>(c),
+//                        t.srcNormals.at<uchar>(p1),
+//                        t.srcNormals.at<uchar>(p2)
+//                );
+//
+//                // Check if key exists, if not initialize it
+//                tables[i].pushUnique(key, t);
+//            }
+//        }
     }
 
 // #define VISUALIZE
@@ -192,9 +155,12 @@ namespace tless {
                 // Get triplet points
                 TripletParams tParams(criteria->info.largestArea.width, criteria->info.largestArea.height,
                                       criteria->tripletGrid, windows[i].tl().x, windows[i].tl().y);
-                cv::Point c = table.triplet.getCenter(tParams);
-                cv::Point p1 = table.triplet.getP1(tParams);
-                cv::Point p2 = table.triplet.getP2(tParams);
+//                cv::Point c = table.triplet.getCenter(tParams);
+//                cv::Point p1 = table.triplet.getP1(tParams);
+//                cv::Point p2 = table.triplet.getP2(tParams);
+                cv::Point c = table.triplet.c;
+                cv::Point p1 = table.triplet.p1;
+                cv::Point p2 = table.triplet.p2;
 
                 // If any point of triplet is out of scene boundaries, ignore it to not get false data
                 if ((c.x < 0 || c.x >= sceneDepth.cols || c.y < 0 || c.y >= sceneDepth.rows) ||
@@ -208,8 +174,8 @@ namespace tless {
 
                 // Generate hash key
                 HashKey key(
-                        quantizeDepth(d[0], table.binRanges),
-                        quantizeDepth(d[1], table.binRanges),
+                        quantizedDepth(d[0], table.binRanges),
+                        quantizedDepth(d[1], table.binRanges),
                         sceneSurfaceNormalsQuantized.at<uchar>(c),
                         sceneSurfaceNormalsQuantized.at<uchar>(p1),
                         sceneSurfaceNormalsQuantized.at<uchar>(p2)
