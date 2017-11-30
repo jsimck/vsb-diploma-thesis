@@ -114,7 +114,7 @@ namespace tless {
         depths[1] = static_cast<int>(src.at<ushort>(p2) - src.at<ushort>(c));
     }
 
-    void filterDepthEdgels(const cv::Mat &src, cv::Mat &sum, int minDepth, int maxDepth, int minMag) {
+    void depthEdgelsIntegral(const cv::Mat &src, cv::Mat &sum, int minDepth, int maxDepth, int minMag) {
         assert(!src.empty());
         assert(src.type() == CV_16U);
 
@@ -155,6 +155,19 @@ namespace tless {
         }
 
         cv::integral(edgels, sum, CV_32S);
+    }
+
+    float depthNormalizationFactor(float depth, std::vector<cv::Vec2f> errorFunction) {
+        float ratio = 0;
+
+        for (size_t j = 0; j < errorFunction.size() - 1; j++) {
+            if (depth < errorFunction[j + 1][0]) {
+                ratio = (1 - errorFunction[j + 1][1]);
+                break;
+            }
+        }
+
+        return ratio;
     }
 
     void filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter, bool yFilter) {

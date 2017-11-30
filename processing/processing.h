@@ -64,7 +64,16 @@ namespace tless {
      * @param[in]  maxDepth Ignore pixels with depth higher then this threshold
      * @param[in]  minMag   Ignore pixels with edge magnitude lower than this
      */
-    void filterDepthEdgels(const cv::Mat &src, cv::Mat &sum, int minDepth, int maxDepth, int minMag = 650);
+    void depthEdgelsIntegral(const cv::Mat &src, cv::Mat &sum, int minDepth, int maxDepth, int minMag = 650);
+
+    /**
+     * @brief Finds normalization (error) factor, to help define range in which the given depth value can be
+     *
+     * @param[in] depth         Depth value to get normalization factor for
+     * @param[in] errorFunction Normalization function (vector of 2 values, first is upperBound, second is normalization factor)
+     * @return                  Normalization factor defined in error function for given depth range
+     */
+    float depthNormalizationFactor(float depth, std::vector<cv::Vec2f> errorFunction);
 
     // Filters
     void filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter = true, bool yFilter = true);

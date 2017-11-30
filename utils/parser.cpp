@@ -148,6 +148,8 @@ namespace tless {
 
         // Find max/min depth and max local depth for depth quantization
         ushort localMax = t.srcDepth.at<ushort>(t.objBB.tl());
+        ushort localMin = static_cast<ushort>(-1);
+
         for (int y = t.objBB.tl().y; y < t.objBB.br().y; y++) {
             for (int x = t.objBB.tl().x; x < t.objBB.br().x; x++) {
                 ushort val = t.srcDepth.at<ushort>(y, x);
@@ -155,6 +157,11 @@ namespace tless {
                 // Extract local max (val shouldn't also be bigger than 3 times local max, there shouldn't be so much swinging)
                 if (val > localMax && val < 3 * localMax) {
                     localMax = val;
+                }
+
+                // Extract local min
+                if (val < localMin && val > 0) {
+                    localMin = val;
                 }
 
                 // Extract criteria
@@ -168,16 +175,23 @@ namespace tless {
             }
         }
 
-        // Normalize local max with depth deviation function function
-        float ratio = 0;
-        for (size_t j = 0; j < criteria->depthDeviationFun.size() - 1; j++) {
-            if (localMax < criteria->depthDeviationFun[j + 1][0]) {
-                ratio = (1 - criteria->depthDeviationFun[j + 1][1]);
-                break;
-            }
+        // Normalize local max and min depths to define error corrected range
+        localMax /= depthNormalizationFactor(localMax, criteria->depthDeviationFun);
+        localMin *= depthNormalizationFactor(localMax, criteria->depthDeviationFun);
+
+        // Extract min edgels
+        cv::Mat integral, depth;
+        depthEdgelsIntegral(t.srcDepth, integral, localMin, localMax);
+
+        // Get edgel count inside obj bounding box
+        int edgels = integral.at<int>(t.objBB.br()) - integral.at<int>(t.objBB.tl().y, t.objBB.br().x)
+                     - integral.at<int>(t.objBB.br().y, t.objBB.tl().x) + integral.at<int>(t.objBB.br());
+
+        if (edgels < criteria->info.minEdgels) {
+            criteria->info.minEdgels = edgels;
         }
 
         // Compute normals
-        quantizedNormals(t.srcDepth, t.srcNormals, t.camera.fx(), t.camera.fy(), static_cast<int>(localMax / ratio), criteria->maxDepthDiff);
+        quantizedNormals(t.srcDepth, t.srcNormals, t.camera.fx(), t.camera.fy(), localMax, criteria->maxDepthDiff);
     }
 }

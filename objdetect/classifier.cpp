@@ -36,9 +36,6 @@ namespace tless {
             // Save templates for later hash table generation
             allTemplates.insert(allTemplates.end(), tpls.begin(), tpls.end());
 
-            // Extract min edgels for objectness detection
-            objectness.extractMinEdgels(tpls);
-
             // Persist trained data
             oss.str("");
             oss << resultPath << "trained_" << std::setw(2) << std::setfill('0') << tpls[0].id / 2000 << ".yml.gz";
@@ -183,6 +180,7 @@ namespace tless {
 
         Timer tSceneLoading;
         objectness.objectness(sceneDepth, windows, 1.2f);
+        std::cout << tSceneLoading.elapsed() << "s" << std::endl;
 
         // Visualize results
         cv::Mat result = scene.clone();
