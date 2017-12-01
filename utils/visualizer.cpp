@@ -145,7 +145,8 @@ namespace tless {
             setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 28));
 
             // Load matched template
-            cv::Mat tplSrc = Template::loadSrc(templatesPath, *match.t, CV_LOAD_IMAGE_COLOR);
+            cv::Mat tplSrc;
+            Template::loadSrc(templatesPath, *match.t, tplSrc, CV_LOAD_IMAGE_COLOR);
 
             // draw label and bounding box
             cv::rectangle(tplSrc, match.t->objBB.tl(), match.t->objBB.br(), cv::Scalar(0, 255, 0));
@@ -175,7 +176,7 @@ namespace tless {
 
         // Dynamically load template
         if (tpl.srcHSV.empty()) {
-            result = Template::loadSrc(templatesPath, tpl, CV_LOAD_IMAGE_COLOR);
+            Template::loadSrc(templatesPath, tpl, result, CV_LOAD_IMAGE_COLOR);
         } else {
             result = tpl.srcHSV.clone();
             cv::cvtColor(tpl.srcHSV, result, CV_HSV2BGR);
@@ -253,8 +254,8 @@ namespace tless {
 
             for (auto &table : tables) {
                 // Prepare train to load hash key
-                TripletParams params(criteria->info.largestArea.width, criteria->info.largestArea.height,
-                                     criteria->tripletGrid, windows[i].tl().x, windows[i].tl().y);
+//                TripletParams params(criteria->info.largestArea.width, criteria->info.largestArea.height,
+//                                     criteria->tripletGrid, windows[i].tl().x, windows[i].tl().y);
 //                cv::Point c = table.triplet.getCenter(params);
 //                cv::Point p1 = table.triplet.getP1(params);
 //                cv::Point p2 = table.triplet.getP2(params);
@@ -282,14 +283,14 @@ namespace tless {
                 );
 
                 // Draw only triplets that are matched
-                if (!table.templates[key].empty()) {
-                    cv::circle(result, c, 2, colorRed, -1);
-                    cv::circle(result, p1, 2, colorRed, -1);
-                    cv::circle(result, p2, 2, colorRed, -1);
-                    cv::line(result, c, p1, colorRed);
-                    cv::line(result, c, p2, colorRed);
-                    matched++;
-                }
+//                if (!table.templates[key].empty()) {
+//                    cv::circle(result, c, 2, colorRed, -1);
+//                    cv::circle(result, p1, 2, colorRed, -1);
+//                    cv::circle(result, p2, 2, colorRed, -1);
+//                    cv::line(result, c, p1, colorRed);
+//                    cv::line(result, c, p2, colorRed);
+//                    matched++;
+//                }
             }
 
             // Labels
@@ -339,7 +340,7 @@ namespace tless {
 
         // Dynamically load template src
         if (tpl.srcHSV.empty()) {
-            result = Template::loadSrc(templatesPath, tpl, CV_LOAD_IMAGE_COLOR);
+            Template::loadSrc(templatesPath, tpl, result, CV_LOAD_IMAGE_COLOR);
         } else {
             cv::cvtColor(tpl.srcHSV, result, CV_HSV2BGR);
         }

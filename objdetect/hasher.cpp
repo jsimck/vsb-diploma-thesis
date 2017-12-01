@@ -1,12 +1,41 @@
 #include <unordered_set>
-#include <utility>
 #include "hasher.h"
 #include "../utils/timer.h"
-#include "../core/classifier_criteria.h"
 #include "../processing/processing.h"
 #include "../core/hash_table_candidate.h"
 
 namespace tless {
+    bool Hasher::validateTripletPoints(const Triplet &triplet, Template &tpl, int &p1Diff, int &p2Diff, cv::Point &nC, cv::Point &nP1, cv::Point &nP2) {
+        // Offset triplet points by template bounding box
+        nC = triplet.c + tpl.objBB.tl();
+        nP1 = triplet.p1 + tpl.objBB.tl();
+        nP2 = triplet.p2 + tpl.objBB.tl();
+
+        const int brX = tpl.objBB.br().x;
+        const int brY = tpl.objBB.br().y;
+
+        // Ignore if we're out of object bounding box
+        if (nC.x >= brX || nP1.x >= brX || nP2.x >= brX || nC.y >= brY || nP1.y >= brY || nP2.y >= brY) {
+            return false;
+        }
+
+        // Get depth value at each triplet point
+        auto cD = static_cast<int>(tpl.srcDepth.at<ushort>(nC));
+        auto p1D = static_cast<int>(tpl.srcDepth.at<ushort>(nP1));
+        auto p2D = static_cast<int>(tpl.srcDepth.at<ushort>(nP2));
+
+        // Ignore if there are any incorrect depth values
+        if (cD <= 0 || p1D <= 0 || p2D <= 0) {
+            return false;
+        }
+
+        // Calculate relative depths
+        p1Diff = p1D - cD;
+        p2Diff = p2D - cD;
+
+        return true;
+    }
+
     void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<HashTable> &tables) {
         #pragma omp parallel for shared(templates, tables)
         for (size_t i = 0; i < tables.size(); i++) {
@@ -16,32 +45,17 @@ namespace tless {
             for (auto &t : templates) {
                 assert(!t.srcDepth.empty());
 
-                // Offset triplet points by template bounding box
-                cv::Point c = tables[i].triplet.c + t.objBB.tl();
-                cv::Point p1 = tables[i].triplet.p1 + t.objBB.tl();
-                cv::Point p2 = tables[i].triplet.p2 + t.objBB.tl();
+                cv::Point c, p1, p2;
+                int p1Diff, p2Diff;
 
-                const int brX = t.objBB.br().x;
-                const int brY = t.objBB.br().y;
-
-                // Ignore if we're out of object bounding box
-                if (c.x >= brX || p1.x >= brX || p2.x >= brX || c.y >= brY || p1.y >= brY || p2.y >= brY) {
+                // Skip if points are not valid
+                if (!validateTripletPoints(tables[i].triplet, t, p1Diff, p2Diff, c, p1, p2)) {
                     continue;
                 }
 
-                // Get depth value at each triplet point
-                auto cD = static_cast<int>(t.srcDepth.at<ushort>(c));
-                auto p1D = static_cast<int>(t.srcDepth.at<ushort>(p1));
-                auto p2D = static_cast<int>(t.srcDepth.at<ushort>(p2));
-
-                // Ignore if there are any incorrect depth values
-                if (cD <= 0 || p1D <= 0 || p2D <= 0) {
-                    continue;
-                }
-
-                // Extract relative depths
-                rDepths.push_back(p1D - cD);
-                rDepths.push_back(p2D - cD);
+                // Push relative depths
+                rDepths.push_back(p1Diff);
+                rDepths.push_back(p2Diff);
             }
 
             // Sort depths to calculate bin ranges
@@ -49,21 +63,26 @@ namespace tless {
             const size_t binSize = rDepths.size() / binCount;
             std::vector<cv::Range> ranges;
 
-            for (int j = 0; j < binCount; j++) {
-                int min = rDepths[j * binSize];
-                int max = rDepths[(j + 1) * binSize];
+            // Skip tables with no valid relative depths
+            if (binSize == 0) {
+                continue;
+            } else {
+                for (int j = 0; j < binCount; j++) {
+                    int min = rDepths[j * binSize];
+                    int max = rDepths[(j + 1) * binSize];
 
-                if (j == 0) {
-                    min = -IMG_16BIT_MAX;
-                } else if (j + 1 == binCount) {
-                    max = IMG_16BIT_MAX;
+                    if (j == 0) {
+                        min = -IMG_16BIT_MAX;
+                    } else if (j + 1 == binCount) {
+                        max = IMG_16BIT_MAX;
+                    }
+
+                    ranges.emplace_back(min, max);
                 }
 
-                ranges.emplace_back(min, max);
+                assert(static_cast<int>(ranges.size()) == binCount);
+                tables[i].binRanges = std::move(ranges);
             }
-
-            assert(static_cast<int>(ranges.size()) == binCount);
-            tables[i].binRanges = std::move(ranges);
         }
     }
 
@@ -77,55 +96,46 @@ namespace tless {
         // Generate triplets
         const uint N = criteria->tablesCount * 50;
         for (uint i = 0; i < N; ++i) {
-            tables.emplace_back(Triplet::create(criteria->tripletGrid, criteria->info.largestArea));
+            tables.emplace_back(std::move(Triplet::create(criteria->tripletGrid, criteria->info.largestArea)));
         }
 
         // Initialize bin ranges for each table
         initializeBinRanges(templates, tables);
 
-//        // Prepare hash tables and histogram bin ranges
-//        initialize(templates, tables);
-//        const size_t iSize = tables.size();
-//
-//        // Fill hash tables with templates and keys quantized from measured values
-//        #pragma omp parallel for shared(templates, tables) firstprivate(criteria)
-//        for (size_t i = 0; i < iSize; i++) {
-//            for (auto &t : templates) {
-//                // Checks
-//                assert(!t.srcDepth.empty());
-//
-//                // Get triplet points
-//                TripletParams coordParams(criteria->info.largestArea.width, criteria->info.largestArea.height,
-//                                          criteria->tripletGrid, t.objBB.tl().x, t.objBB.tl().y);
-//                cv::Point c = tables[i].triplet.getCenter(coordParams);
-//                cv::Point p1 = tables[i].triplet.getP1(coordParams);
-//                cv::Point p2 = tables[i].triplet.getP2(coordParams);
-//
-//                // Check if we're not out of bounds
-//                assert(c.x >= 0 && c.x < t.srcGray.cols);
-//                assert(c.y >= 0 && c.y < t.srcGray.rows);
-//                assert(p1.x >= 0 && p1.x < t.srcGray.cols);
-//                assert(p1.y >= 0 && p1.y < t.srcGray.rows);
-//                assert(p2.x >= 0 && p2.x < t.srcGray.cols);
-//                assert(p2.y >= 0 && p2.y < t.srcGray.rows);
-//
-//                // Relative depths
-//                int d[2];
-//                relativeDepths(t.srcDepth, c, p1, p2, d);
-//
-//                // Generate hash key
-//                HashKey key(
-//                        quantizedDepth(d[0], tables[i].binRanges),
-//                        quantizedDepth(d[1], tables[i].binRanges),
-//                        t.srcNormals.at<uchar>(c),
-//                        t.srcNormals.at<uchar>(p1),
-//                        t.srcNormals.at<uchar>(p2)
-//                );
-//
-//                // Check if key exists, if not initialize it
-//                tables[i].pushUnique(key, t);
-//            }
-//        }
+        // Fill hash tables with templates at quantized keys
+        #pragma omp parallel for shared(templates, tables) firstprivate(criteria)
+        for (size_t i = 0; i < tables.size(); i++) {
+            for (auto &t : templates) {
+                // Skip tables with no no defined ranges
+                if (tables[i].binRanges.empty()) {
+                    continue;
+                }
+
+                cv::Point c, p1, p2;
+                int p1Diff, p2Diff;
+
+                // Skip if points are not valid
+                if (!validateTripletPoints(tables[i].triplet, t, p1Diff, p2Diff, c, p1, p2)) {
+                    continue;
+                }
+
+                // Generate hash key
+                HashKey key(
+                    quantizedDepth(p1Diff, tables[i].binRanges),
+                    quantizedDepth(p2Diff, tables[i].binRanges),
+                    t.srcNormals.at<uchar>(c),
+                    t.srcNormals.at<uchar>(p1),
+                    t.srcNormals.at<uchar>(p2)
+                );
+
+                // Push unique templates to table
+                tables[i].pushUnique(key, t);
+            }
+        }
+
+        // Pick only first 100 tables with the most quantized templates
+        std::sort(tables.rbegin(), tables.rend());
+        tables.resize(criteria->tablesCount);
     }
 
 // #define VISUALIZE
@@ -153,8 +163,8 @@ namespace tless {
 
             for (auto &table : tables) {
                 // Get triplet points
-                TripletParams tParams(criteria->info.largestArea.width, criteria->info.largestArea.height,
-                                      criteria->tripletGrid, windows[i].tl().x, windows[i].tl().y);
+//                TripletParams tParams(criteria->info.largestArea.width, criteria->info.largestArea.height,
+//                                      criteria->tripletGrid, windows[i].tl().x, windows[i].tl().y);
 //                cv::Point c = table.triplet.getCenter(tParams);
 //                cv::Point p1 = table.triplet.getP1(tParams);
 //                cv::Point p2 = table.triplet.getP2(tParams);
@@ -182,14 +192,14 @@ namespace tless {
                 );
 
                 // Put each candidate to hash table, increase votes for existing tableCandidates
-                for (auto &entry : table.templates[key]) {
-                    if (tableCandidates.count(entry->id) == 0) {
-                        tableCandidates[entry->id] = HashTableCandidate(entry);
-                    }
-
-                    // Increase votes for candidate
-                    tableCandidates[entry->id].vote();
-                }
+//                for (auto &entry : table.templates[key]) {
+//                    if (tableCandidates.count(entry->id) == 0) {
+//                        tableCandidates[entry->id] = HashTableCandidate(entry);
+//                    }
+//
+//                    // Increase votes for candidate
+//                    tableCandidates[entry->id].vote();
+//                }
             }
 
             Timer t;

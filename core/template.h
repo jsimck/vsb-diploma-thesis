@@ -40,17 +40,21 @@ namespace tless {
         cv::Rect objBB; //!< Object bounding box
         Camera camera; //!< Camera parameters
 
-        // Constructors
         Template() = default;
 
-        // Dynamic image loading for visualization purposes mostly
-        static cv::Mat loadSrc(const std::string &basePath, const Template &tpl, int ddepth);
+        /**
+         * @brief Dynamic image loading when t.src are not load (mainly for debugging)
+         *
+         * @param[in] basePath Full path to template source image
+         * @param[in] tpl      Input template, used to compute path based on it's id and obj type
+         * @param[out] dst     Destination of loaded template image
+         * @param[in] iscolor  Color of the loaded source image (CV_LOAD_IMAGE_COLOR, CV_LOAD_IMAGE_UNCHANGED)
+         */
+        static void loadSrc(const std::string &basePath, const Template &tpl, cv::Mat dst, int iscolor);
 
-        // Operators
         bool operator==(const Template &rhs) const;
         bool operator!=(const Template &rhs) const;
 
-        // Friends
         friend void operator>>(const cv::FileNode &node, Template &t);
         friend cv::FileStorage &operator<<(cv::FileStorage &fs, const Template &t);
         friend std::ostream &operator<<(std::ostream &os, const Template &t);

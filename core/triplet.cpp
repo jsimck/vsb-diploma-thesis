@@ -8,8 +8,8 @@ namespace tless {
     cv::Point Triplet::randPoint(cv::Size grid) {
         static std::random_device rd;
         static std::mt19937 gen(rd());
-        static std::normal_distribution<> dX(0, grid.width - (grid.width / 2));
-        static std::normal_distribution<> dY(0, grid.height - (grid.height / 2));
+        static std::normal_distribution<> dX(0, grid.width * 0.5f);
+        static std::normal_distribution<> dY(0, grid.height * 0.5f);
 
         int x, y;
         do {
@@ -24,7 +24,7 @@ namespace tless {
         assert(grid.area() > 0);
         assert(window.area() > 0);
 
-        // Generate unique points in relative coordinates in a size of a grid
+        // Generate unique points in relative coordinates (grid-space)
         cv::Point c, p1, p2;
 
         do {
@@ -39,7 +39,7 @@ namespace tless {
         auto offsetX = stepX * 0.5f;
         auto offsetY = stepY * 0.5f;
 
-        // Convert to absolute coordinates
+        // Convert to absolute coordinates (window-space)
         c.x = static_cast<int>(stepX * c.x + offsetX);
         c.y = static_cast<int>(stepY * c.y + offsetY);
         p1.x = static_cast<int>(stepX * p1.x + offsetX);
@@ -58,7 +58,6 @@ namespace tless {
     }
 
     bool Triplet::operator==(const Triplet &rhs) const {
-        // We ignore order of points
         return (c == rhs.c || c == rhs.p1 || c == rhs.p2) &&
                (p1 == rhs.c || p1 == rhs.p1 || p1 == rhs.p2) &&
                (p2 == rhs.c || p2 == rhs.p1 || p2 == rhs.p2);

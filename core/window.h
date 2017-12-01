@@ -16,13 +16,11 @@ namespace tless {
         int width;
         int height;
         int edgels;
-        std::vector<std::shared_ptr<Template>> candidates;
+        std::vector<Template *> candidates;
 
-        // Constructors
         explicit Window(int x = 0, int y = 0, int width = 0, int height = 0, int edgels = 0)
                 : x(x), y(y), width(width), height(height), edgels(edgels) {}
 
-        // Methods
         cv::Point tl();
         cv::Point tr();
         cv::Point bl();
@@ -30,7 +28,6 @@ namespace tless {
         cv::Size size();
         bool hasCandidates();
 
-        // Overloads
         bool operator==(const Window &rhs) const;
         bool operator!=(const Window &rhs) const;
         bool operator<(const Window &rhs) const;

@@ -9,10 +9,10 @@ namespace tless {
     struct HashTableCandidate {
     public:
         int votes = 0;
-        std::shared_ptr<Template> candidate;
+        Template *candidate;
 
         // Constructor
-        HashTableCandidate(std::shared_ptr<Template> candidate = nullptr) : candidate(candidate) {}
+        HashTableCandidate(Template *candidate = nullptr) : candidate(candidate) {}
 
         // Methods
         void vote();

@@ -8,7 +8,7 @@ namespace tless {
     /**
      * @brief Defines parameters for classifier behaviour and holds info about dataset
      */
-    class ClassifierCriteria {
+    struct ClassifierCriteria {
     public:
         // Train params
         cv::Size tripletGrid{12, 12}; //!< Relative size of the triplet grid, 12x12 yields 144 possible locations
@@ -29,7 +29,6 @@ namespace tless {
         float overlapFactor = 0.3f; //!< Permitted factor of which two templates can overlap
         float depthK = 0.05f; //!< Constant used in depth test in template matching phase
 
-        // Dataset info
         struct {
             ushort minDepth = (ushort) -1; //!< Minimum depth found across all templates withing their bounding box
             ushort maxDepth = 0; //!< Maximum depth found across all templates withing their bounding box
@@ -39,7 +38,6 @@ namespace tless {
             cv::Size largestArea{0, 0}; //!< Size of the largest area (largest width and largest height) found across all templates
         } info;
 
-        // Friends
         friend void operator>>(const cv::FileNode &node, ClassifierCriteria &crit);
         friend cv::FileStorage &operator<<(cv::FileStorage &fs, const ClassifierCriteria &crit);
         friend std::ostream &operator<<(std::ostream &os, const ClassifierCriteria &crit);

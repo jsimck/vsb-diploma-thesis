@@ -4,15 +4,22 @@ namespace tless {
     void HashTable::pushUnique(const HashKey &key, Template &t) {
         // Check if key exists, if not initialize it
         if (templates.find(key) == templates.end()) {
-            std::vector<std::shared_ptr<Template>> hashTemplates;
+            std::vector<Template *> hashTemplates;
             templates[key] = hashTemplates;
-        }
 
-        // Check for duplicates and push unique
-        auto found = std::find_if(templates[key].begin(), templates[key].end(),
-                                  [&t](const std::shared_ptr<Template> &tt) { return t == *tt; });
-        if (found == templates[key].end()) {
+            // Push new template
             templates[key].emplace_back(&t);
+            size++;
+        } else {
+            // Check for duplicates and push unique
+            auto found = std::find_if(templates[key].begin(), templates[key].end(),
+                                      [&t](const Template *tt) { return t == *tt; });
+
+            // If duplicate not found, push new template
+            if (found == templates[key].end()) {
+                templates[key].emplace_back(&t);
+                size++;
+            }
         }
     }
 
@@ -38,11 +45,16 @@ namespace tless {
 
     HashTable HashTable::load(cv::FileNode &node, std::vector<Template> &templates) {
         HashTable table;
+
+        int size;
+        node["size"] >> size;
+        table.size = static_cast<size_t>(size);
+        node["binRanges"] >> table.binRanges;
+
         cv::FileNode tripletNode = node["triplet"];
         tripletNode["p1"] >> table.triplet.p1;
         tripletNode["p2"] >> table.triplet.p2;
         tripletNode["c"] >> table.triplet.c;
-        node["binRanges"] >> table.binRanges;
 
         // Load Templates
         cv::FileNode data = node["data"];
@@ -56,23 +68,18 @@ namespace tless {
             keyNode["n2"] >> key.n2;
             keyNode["n3"] >> key.n3;
 
-            int id = 0;
+            uint id = 0;
             cv::FileNode templatesNode = row["templates"];
 
             for (auto &&tplId : templatesNode) {
-                tplId >> id;
+                int tmp;
+                tplId >> tmp;
+                id = static_cast<uint>(tmp);
 
                 // Loop through existing templates and save pointers to matching ids
                 for (auto &tpl : templates) {
                     if (id == tpl.id) {
-                        // Check if key exists, if not initialize it
-                        if (table.templates.find(key) == table.templates.end()) {
-                            std::vector<std::shared_ptr<Template>> hashTemplates;
-                            table.templates[key] = hashTemplates;
-                        }
-
-                        table.templates[key].emplace_back(&tpl);
-                        break;
+                        table.pushUnique(key, tpl);
                     }
                 }
             }
@@ -81,15 +88,32 @@ namespace tless {
         return table;
     }
 
+    bool HashTable::operator<(const HashTable &rhs) const {
+        return size < rhs.size;
+    }
+
+    bool HashTable::operator>(const HashTable &rhs) const {
+        return rhs < *this;
+    }
+
+    bool HashTable::operator<=(const HashTable &rhs) const {
+        return !(rhs < *this);
+    }
+
+    bool HashTable::operator>=(const HashTable &rhs) const {
+        return !(*this < rhs);
+    }
+
     cv::FileStorage &operator<<(cv::FileStorage &fs, const HashTable &table) {
         // Save triplet
         fs << "{";
+        fs << "size" << static_cast<int>(table.size);
+        fs << "binRanges" << table.binRanges;
         fs << "triplet" << "{";
         fs << "p1" << table.triplet.p1;
         fs << "c" << table.triplet.c;
         fs << "p2" << table.triplet.p2;
         fs << "}";
-        fs << "binRanges" << table.binRanges;
 
         // Save Templates
         fs << "data" << "[";

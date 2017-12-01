@@ -15,8 +15,7 @@ public:
     int azimuth = 0;
     int mode = 0;
 
-    // Constructors
-    Camera() {}
+    Camera() = default;
     Camera(cv::Mat R, cv::Mat t) : R(R), t(t) {}
 
     /**
@@ -43,7 +42,6 @@ public:
      */
     cv::Vec3f v(uint x, uint width, uint y, uint height, float d);
 
-    // Operators
     friend void operator>>(const cv::FileNode &node, Camera &t);
     friend cv::FileStorage &operator<<(cv::FileStorage &fs, const Camera &t);
     friend std::ostream &operator<<(std::ostream &os, const Camera &camera);

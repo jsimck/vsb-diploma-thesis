@@ -20,11 +20,9 @@ namespace tless {
         uchar d1 = 0, d2 = 0; //!< d1, d2 relative depths, quantization into 5 bins
         uchar n1 = 0, n2 = 0, n3 = 0; //!< n1, n2, n3 surface normals, quantized into 8 discrete values
 
-        // Constructors
-        HashKey() {}
+        HashKey() = default;
         HashKey(uchar d1, uchar d2, uchar n1, uchar n2, uchar n3) : d1(d1), d2(d2), n1(n1), n2(n2), n3(n3) {}
 
-        // Operators
         bool operator==(const HashKey &rhs) const;
         bool operator!=(const HashKey &rhs) const;
         friend std::ostream &operator<<(std::ostream &os, const HashKey &key);
