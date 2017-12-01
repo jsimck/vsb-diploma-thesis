@@ -138,17 +138,14 @@ namespace tless {
         cv::cvtColor(scene, sceneHSV, CV_BGR2HSV);
         cv::cvtColor(scene, sceneGray, CV_BGR2GRAY);
         sceneGray.convertTo(sceneGray, CV_32F, 1.0f / 255.0f);
-        sceneDepth.convertTo(sceneDepthNorm, CV_32F, 1.0f / 65536.0f);
 
         // Check if conversion went ok
         assert(!sceneHSV.empty());
         assert(!sceneGray.empty());
-        assert(!sceneDepthNorm.empty());
         assert(scene.type() == CV_8UC3);
         assert(sceneDepth.type() == CV_16U);
         assert(sceneHSV.type() == CV_8UC3);
         assert(sceneGray.type() == CV_32FC1);
-        assert(sceneDepthNorm.type() == CV_32FC1);
 
         // TODO speed could be improved by only computing part of scene which is in objectness bounding box
         // Compute quantized surface normals and orientation gradients
@@ -187,20 +184,20 @@ namespace tless {
             assert(criteria->info.minEdgels > 0);
 
             Timer tObjectness;
-            objectness.objectness(sceneDepthNorm, windows);
+            objectness.objectness(sceneDepth, windows);
             std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
 
             Visualizer::visualizeWindows(this->scene, windows, false, 0, "Locations detected");
-//
-//            /// Verification and filtering of template candidates
-//            assert(!tables.empty());
-//
-//            Timer tVerification;
-//            hasher.verifyCandidates(sceneDepth, sceneQuantizedNormals, tables, windows);
-//            std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
-//
-////        Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, criteria, true);
-////        Visualizer::visualizeWindows(this->scene, windows, false, 1, "Filtered locations");
+
+            /// Verification and filtering of template candidates
+            assert(!tables.empty());
+
+            Timer tVerification;
+            hasher.verifyCandidates(sceneDepth, sceneQuantizedNormals, tables, windows);
+            std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
+
+//        Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, criteria, true);
+            Visualizer::visualizeWindows(this->scene, windows, false, 1, "Filtered locations");
 //
 //            /// Match templates
 //            assert(!windows.empty());
@@ -210,10 +207,10 @@ namespace tless {
 //            /// Show matched template results
 //            Visualizer::visualizeMatches(scene, matches, "data/", 1);
 //
-//            // Cleanup
-//            std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
-//            windows.clear();
-//            matches.clear();
+            // Cleanup
+            std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
+            windows.clear();
+            matches.clear();
         }
     }
 }

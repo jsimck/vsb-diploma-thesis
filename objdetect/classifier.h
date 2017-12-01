@@ -27,7 +27,6 @@ namespace tless {
         cv::Mat sceneHSV;
         cv::Mat sceneGray;
         cv::Mat sceneDepth;
-        cv::Mat sceneDepthNorm;
         cv::Mat sceneMagnitudes;
         cv::Mat sceneQuantizedAngles;
         cv::Mat sceneQuantizedNormals;

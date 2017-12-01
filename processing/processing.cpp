@@ -120,19 +120,17 @@ namespace tless {
 
         const int filterX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
         const int filterY[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
-
-        cv::Mat srcBlurred = src.clone();
         cv::Mat edgels = cv::Mat::zeros(src.size(), CV_8UC1);
 
-        #pragma omp parallel for default(none) shared(srcBlurred, edgels, filterX, filterY) firstprivate(minDepth, maxDepth, minMag)
-        for (int y = 1; y < srcBlurred.rows - 1; y++) {
-            for (int x = 1; x < srcBlurred.cols - 1; x++) {
+        #pragma omp parallel for default(none) shared(src, edgels, filterX, filterY) firstprivate(minDepth, maxDepth, minMag)
+        for (int y = 1; y < src.rows - 1; y++) {
+            for (int x = 1; x < src.cols - 1; x++) {
                 int i = 0, sumX = 0, sumY = 0;
                 bool skip = false;
 
                 for (int yy = 0; yy < 3 && !skip; yy++) {
                     for (int xx = 0; xx < 3; xx++) {
-                        int px = srcBlurred.at<ushort>(yy + y - 1, x + xx - 1);
+                        int px = src.at<ushort>(yy + y - 1, x + xx - 1);
 
                         // Skip pixels out range
                         if (px < minDepth || px > maxDepth) {

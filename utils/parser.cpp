@@ -149,9 +149,11 @@ namespace tless {
         // Find max/min depth and max local depth for depth quantization
         ushort localMax = t.srcDepth.at<ushort>(t.objBB.tl());
         ushort localMin = static_cast<ushort>(-1);
+        const int areaOffset = 5;
 
-        for (int y = t.objBB.tl().y; y < t.objBB.br().y; y++) {
-            for (int x = t.objBB.tl().x; x < t.objBB.br().x; x++) {
+        // Offset bounding box so we cover edges of object
+        for (int y = t.objBB.tl().y - areaOffset; y < t.objBB.br().y + areaOffset; y++) {
+            for (int x = t.objBB.tl().x - areaOffset; x < t.objBB.br().x + areaOffset; x++) {
                 ushort val = t.srcDepth.at<ushort>(y, x);
 
                 // Extract local max (val shouldn't also be bigger than 3 times local max, there shouldn't be so much swinging)
@@ -180,12 +182,17 @@ namespace tless {
         localMin *= depthNormalizationFactor(localMax, criteria->depthDeviationFun);
 
         // Extract min edgels
-        cv::Mat integral, depth;
+        cv::Mat integral;
         depthEdgelsIntegral(t.srcDepth, integral, localMin, localMax);
 
+        // Cover little bit larger area than object bounding box, to count edges
+        cv::Point A(t.objBB.tl().x - areaOffset, t.objBB.tl().y - areaOffset);
+        cv::Point B(t.objBB.br().x + areaOffset, t.objBB.tl().y - areaOffset);
+        cv::Point C(t.objBB.tl().x - areaOffset, t.objBB.br().y + areaOffset);
+        cv::Point D(t.objBB.br().x + areaOffset, t.objBB.br().y + areaOffset);
+
         // Get edgel count inside obj bounding box
-        int edgels = integral.at<int>(t.objBB.br()) - integral.at<int>(t.objBB.tl().y, t.objBB.br().x)
-                     - integral.at<int>(t.objBB.br().y, t.objBB.tl().x) + integral.at<int>(t.objBB.br());
+        int edgels = integral.at<int>(D) - integral.at<int>(B) - integral.at<int>(C) + integral.at<int>(A);
 
         if (edgels < criteria->info.minEdgels) {
             criteria->info.minEdgels = edgels;
