@@ -58,4 +58,8 @@ namespace tless {
     bool Window::operator!=(const Window &rhs) const {
         return !(rhs == *this);
     }
+
+    cv::Rect Window::rect() {
+        return cv::Rect(x, y, width, height);
+    }
 }

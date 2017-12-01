@@ -5,14 +5,15 @@
 #include "../core/hash_table_candidate.h"
 
 namespace tless {
-    bool Hasher::validateTripletPoints(const Triplet &triplet, Template &tpl, int &p1Diff, int &p2Diff, cv::Point &nC, cv::Point &nP1, cv::Point &nP2) {
+    bool Hasher::validateTripletPoints(const Triplet &triplet, const cv::Mat &depth, cv::Rect window,
+                                       int &p1Diff, int &p2Diff, cv::Point &nC, cv::Point &nP1, cv::Point &nP2) {
         // Offset triplet points by template bounding box
-        nC = triplet.c + tpl.objBB.tl();
-        nP1 = triplet.p1 + tpl.objBB.tl();
-        nP2 = triplet.p2 + tpl.objBB.tl();
+        nC = triplet.c + window.tl();
+        nP1 = triplet.p1 + window.tl();
+        nP2 = triplet.p2 + window.tl();
 
-        const int brX = tpl.objBB.br().x;
-        const int brY = tpl.objBB.br().y;
+        const int brX = window.br().x;
+        const int brY = window.br().y;
 
         // Ignore if we're out of object bounding box
         if (nC.x >= brX || nP1.x >= brX || nP2.x >= brX || nC.y >= brY || nP1.y >= brY || nP2.y >= brY) {
@@ -20,9 +21,9 @@ namespace tless {
         }
 
         // Get depth value at each triplet point
-        auto cD = static_cast<int>(tpl.srcDepth.at<ushort>(nC));
-        auto p1D = static_cast<int>(tpl.srcDepth.at<ushort>(nP1));
-        auto p2D = static_cast<int>(tpl.srcDepth.at<ushort>(nP2));
+        auto cD = static_cast<int>(depth.at<ushort>(nC));
+        auto p1D = static_cast<int>(depth.at<ushort>(nP1));
+        auto p2D = static_cast<int>(depth.at<ushort>(nP2));
 
         // Ignore if there are any incorrect depth values
         if (cD <= 0 || p1D <= 0 || p2D <= 0) {
@@ -49,7 +50,7 @@ namespace tless {
                 int p1Diff, p2Diff;
 
                 // Skip if points are not valid
-                if (!validateTripletPoints(tables[i].triplet, t, p1Diff, p2Diff, c, p1, p2)) {
+                if (!validateTripletPoints(tables[i].triplet, t.srcDepth, t.objBB, p1Diff, p2Diff, c, p1, p2)) {
                     continue;
                 }
 
@@ -115,7 +116,7 @@ namespace tless {
                 int p1Diff, p2Diff;
 
                 // Skip if points are not valid
-                if (!validateTripletPoints(tables[i].triplet, t, p1Diff, p2Diff, c, p1, p2)) {
+                if (!validateTripletPoints(tables[i].triplet, t.srcDepth, t.objBB, p1Diff, p2Diff, c, p1, p2)) {
                     continue;
                 }
 
@@ -138,68 +139,50 @@ namespace tless {
         tables.resize(criteria->tablesCount);
     }
 
-// #define VISUALIZE
-// TODO skip wrong depths
-    void Hasher::verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSurfaceNormalsQuantized,
-                                         std::vector<HashTable> &tables, std::vector<Window> &windows) {
-        // Checks
-        assert(!sceneSurfaceNormalsQuantized.empty());
-        assert(!sceneDepth.empty());
+    void Hasher::verifyCandidates(const cv::Mat &depth, const cv::Mat &surfaceNormals, std::vector<HashTable> &tables, std::vector<Window> &windows) {
+        assert(!surfaceNormals.empty());
+        assert(!depth.empty());
         assert(!windows.empty());
         assert(!tables.empty());
         assert(criteria->info.largestArea.area() > 0);
-
         std::vector<Window> newWindows;
-        const size_t windowsSize = windows.size();
 
-        // TODO find and fix memory leak
-#ifdef VISUALIZE
-        //    #pragma omp parallel for default(none) shared(windows, newWindows, sceneDepth, sceneSurfaceNormalsQuantized, tables) firstprivate(criteria) ordered
-#else
-//    #pragma omp parallel for default(none) shared(windows, newWindows, sceneDepth, sceneSurfaceNormalsQuantized, tables) firstprivate(criteria)
-#endif
-        for (size_t i = 0; i < windowsSize; ++i) {
+//        #pragma omp parallel for default(none) shared(windows, newWindows, sceneDepth, sceneSurfaceNormalsQuantized, tables) firstprivate(criteria)
+        for (size_t i = 0; i < windows.size(); ++i) {
             std::unordered_map<int, HashTableCandidate> tableCandidates;
 
             for (auto &table : tables) {
-                // Get triplet points
-//                TripletParams tParams(criteria->info.largestArea.width, criteria->info.largestArea.height,
-//                                      criteria->tripletGrid, windows[i].tl().x, windows[i].tl().y);
-//                cv::Point c = table.triplet.getCenter(tParams);
-//                cv::Point p1 = table.triplet.getP1(tParams);
-//                cv::Point p2 = table.triplet.getP2(tParams);
-                cv::Point c = table.triplet.c;
-                cv::Point p1 = table.triplet.p1;
-                cv::Point p2 = table.triplet.p2;
-
-                // If any point of triplet is out of scene boundaries, ignore it to not get false data
-                if ((c.x < 0 || c.x >= sceneDepth.cols || c.y < 0 || c.y >= sceneDepth.rows) ||
-                    (p1.x < 0 || p1.x >= sceneDepth.cols || p1.y < 0 || p1.y >= sceneDepth.rows) ||
-                    (p2.x < 0 || p2.x >= sceneDepth.cols || p2.y < 0 || p2.y >= sceneDepth.rows))
+                // Skip tables with no no defined ranges
+                if (tables[i].binRanges.empty()) {
                     continue;
+                }
 
-                // Relative depths
-                int d[2];
-                relativeDepths(sceneDepth, c, p1, p2, d);
+                cv::Point c, p1, p2;
+                int p1Diff, p2Diff;
+
+                // Skip if points are not valid
+                if (!validateTripletPoints(tables[i].triplet, depth, windows[i].rect(), p1Diff, p2Diff, c, p1, p2)) {
+                    continue;
+                }
 
                 // Generate hash key
                 HashKey key(
-                        quantizedDepth(d[0], table.binRanges),
-                        quantizedDepth(d[1], table.binRanges),
-                        sceneSurfaceNormalsQuantized.at<uchar>(c),
-                        sceneSurfaceNormalsQuantized.at<uchar>(p1),
-                        sceneSurfaceNormalsQuantized.at<uchar>(p2)
+                    quantizedDepth(p1Diff, table.binRanges),
+                    quantizedDepth(p2Diff, table.binRanges),
+                    surfaceNormals.at<uchar>(c),
+                    surfaceNormals.at<uchar>(p1),
+                    surfaceNormals.at<uchar>(p2)
                 );
 
                 // Put each candidate to hash table, increase votes for existing tableCandidates
-//                for (auto &entry : table.templates[key]) {
-//                    if (tableCandidates.count(entry->id) == 0) {
-//                        tableCandidates[entry->id] = HashTableCandidate(entry);
-//                    }
-//
-//                    // Increase votes for candidate
-//                    tableCandidates[entry->id].vote();
-//                }
+                for (auto &entry : table.templates[key]) {
+                    if (tableCandidates.count(entry->id) == 0) {
+                        tableCandidates[entry->id] = HashTableCandidate(entry);
+                    }
+
+                    // Increase votes for candidate
+                    tableCandidates[entry->id].vote();
+                }
             }
 
             Timer t;
@@ -223,16 +206,12 @@ namespace tless {
                     windows[i].candidates.push_back(passedCandidates[j].candidate);
                 }
 
-#ifdef VISUALIZE
-                //            #pragma omp ordered
-#else
-//            #pragma omp critical
-#endif
+//                #pragma omp critical
                 newWindows.push_back(std::move(windows[i]));
             }
         }
 
         // Remove empty windows
-        windows = newWindows;
+        windows = std::move(newWindows);
     }
 }

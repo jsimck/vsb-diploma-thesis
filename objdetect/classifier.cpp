@@ -56,9 +56,7 @@ namespace tless {
         // Save data set
         cv::FileStorage fsw(resultPath + "classifier.yml", cv::FileStorage::WRITE);
         fsw << "criteria" << *criteria;
-        std::cout << "  |_ info -> " << resultPath + "classifier.yml" << std::endl;
-
-        std::cout << *criteria << std::endl;
+        std::cout << "  |_ info -> " << resultPath + "classifier.yml.gz" << std::endl;
 
         // Train hash tables
         std::cout << "  |_ Training hash tables... " << std::endl;
@@ -79,45 +77,46 @@ namespace tless {
     }
 
     void Classifier::load(const std::string &trainedTemplatesListPath, const std::string &trainedPath) {
-//        std::ifstream ifs(trainedTemplatesListPath);
-//        assert(ifs.is_open());
-//
-//        Timer t;
-//        std::string path;
-//        std::cout << "Loading trained templates... " << std::endl;
-//
-//        while (ifs >> path) {
-//            std::cout << "  |_ " << path;
-//
-//            // Load trained data
-//            cv::FileStorage fsr(path, cv::FileStorage::READ);
-//            cv::FileNode tpls = fsr["templates"];
-//
-//            // Loop through templates
-//            for (auto &&tpl : tpls) {
-//                Template nTpl;
-//                tpl >> nTpl;
-//                templates.push_back(nTpl);
-//            }
-//
-//            fsr.release();
-//            std::cout << " -> LOADED" << std::endl;
-//        }
+        std::ifstream ifs(trainedTemplatesListPath);
+        assert(ifs.is_open());
+
+        Timer t;
+        std::string path;
+        std::cout << "Loading trained templates... " << std::endl;
+
+        while (ifs >> path) {
+            std::cout << "  |_ " << path;
+
+            // Load trained data
+            cv::FileStorage fsr(path, cv::FileStorage::READ);
+            cv::FileNode tpls = fsr["templates"];
+
+            // Loop through templates
+            for (auto &&tpl : tpls) {
+                Template nTpl;
+                tpl >> nTpl;
+                templates.push_back(nTpl);
+            }
+
+            fsr.release();
+            std::cout << " -> LOADED" << std::endl;
+        }
 
         // Load data set
         cv::FileStorage fsr(trainedPath + "classifier.yml", cv::FileStorage::READ);
-        fsr["criteria"] >> *criteria;
+        fsr["criteria"] >> criteria;
         std::cout << "  |_ info -> LOADED" << std::endl;
+        std::cout << "  |_ loading hashtables..." << std::endl;
 
         // Load hash tables
-//        cv::FileNode hashTables = fsr["tables"];
-//        for (auto &&table : hashTables) {
-//            tables.emplace_back(HashTable::load(table, templates));
-//        }
+        cv::FileNode hashTables = fsr["tables"];
+        for (auto &&table : hashTables) {
+            tables.emplace_back(HashTable::load(table, templates));
+        }
 
         fsr.release();
         std::cout << "  |_ hashTables -> LOADED (" << tables.size() << ")" << std::endl;
-//        std::cout << "DONE!, took: " << t.elapsed() << " s" << std::endl << std::endl;
+        std::cout << "DONE!, took: " << t.elapsed() << " s" << std::endl << std::endl;
     }
 
     void Classifier::loadScene(const std::string &scenePath, const std::string &sceneName) {
@@ -130,7 +129,6 @@ namespace tless {
         // Load scenes
         cv::Mat srcScene = cv::imread(scenePath + "rgb/" + sceneName + ".png", CV_LOAD_IMAGE_COLOR);
         cv::Mat srcSceneDepth = cv::imread(scenePath + "depth/" + sceneName + ".png", CV_LOAD_IMAGE_UNCHANGED);
-        std::cout << "find the bug \a" << std::endl;
 
         // Resize - TODO remove and add scale pyramid functionality
         cv::resize(srcScene, scene, cv::Size(), scale, scale);
@@ -157,44 +155,11 @@ namespace tless {
         quantizedOrientationGradients(sceneGray, sceneQuantizedAngles, sceneMagnitudes);
 
         // TODO better handling of max depth optimization
-        float ratio = 0;
-        for (size_t j = 0; j < criteria->depthDeviationFun.size() - 1; j++) {
-            if (criteria->info.maxDepth < criteria->depthDeviationFun[j + 1][0]) {
-                ratio = (1 - criteria->depthDeviationFun[j + 1][1]);
-                break;
-            }
-        }
+        float ratio = depthNormalizationFactor(criteria->info.maxDepth * scale, criteria->depthDeviationFun);
 
         // TODO parseTemplate camera params and use proper fx and fy and distances etc
         quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
                          static_cast<int>((criteria->info.maxDepth * scale) / ratio), 100);
-
-        // Visualize scene
-        cv::Mat gradients = sceneQuantizedAngles.clone();
-        cv::Mat magnitudes = sceneMagnitudes.clone();
-
-        cv::normalize(gradients, gradients, 0, 255, CV_MINMAX);
-        cv::normalize(magnitudes, magnitudes, 0, 1, CV_MINMAX);
-
-        windows.clear();
-        Objectness objectness(criteria);
-
-        Timer tSceneLoading;
-        objectness.objectness(sceneDepth, windows, 1.2f);
-        std::cout << tSceneLoading.elapsed() << "s" << std::endl;
-
-        // Visualize results
-        cv::Mat result = scene.clone();
-        for (auto &item : windows) {
-            cv::rectangle(result, item.tl(), item.br(), cv::Scalar(0, 255, 0));
-        }
-
-        cv::imshow("result", result);
-        cv::imshow("sceneDepthNorm", sceneDepthNorm);
-//        cv::imshow("magnitudes", magnitudes);
-//        cv::imshow("srcNormals", sceneQuantizedNormals);
-//        cv::imshow("srcGradients", gradients);
-        cv::waitKey(2);
     }
 
     void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath) {
@@ -217,15 +182,15 @@ namespace tless {
             loadScene(scenePath, oss.str());
             std::cout << "  |_ Scene loaded in: " << tSceneLoading.elapsed() << "s" << std::endl;
 
-//            /// Objectness detection
-//            assert(criteria->info.smallestTemplate.area() > 0);
-//            assert(criteria->info.minEdgels > 0);
-//
-//            Timer tObjectness;
-//            objectness.objectness(sceneDepthNorm, windows);
-//            std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
-//
-////        Visualizer::visualizeWindows(this->scene, windows, false, 0, "Locations detected");
+            /// Objectness detection
+            assert(criteria->info.smallestTemplate.area() > 0);
+            assert(criteria->info.minEdgels > 0);
+
+            Timer tObjectness;
+            objectness.objectness(sceneDepthNorm, windows);
+            std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
+
+            Visualizer::visualizeWindows(this->scene, windows, false, 0, "Locations detected");
 //
 //            /// Verification and filtering of template candidates
 //            assert(!tables.empty());

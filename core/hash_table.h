@@ -19,11 +19,11 @@ namespace tless {
     class HashTable {
     private:
         size_t size = 0;
-        std::unordered_map<HashKey, std::vector<Template *>, HashKeyHasher> templates;
 
     public:
         Triplet triplet;
         std::vector<cv::Range> binRanges;
+        std::unordered_map<HashKey, std::vector<Template *>, HashKeyHasher> templates;
 
         HashTable() = default;
         HashTable(Triplet triplet) : triplet(triplet) {}

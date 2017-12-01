@@ -19,7 +19,8 @@ namespace tless {
          * @brief Applies validations to triplet points (out of objBB, wrong depth), generates normalized triplet points and relative depths
          *
          * @param[in]  triplet Generated triplet from a hash table
-         * @param[in]  tpl     Template to compute relative depths and normalized points for
+         * @param[in]  depth   16-bit depth image to compute relative depths from
+         * @param[in]  window  Triplet positions are being offset to this window size
          * @param[out] p1Diff  Relative depth between depths at c and p1 triplet points locations (cD - p1D)
          * @param[out] p2Diff  Relative depth between depths at c and p2 triplet points locations (cD - p2D)
          * @param[out] nC      Center triplet point, normalized into objBB coordinates
@@ -27,7 +28,8 @@ namespace tless {
          * @param[out] nP2     P2 triplet point, normalized into objBB coordinates
          * @return             Return true if triplet passed all validation tests
          */
-        bool validateTripletPoints(const Triplet &triplet, Template &tpl, int &p1Diff, int &p2Diff, cv::Point &nC, cv::Point &nP1, cv::Point &nP2);
+        bool validateTripletPoints(const Triplet &triplet, const cv::Mat &depth, cv::Rect window,
+                                   int &p1Diff, int &p2Diff, cv::Point &nC, cv::Point &nP1, cv::Point &nP2);
 
         /**
          * @brief Computes bin ranges for each table (triplet) across all templates based on relative depths
@@ -55,8 +57,7 @@ namespace tless {
          */
         void train(std::vector<Template> &templates, std::vector<HashTable> &tables);
 
-        void verifyCandidates(const cv::Mat &sceneDepth, const cv::Mat &sceneSurfaceNormalsQuantized,
-                              std::vector<HashTable> &tables, std::vector<Window> &windows);
+        void verifyCandidates(const cv::Mat &depth, const cv::Mat &surfaceNormals, std::vector<HashTable> &tables, std::vector<Window> &windows);
     };
 }
 

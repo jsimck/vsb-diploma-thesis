@@ -231,7 +231,6 @@ namespace tless {
         // Init common
         cv::Scalar colorRed(0, 0, 255);
         std::ostringstream oss;
-        std::cout << "find the bug \a" << std::endl;
 
         // TODO user proper fx and fy
         // Init surface srcNormals

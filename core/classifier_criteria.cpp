@@ -31,28 +31,28 @@ namespace tless {
         return os;
     }
 
-    void operator>>(const cv::FileNode &node, ClassifierCriteria &crit) {
-        node["tripletGrid"] >> crit.tripletGrid;
-        node["minMagnitude"] >> crit.minMagnitude;
-        node["maxDepthDiff"] >> crit.maxDepthDiff;
-        node["depthDeviationFun"] >> crit.depthDeviationFun;
+    void operator>>(const cv::FileNode &node, cv::Ptr<ClassifierCriteria> crit) {
+        node["tripletGrid"] >> crit->tripletGrid;
+        node["minMagnitude"] >> crit->minMagnitude;
+        node["maxDepthDiff"] >> crit->maxDepthDiff;
+        node["depthDeviationFun"] >> crit->depthDeviationFun;
 
         // Load unsigned int params
         int maxTripletDist, tablesCount, featurePointsCount;
         node["maxTripletDist"] >> maxTripletDist;
         node["tablesCount"] >> tablesCount;
         node["featurePointsCount"] >> featurePointsCount;
-        crit.maxTripletDist = static_cast<uint>(maxTripletDist);
-        crit.tablesCount = static_cast<uint>(tablesCount);
-        crit.featurePointsCount = static_cast<uint>(featurePointsCount);
+        crit->maxTripletDist = static_cast<uint>(maxTripletDist);
+        crit->tablesCount = static_cast<uint>(tablesCount);
+        crit->featurePointsCount = static_cast<uint>(featurePointsCount);
 
         cv::FileNode info = node["info"];
-        info["depthScaleFactor"] >> crit.info.depthScaleFactor;
-        info["smallestTemplate"] >> crit.info.smallestTemplate;
-        info["largestArea"] >> crit.info.largestArea;
-        info["minEdgels"] >> crit.info.minEdgels;
-        info["minDepth"] >> crit.info.minDepth;
-        info["maxDepth"] >> crit.info.maxDepth;
+        info["depthScaleFactor"] >> crit->info.depthScaleFactor;
+        info["smallestTemplate"] >> crit->info.smallestTemplate;
+        info["largestArea"] >> crit->info.largestArea;
+        info["minEdgels"] >> crit->info.minEdgels;
+        info["minDepth"] >> crit->info.minDepth;
+        info["maxDepth"] >> crit->info.maxDepth;
     }
 
     cv::FileStorage &operator<<(cv::FileStorage &fs, const ClassifierCriteria &crit) {

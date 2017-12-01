@@ -26,6 +26,7 @@ namespace tless {
         cv::Point bl();
         cv::Point br();
         cv::Size size();
+        cv::Rect rect();
         bool hasCandidates();
 
         bool operator==(const Window &rhs) const;

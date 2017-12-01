@@ -180,7 +180,6 @@ namespace tless {
                 // Get depth value at point
                 float ratio = 0;
                 float sDepth = sceneDepth.at<ushort>(offsetP);
-                std::cout << "find the bug \a" << std::endl;
                 // TODO better wrong depth handling
                 if (sDepth == 0) continue;
 

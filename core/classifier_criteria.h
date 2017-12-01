@@ -1,6 +1,7 @@
 #ifndef VSB_SEMESTRAL_PROJECT_CLASSIFIER_CRITERIA_H
 #define VSB_SEMESTRAL_PROJECT_CLASSIFIER_CRITERIA_H
 
+#include <opencv2/core/cvstd.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/core/persistence.hpp>
 
@@ -38,7 +39,7 @@ namespace tless {
             cv::Size largestArea{0, 0}; //!< Size of the largest area (largest width and largest height) found across all templates
         } info;
 
-        friend void operator>>(const cv::FileNode &node, ClassifierCriteria &crit);
+        friend void operator>>(const cv::FileNode &node, cv::Ptr<ClassifierCriteria> crit);
         friend cv::FileStorage &operator<<(cv::FileStorage &fs, const ClassifierCriteria &crit);
         friend std::ostream &operator<<(std::ostream &os, const ClassifierCriteria &crit);
     };
