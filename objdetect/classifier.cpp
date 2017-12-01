@@ -54,7 +54,7 @@ namespace tless {
         }
 
         // Save data set
-        cv::FileStorage fsw(resultPath + "classifier.yml", cv::FileStorage::WRITE);
+        cv::FileStorage fsw(resultPath + "classifier.yml.gz", cv::FileStorage::WRITE);
         fsw << "criteria" << *criteria;
         std::cout << "  |_ info -> " << resultPath + "classifier.yml.gz" << std::endl;
 
@@ -103,7 +103,7 @@ namespace tless {
         }
 
         // Load data set
-        cv::FileStorage fsr(trainedPath + "classifier.yml", cv::FileStorage::READ);
+        cv::FileStorage fsr(trainedPath + "classifier.yml.gz", cv::FileStorage::READ);
         fsr["criteria"] >> criteria;
         std::cout << "  |_ info -> LOADED" << std::endl;
         std::cout << "  |_ loading hashtables..." << std::endl;
