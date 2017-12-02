@@ -18,7 +18,7 @@ namespace tless {
      */
     class HashTable {
     private:
-        size_t size = 0;
+        size_t size = 0;  //!< Size of hash table (in terms of number of templates)
 
     public:
         Triplet triplet;

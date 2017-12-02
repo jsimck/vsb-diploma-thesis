@@ -18,7 +18,6 @@ namespace tless {
 
         Template parseTemplateGt(uint index, const std::string &path, cv::FileNode &gtNode);
         void parseTemplateInfo(Template &t, cv::FileNode &infoNode);
-//        void parseSceneInfo(Template &t, cv::FileNode &infoNode);
 
     public:
         explicit Parser(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
@@ -34,8 +33,7 @@ namespace tless {
          * @param[out] templates  Output vector containing all parsed templates
          * @param[in]  indices    Optional parameter to parse only templates with defined indicies
          */
-        void parseTemplate(const std::string &path, const std::string &modelsPath, std::vector<Template> &templates,
-                           std::vector<uint> indices = {});
+        void parseTemplate(const std::string &path, const std::string &modelsPath, std::vector<Template> &templates, std::vector<uint> indices = {});
     };
 }
 

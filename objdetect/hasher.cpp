@@ -2,7 +2,6 @@
 #include "hasher.h"
 #include "../utils/timer.h"
 #include "../processing/processing.h"
-#include "../core/hash_table_candidate.h"
 #include "../processing/computation.h"
 
 namespace tless {

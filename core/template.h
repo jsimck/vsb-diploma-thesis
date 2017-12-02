@@ -55,7 +55,6 @@ namespace tless {
 
         bool operator==(const Template &rhs) const;
         bool operator!=(const Template &rhs) const;
-
         friend void operator>>(const cv::FileNode &node, Template &t);
         friend cv::FileStorage &operator<<(cv::FileStorage &fs, const Template &t);
         friend std::ostream &operator<<(std::ostream &os, const Template &t);

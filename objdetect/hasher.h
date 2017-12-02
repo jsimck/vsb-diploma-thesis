@@ -58,6 +58,19 @@ namespace tless {
         void train(std::vector<Template> &templates, std::vector<HashTable> &tables);
 
         // TODO - Refactor function to perform better in parallel
+        /**
+         * @brief Picks first 100 best candidates for each window from included hashing tables
+         *
+         * This function computes hash keys on hash table triplets per each window. Then it looks
+         * at the contents of hash table at computed key and votes for templates located at that key.
+         * This is done for all hash tables. After that we pick 100 best templates (most votes) as
+         * candidates for that specific window.
+         *
+         * @param[in]     depth   16-bit Scene depth image
+         * @param[in]     normals 8-bit Image of quantized surface normals of scene depth image
+         * @param[in]     tables  Array of pre-computed tables (with generated triplets) in training stage
+         * @param[in,out] windows Array of windows that passed objectness detection test
+         */
         void verifyCandidates(const cv::Mat &depth, const cv::Mat &normals, std::vector<HashTable> &tables, std::vector<Window> &windows);
     };
 }

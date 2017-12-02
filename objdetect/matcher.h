@@ -36,6 +36,7 @@ namespace tless {
         int testGradients(uchar gradient, Window &window, cv::Mat &sceneAnglesQuantized, cv::Mat &sceneMagnitudes, cv::Point &edge); // Test III
         int testDepth(float scale, float diameter, ushort depthMedian, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test IV
         int testColor(cv::Vec3b HSV, Window &window, cv::Mat &sceneHSV, cv::Point &stable); // Test V
+
     public:
         // Constructor
         Matcher(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}

@@ -1,14 +1,6 @@
 #include "match.h"
 
 namespace tless {
-    bool Match::operator==(const Match &rhs) const {
-        return t->id == rhs.t->id;
-    }
-
-    bool Match::operator!=(const Match &rhs) const {
-        return !(rhs == *this);
-    }
-
     bool Match::operator<(const Match &rhs) const {
         return areaScore < rhs.areaScore;
     }

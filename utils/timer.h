@@ -18,9 +18,18 @@ namespace tless {
         std::chrono::time_point<clock> beginning;
 
     public:
-        Timer() : beginning(clock::now()) {}
+        Timer();
 
+        /**
+         * @brief Returns time that elapsed from last reset or construction in seconds
+         *
+         * @return Elapsed time from last reset [seconds]
+         */
         double elapsed() const;
+
+        /**
+         * @brief Sets start timer to current system time
+         */
         void reset();
     };
 }

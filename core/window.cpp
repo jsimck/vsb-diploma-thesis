@@ -17,16 +17,17 @@ namespace tless {
         return cv::Point(x + width, y + height);
     }
 
-    cv::Size Window::size() {
-        return cv::Size(width, height);
+    cv::Rect Window::rect() {
+        return cv::Rect(x, y, width, height);
     }
 
     bool Window::hasCandidates() {
         return !candidates.empty();
     }
 
-    void Window::pushUnique(Template *t, int N, int v) {
-        if (t->votes < v) return;
+    // TODO - verify that it works correctly, e.g. doen't override better candidates
+    void Window::pushUnique(Template *t, int N, int minVotes) {
+        if (t->votes < minVotes) return;
 
         // Check if candidate list is not full
         const size_t cSize = candidates.size();
@@ -79,17 +80,5 @@ namespace tless {
 
     bool Window::operator>=(const Window &rhs) const {
         return !(*this < rhs);
-    }
-
-    bool Window::operator==(const Window &rhs) const {
-        return candidates.size() == rhs.candidates.size();
-    }
-
-    bool Window::operator!=(const Window &rhs) const {
-        return !(rhs == *this);
-    }
-
-    cv::Rect Window::rect() {
-        return cv::Rect(x, y, width, height);
     }
 }

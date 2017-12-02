@@ -14,13 +14,13 @@ namespace tless {
     public:
         Template *t;
         cv::Rect objBB;
-        float score, areaScore;
+        float score;
+        float areaScore; //!< score * object.area()
 
+        Match() = default;
         Match(Template *t, cv::Rect &bb, float score, float areaScore)
                 : t(t), objBB(bb), score(score), areaScore(areaScore) {}
 
-        bool operator==(const Match &rhs) const;
-        bool operator!=(const Match &rhs) const;
         bool operator<(const Match &rhs) const;
         bool operator>(const Match &rhs) const;
         bool operator<=(const Match &rhs) const;

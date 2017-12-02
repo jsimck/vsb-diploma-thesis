@@ -9,30 +9,39 @@ namespace tless {
     /**
      * @brief Contains location of windows that passed objectness detection
      */
-    struct Window {
+    class Window {
     public:
-        int x;
-        int y;
-        int width;
-        int height;
-        int edgels;
+        int x = 0, y = 0;
+        int width = 0, height = 0;
+        int edgels = 0; //!< Number of edgels this window contain (detected in objectness detection)
         std::vector<Template *> candidates;
 
-        explicit Window(int x = 0, int y = 0, int width = 0, int height = 0, int edgels = 0)
+        Window() = default;
+        Window(int x, int y, int width, int height, int edgels)
                 : x(x), y(y), width(width), height(height), edgels(edgels) {}
 
         cv::Point tl();
         cv::Point tr();
         cv::Point bl();
         cv::Point br();
-        cv::Size size();
         cv::Rect rect();
 
+        /**
+         * @brief Returns true whether there are any templates (candidates) in candidates array
+         *
+         * @return True if candidates array is not empty
+         */
         bool hasCandidates();
-        void pushUnique(Template *t, int N = 100, int v = 3);
 
-        bool operator==(const Window &rhs) const;
-        bool operator!=(const Window &rhs) const;
+        /**
+         * @brief Used in hashing verification, to push only new unique candidates to candidates array
+         *
+         * @param[in] t        Template to push to candidates array
+         * @param[in] N        Maximum number of templates the candidate array can hold (it will always hold top N candidates)
+         * @param[in] minVotes Minimum number of votes template has to have to be used as candidate
+         */
+        void pushUnique(Template *t, int N = 100, int minVotes = 3);
+
         bool operator<(const Window &rhs) const;
         bool operator>(const Window &rhs) const;
         bool operator<=(const Window &rhs) const;
