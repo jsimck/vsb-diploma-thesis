@@ -83,8 +83,15 @@ namespace tless {
      */
     cv::Vec3b remapBlackWhiteHSV(cv::Vec3b hsv, uchar value = 22, uchar saturation = 31);
 
-    // Filters
-    void filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter = true, bool yFilter = true);
+    // TODO filter edges in all 3 rgb planes and take gradient with largest magnitude
+    /**
+     * @brief Finds edges in gray image using sobel operator (applies erosion and gaussian blur in pre-processing)
+     *
+     * @param[in]  src   8-bit gray source image
+     * @param[out] dst   8-bit image with detected edges
+     * @param[in]  kSize Size of a kernel used in Gaussian blur in pre-processing
+     */
+    void filterEdges(const cv::Mat &src, cv::Mat &dst, int kSize = 5);
 
     // Computation
     void quantizedOrientationGradients(const cv::Mat &srcGray, cv::Mat &quantizedOrientations, cv::Mat &magnitude);

@@ -186,52 +186,39 @@ namespace tless {
         return hsv;
     }
 
-    void filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter, bool yFilter) {
+    void filterEdges(const cv::Mat &src, cv::Mat &dst, int kSize) {
         assert(!src.empty());
-        assert(src.type() == CV_32FC1);
+        assert(src.type() == CV_8UC1);
 
-        const int filterX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
-        const int filterY[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
+        // First erode image and blur to minimize noise
+        cv::Mat eroded, gradX, gradY;
+        cv::erode(src, eroded, cv::Mat(), cv::Point(-1, -1), 1, cv::BORDER_REPLICATE);
+        cv::GaussianBlur(eroded, eroded, cv::Size(kSize, kSize), 0, 0, cv::BORDER_REPLICATE);
 
-        if (dst.empty()) {
-            dst = cv::Mat(src.size(), src.type());
-        }
+        // Compute sobel
+        cv::Sobel(eroded, gradX, CV_16S, 1, 0, 3, 1, 0, cv::BORDER_REPLICATE);
+        cv::convertScaleAbs(gradX, gradX);
+        cv::Sobel(eroded, gradY, CV_16S, 0, 1, 3, 1, 0, cv::BORDER_REPLICATE);
+        cv::convertScaleAbs(gradY, gradY);
 
-        // Blur image little bit to reduce noise
-        cv::GaussianBlur(src, dst, cv::Size(3, 3), 0, 0);
-
-        #pragma omp parallel for default(none) shared(src, dst, filterX, filterY) firstprivate(xFilter, yFilter)
-        for (int y = 1; y < src.rows - 1; y++) {
-            for (int x = 1; x < src.cols - 1; x++) {
-                int i = 0;
-                float sumX = 0, sumY = 0;
-
-                for (int yy = 0; yy < 3; yy++) {
-                    for (int xx = 0; xx < 3; xx++) {
-                        float px = src.at<float>(yy + y - 1, x + xx - 1);
-
-                        if (xFilter) { sumX += px * filterX[i]; }
-                        if (yFilter) { sumY += px * filterY[i]; }
-
-                        i++;
-                    }
-                }
-
-                dst.at<float>(y, x) = std::sqrt(sqr<float>(sumX) + sqr<float>(sumY));
-            }
-        }
+        // Total Gradient (approximate)
+        cv::addWeighted(gradX, 0.5, gradY, 0.5, 0, dst);
     }
 
-    // TODO define param for min magnitude
+    // TODO define param for min magnitude, try compute edgels in 8-bit to avoid convesion to 32f image
     void quantizedOrientationGradients(const cv::Mat &srcGray, cv::Mat &quantizedOrientations, cv::Mat &magnitude) {
         // Checks
         assert(!srcGray.empty());
-        assert(srcGray.type() == CV_32FC1);
+        assert(srcGray.type() == CV_8UC1);
+
+        // Convert to 32FC1
+        cv::Mat srcNorm;
+        srcGray.convertTo(srcNorm, CV_32FC1, 1.0f / 255.0f);
 
         // Calc sobel
         cv::Mat sobelX, sobelY, angles;
-        cv::Sobel(srcGray, sobelX, CV_32F, 1, 0, 3, 1, 0);
-        cv::Sobel(srcGray, sobelY, CV_32F, 0, 1, 3, 1, 0);
+        cv::Sobel(srcNorm, sobelX, CV_32F, 1, 0, 3, 1, 0);
+        cv::Sobel(srcNorm, sobelY, CV_32F, 0, 1, 3, 1, 0);
 
         // Calc orientationGradients
         cv::cartToPolar(sobelX, sobelY, magnitude, angles, true);

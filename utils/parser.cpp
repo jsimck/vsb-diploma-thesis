@@ -99,7 +99,6 @@ namespace tless {
         cv::Mat srcHSV;
         cv::cvtColor(src, srcHSV, CV_BGR2HSV);
         cv::cvtColor(src, src, CV_BGR2GRAY);
-        src.convertTo(src, CV_32F, 1.0f / 255.0f);
 
         // Generate quantized orientations
         cv::Mat gradients, magnitudes;

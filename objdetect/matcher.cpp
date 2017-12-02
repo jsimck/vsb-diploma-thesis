@@ -13,21 +13,23 @@
 #include "../processing/computation.h"
 
 namespace tless {
-    void Matcher::cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, double tMinDistance, uint pointsCount,
-                                          std::vector<cv::Point> &out) {
-        double minDst = tMinDistance;
-        const size_t pointsSize = points.size();
+    void Matcher::selectScatteredFeaturePoints(std::vector<std::pair<cv::Point, uchar>> &points, uint count, std::vector<cv::Point> &scattered) {
+        // Define initial distance
+        float minDst = points.size() / criteria->featurePointsCount;
 
-        while (out.size() < pointsCount) {
-            out.clear();
-            minDst -= 0.5;
+        // Continue decreasing min distance in each loop, till we find >= number of desired points
+        while (scattered.size() < count) {
+            scattered.clear();
+            minDst -= 0.5f;
 
-            for (size_t k = 0; k < pointsSize; ++k) {
+            // Calculate euqlidian distance between each point
+            for (size_t k = 0; k < points.size(); ++k) {
                 bool skip = false;
-                const size_t edgePointsSize = out.size();
+                const size_t edgePointsSize = scattered.size();
 
+                // Skip calculation for point[k] if there exists distance lower then minDist
                 for (size_t j = 0; j < edgePointsSize; ++j) {
-                    if (cv::norm(points[k].p - out[j]) < minDst) {
+                    if (cv::norm(points[k].first - scattered[j]) < minDst) {
                         skip = true;
                         break;
                     }
@@ -37,117 +39,80 @@ namespace tless {
                     continue;
                 }
 
-                out.push_back(points[k].p);
+                scattered.push_back(points[k].first);
             }
         }
 
         // Resize result to actual required size
-        out.resize(pointsCount);
+        scattered.resize(count);
     }
 
-    void Matcher::generateFeaturePoints(std::vector<Template> &templates) {
-        //#pragma omp parallel for shared(templates) firstprivate(criteria)
+    void Matcher::train(std::vector<Template> &templates, uchar minStableVal, uchar minEdgeMag) {
+        assert(!templates.empty());
+        assert(minStableVal > 0);
+        assert(minEdgeMag > 0);
+
+        #pragma omp parallel for shared(templates) firstprivate(criteria, minStableVal, minEdgeMag)
         for (size_t i = 0; i < templates.size(); i++) {
             Template &t = templates[i];
-            std::vector<ValuePoint<float>> edgePoints;
-            std::vector<ValuePoint<float>> stablePoints;
-            cv::Mat erroded, sobel, visualization;
+            std::vector<std::pair<cv::Point, uchar>> edgeVPoints;
+            std::vector<std::pair<cv::Point, uchar>> stableVPoints;
 
-            // Apply sobel to get mask for edge areas
-            cv::erode(t.srcGray, erroded, cv::Mat(), cv::Point(-1,-1), 1, cv::BORDER_REPLICATE);
-            filterSobel(t.srcGray, sobel, true, true);
+            cv::Mat grad;
+            filterEdges(t.srcGray, grad);
 
-            cv::imshow("sobel", sobel);
-            cv::waitKey(0);
+            // Generate stable and edge feature points
+            for (int y = 0; y < grad.rows; y++) {
+                for (int x = 0; x < grad.cols; x++) {
+                    uchar sobelValue = grad.at<uchar>(y, x);
+                    uchar stableValue = t.srcGray.at<uchar>(y, x);
 
-            for (int y = 0; y < sobel.rows; y++) {
-                for (int x = 0; x < sobel.cols; x++) {
-                    float sobelValue = sobel.at<float>(y, x);
-                    float stableValue = t.srcGray.at<float>(y, x);
-
-                    if (sobelValue > 0.3f) {
-                        edgePoints.push_back(ValuePoint<float>(cv::Point(x, y) - t.objBB.tl(), sobelValue));
-                    } else if (stableValue > 0.2f) {
-                        stablePoints.push_back(ValuePoint<float>(cv::Point(x, y) - t.objBB.tl(), stableValue));
+                    // Save only points that have valid depth and are in defined thresholds
+                    if (sobelValue > minEdgeMag) {
+                        edgeVPoints.emplace_back(cv::Point(x, y) - t.objBB.tl(), sobelValue);
+                    } else if (stableValue > minStableVal && t.srcDepth.at<ushort>(y, x) > 0) { // skip wrong depth values
+                        stableVPoints.emplace_back(cv::Point(x, y) - t.objBB.tl(), stableValue);
                     }
                 }
             }
 
-            // Check if there's enough points to extract
-            assert(edgePoints.size() > criteria->featurePointsCount);
-            assert(stablePoints.size() > criteria->featurePointsCount);
+            // Sort edge points descending (best edge magnitude at top), randomize stable points
+            std::shuffle(stableVPoints.rbegin(), stableVPoints.rend(), std::mt19937(std::random_device()()));
+            std::stable_sort(edgeVPoints.rbegin(), edgeVPoints.rend(), [](const std::pair<cv::Point, uchar> &left, const std::pair<cv::Point, uchar> &right) {
+                return left.second < right.second;
+            });
 
-            // Sort point values descending & cherry pick feature points
-            std::stable_sort(edgePoints.rbegin(), edgePoints.rend());
-            std::shuffle(stablePoints.rbegin(), stablePoints.rend(),
-                         std::mt19937(std::random_device()())); // Randomize stable points
-            cherryPickFeaturePoints(edgePoints, edgePoints.size() / criteria->featurePointsCount,
-                                    criteria->featurePointsCount, t.edgePoints);
-            cherryPickFeaturePoints(stablePoints, stablePoints.size() / criteria->featurePointsCount,
-                                    criteria->featurePointsCount, t.stablePoints);
+            // Select scattered feature points
+            selectScatteredFeaturePoints(edgeVPoints, criteria->featurePointsCount, t.edgePoints);
+            selectScatteredFeaturePoints(stableVPoints, criteria->featurePointsCount, t.stablePoints);
 
-            assert(edgePoints.size() > criteria->featurePointsCount);
-            assert(stablePoints.size() > criteria->featurePointsCount);
+            // Validate that we extracted desired number of feature points
+            CV_Assert(t.edgePoints.size() == criteria->featurePointsCount);
+            CV_Assert(t.stablePoints.size() == criteria->featurePointsCount);
 
-            Visualizer::visualizeTemplate(t, "data/", 0, "Template feature points");
-        }
-    }
-
-// TODO do something with invalid depth values
-    void Matcher::extractFeatures(std::vector<Template> &templates) {
-//        #pragma omp parallel for shared(templates) firstprivate(criteria)
-        for (size_t i = 0; i < templates.size(); i++) {
-            // Get template by reference for better access
-            Template &t = templates[i];
-            assert(!t.srcGray.empty());
-            assert(!t.srcHSV.empty());
-            assert(!t.srcDepth.empty());
-            std::vector<float> depths;
-
+            // Extract features for generated feature points
             for (uint j = 0; j < criteria->featurePointsCount; j++) {
                 // Create offsets to object bounding box
-                cv::Point stablePOff(t.stablePoints[j].x + t.objBB.x, t.stablePoints[j].y + t.objBB.y);
-                cv::Point edgePOff(t.edgePoints[j].x + t.objBB.x, t.edgePoints[j].y + t.objBB.y);
+                cv::Point stable = t.stablePoints[j] + t.objBB.tl();
+                cv::Point edge = t.edgePoints[j] + t.objBB.tl();
 
-                // Save features
-                float depth = t.srcDepth.at<ushort>(stablePOff);
-                t.features.depths.push_back(depth);
-                t.features.gradients.emplace_back(t.srcGradients.at<uchar>(edgePOff));
-                t.features.normals.emplace_back(t.srcNormals.at<uchar>(stablePOff));
-                t.features.colors.push_back(remapBlackWhiteHSV(t.srcHSV.at<cv::Vec3b>(stablePOff)));
-
-                // Save only valid depths (skip 0)
-                if (depth != 0) {
-                    depths.push_back(depth);
-                }
-
-                assert(t.features.gradients[j] >= 0);
-                assert(t.features.gradients[j] < 5);
-                assert(t.features.normals[j] >= 0);
-                assert(t.features.normals[j] < 255);
+                // Extract features on generated feature points
+                t.features.depths.push_back(t.srcDepth.at<ushort>(stable));
+                t.features.gradients.emplace_back(t.srcGradients.at<uchar>(edge));
+                t.features.normals.emplace_back(t.srcNormals.at<uchar>(stable));
+                t.features.colors.push_back(remapBlackWhiteHSV(t.srcHSV.at<cv::Vec3b>(stable)));
             }
 
             // Calculate median of depths
-            t.features.depthMedian = median<float>(depths);
-            depths.clear();
+            t.features.depthMedian = median<float>(t.features.depths);
 
 #ifndef NDEBUG
-//        Visualizer::visualizeTemplate(t, "data/", 0, "Template feature points");
+//            Visualizer::visualizeTemplate(t, "data/", 0, "Template feature points");
 #endif
         }
     }
 
-    void Matcher::train(std::vector<Template> &templates) {
-        assert(!templates.empty());
-
-        // Generate edge and stable points for features extraction
-        generateFeaturePoints(templates);
-
-        // Extract features for all templates
-        extractFeatures(templates);
-    }
-
-// TODO implement object size test
+    // TODO implement object size test
     int Matcher::testObjectSize(float scale, float depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
         const unsigned long fSize = criteria->depthDeviationFun.size();
 

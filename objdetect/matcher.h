@@ -6,7 +6,6 @@
 #include <memory>
 #include "../core/window.h"
 #include "../core/match.h"
-#include "../core/value_point.h"
 #include "../core/classifier_criteria.h"
 
 namespace tless {
@@ -20,10 +19,15 @@ namespace tless {
     private:
         cv::Ptr<ClassifierCriteria> criteria;
 
-        // Methods
-        void extractFeatures(std::vector<Template> &templates);
-        void generateFeaturePoints(std::vector<Template> &templates);
-        void cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, double tMinDistance, uint pointsCount, std::vector<cv::Point> &out);
+        /**
+         * @brief Selects scattered feature points, that are somehow uniformly distributed over the template
+         *
+         * @param[in]  points    Array of input points to extract scattered points from (pay attention to sorting)
+         * @param[in]  count     Final number of points we want to extract from the points array
+         * @param[out] scattered Output array containing extracted scattered points
+         */
+        void selectScatteredFeaturePoints(std::vector<std::pair<cv::Point, uchar>> &points, uint count, std::vector<cv::Point> &scattered);
+
         void nonMaximaSuppression(std::vector<Match> &matches);
 
         // Tests
@@ -40,21 +44,20 @@ namespace tless {
         void match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat &sceneMagnitudes, cv::Mat &sceneAnglesQuantized,
                    cv::Mat &sceneSurfaceNormalsQuantized, std::vector<Window> &windows, std::vector<Match> &matches);
 
-
         /**
-         * @brief Extracts features on generated feature points for each template
+         * @brief Generates feature points and extract features for each template
          *
-         * This function first performs feature points extraction. Edge points are extracted
-         * on object edges, computed by applying sobel operator on the image and looking at pixels
-         * that arise on object edges. From this set of points we then pick [criteria.featurePointsCount]
-         * most intense edge points which are distributed across object edges as uniformly as possible.
-         * Then we generate stable points, which for a change are located at stable places of the template.
-         * After we have 100 stable and edge points, we perform feature extraction for depth median,
-         * gradients, normals, depths and colors for each template.
+         * Edge points are detected by applying sobel operator on gray image (which was eroded and blurred) and
+         * picking points with magnitude > minEdgeMag. Stable points are then selected as points with pixel value > minStableVal
+         * and edge magnitude <= minEdgeMag. Both arrays of points are then filtered by selectScatteredFeaturePoints
+         * and only [criteria.featurePointsCount] points are then retained. After we have [criteria.featurePointsCount]
+         * stable and edge points, we perform feature extraction for depth median, gradients, normals, depths and colors for each template.
          *
-         * @param[in,out] templates Array of templates to extract features for
+         * @param[in,out] templates    Array of templates to extract features for
+         * @param[in]     minStableVal Minimum gray pixel value of an extracted stablePoint
+         * @param[in]     minEdgeMag   Minimum edge magnitude of an extracted edgePoint
          */
-        void train(std::vector<Template> &templates);
+        void train(std::vector<Template> &templates, uchar minStableVal = 40, uchar minEdgeMag = 40);
     };
 }
 
