@@ -104,7 +104,7 @@ namespace tless {
             }
 
             // Calculate median of depths
-            t.features.depthMedian = median<float>(t.features.depths);
+            t.features.depthMedian = median<ushort>(t.features.depths);
 
 #ifndef NDEBUG
 //            Visualizer::visualizeTemplate(t, "data/", 0, "Template feature points");
@@ -113,7 +113,7 @@ namespace tless {
     }
 
     // TODO implement object size test
-    int Matcher::testObjectSize(float scale, float depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
+    int Matcher::testObjectSize(float scale, ushort depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
         const unsigned long fSize = criteria->depthDeviationFun.size();
 
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
@@ -194,7 +194,7 @@ namespace tless {
         return 0;
     }
 
-    int Matcher::testDepth(float scale, float diameter, float depthMedian, Window &window, cv::Mat &sceneDepth,
+    int Matcher::testDepth(float scale, float diameter, ushort depthMedian, Window &window, cv::Mat &sceneDepth,
                            cv::Point &stable) {
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
@@ -298,7 +298,7 @@ namespace tless {
         matches.swap(pick);
     }
 
-//#define VISUALIZE
+//    #define VISUALIZE
     void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat &sceneMagnitudes,
                         cv::Mat &sceneAnglesQuantized,
                         cv::Mat &sceneSurfaceNormalsQuantized, std::vector<Window> &windows,
@@ -357,7 +357,7 @@ namespace tless {
 
 #ifdef VISUALIZE
                 if (Visualizer::visualizeTests(*candidate, sceneHSV, sceneDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
-                                           criteria->detect.matcher.neighbourhood, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
+                                           criteria->patchOffset, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
                                            minThreshold, 1, continuous, "data/", 0, nullptr)) {
                     break;
                 }
@@ -382,7 +382,7 @@ namespace tless {
 
 #ifdef VISUALIZE
                 if (Visualizer::visualizeTests(*candidate, sceneHSV, sceneDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
-                                           criteria->detect.matcher.neighbourhood, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
+                                           criteria->patchOffset, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
                                            minThreshold, 2, continuous, "data/", 0, nullptr)) {
                     break;
                 }
@@ -407,7 +407,7 @@ namespace tless {
 
 #ifdef VISUALIZE
                 if (Visualizer::visualizeTests(*candidate, sceneHSV, sceneDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
-                                           criteria->detect.matcher.neighbourhood, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
+                                           criteria->patchOffset, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
                                            minThreshold, 3, continuous, "data/", 0, nullptr)) {
                     break;
                 }
@@ -432,7 +432,7 @@ namespace tless {
 
 #ifdef VISUALIZE
                 if (Visualizer::visualizeTests(*candidate, sceneHSV, sceneDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
-                                           criteria->detect.matcher.neighbourhood, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
+                                           criteria->patchOffset, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
                                            minThreshold, 4, continuous, "data/", 0, nullptr)) {
                     break;
                 }
@@ -457,7 +457,7 @@ namespace tless {
 
 #ifdef VISUALIZE
                 if (Visualizer::visualizeTests(*candidate, sceneHSV, sceneDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
-                                           criteria->detect.matcher.neighbourhood, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
+                                           criteria->patchOffset, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
                                            minThreshold, 5, continuous, "data/", 0, nullptr)) {
                     break;
                 }

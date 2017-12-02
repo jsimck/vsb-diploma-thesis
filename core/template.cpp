@@ -1,7 +1,7 @@
 #include "template.h"
 
 namespace tless {
-    void Template::loadSrc(const std::string &basePath, const Template &tpl, cv::Mat dst, int iscolor) {
+    void Template::loadSrc(const std::string &basePath, const Template &tpl, cv::Mat &dst, int iscolor) {
         std::ostringstream oss;
 
         // Generate path

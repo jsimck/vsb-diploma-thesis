@@ -3,6 +3,7 @@
 #include "../utils/timer.h"
 #include "../processing/processing.h"
 #include "../core/hash_table_candidate.h"
+#include "../processing/computation.h"
 
 namespace tless {
     bool Hasher::validateTripletPoints(const Triplet &triplet, const cv::Mat &depth, cv::Rect window,
@@ -145,12 +146,11 @@ namespace tless {
         assert(!windows.empty());
         assert(!tables.empty());
         assert(criteria->info.largestArea.area() > 0);
-        std::vector<Window> newWindows;
 
-//        #pragma omp parallel for default(none) shared(windows, newWindows, sceneDepth, sceneSurfaceNormalsQuantized, tables) firstprivate(criteria)
+        std::vector<Template *> usedTemplates;
+        std::vector<size_t> emptyIndexes;
+
         for (size_t i = 0; i < windows.size(); ++i) {
-            std::unordered_map<int, HashTableCandidate> tableCandidates;
-
             for (auto &table : tables) {
                 // Skip tables with no no defined ranges
                 if (tables[i].binRanges.empty()) {
@@ -165,52 +165,38 @@ namespace tless {
                     continue;
                 }
 
-                // Generate hash key
                 HashKey key(
-                        quantizeDepth(p1Diff, table.binRanges),
+                    quantizeDepth(p1Diff, table.binRanges),
                     quantizeDepth(p2Diff, table.binRanges),
                     normals.at<uchar>(c),
                     normals.at<uchar>(p1),
                     normals.at<uchar>(p2)
                 );
 
-                // Put each candidate to hash table, increase votes for existing tableCandidates
+                // Vote for each template in hash table at specific key and push unique to window candidates
                 for (auto &entry : table.templates[key]) {
-                    if (tableCandidates.count(entry->id) == 0) {
-                        tableCandidates[entry->id] = HashTableCandidate(entry);
-                    }
+                    entry->votes++;
 
-                    // Increase votes for candidate
-                    tableCandidates[entry->id].vote();
+                    // pushes only unique templates with minimum of votes (minVotes) building vector of size up to N
+                    windows[i].pushUnique(entry, criteria->tablesCount, criteria->minVotes);
+                    usedTemplates.emplace_back(entry);
                 }
             }
 
-            // Insert all tableCandidates with above min votes to helper vector
-            std::vector<HashTableCandidate> passedCandidates;
-            for (auto &c : tableCandidates) {
-                if (c.second.votes >= criteria->minVotes) {
-                    passedCandidates.push_back(c.second);
-                }
+            // Reset votes for all used templates
+            for (auto &t : usedTemplates) {
+                t->votes = 0;
             }
 
-            // Sort and pick first 100 (DESCENDING)
-            if (!passedCandidates.empty()) {
-                std::stable_sort(passedCandidates.rbegin(), passedCandidates.rend());
+            usedTemplates.clear();
 
-                // Put only first 100 candidates
-                size_t pcSize = passedCandidates.size();
-                pcSize = (pcSize > criteria->tablesCount) ? criteria->tablesCount : pcSize;
-
-                for (size_t j = 0; j < pcSize; ++j) {
-                    windows[i].candidates.push_back(passedCandidates[j].candidate);
-                }
-
-//                #pragma omp critical
-                newWindows.push_back(std::move(windows[i]));
+            // Save empty windows indexes
+            if (!windows[i].hasCandidates()) {
+                emptyIndexes.emplace_back(i);
             }
         }
 
         // Remove empty windows
-        windows = std::move(newWindows);
+        removeIndex<Window>(windows, emptyIndexes);
     }
 }

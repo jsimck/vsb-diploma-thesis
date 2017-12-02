@@ -318,15 +318,14 @@ namespace tless {
 
     bool Visualizer::visualizeTests(Template &tpl, const cv::Mat &sceneHSV, const cv::Mat &sceneDepth, Window &window,
                                     std::vector<cv::Point> &stablePoints, std::vector<cv::Point> &edgePoints,
-                                    cv::Range &neighbourhood, std::vector<int> &scoreI, std::vector<int> &scoreII,
+                                    int patchOffset, std::vector<int> &scoreI, std::vector<int> &scoreII,
                                     std::vector<int> &scoreIII, std::vector<int> &scoreIV, std::vector<int> &scoreV,
                                     int pointsCount, int minThreshold, int currentTest, bool continuous,
                                     const std::string &templatesPath, int wait, const char *title) {
         // Init common
         std::ostringstream oss;
         cv::Scalar colorRed(0, 0, 255), colorGreen(0, 255, 0), colorWhite(255, 255, 255), colorBlue(0, 255, 0);
-        cv::Point offsetPStart(neighbourhood.start, neighbourhood.start), offsetPEnd(neighbourhood.end,
-                                                                                     neighbourhood.end);
+        cv::Point offsetPStart(-patchOffset, -patchOffset), offsetPEnd(patchOffset, patchOffset);
 
         // Convert matrices
         cv::Mat result, resultScene, resultSceneDepth;
@@ -334,7 +333,7 @@ namespace tless {
         int scoreVTrue = 0, scoreIVTrue = 0, scoreIIITrue = 0, scoreIITrue = 0, scoreITrue = 0;
 
         // Normalize depth scene
-        resultSceneDepth = sceneDepth.clone();
+        sceneDepth.convertTo(resultSceneDepth, CV_32FC1, 1.0f / 65536.0f);
         cv::normalize(resultSceneDepth, resultSceneDepth, 0, 1.0f, CV_MINMAX);
 
         // Dynamically load template src

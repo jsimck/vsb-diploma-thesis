@@ -137,7 +137,6 @@ namespace tless {
         // Convert and normalize
         cv::cvtColor(scene, sceneHSV, CV_BGR2HSV);
         cv::cvtColor(scene, sceneGray, CV_BGR2GRAY);
-        sceneGray.convertTo(sceneGray, CV_32F, 1.0f / 255.0f);
 
         // Check if conversion went ok
         assert(!sceneHSV.empty());
@@ -145,7 +144,7 @@ namespace tless {
         assert(scene.type() == CV_8UC3);
         assert(sceneDepth.type() == CV_16U);
         assert(sceneHSV.type() == CV_8UC3);
-        assert(sceneGray.type() == CV_32FC1);
+        assert(sceneGray.type() == CV_8UC1);
 
         // TODO speed could be improved by only computing part of scene which is in objectness bounding box
         // Compute quantized surface normals and orientation gradients
@@ -155,7 +154,7 @@ namespace tless {
         float ratio = depthNormalizationFactor(criteria->info.maxDepth * scale, criteria->depthDeviationFun);
 
         // TODO parseTemplate camera params and use proper fx and fy and distances etc
-        quantizedNormals(sceneDepth, sceneQuantizedNormals, 1076.74064739f, 1075.17825536f,
+        quantizedNormals(sceneDepth, sceneNormals, 1076.74064739f, 1075.17825536f,
                          static_cast<int>((criteria->info.maxDepth * scale) / ratio), 100);
     }
 
@@ -187,13 +186,13 @@ namespace tless {
             objectness.objectness(sceneDepth, windows);
             std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
 
-            Visualizer::visualizeWindows(this->scene, windows, false, 0, "Locations detected");
+            Visualizer::visualizeWindows(this->scene, windows, false, 1, "Locations detected");
 
             /// Verification and filtering of template candidates
             assert(!tables.empty());
 
             Timer tVerification;
-            hasher.verifyCandidates(sceneDepth, sceneQuantizedNormals, tables, windows);
+            hasher.verifyCandidates(sceneDepth, sceneNormals, tables, windows);
             std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
 
 //        Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, criteria, true);
@@ -201,11 +200,13 @@ namespace tless {
 
             /// Match templates
             assert(!windows.empty());
-            matcher.match(1.2f, sceneHSV, sceneDepth, sceneMagnitudes, sceneQuantizedAngles, sceneQuantizedNormals,
-                          windows, matches);
+            matcher.match(1.2f, sceneHSV, sceneDepth, sceneMagnitudes, sceneQuantizedAngles, sceneNormals, windows, matches);
 
             /// Show matched template results
-            Visualizer::visualizeMatches(scene, matches, "data/", 1);
+            std::cout << std::endl << "Matches size: " << matches.size() << std::endl;
+            if (!matches.empty()) {
+                Visualizer::visualizeMatches(scene, matches, "data/", 0);
+            }
 
             // Cleanup
             std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;

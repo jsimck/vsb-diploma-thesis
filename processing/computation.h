@@ -36,6 +36,19 @@ namespace tless {
 
         return median;
     }
+
+    template<typename T>
+    void removeIndex(std::vector<T> &vector, const std::vector<size_t> &to_remove) {
+        auto vector_base = vector.begin();
+        auto down_by = 0;
+
+        for (auto iter = to_remove.cbegin(); iter < to_remove.cend(); iter++, down_by++) {
+            auto next = (iter + 1 == to_remove.cend() ? vector.size() : *(iter + 1));
+            std::move(vector_base + *iter + 1, vector_base + next, vector_base + *iter - down_by);
+        }
+
+        vector.resize(vector.size() - to_remove.size());
+    }
 }
 
 #endif

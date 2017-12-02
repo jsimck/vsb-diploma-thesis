@@ -29,7 +29,7 @@ namespace tless {
         cv::Mat sceneDepth;
         cv::Mat sceneMagnitudes;
         cv::Mat sceneQuantizedAngles;
-        cv::Mat sceneQuantizedNormals;
+        cv::Mat sceneNormals;
         std::vector<Template> templates;
         std::vector<HashTable> tables;
         std::vector<Window> windows;

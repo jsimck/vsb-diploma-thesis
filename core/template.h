@@ -30,15 +30,16 @@ namespace tless {
 
         // Matching Features
         struct {
-            float depthMedian = 0; //!< median value over all feature points
+            ushort depthMedian = 0; //!< median value over all feature points
             std::vector<uchar> gradients; //!< quantized oriented gradients
             std::vector<uchar> normals; //!< quantized surface normals
-            std::vector<float> depths; //!< depth value
+            std::vector<ushort> depths; //!< depth value
             std::vector<cv::Vec3b> colors; //!< HSV color space value
         } features;
 
         cv::Rect objBB; //!< Object bounding box
         Camera camera; //!< Camera parameters
+        int votes;
 
         Template() = default;
 
@@ -50,7 +51,7 @@ namespace tless {
          * @param[out] dst     Destination of loaded template image
          * @param[in] iscolor  Color of the loaded source image (CV_LOAD_IMAGE_COLOR, CV_LOAD_IMAGE_UNCHANGED)
          */
-        static void loadSrc(const std::string &basePath, const Template &tpl, cv::Mat dst, int iscolor);
+        static void loadSrc(const std::string &basePath, const Template &tpl, cv::Mat &dst, int iscolor);
 
         bool operator==(const Template &rhs) const;
         bool operator!=(const Template &rhs) const;

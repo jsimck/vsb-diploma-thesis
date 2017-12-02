@@ -27,7 +27,9 @@ namespace tless {
         cv::Point br();
         cv::Size size();
         cv::Rect rect();
+
         bool hasCandidates();
+        void pushUnique(Template *t, int N = 100, int v = 3);
 
         bool operator==(const Window &rhs) const;
         bool operator!=(const Window &rhs) const;
