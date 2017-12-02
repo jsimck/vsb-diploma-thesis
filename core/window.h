@@ -2,7 +2,6 @@
 #define VSB_SEMESTRAL_PROJECT_WINDOW_H
 
 #include <opencv2/core/types.hpp>
-#include <memory>
 #include "template.h"
 
 namespace tless {

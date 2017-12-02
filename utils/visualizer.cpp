@@ -229,7 +229,7 @@ namespace tless {
                                       std::vector<Window> &windows,
                                       cv::Ptr<ClassifierCriteria> criteria, bool continuous, int wait, const char *title) {
         // Init common
-        cv::Scalar colorRed(0, 0, 255);
+        cv::Scalar colorRed(0, 0, 255), colorGreen(0, 255, 0);
         std::ostringstream oss;
 
         // TODO user proper fx and fy
@@ -253,43 +253,40 @@ namespace tless {
 
             for (auto &table : tables) {
                 // Prepare train to load hash key
-//                TripletParams params(criteria->info.largestArea.width, criteria->info.largestArea.height,
-//                                     criteria->tripletGrid, windows[i].tl().x, windows[i].tl().y);
-//                cv::Point c = table.triplet.getCenter(params);
-//                cv::Point p1 = table.triplet.getP1(params);
-//                cv::Point p2 = table.triplet.getP2(params);
-//                cv::Point c;
-//                cv::Point p1;
-//                cv::Point p2;
-//
-//                // If any point of triplet is out of scene boundaries, ignore it to not get false data
-//                if ((c.x < 0 || c.x >= sceneSurfaceNormals.cols || c.y < 0 || c.y >= sceneSurfaceNormals.rows) ||
-//                    (p1.x < 0 || p1.x >= sceneSurfaceNormals.cols || p1.y < 0 || p1.y >= sceneSurfaceNormals.rows) ||
-//                    (p2.x < 0 || p2.x >= sceneSurfaceNormals.cols || p2.y < 0 || p2.y >= sceneSurfaceNormals.rows))
-//                    continue;
-//
-//                // Relative depths
-//                int d[2];
-//                relativeDepths(sceneDepth, c, p1, p2, d);
-//
-//                // Generate hash key
-//                HashKey key(
-//                        quantizeDepth(d[0], table.binRanges),
-//                        quantizeDepth(d[1], table.binRanges),
-//                        sceneSurfaceNormals.at<uchar>(c),
-//                        sceneSurfaceNormals.at<uchar>(p1),
-//                        sceneSurfaceNormals.at<uchar>(p2)
-//                );
+                cv::Point c = table.triplet.c + windows[i].tl();
+                cv::Point p1 = table.triplet.p1 + windows[i].tl();
+                cv::Point p2 = table.triplet.p2 + windows[i].tl();
+
+                // If any point of triplet is out of scene boundaries, ignore it to not get false data
+                if ((c.x < 0 || c.x >= sceneSurfaceNormals.cols || c.y < 0 || c.y >= sceneSurfaceNormals.rows) ||
+                    (p1.x < 0 || p1.x >= sceneSurfaceNormals.cols || p1.y < 0 || p1.y >= sceneSurfaceNormals.rows) ||
+                    (p2.x < 0 || p2.x >= sceneSurfaceNormals.cols || p2.y < 0 || p2.y >= sceneSurfaceNormals.rows))
+                    continue;
+
+                // Relative depths
+                auto cD = static_cast<int>(sceneDepth.at<float>(c));
+                auto p1D = static_cast<int>(sceneDepth.at<float>(p1));
+                auto p2D = static_cast<int>(sceneDepth.at<float>(p2));
+
+                // Generate hash key
+                HashKey key(
+                    quantizeDepth(p2D - cD, table.binRanges),
+                    quantizeDepth(p1D - cD, table.binRanges),
+                    sceneSurfaceNormals.at<uchar>(c),
+                    sceneSurfaceNormals.at<uchar>(p1),
+                    sceneSurfaceNormals.at<uchar>(p2)
+                );
 
                 // Draw only triplets that are matched
-//                if (!table.templates[key].empty()) {
-//                    cv::circle(result, c, 2, colorRed, -1);
-//                    cv::circle(result, p1, 2, colorRed, -1);
-//                    cv::circle(result, p2, 2, colorRed, -1);
-//                    cv::line(result, c, p1, colorRed);
-//                    cv::line(result, c, p2, colorRed);
-//                    matched++;
-//                }
+                if (!table.templates[key].empty()) {
+                    matched++;
+                }
+
+                cv::circle(result, c, 2, table.templates[key].empty() ? colorRed : colorGreen, -1);
+                cv::circle(result, p1, 2, table.templates[key].empty() ? colorRed : colorGreen, -1);
+                cv::circle(result, p2, 2, table.templates[key].empty() ? colorRed : colorGreen, -1);
+                cv::line(result, c, p1, table.templates[key].empty() ? colorRed : colorGreen);
+                cv::line(result, c, p2, table.templates[key].empty() ? colorRed : colorGreen);
             }
 
             // Labels

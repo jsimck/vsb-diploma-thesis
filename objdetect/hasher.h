@@ -20,16 +20,18 @@ namespace tless {
          *
          * @param[in]  triplet Generated triplet from a hash table
          * @param[in]  depth   16-bit depth image to compute relative depths from
+         * @param[in]  gray    8-bit optional gray image, in training phase we check if the value is above threshold (to validate there's an object)
          * @param[in]  window  Triplet positions are being offset to this window size
          * @param[out] p1Diff  Relative depth between depths at c and p1 triplet points locations (cD - p1D)
          * @param[out] p2Diff  Relative depth between depths at c and p2 triplet points locations (cD - p2D)
          * @param[out] nC      Center triplet point, normalized into objBB coordinates
          * @param[out] nP1     P1 triplet point, normalized into objBB coordinates
          * @param[out] nP2     P2 triplet point, normalized into objBB coordinates
+         * @param[in]  minGray Minimum value of gray image to be considered as containing object
          * @return             Return true if triplet passed all validation tests
          */
-        bool validateTripletPoints(const Triplet &triplet, const cv::Mat &depth, cv::Rect window,
-                                   int &p1Diff, int &p2Diff, cv::Point &nC, cv::Point &nP1, cv::Point &nP2);
+        bool validateTripletPoints(const Triplet &triplet, const cv::Mat &depth, const cv::Mat *gray, cv::Rect window,
+                                   int &p1Diff, int &p2Diff, cv::Point &nC, cv::Point &nP1, cv::Point &nP2, uchar minGray = 40);
 
         /**
          * @brief Computes bin ranges for each table (triplet) across all templates based on relative depths

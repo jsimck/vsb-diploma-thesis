@@ -5,8 +5,8 @@
 #include "../processing/computation.h"
 
 namespace tless {
-    bool Hasher::validateTripletPoints(const Triplet &triplet, const cv::Mat &depth, cv::Rect window,
-                                       int &p1Diff, int &p2Diff, cv::Point &nC, cv::Point &nP1, cv::Point &nP2) {
+    bool Hasher::validateTripletPoints(const Triplet &triplet, const cv::Mat &depth, const cv::Mat *gray, cv::Rect window,
+                                       int &p1Diff, int &p2Diff, cv::Point &nC, cv::Point &nP1, cv::Point &nP2, uchar minGray) {
         // Offset triplet points by template bounding box
         nC = triplet.c + window.tl();
         nP1 = triplet.p1 + window.tl();
@@ -18,6 +18,13 @@ namespace tless {
         // Ignore if we're out of object bounding box
         if (nC.x >= brX || nP1.x >= brX || nP2.x >= brX || nC.y >= brY || nP1.y >= brY || nP2.y >= brY) {
             return false;
+        }
+
+        // Check for minimal gray value (triplet is on an object)
+        if (gray != nullptr) {
+            if (gray->at<uchar>(nC) < minGray) return false;
+            if (gray->at<uchar>(nP1) < minGray) return false;
+            if (gray->at<uchar>(nP2) < minGray) return false;
         }
 
         // Get depth value at each triplet point
@@ -50,7 +57,7 @@ namespace tless {
                 int p1Diff, p2Diff;
 
                 // Skip if points are not valid
-                if (!validateTripletPoints(tables[i].triplet, t.srcDepth, t.objBB, p1Diff, p2Diff, c, p1, p2)) {
+                if (!validateTripletPoints(tables[i].triplet, t.srcDepth, &t.srcGray, t.objBB, p1Diff, p2Diff, c, p1, p2)) {
                     continue;
                 }
 
@@ -116,7 +123,7 @@ namespace tless {
                 int p1Diff, p2Diff;
 
                 // Skip if points are not valid
-                if (!validateTripletPoints(tables[i].triplet, t.srcDepth, t.objBB, p1Diff, p2Diff, c, p1, p2)) {
+                if (!validateTripletPoints(tables[i].triplet, t.srcDepth, nullptr, t.objBB, p1Diff, p2Diff, c, p1, p2)) {
                     continue;
                 }
 
@@ -160,7 +167,7 @@ namespace tless {
                 int p1Diff, p2Diff;
 
                 // Skip if points are not valid
-                if (!validateTripletPoints(table.triplet, depth, windows[i].rect(), p1Diff, p2Diff, c, p1, p2)) {
+                if (!validateTripletPoints(table.triplet, depth, nullptr, windows[i].rect(), p1Diff, p2Diff, c, p1, p2)) {
                     continue;
                 }
 

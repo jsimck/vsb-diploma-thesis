@@ -39,17 +39,17 @@ namespace tless {
 
         cv::Rect objBB; //!< Object bounding box
         Camera camera; //!< Camera parameters
-        int votes;
+        int votes = 0;
 
         Template() = default;
 
         /**
          * @brief Dynamic image loading when t.src are not load (mainly for debugging)
          *
-         * @param[in] basePath Full path to template source image
-         * @param[in] tpl      Input template, used to compute path based on it's id and obj type
-         * @param[out] dst     Destination of loaded template image
-         * @param[in] iscolor  Color of the loaded source image (CV_LOAD_IMAGE_COLOR, CV_LOAD_IMAGE_UNCHANGED)
+         * @param[in]  basePath Full path to template source image
+         * @param[in]  tpl      Input template, used to compute path based on it's id and obj type
+         * @param[out] dst      Destination of loaded template image
+         * @param[in]  iscolor  Color of the loaded source image (CV_LOAD_IMAGE_COLOR, CV_LOAD_IMAGE_UNCHANGED)
          */
         static void loadSrc(const std::string &basePath, const Template &tpl, cv::Mat &dst, int iscolor);
 
