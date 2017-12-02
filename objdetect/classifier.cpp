@@ -31,7 +31,7 @@ namespace tless {
             parser.parseTemplate(path, modelsPath, tpls, indices);
 
             // Train features for loaded templates
-//            matcher.train(tpls);
+            matcher.train(tpls);
 
             // Save templates for later hash table generation
             allTemplates.insert(allTemplates.end(), tpls.begin(), tpls.end());
@@ -198,15 +198,15 @@ namespace tless {
 
 //        Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, criteria, true);
             Visualizer::visualizeWindows(this->scene, windows, false, 1, "Filtered locations");
-//
-//            /// Match templates
-//            assert(!windows.empty());
-//            matcher.match(1.2f, sceneHSV, sceneDepth, sceneMagnitudes, sceneQuantizedAngles, sceneQuantizedNormals,
-//                          windows, matches);
-//
-//            /// Show matched template results
-//            Visualizer::visualizeMatches(scene, matches, "data/", 1);
-//
+
+            /// Match templates
+            assert(!windows.empty());
+            matcher.match(1.2f, sceneHSV, sceneDepth, sceneMagnitudes, sceneQuantizedAngles, sceneQuantizedNormals,
+                          windows, matches);
+
+            /// Show matched template results
+            Visualizer::visualizeMatches(scene, matches, "data/", 1);
+
             // Cleanup
             std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
             windows.clear();

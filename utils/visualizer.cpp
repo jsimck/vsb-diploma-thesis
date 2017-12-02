@@ -86,7 +86,7 @@ namespace tless {
         // Sort windows for heat map
         std::vector<Window> sortedWindows(windows.size());
         std::copy(windows.begin(), windows.end(), sortedWindows.begin());
-        std::sort(sortedWindows.begin(), sortedWindows.end());
+        std::stable_sort(sortedWindows.begin(), sortedWindows.end());
 
         // Get max for heat map
         unsigned long max = sortedWindows[sortedWindows.size() - 1].candidates.size();
@@ -258,28 +258,28 @@ namespace tless {
 //                cv::Point c = table.triplet.getCenter(params);
 //                cv::Point p1 = table.triplet.getP1(params);
 //                cv::Point p2 = table.triplet.getP2(params);
-                cv::Point c;
-                cv::Point p1;
-                cv::Point p2;
-
-                // If any point of triplet is out of scene boundaries, ignore it to not get false data
-                if ((c.x < 0 || c.x >= sceneSurfaceNormals.cols || c.y < 0 || c.y >= sceneSurfaceNormals.rows) ||
-                    (p1.x < 0 || p1.x >= sceneSurfaceNormals.cols || p1.y < 0 || p1.y >= sceneSurfaceNormals.rows) ||
-                    (p2.x < 0 || p2.x >= sceneSurfaceNormals.cols || p2.y < 0 || p2.y >= sceneSurfaceNormals.rows))
-                    continue;
-
-                // Relative depths
-                int d[2];
-                relativeDepths(sceneDepth, c, p1, p2, d);
-
-                // Generate hash key
-                HashKey key(
-                        quantizedDepth(d[0], table.binRanges),
-                        quantizedDepth(d[1], table.binRanges),
-                        sceneSurfaceNormals.at<uchar>(c),
-                        sceneSurfaceNormals.at<uchar>(p1),
-                        sceneSurfaceNormals.at<uchar>(p2)
-                );
+//                cv::Point c;
+//                cv::Point p1;
+//                cv::Point p2;
+//
+//                // If any point of triplet is out of scene boundaries, ignore it to not get false data
+//                if ((c.x < 0 || c.x >= sceneSurfaceNormals.cols || c.y < 0 || c.y >= sceneSurfaceNormals.rows) ||
+//                    (p1.x < 0 || p1.x >= sceneSurfaceNormals.cols || p1.y < 0 || p1.y >= sceneSurfaceNormals.rows) ||
+//                    (p2.x < 0 || p2.x >= sceneSurfaceNormals.cols || p2.y < 0 || p2.y >= sceneSurfaceNormals.rows))
+//                    continue;
+//
+//                // Relative depths
+//                int d[2];
+//                relativeDepths(sceneDepth, c, p1, p2, d);
+//
+//                // Generate hash key
+//                HashKey key(
+//                        quantizeDepth(d[0], table.binRanges),
+//                        quantizeDepth(d[1], table.binRanges),
+//                        sceneSurfaceNormals.at<uchar>(c),
+//                        sceneSurfaceNormals.at<uchar>(p1),
+//                        sceneSurfaceNormals.at<uchar>(p2)
+//                );
 
                 // Draw only triplets that are matched
 //                if (!table.templates[key].empty()) {

@@ -57,7 +57,8 @@ namespace tless {
          */
         void train(std::vector<Template> &templates, std::vector<HashTable> &tables);
 
-        void verifyCandidates(const cv::Mat &depth, const cv::Mat &surfaceNormals, std::vector<HashTable> &tables, std::vector<Window> &windows);
+        // TODO - Refactor function to perform better in parallel
+        void verifyCandidates(const cv::Mat &depth, const cv::Mat &normals, std::vector<HashTable> &tables, std::vector<Window> &windows);
     };
 }
 

@@ -181,6 +181,7 @@ namespace tless {
         localMax /= depthNormalizationFactor(localMax, criteria->depthDeviationFun);
         localMin *= depthNormalizationFactor(localMax, criteria->depthDeviationFun);
 
+        // TODO - Better minMag value definition here and in objectness handling
         // Extract min edgels
         cv::Mat integral;
         depthEdgelsIntegral(t.srcDepth, integral, localMin, localMax);

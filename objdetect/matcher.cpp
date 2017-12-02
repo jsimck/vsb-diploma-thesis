@@ -13,23 +13,6 @@
 #include "../processing/computation.h"
 
 namespace tless {
-    cv::Vec3b Matcher::normalizeHSV(cv::Vec3b &hsv) {
-        const uchar tV = 22; // 0.12 of hue threshold
-        const uchar tS = 31; // 0.12 of saturation threshold
-
-        // Check for black
-        if (hsv[2] <= tV) {
-            return cv::Vec3b(120, hsv[1], hsv[2]); // Set to blue
-        }
-
-        // Check for white (set to yellow)
-        if (hsv[2] > tV && hsv[1] < tS) {
-            return cv::Vec3b(30, hsv[1], hsv[2]); // Set to yellow
-        }
-
-        return hsv;
-    }
-
     void Matcher::cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, double tMinDistance, uint pointsCount,
                                           std::vector<cv::Point> &out) {
         double minDst = tMinDistance;
@@ -63,18 +46,19 @@ namespace tless {
     }
 
     void Matcher::generateFeaturePoints(std::vector<Template> &templates) {
-        const size_t iSize = templates.size();
-
-#pragma omp parallel for shared(templates) firstprivate(criteria)
-        for (size_t i = 0; i < iSize; i++) {
-            // Get template by reference for better access
+        //#pragma omp parallel for shared(templates) firstprivate(criteria)
+        for (size_t i = 0; i < templates.size(); i++) {
             Template &t = templates[i];
             std::vector<ValuePoint<float>> edgePoints;
             std::vector<ValuePoint<float>> stablePoints;
-            cv::Mat sobel, visualization;
+            cv::Mat erroded, sobel, visualization;
 
             // Apply sobel to get mask for edge areas
+            cv::erode(t.srcGray, erroded, cv::Mat(), cv::Point(-1,-1), 1, cv::BORDER_REPLICATE);
             filterSobel(t.srcGray, sobel, true, true);
+
+            cv::imshow("sobel", sobel);
+            cv::waitKey(0);
 
             for (int y = 0; y < sobel.rows; y++) {
                 for (int x = 0; x < sobel.cols; x++) {
@@ -94,7 +78,7 @@ namespace tless {
             assert(stablePoints.size() > criteria->featurePointsCount);
 
             // Sort point values descending & cherry pick feature points
-            std::sort(edgePoints.rbegin(), edgePoints.rend());
+            std::stable_sort(edgePoints.rbegin(), edgePoints.rend());
             std::shuffle(stablePoints.rbegin(), stablePoints.rend(),
                          std::mt19937(std::random_device()())); // Randomize stable points
             cherryPickFeaturePoints(edgePoints, edgePoints.size() / criteria->featurePointsCount,
@@ -104,15 +88,15 @@ namespace tless {
 
             assert(edgePoints.size() > criteria->featurePointsCount);
             assert(stablePoints.size() > criteria->featurePointsCount);
+
+            Visualizer::visualizeTemplate(t, "data/", 0, "Template feature points");
         }
     }
 
 // TODO do something with invalid depth values
     void Matcher::extractFeatures(std::vector<Template> &templates) {
-        const size_t iSize = templates.size();
-
-#pragma omp parallel for shared(templates) firstprivate(criteria)
-        for (size_t i = 0; i < iSize; i++) {
+//        #pragma omp parallel for shared(templates) firstprivate(criteria)
+        for (size_t i = 0; i < templates.size(); i++) {
             // Get template by reference for better access
             Template &t = templates[i];
             assert(!t.srcGray.empty());
@@ -130,7 +114,7 @@ namespace tless {
                 t.features.depths.push_back(depth);
                 t.features.gradients.emplace_back(t.srcGradients.at<uchar>(edgePOff));
                 t.features.normals.emplace_back(t.srcNormals.at<uchar>(stablePOff));
-                t.features.colors.push_back(normalizeHSV(t.srcHSV.at<cv::Vec3b>(stablePOff)));
+                t.features.colors.push_back(remapBlackWhiteHSV(t.srcHSV.at<cv::Vec3b>(stablePOff)));
 
                 // Save only valid depths (skip 0)
                 if (depth != 0) {
@@ -281,7 +265,7 @@ namespace tless {
 
                 // Normalize scene HSV value
                 auto hT = static_cast<int>(HSV[0]);
-                auto hS = static_cast<int>(normalizeHSV(sceneHSV.at<cv::Vec3b>(offsetP))[0]);
+                auto hS = static_cast<int>(remapBlackWhiteHSV(sceneHSV.at<cv::Vec3b>(offsetP))[0]);
 
                 if (std::abs(hT - hS) < 3) {
                     return 1;
@@ -298,7 +282,7 @@ namespace tless {
         }
 
         // Sort all matches by their highest score
-        std::sort(matches.rbegin(), matches.rend());
+        std::stable_sort(matches.rbegin(), matches.rend());
 
         std::vector<Match> pick;
         std::vector<int> suppress(matches.size()); // Indexes of matches to remove

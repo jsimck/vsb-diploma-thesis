@@ -45,17 +45,6 @@ namespace tless {
     void quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, float fy, int maxDepth, int maxDifference);
 
     /**
-     * @brief Computes relative depths from 16-bit depth image on (triplet) given points.
-     *
-     * @param[in]  src    Source 16-bit depth image (in mm)
-     * @param[in]  c      Center triplet point
-     * @param[in]  p1     P1 triplet point
-     * @param[in]  p2     P2 triplet point
-     * @param[out] depths 2 value output array where: depths[0] = src.at(p1) - src.at(c); depths[1] = src.at(p2) - src.at(c);
-     */
-    void relativeDepths(const cv::Mat &src, cv::Point c, cv::Point p1, cv::Point p2, int *depths);
-
-    /**
      * @brief Generates integral image of visible depth edgels, detected in depth image within (min, max) depths
      *
      * @param[in]  src      Source 16-bit depth image (in mm)
@@ -82,7 +71,17 @@ namespace tless {
      * @param[in] ranges Vector of ranges defining bounds for each quantization bin
      * @return           Quantized depth (1 | 2 | 4 | 8 | 16)
      */
-    uchar quantizedDepth(int depth, std::vector<cv::Range> &ranges);
+    uchar quantizeDepth(int depth, std::vector<cv::Range> &ranges);
+
+    /**
+     * @brief Remaps black and white colors of HSV color space to blue and yellow colors
+     *
+     * @param[in] hsv        Pixel value to normalize in HSV color space
+     * @param[in] value      Value threshold, values below this threshold [blacks] are mapped to blue color
+     * @param[in] saturation Saturation threshold, values below this and above value threshold [white] are mapped to yellow color
+     * @return               Normalized pixel value where black and white colors are mapped to blue/yellow colors
+     */
+    cv::Vec3b remapBlackWhiteHSV(cv::Vec3b hsv, uchar value = 22, uchar saturation = 31);
 
     // Filters
     void filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter = true, bool yFilter = true);

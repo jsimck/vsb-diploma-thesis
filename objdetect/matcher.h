@@ -21,7 +21,6 @@ namespace tless {
         cv::Ptr<ClassifierCriteria> criteria;
 
         // Methods
-        cv::Vec3b normalizeHSV(cv::Vec3b &hsv);
         void extractFeatures(std::vector<Template> &templates);
         void generateFeaturePoints(std::vector<Template> &templates);
         void cherryPickFeaturePoints(std::vector<ValuePoint<float>> &points, double tMinDistance, uint pointsCount, std::vector<cv::Point> &out);
@@ -40,6 +39,21 @@ namespace tless {
         // Methods
         void match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat &sceneMagnitudes, cv::Mat &sceneAnglesQuantized,
                    cv::Mat &sceneSurfaceNormalsQuantized, std::vector<Window> &windows, std::vector<Match> &matches);
+
+
+        /**
+         * @brief Extracts features on generated feature points for each template
+         *
+         * This function first performs feature points extraction. Edge points are extracted
+         * on object edges, computed by applying sobel operator on the image and looking at pixels
+         * that arise on object edges. From this set of points we then pick [criteria.featurePointsCount]
+         * most intense edge points which are distributed across object edges as uniformly as possible.
+         * Then we generate stable points, which for a change are located at stable places of the template.
+         * After we have 100 stable and edge points, we perform feature extraction for depth median,
+         * gradients, normals, depths and colors for each template.
+         *
+         * @param[in,out] templates Array of templates to extract features for
+         */
         void train(std::vector<Template> &templates);
     };
 }

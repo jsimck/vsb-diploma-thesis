@@ -106,14 +106,6 @@ namespace tless {
         cv::medianBlur(dst, dst, 5);
     }
 
-    void relativeDepths(const cv::Mat &src, cv::Point c, cv::Point p1, cv::Point p2, int *depths) {
-        assert(!src.empty());
-        assert(src.type() == CV_16U);
-
-        depths[0] = static_cast<int>(src.at<ushort>(p1) - src.at<ushort>(c));
-        depths[1] = static_cast<int>(src.at<ushort>(p2) - src.at<ushort>(c));
-    }
-
     void depthEdgelsIntegral(const cv::Mat &src, cv::Mat &sum, int minDepth, int maxDepth, int minMag) {
         assert(!src.empty());
         assert(src.type() == CV_16U);
@@ -168,7 +160,7 @@ namespace tless {
         return ratio;
     }
 
-    uchar quantizedDepth(int depth, std::vector<cv::Range> &ranges) {
+    uchar quantizeDepth(int depth, std::vector<cv::Range> &ranges) {
         // Depth should have max value of <-65536, +65536>
         assert(depth >= -Hasher::IMG_16BIT_MAX && depth <= Hasher::IMG_16BIT_MAX);
         assert(!ranges.empty());
@@ -182,6 +174,16 @@ namespace tless {
 
         // If value is IMG_16BIT_MAX it belongs to last bin
         return DEPTH_LUT[ranges.size() - 1];
+    }
+
+    cv::Vec3b remapBlackWhiteHSV(cv::Vec3b hsv, uchar saturation, uchar value) {
+        if (hsv[2] <= value) {
+            hsv[0] = 120; // Set from black to blue
+        } else if (hsv[1] < saturation) {
+            hsv[0] = 30; // Set from white to yellow
+        }
+
+        return hsv;
     }
 
     void filterSobel(const cv::Mat &src, cv::Mat &dst, bool xFilter, bool yFilter) {

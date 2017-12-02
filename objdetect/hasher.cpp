@@ -122,8 +122,8 @@ namespace tless {
 
                 // Generate hash key
                 HashKey key(
-                    quantizedDepth(p1Diff, tables[i].binRanges),
-                    quantizedDepth(p2Diff, tables[i].binRanges),
+                        quantizeDepth(p1Diff, tables[i].binRanges),
+                    quantizeDepth(p2Diff, tables[i].binRanges),
                     t.srcNormals.at<uchar>(c),
                     t.srcNormals.at<uchar>(p1),
                     t.srcNormals.at<uchar>(p2)
@@ -135,12 +135,12 @@ namespace tless {
         }
 
         // Pick only first 100 tables with the most quantized templates
-        std::sort(tables.rbegin(), tables.rend());
+        std::stable_sort(tables.rbegin(), tables.rend());
         tables.resize(criteria->tablesCount);
     }
 
-    void Hasher::verifyCandidates(const cv::Mat &depth, const cv::Mat &surfaceNormals, std::vector<HashTable> &tables, std::vector<Window> &windows) {
-        assert(!surfaceNormals.empty());
+    void Hasher::verifyCandidates(const cv::Mat &depth, const cv::Mat &normals, std::vector<HashTable> &tables, std::vector<Window> &windows) {
+        assert(!normals.empty());
         assert(!depth.empty());
         assert(!windows.empty());
         assert(!tables.empty());
@@ -167,11 +167,11 @@ namespace tless {
 
                 // Generate hash key
                 HashKey key(
-                    quantizedDepth(p1Diff, table.binRanges),
-                    quantizedDepth(p2Diff, table.binRanges),
-                    surfaceNormals.at<uchar>(c),
-                    surfaceNormals.at<uchar>(p1),
-                    surfaceNormals.at<uchar>(p2)
+                        quantizeDepth(p1Diff, table.binRanges),
+                    quantizeDepth(p2Diff, table.binRanges),
+                    normals.at<uchar>(c),
+                    normals.at<uchar>(p1),
+                    normals.at<uchar>(p2)
                 );
 
                 // Put each candidate to hash table, increase votes for existing tableCandidates
@@ -185,7 +185,6 @@ namespace tless {
                 }
             }
 
-            Timer t;
             // Insert all tableCandidates with above min votes to helper vector
             std::vector<HashTableCandidate> passedCandidates;
             for (auto &c : tableCandidates) {
@@ -196,7 +195,7 @@ namespace tless {
 
             // Sort and pick first 100 (DESCENDING)
             if (!passedCandidates.empty()) {
-                std::sort(passedCandidates.rbegin(), passedCandidates.rend());
+                std::stable_sort(passedCandidates.rbegin(), passedCandidates.rend());
 
                 // Put only first 100 candidates
                 size_t pcSize = passedCandidates.size();
