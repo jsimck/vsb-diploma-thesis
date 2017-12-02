@@ -4,7 +4,7 @@
 int main() {
     // Custom criteria
     cv::Ptr<tless::ClassifierCriteria> criteria(new tless::ClassifierCriteria());
-    criteria->matchFactor = 0.2f;
+    criteria->matchFactor = 0.4f;
 
     // Init classifier
     tless::Classifier classifier(criteria);

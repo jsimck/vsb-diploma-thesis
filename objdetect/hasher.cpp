@@ -153,7 +153,7 @@ namespace tless {
         for (size_t i = 0; i < windows.size(); ++i) {
             for (auto &table : tables) {
                 // Skip tables with no no defined ranges
-                if (tables[i].binRanges.empty()) {
+                if (table.binRanges.empty()) {
                     continue;
                 }
 
@@ -161,7 +161,7 @@ namespace tless {
                 int p1Diff, p2Diff;
 
                 // Skip if points are not valid
-                if (!validateTripletPoints(tables[i].triplet, depth, windows[i].rect(), p1Diff, p2Diff, c, p1, p2)) {
+                if (!validateTripletPoints(table.triplet, depth, windows[i].rect(), p1Diff, p2Diff, c, p1, p2)) {
                     continue;
                 }
 

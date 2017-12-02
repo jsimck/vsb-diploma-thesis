@@ -195,7 +195,7 @@ namespace tless {
             hasher.verifyCandidates(sceneDepth, sceneNormals, tables, windows);
             std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
 
-//        Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, criteria, true);
+//            Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, criteria, true);
             Visualizer::visualizeWindows(this->scene, windows, false, 1, "Filtered locations");
 
             /// Match templates
@@ -204,9 +204,7 @@ namespace tless {
 
             /// Show matched template results
             std::cout << std::endl << "Matches size: " << matches.size() << std::endl;
-            if (!matches.empty()) {
-                Visualizer::visualizeMatches(scene, matches, "data/", 0);
-            }
+            Visualizer::visualizeMatches(scene, matches, "data/", 1);
 
             // Cleanup
             std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;

@@ -264,7 +264,7 @@ namespace tless {
             pick.push_back(firstMatch);
 
             // Check overlaps with all other bounding boxes, skipping first one (since it is the one we're checking with)
-#pragma omp parallel for default(none) shared(firstMatch, matches, idx, suppress) firstprivate(tOverlap)
+            #pragma omp parallel for default(none) shared(firstMatch, matches, idx, suppress) firstprivate(tOverlap)
             for (size_t i = 1; i < idx.size(); i++) {
                 // Get overlap BB coordinates of each other bounding box and compare with the first one
                 cv::Rect bb = matches[idx[i]].objBB;
@@ -280,7 +280,7 @@ namespace tless {
 
                 // If overlap is bigger than min threshold, remove the match
                 if (overlap > tOverlap) {
-#pragma omp critical
+                    #pragma omp critical
                     suppress.push_back(idx[i]);
                 }
             }
@@ -470,9 +470,9 @@ namespace tless {
                 cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width,
                                             candidate->objBB.height);
 
-//            #pragma omp critical
-//            matches.emplace_back(candidate, matchBB, score, score * (candidate->objBB.area() / scale));
-#pragma omp critical
+//                #pragma omp critical
+//                matches.emplace_back(candidate, matchBB, score, score * (candidate->objBB.area() / scale));
+                #pragma omp critical
                 matches.emplace_back(candidate, matchBB, score, score);
 
 #ifndef NDEBUG
