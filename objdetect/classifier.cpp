@@ -119,63 +119,24 @@ namespace tless {
         std::cout << "DONE!, took: " << t.elapsed() << " s" << std::endl << std::endl;
     }
 
-    void Classifier::loadScene(const std::string &scenePath, const std::string &sceneName) {
-        // Checks
-        assert(scenePath.length() > 0);
-        assert(sceneName.length() > 0);
-
-        const float scale = 1.2f;
-
-        // Load scenes
-        cv::Mat srcScene = cv::imread(scenePath + "rgb/" + sceneName + ".png", CV_LOAD_IMAGE_COLOR);
-        cv::Mat srcSceneDepth = cv::imread(scenePath + "depth/" + sceneName + ".png", CV_LOAD_IMAGE_UNCHANGED);
-
-        // Resize - TODO remove and add scale pyramid functionality
-        cv::resize(srcScene, scene, cv::Size(), scale, scale);
-        cv::resize(srcSceneDepth, sceneDepth, cv::Size(), scale, scale);
-
-        // Convert and normalize
-        cv::cvtColor(scene, sceneHSV, CV_BGR2HSV);
-        cv::cvtColor(scene, sceneGray, CV_BGR2GRAY);
-
-        // Check if conversion went ok
-        assert(!sceneHSV.empty());
-        assert(!sceneGray.empty());
-        assert(scene.type() == CV_8UC3);
-        assert(sceneDepth.type() == CV_16U);
-        assert(sceneHSV.type() == CV_8UC3);
-        assert(sceneGray.type() == CV_8UC1);
-
-        // TODO speed could be improved by only computing part of scene which is in objectness bounding box
-        // Compute quantized surface normals and orientation gradients
-        quantizedOrientationGradients(sceneGray, sceneQuantizedAngles, sceneMagnitudes);
-
-        // TODO better handling of max depth optimization
-        float ratio = depthNormalizationFactor(criteria->info.maxDepth * scale, criteria->depthDeviationFun);
-
-        // TODO parseTemplate camera params and use proper fx and fy and distances etc
-        quantizedNormals(sceneDepth, sceneNormals, 1076.74064739f, 1075.17825536f,
-                         static_cast<int>((criteria->info.maxDepth * scale) / ratio), 100);
-    }
-
     void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath) {
         // Init classifiers
+        Parser parser(criteria);
         Objectness objectness(criteria);
         Hasher hasher(criteria);
         Matcher matcher(criteria);
 
         // Load trained template data
+        const float scale = 1.2f;
         load(trainedTemplatesListPath, trainedPath);
-        std::ostringstream oss;
 
-        for (int i = 1; i < 503; ++i) {
+        for (int i = 0; i < 503; ++i) {
             Timer tTotal;
 
             // Load scene
             Timer tSceneLoading;
-            oss.str("");
-            oss << std::setfill('0') << std::setw(4) << i;
-            loadScene(scenePath, oss.str());
+            Scene scene = parser.parseScene("data/scene_01/", i, scale);
+            std::cout << scene << std::endl;
             std::cout << "  |_ Scene loaded in: " << tSceneLoading.elapsed() << "s" << std::endl;
 
             /// Objectness detection
@@ -183,28 +144,28 @@ namespace tless {
             assert(criteria->info.minEdgels > 0);
 
             Timer tObjectness;
-            objectness.objectness(sceneDepth, windows);
+            objectness.objectness(scene.srcDepth, windows, scale);
             std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
 
-            Visualizer::visualizeWindows(this->scene, windows, false, 1, "Locations detected");
+            Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Locations detected");
 
             /// Verification and filtering of template candidates
             assert(!tables.empty());
 
             Timer tVerification;
-            hasher.verifyCandidates(sceneDepth, sceneNormals, tables, windows);
+            hasher.verifyCandidates(scene.srcDepth, scene.normals, tables, windows);
             std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
 
-//            Visualizer::visualizeHashing(scene, sceneDepth, tables, windows, criteria, true);
-//            Visualizer::visualizeWindows(this->scene, windows, false, 1, "Filtered locations");
+//            Visualizer::visualizeHashing(scene.srcRGB, scene.srcDepth, tables, windows, criteria, false);
+//            Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Filtered locations");
 
             /// Match templates
             assert(!windows.empty());
-            matcher.match(1.2f, sceneHSV, sceneDepth, sceneMagnitudes, sceneQuantizedAngles, sceneNormals, windows, matches);
+            matcher.match(1.2f, scene.srcHSV, scene.srcDepth, scene.magnitudes, scene.gradients, scene.normals, windows, matches);
 
             /// Show matched template results
             std::cout << std::endl << "Matches size: " << matches.size() << std::endl;
-            Visualizer::visualizeMatches(scene, matches, "data/", 1);
+            Visualizer::visualizeMatches(scene.srcRGB, matches, "data/", 1);
 
             // Cleanup
             std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;

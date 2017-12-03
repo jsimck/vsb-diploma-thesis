@@ -23,20 +23,12 @@ namespace tless {
     class Classifier {
     private:
         cv::Ptr<ClassifierCriteria> criteria;
-        cv::Mat scene;
-        cv::Mat sceneHSV;
-        cv::Mat sceneGray;
-        cv::Mat sceneDepth;
-        cv::Mat sceneMagnitudes;
-        cv::Mat sceneQuantizedAngles;
-        cv::Mat sceneNormals;
         std::vector<Template> templates;
         std::vector<HashTable> tables;
         std::vector<Window> windows;
         std::vector<Match> matches;
 
         // Methods
-        void loadScene(const std::string &scenePath, const std::string &sceneName);
         void load(const std::string &trainedTemplatesListPath, const std::string &trainedPath);
 
     public:
