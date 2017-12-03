@@ -28,6 +28,14 @@ namespace tless {
          */
         void selectScatteredFeaturePoints(std::vector<std::pair<cv::Point, uchar>> &points, uint count, std::vector<cv::Point> &scattered);
 
+        /**
+         * @brief Applies non-maxima suppression to matched window, removing matches with large overlap and lower score
+         *
+         * This function calculates overlap between each window, if the overlap is > than [criteria.overlapFactor]
+         * we only retain a match with higher score.
+         *
+         * @param[in,out] matches Input/output array of matches to apply non-maxima suppression on
+         */
         void nonMaximaSuppression(std::vector<Match> &matches);
 
         // Tests
