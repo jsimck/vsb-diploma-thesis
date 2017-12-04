@@ -293,10 +293,7 @@ namespace tless {
     }
 
 //    #define VISUALIZE
-    void Matcher::match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat &sceneMagnitudes,
-                        cv::Mat &sceneAnglesQuantized,
-                        cv::Mat &sceneSurfaceNormalsQuantized, std::vector<Window> &windows,
-                        std::vector<Match> &matches) {
+    void Matcher::match(float scale, Scene &scene, std::vector<Window> &windows, std::vector<Match> &matches) {
         // Checks
         assert(!sceneDepth.empty());
         assert(!sceneMagnitudes.empty());
@@ -317,9 +314,7 @@ namespace tless {
         Timer tMatching;
 
 #ifndef VISUALIZE
-#pragma omp parallel for \
-        shared(sceneHSV, sceneDepth, sceneMagnitudes, sceneAnglesQuantized, sceneSurfaceNormalsQuantized, windows, matches) \
-        firstprivate(N, minThreshold, scale)
+        #pragma omp parallel for shared(scene, windows, matches) firstprivate(N, minThreshold, scale)
 #endif
         for (long l = lSize - 1; l >= 0; l--) {
             for (auto &candidate : windows[l].candidates) {
@@ -340,17 +335,17 @@ namespace tless {
 #endif
                 for (uint i = 0; i < N; i++) {
 #ifdef VISUALIZE
-                    int tmpResult = testObjectSize(scale, candidate->features.depths[i], windows[l], sceneDepth, candidate->stablePoints[i]);
+                    int tmpResult = testObjectSize(scale, candidate->features.depths[i], windows[l], scene.srcDepth, candidate->stablePoints[i]);
                     sI += tmpResult;
                     tITrue.push_back(tmpResult);
 #else
-                    sI += testObjectSize(scale, candidate->features.depths[i], windows[l], sceneDepth,
+                    sI += testObjectSize(scale, candidate->features.depths[i], windows[l], scene.srcDepth,
                                          candidate->stablePoints[i]);
 #endif
                 }
 
 #ifdef VISUALIZE
-                if (Visualizer::visualizeTests(*candidate, sceneHSV, sceneDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
+                if (Visualizer::visualizeTests(*candidate, scene.srcHSV, scene.srcDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
                                            criteria->patchOffset, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
                                            minThreshold, 1, continuous, "data/", 0, nullptr)) {
                     break;
@@ -365,17 +360,16 @@ namespace tless {
 #endif
                 for (uint i = 0; i < N; i++) {
 #ifdef VISUALIZE
-                    int tmpResult = testSurfaceNormal(candidate->features.normals[i], windows[l], sceneSurfaceNormalsQuantized, candidate->stablePoints[i]);
+                    int tmpResult = testSurfaceNormal(candidate->features.normals[i], windows[l], scene.normals, candidate->stablePoints[i]);
                     sII += tmpResult;
                     tIITrue.push_back(tmpResult);
 #else
-                    sII += testSurfaceNormal(candidate->features.normals[i], windows[l], sceneSurfaceNormalsQuantized,
-                                             candidate->stablePoints[i]);
+                    sII += testSurfaceNormal(candidate->features.normals[i], windows[l], scene.normals, candidate->stablePoints[i]);
 #endif
                 }
 
 #ifdef VISUALIZE
-                if (Visualizer::visualizeTests(*candidate, sceneHSV, sceneDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
+                if (Visualizer::visualizeTests(*candidate, scene.srcHSV, scene.srcDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
                                            criteria->patchOffset, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
                                            minThreshold, 2, continuous, "data/", 0, nullptr)) {
                     break;
@@ -390,17 +384,16 @@ namespace tless {
 #endif
                 for (uint i = 0; i < N; i++) {
 #ifdef VISUALIZE
-                    int tmpResult = testGradients(candidate->features.gradients[i], windows[l], sceneAnglesQuantized, sceneMagnitudes, candidate->edgePoints[i]);
+                    int tmpResult = testGradients(candidate->features.gradients[i], windows[l], scene.gradients, scene.magnitudes, candidate->edgePoints[i]);
                     sIII += tmpResult;
                     tIIITrue.push_back(tmpResult);
 #else
-                    sIII += testGradients(candidate->features.gradients[i], windows[l], sceneAnglesQuantized,
-                                          sceneMagnitudes, candidate->edgePoints[i]);
+                    sIII += testGradients(candidate->features.gradients[i], windows[l], scene.gradients, scene.magnitudes, candidate->edgePoints[i]);
 #endif
                 }
 
 #ifdef VISUALIZE
-                if (Visualizer::visualizeTests(*candidate, sceneHSV, sceneDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
+                if (Visualizer::visualizeTests(*candidate, scene.srcHSV, scene.srcDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
                                            criteria->patchOffset, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
                                            minThreshold, 3, continuous, "data/", 0, nullptr)) {
                     break;
@@ -415,17 +408,16 @@ namespace tless {
 #endif
                 for (uint i = 0; i < N; i++) {
 #ifdef VISUALIZE
-                    int tmpResult = testDepth(scale, candidate->diameter, candidate->features.depthMedian, windows[l], sceneDepth, candidate->stablePoints[i]);
+                    int tmpResult = testDepth(scale, candidate->diameter, candidate->features.depthMedian, windows[l], scene.srcDepth, candidate->stablePoints[i]);
                     sIV += tmpResult;
                     tIVTrue.push_back(tmpResult);
 #else
-                    sIV += testDepth(scale, candidate->diameter, candidate->features.depthMedian, windows[l],
-                                     sceneDepth, candidate->stablePoints[i]);
+                    sIV += testDepth(scale, candidate->diameter, candidate->features.depthMedian, windows[l], scene.srcDepth, candidate->stablePoints[i]);
 #endif
                 }
 
 #ifdef VISUALIZE
-                if (Visualizer::visualizeTests(*candidate, sceneHSV, sceneDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
+                if (Visualizer::visualizeTests(*candidate, scene.srcHSV, scene.srcDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
                                            criteria->patchOffset, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
                                            minThreshold, 4, continuous, "data/", 0, nullptr)) {
                     break;
@@ -441,16 +433,16 @@ namespace tless {
                 for (uint i = 0; i < N; i++) {
 #ifdef VISUALIZE
                     std::cout << "visualize" << std::endl;
-                    int tmpResult = testColor(candidate->features.colors[i], windows[l], sceneHSV, candidate->stablePoints[i]);
+                    int tmpResult = testColor(candidate->features.colors[i], windows[l], scene.srcHSV, candidate->stablePoints[i]);
                     sV += tmpResult;
                     tVTrue.push_back(tmpResult);
 #else
-                    sV += testColor(candidate->features.colors[i], windows[l], sceneHSV, candidate->stablePoints[i]);
+                    sV += testColor(candidate->features.colors[i], windows[l], scene.srcHSV, candidate->stablePoints[i]);
 #endif
                 }
 
 #ifdef VISUALIZE
-                if (Visualizer::visualizeTests(*candidate, sceneHSV, sceneDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
+                if (Visualizer::visualizeTests(*candidate, scene.srcHSV, scene.srcDepth, windows[l], candidate->stablePoints, candidate->edgePoints,
                                            criteria->patchOffset, tITrue, tIITrue, tIIITrue, tIVTrue, tVTrue, N,
                                            minThreshold, 5, continuous, "data/", 0, nullptr)) {
                     break;
@@ -461,8 +453,7 @@ namespace tless {
 
                 // Push template that passed all tests to matches array
                 float score = (sII / N) + (sIII / N) + (sIV / N) + (sV / N);
-                cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width,
-                                            candidate->objBB.height);
+                cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
 
 //                #pragma omp critical
 //                matches.emplace_back(candidate, matchBB, score, score * (candidate->objBB.area() / scale));

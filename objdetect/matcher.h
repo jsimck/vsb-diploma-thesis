@@ -7,6 +7,7 @@
 #include "../core/window.h"
 #include "../core/match.h"
 #include "../core/classifier_criteria.h"
+#include "../core/scene.h"
 
 namespace tless {
     /**
@@ -46,12 +47,25 @@ namespace tless {
         int testColor(cv::Vec3b HSV, Window &window, cv::Mat &sceneHSV, cv::Point &stable); // Test V
 
     public:
-        // Constructor
         Matcher(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
 
-        // Methods
-        void match(float scale, cv::Mat &sceneHSV, cv::Mat &sceneDepth, cv::Mat &sceneMagnitudes, cv::Mat &sceneAnglesQuantized,
-                   cv::Mat &sceneSurfaceNormalsQuantized, std::vector<Window> &windows, std::vector<Match> &matches);
+        /**
+         * @brief Applies template matching for each template in candidate list of each window
+         *
+         * Each template candidate for each window needs to pass 5 tests where we compare object size, surface normals, gradients
+         * depth and color between template trained features and scene features on trained feature points. Feature point is matched
+         * if there's a match inside small area around feature point (5x5) to compensate sliding window step. Each test is computed
+         * in order of it's complexity, if candidate doesn't match at least [criteria.matchFactor] of feature points in each, no further
+         * tests are computed and we continue with other candidates. Candidate that passes all tests gets final score of a fraction of
+         * sum of matched points. After all windows have been tested, non-maxima suppression is applied to all matches to filter out the
+         * best candidates which are than retained in the final matches vector.
+         *
+         * @param[in]  scale   Current style of image scale pyramid
+         * @param[in]  scene   Scene in which we're trying to find trained objects
+         * @param[in]  windows Windows array that passed objectness detection test with candidates filtered in hasher verification
+         * @param[out] matches Final array foound matches
+         */
+        void match(float scale, Scene &scene, std::vector<Window> &windows, std::vector<Match> &matches);
 
         /**
          * @brief Generates feature points and extract features for each template

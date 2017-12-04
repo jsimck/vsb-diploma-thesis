@@ -136,7 +136,6 @@ namespace tless {
             // Load scene
             Timer tSceneLoading;
             Scene scene = parser.parseScene("data/scene_01/", i, scale);
-            std::cout << scene << std::endl;
             std::cout << "  |_ Scene loaded in: " << tSceneLoading.elapsed() << "s" << std::endl;
 
             /// Objectness detection
@@ -147,7 +146,7 @@ namespace tless {
             objectness.objectness(scene.srcDepth, windows, scale);
             std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
 
-            Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Locations detected");
+//            Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Locations detected");
 
             /// Verification and filtering of template candidates
             assert(!tables.empty());
@@ -161,7 +160,7 @@ namespace tless {
 
             /// Match templates
             assert(!windows.empty());
-            matcher.match(1.2f, scene.srcHSV, scene.srcDepth, scene.magnitudes, scene.gradients, scene.normals, windows, matches);
+            matcher.match(1.2f, scene, windows, matches);
 
             /// Show matched template results
             std::cout << std::endl << "Matches size: " << matches.size() << std::endl;
