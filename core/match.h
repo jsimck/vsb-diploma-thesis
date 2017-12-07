@@ -16,10 +16,11 @@ namespace tless {
         cv::Rect objBB;
         float score;
         float areaScore; //!< score * object.area()
+        int sI, sII, sIII, sIV, sV;
 
         Match() = default;
-        Match(Template *t, cv::Rect &bb, float score, float areaScore)
-                : t(t), objBB(bb), score(score), areaScore(areaScore) {}
+        Match(Template *t, cv::Rect &bb, float score, float areaScore, int sI, int sII, int sIII, int sIV, int sV)
+                : t(t), objBB(bb), score(score), areaScore(areaScore), sI(sI), sII(sII), sIII(sIII), sIV(sIV), sV(sV) {}
 
         bool operator<(const Match &rhs) const;
         bool operator>(const Match &rhs) const;

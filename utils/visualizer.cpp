@@ -138,30 +138,45 @@ namespace tless {
 
             oss.str("");
             oss << "id: " << match.t->id;
-            setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 10));
+            setLabel(viz, oss.str(), match.objBB.tl() + cv::Point(match.objBB.width + 5, 10));
             oss.str("");
             oss.precision(2);
             oss << std::fixed << "score: " << match.score << " (" << (match.score * 100.0f) / 4.0f << "%)";
-            setLabel(viz, oss.str(), cv::Point(match.objBB.br().x + 5, match.objBB.tl().y + 28));
+            setLabel(viz, oss.str(), match.objBB.tl() + cv::Point(match.objBB.width + 5, 28));
+            oss.str("");
+            oss << "I: " << match.sI;
+            setLabel(viz, oss.str(), match.objBB.tl() + cv::Point(match.objBB.width + 5, 46));
+            oss.str("");
+            oss << "II: " << match.sII;
+            setLabel(viz, oss.str(), match.objBB.tl() + cv::Point(match.objBB.width + 5, 64));
+            oss.str("");
+            oss << "III: " << match.sIII;
+            setLabel(viz, oss.str(), match.objBB.tl() + cv::Point(match.objBB.width + 5, 82));
+            oss.str("");
+            oss << "IV: " << match.sIV;
+            setLabel(viz, oss.str(), match.objBB.tl() + cv::Point(match.objBB.width + 5, 100));
+            oss.str("");
+            oss << "V: " << match.sV;
+            setLabel(viz, oss.str(), match.objBB.tl() + cv::Point(match.objBB.width + 5, 118));
 
-//            // Load matched template
-//            cv::Mat tplSrc;
-//            Template::loadSrc(templatesPath, *match.t, tplSrc, CV_LOAD_IMAGE_COLOR);
-//
-//            // draw label and bounding box
-//            cv::rectangle(tplSrc, match.t->objBB.tl(), match.t->objBB.br(), cv::Scalar(0, 255, 0));
-//            oss.str("");
-//            oss << "id: " << match.t->id;
-//            setLabel(tplSrc, oss.str(), cv::Point(match.t->objBB.br().x + 5, match.t->objBB.tl().y + 10));
-//
-//            oss.str("");
-//            oss << "Template: " << tplCounter;
-//            std::string winName = oss.str();
-//
-//            // Show in resizable window
-//            cv::namedWindow(winName, 0);
-//            cv::imshow(winName, tplSrc);
-//            tplCounter++;
+            // Load matched template
+            cv::Mat tplSrc;
+            Template::loadSrc(templatesPath, *match.t, tplSrc, CV_LOAD_IMAGE_COLOR);
+
+            // draw label and bounding box
+            cv::rectangle(tplSrc, match.t->objBB.tl(), match.t->objBB.br(), cv::Scalar(0, 255, 0));
+            oss.str("");
+            oss << "id: " << match.t->id;
+            setLabel(tplSrc, oss.str(), cv::Point(match.t->objBB.br().x + 5, match.t->objBB.tl().y + 10));
+
+            oss.str("");
+            oss << "Template: " << tplCounter;
+            std::string winName = oss.str();
+
+            // Show in resizable window
+            cv::namedWindow(winName, 0);
+            cv::imshow(winName, tplSrc);
+            tplCounter++;
         }
 
         // Show in resizable window
@@ -428,7 +443,7 @@ namespace tless {
         oss << " - depth";
         cv::imshow(title == nullptr ? "Hashing visualization scene depth" : title, resultSceneDepth);
 
-        // Continuous till match (scoreV > than min threshold)
+        // Continuous till match (sV > than min threshold)
         int keyPressed = 0;
         if (continuous) {
             keyPressed = cv::waitKey(scoreVTrue > minThreshold ? 0 : 1);

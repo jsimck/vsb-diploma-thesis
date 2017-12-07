@@ -155,6 +155,14 @@ namespace tless {
             hasher.verifyCandidates(scene.srcDepth, scene.normals, tables, windows);
             std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
 
+//            for (auto &window : windows) {
+//                for (auto &tpl : templates) {
+//                    if (tpl.id > 59999) {
+//                        window.candidates.push_back(&tpl);
+//                    }
+//                }
+//            }
+
 //            Visualizer::visualizeHashing(scene.srcRGB, scene.srcDepth, tables, windows, criteria, false);
 //            Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Filtered locations");
 
@@ -166,7 +174,6 @@ namespace tless {
             std::cout << std::endl << "Matches size: " << matches.size() << std::endl;
             Visualizer::visualizeMatches(scene.srcRGB, matches, "data/", 1);
 
-            // Cleanup
             std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
             windows.clear();
             matches.clear();

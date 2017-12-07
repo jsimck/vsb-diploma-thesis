@@ -18,8 +18,17 @@ namespace tless {
     }
 
     std::ostream &operator<<(std::ostream &os, const Match &match) {
-        os << "objBB: " << match.objBB << " t: " << match.t << " score: " << match.score << "areaScore: "
-           << match.areaScore;
+        os << "id: " << match.t->id
+           << " objBB: " << match.objBB
+           << " t: " << match.t
+           << " score: " << match.score
+           << " areaScore: " << match.areaScore
+           << " sI: " << match.sI
+           << " sII: " << match.sII
+           << " sIII: " << match.sIII
+           << " sIV: " << match.sIV
+           << " sV: " << match.sV;
+
         return os;
     }
 }

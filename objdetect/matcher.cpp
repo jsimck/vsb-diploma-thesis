@@ -455,10 +455,8 @@ namespace tless {
                 float score = (sII / N) + (sIII / N) + (sIV / N) + (sV / N);
                 cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
 
-//                #pragma omp critical
-//                matches.emplace_back(candidate, matchBB, score, score * (candidate->objBB.area() / scale));
                 #pragma omp critical
-                matches.emplace_back(candidate, matchBB, score, score);
+                matches.emplace_back(candidate, matchBB, score, score * (candidate->objBB.area() / scale), sI, sII, sIII, sIV, sV);
 
 #ifndef NDEBUG
                 std::cout
