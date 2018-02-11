@@ -95,20 +95,6 @@ fabric.properties
 *.su
 .gitignore
 
-# Data files
-/data/*/rgb
-/data/*/depth
-/data/*/*.ply
-
 cmake-build-debug/
 cmake-build-release/
-/data/25_108x108/
-/data/29_108x108/
-/data/02_108x108/
-/data/30_108x108/
-/data/trained_all_objects.zip
-/data/trained/trained_29.yml.gz
-/data/trained/trained_30.yml.gz
-/data/trained/trained_02.yml.gz
-/data/trained/trained_25.yml.gz
-/data/trained/classifier.yml.gz
+/data/

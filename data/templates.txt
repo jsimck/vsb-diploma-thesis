@@ -1,4 +1,0 @@
-data/02/
-data/25/
-data/29/
-data/30/
