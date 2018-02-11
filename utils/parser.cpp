@@ -3,6 +3,7 @@
 #include "../objdetect/matcher.h"
 #include "../objdetect/hasher.h"
 #include "../core/classifier_criteria.h"
+#include "visualizer.h"
 
 namespace tless {
     void Parser::parseTemplate(const std::string &basePath, const std::string &modelsPath, std::vector<Template> &templates, std::vector<uint> indices) {
@@ -30,44 +31,32 @@ namespace tless {
             fs.release();
         }
 
-
-        // Load obj_gt
+        // Load obj_gt and info
+        cv::FileStorage fsInfo(basePath + "info.yml", cv::FileStorage::READ);
         fs.open(basePath + "gt.yml", cv::FileStorage::READ);
+        assert(fsInfo.isOpened());
         assert(fs.isOpened());
 
-        // Parse obj_gt
+        // Parse objects
         for (uint i = 0;; i++) {
             auto tplIndex = static_cast<uint>((!indices.empty()) ? indices[i] : i);
             std::string index = "tpl_" + std::to_string(tplIndex);
+
             cv::FileNode objGt = fs[index];
+            cv::FileNode objInfo = fsInfo[index];
 
             // Break if obj is empty (last template)
-            if (objGt.empty()) break;
+            if (objGt.empty() || objInfo.empty()) break;
 
             // Parse template gt file
-            templates.push_back(parseTemplateGt(tplIndex, basePath, objGt));
+            Template t = parseTemplateGt(tplIndex, basePath, objGt);
+            parseTemplateInfo(t, objInfo);
+
+            // Push to templates array
+            templates.push_back(t);
         }
 
-        fs.release();
-
-
-        // Load obj_info
-        fs.open(basePath + "info.yml", cv::FileStorage::READ);
-        assert(fs.isOpened());
-
-        // Parse obj_info
-        for (uint i = 0;; i++) {
-            auto tplIndex = static_cast<uint>((!indices.empty()) ? indices[i] : i);
-            std::string index = "tpl_" + std::to_string(tplIndex);
-            cv::FileNode objInfo = fs[index];
-
-            // Break if obj is empty (last template)
-            if (objInfo.empty()) break;
-
-            // Parse template info file
-            parseTemplateInfo(templates[i], objInfo);
-        }
-
+        fsInfo.release();
         fs.release();
     }
 

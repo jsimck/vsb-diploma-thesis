@@ -36,10 +36,10 @@ namespace tless {
            << "srcNormals (size): " << t.srcNormals.size() << std::endl
            << "objBB: " << t.objBB << std::endl
            << "camera: " << t.camera << std::endl
-           << "srcGradients size: " << t.features.gradients.size() << std::endl
-           << "srcNormals size: " << t.features.normals.size() << std::endl
-           << "depths size: " << t.features.depths.size() << std::endl
-           << "colors size: " << t.features.colors.size() << std::endl;
+           << "features - gradients size: " << t.features.gradients.size() << std::endl
+           << "features - normals size: " << t.features.normals.size() << std::endl
+           << "features - depths size: " << t.features.depths.size() << std::endl
+           << "features - colors size: " << t.features.colors.size() << std::endl;
 
         return os;
     }
