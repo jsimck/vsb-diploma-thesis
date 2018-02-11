@@ -1,0 +1,10 @@
+#ifndef VSB_SEMESTRAL_PROJECT_CONVERTOR_H
+#define VSB_SEMESTRAL_PROJECT_CONVERTOR_H
+
+
+class Convertor {
+
+};
+
+
+#endif

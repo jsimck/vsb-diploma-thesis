@@ -295,14 +295,12 @@ namespace tless {
 //    #define VISUALIZE
     void Matcher::match(float scale, Scene &scene, std::vector<Window> &windows, std::vector<Match> &matches) {
         // Checks
-        assert(!sceneDepth.empty());
-        assert(!sceneMagnitudes.empty());
-        assert(!sceneAnglesQuantized.empty());
-        assert(!sceneSurfaceNormalsQuantized.empty());
-        assert(sceneHSV.type() == CV_8UC3);
-        assert(sceneDepth.type() == CV_16U);
-        assert(sceneAnglesQuantized.type() == CV_8UC1);
-        assert(sceneSurfaceNormalsQuantized.type() == CV_8UC1);
+        assert(!scene.srcDepth.empty());
+        assert(!scene.magnitudes.empty());
+        assert(!scene.normals.empty());
+        assert(scene.srcHSV.type() == CV_8UC3);
+        assert(scene.srcDepth.type() == CV_16U);
+        assert(scene.normals.type() == CV_8UC1);
         assert(!windows.empty());
 
         // Min threshold of matched feature points
