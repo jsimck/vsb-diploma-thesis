@@ -8,24 +8,27 @@
 
 class Camera {
 public:
-    cv::Mat K; //!< Intrinsic camera matrix K
     cv::Mat R; //!< Rotation matrix R_m2c
     cv::Mat t; //!< Translation vector t_m2c
+    cv::Mat K; //!< Intrinsic camera matrix K
     int elev = 0;
     int azimuth = 0;
     int mode = 0;
 
     Camera() = default;
-    Camera(cv::Mat R, cv::Mat t) : R(R), t(t) {}
+    Camera(cv::Mat R, cv::Mat t, cv::Mat K, int elev, int azimuth, int mode)
+            : R(std::move(R)), t(std::move(t)), K(std::move(K)), elev(elev), azimuth(azimuth), mode(mode) {}
 
     /**
      * @brief Computes x-focal length from K camera matrix
+     *
      * @return x-focal length
      */
     float fx();
 
     /**
      * @brief Computes y-focal length from K camera matrix
+     *
      * @return y-focal length
      */
     float fy();

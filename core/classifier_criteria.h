@@ -40,13 +40,6 @@ namespace tless {
             cv::Size largestArea{0, 0}; //!< Size of the largest area (largest width and largest height) found across all templates
         } info;
 
-        /**
-         * @brief Extracts template criteria for given array of parsed templates
-         *
-         * @param[in] templates Array of parsed templates to extract criteria for
-         */
-        void extract(std::vector<Template> &templates);
-
         friend void operator>>(const cv::FileNode &node, cv::Ptr<ClassifierCriteria> crit);
         friend cv::FileStorage &operator<<(cv::FileStorage &fs, const ClassifierCriteria &crit);
         friend std::ostream &operator<<(std::ostream &os, const ClassifierCriteria &crit);

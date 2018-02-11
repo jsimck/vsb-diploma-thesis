@@ -15,7 +15,7 @@ namespace tless {
         Matcher matcher(criteria);
 
         // Init parser and common
-        Parser parser(criteria);
+        Parser parser;
 
         std::ostringstream oss;
         std::vector<Template> tpls, allTemplates;
@@ -28,7 +28,7 @@ namespace tless {
             std::cout << "  |_ " << path;
 
             // Parse each object by one and save it
-            parser.parseTemplate(path, modelsPath, tpls, indices);
+            parser.parseTemplate(path, modelsPath, tpls, criteria, indices);
 
             // Train features for loaded templates
             matcher.train(tpls);
@@ -121,7 +121,7 @@ namespace tless {
 
     void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath) {
         // Init classifiers
-        Parser parser(criteria);
+        Parser parser;
         Objectness objectness(criteria);
         Hasher hasher(criteria);
         Matcher matcher(criteria);
@@ -135,7 +135,7 @@ namespace tless {
 
             // Load scene
             Timer tSceneLoading;
-            Scene scene = parser.parseScene("data/scene_01/", i, scale);
+            Scene scene = parser.parseScene("data/scene_01/", i, scale, criteria);
             std::cout << "  |_ Scene loaded in: " << tSceneLoading.elapsed() << "s" << std::endl;
 
             /// Objectness detection

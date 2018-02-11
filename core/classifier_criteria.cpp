@@ -76,21 +76,4 @@ namespace tless {
 
         return fs;
     }
-
-    void ClassifierCriteria::extract(std::vector<Template> &templates) {
-        for (auto &t : templates) {
-            // Extract largest object area
-            if (t.objBB.area() < this->info.smallestTemplate.area()) {
-                this->info.smallestTemplate = t.objBB.size();
-            }
-
-            if (t.objBB.width > this->info.largestArea.width) {
-                this->info.largestArea.width = t.objBB.width;
-            }
-
-            if (t.objBB.height > this->info.largestArea.height) {
-                this->info.largestArea.height = t.objBB.height;
-            }
-        }
-    }
 }

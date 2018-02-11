@@ -2,11 +2,9 @@
 #include "../processing/processing.h"
 #include "../objdetect/matcher.h"
 #include "../objdetect/hasher.h"
-#include "../core/classifier_criteria.h"
-#include "visualizer.h"
 
 namespace tless {
-    void Parser::parseTemplate(const std::string &basePath, const std::string &modelsPath, std::vector<Template> &templates, std::vector<uint> indices) {
+    void Parser::parseTemplate(const std::string &basePath, const std::string &modelsPath, std::vector<Template> &templates, cv::Ptr<ClassifierCriteria> criteria, std::vector<uint> indices) {
         cv::FileStorage fs;
 
         // Parse object diameters if empty
@@ -42,33 +40,34 @@ namespace tless {
             auto tplIndex = static_cast<uint>((!indices.empty()) ? indices[i] : i);
             std::string index = "tpl_" + std::to_string(tplIndex);
 
-            cv::FileNode objGt = fs[index];
-            cv::FileNode objInfo = fsInfo[index];
+            cv::FileNode gtNode = fs[index];
+            cv::FileNode infoNode = fsInfo[index];
 
             // Break if obj is empty (last template)
-            if (objGt.empty() || objInfo.empty()) break;
+            if (gtNode.empty() || infoNode.empty()) break;
 
-            // Parse template gt file
-            Template t = parseTemplateGt(tplIndex, basePath, objGt);
-            parseTemplateInfo(t, objInfo);
-
-            // Push to templates array
-            templates.push_back(t);
+            // Parse template
+            templates.push_back(parseTemplateInfo(tplIndex, basePath, gtNode, infoNode, criteria));
         }
 
         fsInfo.release();
         fs.release();
     }
 
-    Template Parser::parseTemplateGt(uint index, const std::string &basePath, cv::FileNode &gtNode) {
-        int id;
-        std::vector<float> vCamRm2c, vCamTm2c;
+    Template Parser::parseTemplateInfo(uint index, const std::string &basePath, cv::FileNode &gtNode, cv::FileNode &infoNode, cv::Ptr<ClassifierCriteria> criteria) {
+        int id, elev, mode, azimuth;
+        std::vector<float> vCamRm2c, vCamTm2c, vCamK;
         std::vector<int> vObjBB;
 
+        // Parse data from .yml files
         gtNode["obj_id"] >> id;
         gtNode["obj_bb"] >> vObjBB;
         gtNode["cam_R_m2c"] >> vCamRm2c;
         gtNode["cam_t_m2c"] >> vCamTm2c;
+        infoNode["cam_K"] >> vCamK;
+        infoNode["elev"] >> elev;
+        infoNode["mode"] >> mode;
+        azimuth = 5 * (index % 72); // Training templates are sampled in 5 step azimuth
 
         assert(!vObjBB.empty());
         assert(!vCamRm2c.empty());
@@ -106,10 +105,72 @@ namespace tless {
         t.objBB = cv::Rect(vObjBB[0], vObjBB[1], vObjBB[2], vObjBB[3]);
         t.camera = Camera(
             cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()),
-            cv::Mat(3, 1, CV_32FC1, vCamTm2c.data())
+            cv::Mat(3, 1, CV_32FC1, vCamTm2c.data()),
+            cv::Mat(3, 3, CV_32FC1, vCamK.data()),
+            elev, azimuth, mode
         );
 
-        // Extract criteria
+        // Parse criteria from template and extract normals and gradient images
+        if (criteria != nullptr) {
+            parseCriteria(t, criteria);
+        }
+
+        return t;
+    }
+
+    Scene Parser::parseScene(const std::string &basePath, int index, float scale, cv::Ptr<ClassifierCriteria> criteria) {
+        Scene scene;
+        std::ostringstream oss;
+        oss << std::setw(4) << std::setfill('0') << index;
+        oss << ".png";
+
+        // Load depth, hsv, gray images
+        scene.scale = scale;
+        scene.srcRGB = cv::imread(basePath + "rgb/" + oss.str(), CV_LOAD_IMAGE_COLOR);
+        scene.srcDepth = cv::imread(basePath + "depth/" + oss.str(), CV_LOAD_IMAGE_UNCHANGED);
+
+        // Resize based on scale
+        if (scale != 1.0f) {
+            cv::resize(scene.srcRGB, scene.srcRGB, cv::Size(), 1.2, 1.2);
+            cv::resize(scene.srcDepth, scene.srcDepth, cv::Size(), 1.2, 1.2);
+        }
+
+        // Convert to gray and hsv
+        cv::cvtColor(scene.srcRGB, scene.srcGray, CV_BGR2GRAY);
+        cv::cvtColor(scene.srcRGB, scene.srcHSV, CV_BGR2HSV);
+
+        // Load camera
+        std::string infoIndex = "scene_" + std::to_string(index);
+        cv::FileStorage fs(basePath + "info.yml", cv::FileStorage::READ);
+        cv::FileNode infoNode = fs[infoIndex];
+
+        Camera camera;
+        std::vector<float> vCamK, vCamRw2c, vCamTw2c;
+
+        infoNode["cam_K"] >> vCamK;
+        infoNode["cam_R_w2c"] >> vCamRw2c;
+        infoNode["cam_t_w2c"] >> vCamTw2c;
+        infoNode["elev"] >> camera.elev;
+        infoNode["mode"] >> camera.mode;
+
+        camera.K = cv::Mat(3, 3, CV_32FC1, vCamK.data());
+        camera.R = cv::Mat(3, 3, CV_32FC1, vCamRw2c.data());
+        camera.t = cv::Mat(3, 1, CV_32FC1, vCamTw2c.data());
+        scene.camera = std::move(camera);
+
+        // Generate quantized normals and orientations
+        if (criteria != nullptr) {
+            float ratio = depthNormalizationFactor(criteria->info.maxDepth * scale, criteria->depthDeviationFun);
+            quantizedOrientationGradients(scene.srcGray, scene.gradients, scene.magnitudes);
+            quantizedNormals(scene.srcDepth, scene.normals, scene.camera.fx(), scene.camera.fy(),
+                             static_cast<int>((criteria->info.maxDepth * scale) / ratio), criteria->maxDepthDiff);
+        }
+
+        return scene;
+    }
+
+    void Parser::parseCriteria(Template &t, cv::Ptr<ClassifierCriteria> criteria) {
+        // Parse largest area
         if (t.objBB.area() < criteria->info.smallestTemplate.area()) {
             criteria->info.smallestTemplate = t.objBB.size();
         }
@@ -122,22 +183,9 @@ namespace tless {
             criteria->info.largestArea.height = t.objBB.height;
         }
 
-        return t;
-    }
-
-    void Parser::parseTemplateInfo(Template &t, cv::FileNode &infoNode) {
-        std::vector<float> vCamK;
-
-        infoNode["cam_K"] >> vCamK;
-        infoNode["elev"] >> t.camera.elev;
-        infoNode["mode"] >> t.camera.mode;
-
-        t.camera.azimuth = 5 * ((t.id % 2000) % 72); // Training templates are sampled in 5 step azimuth
-        t.camera.K = cv::Mat(3, 3, CV_32FC1, vCamK.data());
-
         // Find max/min depth and max local depth for depth quantization
         ushort localMax = t.srcDepth.at<ushort>(t.objBB.tl());
-        ushort localMin = static_cast<ushort>(-1);
+        auto localMin = static_cast<ushort>(-1);
         const int areaOffset = 5;
 
         // Offset bounding box so we cover edges of object
@@ -190,54 +238,5 @@ namespace tless {
 
         // Compute normals
         quantizedNormals(t.srcDepth, t.srcNormals, t.camera.fx(), t.camera.fy(), localMax, criteria->maxDepthDiff);
-    }
-
-    Scene Parser::parseScene(const std::string &basePath, int index, float scale) {
-        Scene scene;
-        std::ostringstream oss;
-        oss << std::setw(4) << std::setfill('0') << index;
-        oss << ".png";
-
-        // Load depth, hsv, gray images
-        scene.scale = scale;
-        scene.srcRGB = cv::imread(basePath + "rgb/" + oss.str(), CV_LOAD_IMAGE_COLOR);
-        scene.srcDepth = cv::imread(basePath + "depth/" + oss.str(), CV_LOAD_IMAGE_UNCHANGED);
-
-        // Resize based on scale
-        if (scale != 1.0f) {
-            cv::resize(scene.srcRGB, scene.srcRGB, cv::Size(), 1.2, 1.2);
-            cv::resize(scene.srcDepth, scene.srcDepth, cv::Size(), 1.2, 1.2);
-        }
-
-        // Convert to gray and hsv
-        cv::cvtColor(scene.srcRGB, scene.srcGray, CV_BGR2GRAY);
-        cv::cvtColor(scene.srcRGB, scene.srcHSV, CV_BGR2HSV);
-
-        // Load camera
-        std::string infoIndex = "scene_" + std::to_string(index);
-        cv::FileStorage fs(basePath + "info.yml", cv::FileStorage::READ);
-        cv::FileNode infoNode = fs[infoIndex];
-
-        Camera camera;
-        std::vector<float> vCamK, vCamRw2c, vCamTw2c;
-
-        infoNode["cam_K"] >> vCamK;
-        infoNode["cam_R_w2c"] >> vCamRw2c;
-        infoNode["cam_t_w2c"] >> vCamTw2c;
-        infoNode["elev"] >> camera.elev;
-        infoNode["mode"] >> camera.mode;
-
-        camera.K = cv::Mat(3, 3, CV_32FC1, vCamK.data());
-        camera.R = cv::Mat(3, 3, CV_32FC1, vCamRw2c.data());
-        camera.t = cv::Mat(3, 1, CV_32FC1, vCamTw2c.data());
-        scene.camera = std::move(camera);
-
-        // Generate quantized normals and orientations
-        float ratio = depthNormalizationFactor(criteria->info.maxDepth * scale, criteria->depthDeviationFun);
-        quantizedNormals(scene.srcDepth, scene.normals, scene.camera.fx(), scene.camera.fy(),
-                         static_cast<int>((criteria->info.maxDepth * scale) / ratio) , criteria->maxDepthDiff);
-        quantizedOrientationGradients(scene.srcGray, scene.gradients, scene.magnitudes);
-
-        return scene;
     }
 }
