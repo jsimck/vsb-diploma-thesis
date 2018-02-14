@@ -134,8 +134,8 @@ namespace tless {
 
         // Resize based on scale
         if (scale != 1.0f) {
-            cv::resize(scene.srcRGB, scene.srcRGB, cv::Size(), 1.2, 1.2);
-            cv::resize(scene.srcDepth, scene.srcDepth, cv::Size(), 1.2, 1.2);
+            cv::resize(scene.srcRGB, scene.srcRGB, cv::Size(), scale, scale);
+            cv::resize(scene.srcDepth, scene.srcDepth, cv::Size(), scale, scale);
         }
 
         // Convert to gray and hsv
@@ -218,9 +218,6 @@ namespace tless {
                 }
             }
         }
-
-        std::cout << localMin << " - ";
-        std::cout << localMax << std::endl;
 
         // Normalize local max and min depths to define error corrected range
         localMax /= depthNormalizationFactor(localMax, criteria->depthDeviationFun);

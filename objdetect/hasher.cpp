@@ -129,7 +129,7 @@ namespace tless {
 
                 // Generate hash key
                 HashKey key(
-                        quantizeDepth(p1Diff, tables[i].binRanges),
+                    quantizeDepth(p1Diff, tables[i].binRanges),
                     quantizeDepth(p2Diff, tables[i].binRanges),
                     t.srcNormals.at<uchar>(c),
                     t.srcNormals.at<uchar>(p1),

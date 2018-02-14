@@ -128,7 +128,7 @@ namespace tless {
         Matcher matcher(criteria);
 
         // Load trained template data
-        const float scale = 1.2f;
+        const float scale = 1.2f * 1.2f * 1.05f;
         load(trainedTemplatesListPath, trainedPath);
 
         for (int i = 0; i < 503; ++i) {
@@ -164,12 +164,12 @@ namespace tless {
 //                }
 //            }
 
-//            Visualizer::visualizeHashing(scene.srcRGB, scene.srcDepth, tables, windows, criteria, false);
+//            Visualizer::visualizeHashing(scene.srcRGB, scene.srcDepth, tables, windows, criteria, true);
 //            Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Filtered locations");
 
             /// Match templates
             assert(!windows.empty());
-            matcher.match(1.2f, scene, windows, matches);
+            matcher.match(scale, scene, windows, matches);
 
             /// Show matched template results
             std::cout << std::endl << "Matches size: " << matches.size() << std::endl;

@@ -311,6 +311,7 @@ namespace tless {
         // Stop template matching time
         Timer tMatching;
 
+        // TODO - go from start not from end
 #ifndef VISUALIZE
         #pragma omp parallel for shared(scene, windows, matches) firstprivate(N, minThreshold, scale)
 #endif

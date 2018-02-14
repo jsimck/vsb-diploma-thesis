@@ -37,8 +37,9 @@ void tless::Converter::resizeAndSave(std::vector<tless::Template> &objectTemplat
         cv::Mat resizedRGB = t.srcRGB(offsetBB);
         cv::Mat resizedDepth = t.srcDepth(offsetBB);
 
-        cv::resize(resizedRGB, resizedRGB, resizeSize, CV_INTER_CUBIC);
-        cv::resize(resizedDepth, resizedDepth, resizeSize, CV_INTER_CUBIC);
+        int interpolation = (resizeRatio > 1.0f) ? CV_INTER_LANCZOS4 : CV_INTER_AREA;
+        cv::resize(resizedRGB, resizedRGB, resizeSize, interpolation);
+        cv::resize(resizedDepth, resizedDepth, resizeSize, interpolation);
         resizedDepth = resizedDepth / resizeRatio;
 
         // Checks
