@@ -10,7 +10,6 @@ namespace tless {
         assert(ifs.is_open());
 
         // Init classifiers
-        Objectness objectness(criteria);
         Hasher hasher(criteria);
         Matcher matcher(criteria);
 

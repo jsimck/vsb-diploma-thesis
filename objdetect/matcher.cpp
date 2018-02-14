@@ -69,9 +69,9 @@ namespace tless {
 
                     // Save only points that have valid depth and are in defined thresholds
                     if (sobelValue > minEdgeMag) {
-                        edgeVPoints.emplace_back(cv::Point(x, y) - t.objBB.tl(), sobelValue);
+                        edgeVPoints.emplace_back(cv::Point(x, y), sobelValue);
                     } else if (stableValue > minStableVal && t.srcDepth.at<ushort>(y, x) > 0) { // skip wrong depth values
-                        stableVPoints.emplace_back(cv::Point(x, y) - t.objBB.tl(), stableValue);
+                        stableVPoints.emplace_back(cv::Point(x, y), stableValue);
                     }
                 }
             }
@@ -93,8 +93,8 @@ namespace tless {
             // Extract features for generated feature points
             for (uint j = 0; j < criteria->featurePointsCount; j++) {
                 // Create offsets to object bounding box
-                cv::Point stable = t.stablePoints[j] + t.objBB.tl();
-                cv::Point edge = t.edgePoints[j] + t.objBB.tl();
+                cv::Point stable = t.stablePoints[j];
+                cv::Point edge = t.edgePoints[j];
 
                 // Extract features on generated feature points
                 t.features.depths.push_back(t.srcDepth.at<ushort>(stable));

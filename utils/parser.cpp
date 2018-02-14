@@ -173,6 +173,8 @@ namespace tless {
     }
 
     void Parser::parseCriteria(Template &t, cv::Ptr<ClassifierCriteria> criteria) {
+        t.objBB = cv::Rect(0, 0, 108, 108); // TODO Remove
+
         // Parse largest area
         if (t.objBB.area() < criteria->info.smallestTemplate.area()) {
             criteria->info.smallestTemplate = t.objBB.size();
@@ -189,7 +191,7 @@ namespace tless {
         // Find max/min depth and max local depth for depth quantization
         ushort localMax = t.srcDepth.at<ushort>(t.objBB.tl());
         auto localMin = static_cast<ushort>(-1);
-        const int areaOffset = 5;
+        const int areaOffset = 0;
 
         // Offset bounding box so we cover edges of object
         for (int y = t.objBB.tl().y - areaOffset; y < t.objBB.br().y + areaOffset; y++) {
@@ -216,6 +218,9 @@ namespace tless {
                 }
             }
         }
+
+        std::cout << localMin << " - ";
+        std::cout << localMax << std::endl;
 
         // Normalize local max and min depths to define error corrected range
         localMax /= depthNormalizationFactor(localMax, criteria->depthDeviationFun);

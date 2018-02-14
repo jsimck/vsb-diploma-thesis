@@ -14,9 +14,9 @@ void tless::Converter::resizeAndSave(std::vector<tless::Template> &objectTemplat
     std::string basePath = oss.str();
     oss.str("");
 
-    cv::FileStorage fsInfo(basePath + "info.yml", cv::FileStorage::WRITE);
-    cv::FileStorage fsGt(basePath + "gt.yml", cv::FileStorage::WRITE);
-    fsInfo << "templates" << "[";
+//    cv::FileStorage fsInfo(basePath + "info.yml", cv::FileStorage::WRITE);
+//    cv::FileStorage fsGt(basePath + "gt.yml", cv::FileStorage::WRITE);
+//    fsInfo << "templates" << "[";
 
     for (auto &t : objectTemplates) {
         // Offset bounding box to preserve edges in resulted image
@@ -37,8 +37,8 @@ void tless::Converter::resizeAndSave(std::vector<tless::Template> &objectTemplat
         cv::Mat resizedRGB = t.srcRGB(offsetBB);
         cv::Mat resizedDepth = t.srcDepth(offsetBB);
 
-        cv::resize(resizedRGB, resizedRGB, resizeSize);
-        cv::resize(resizedDepth, resizedDepth, resizeSize);
+        cv::resize(resizedRGB, resizedRGB, resizeSize, CV_INTER_CUBIC);
+        cv::resize(resizedDepth, resizedDepth, resizeSize, CV_INTER_CUBIC);
         resizedDepth = resizedDepth / resizeRatio;
 
         // Checks
@@ -54,13 +54,13 @@ void tless::Converter::resizeAndSave(std::vector<tless::Template> &objectTemplat
         cv::imwrite(basePath + "rgb/" + t.fileName  + ".png", resizedRGB);
         cv::imwrite(basePath + "depth/" + t.fileName  + ".png", resizedDepth);
 
-        fsInfo << t;
-        index++;
+//        fsInfo << t;
+//        index++;
     }
 
-    fsInfo << "]";
-    fsInfo.release();
-    fsGt.release();
+//    fsInfo << "]";
+//    fsInfo.release();
+//    fsGt.release();
 }
 
 void tless::Converter::convert(std::string templatesListPath, std::string outputPath, std::string modelsPath, int outputSize) {

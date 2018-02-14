@@ -190,24 +190,23 @@ namespace tless {
         cv::Mat result;
 
         // Dynamically load template
-        if (tpl.srcHSV.empty()) {
+        if (tpl.srcRGB.empty()) {
             Template::loadSrc(templatesPath, tpl, result, CV_LOAD_IMAGE_COLOR);
         } else {
-            result = tpl.srcHSV.clone();
-            cv::cvtColor(tpl.srcHSV, result, CV_HSV2BGR);
+            result = tpl.srcRGB.clone();
         }
 
         // Draw edge points
         if (!tpl.edgePoints.empty()) {
             for (auto &point : tpl.edgePoints) {
-                cv::circle(result, point + tpl.objBB.tl(), 1, cv::Scalar(0, 0, 255), -1);
+                cv::circle(result, point, 1, cv::Scalar(0, 0, 255), -1);
             }
         }
 
         // Draw stable points
         if (!tpl.stablePoints.empty()) {
             for (auto &point : tpl.stablePoints) {
-                cv::circle(result, point + tpl.objBB.tl(), 1, cv::Scalar(255, 0, 0), -1);
+                cv::circle(result, point, 1, cv::Scalar(255, 0, 0), -1);
             }
         }
 
