@@ -18,6 +18,7 @@ namespace tless {
         float diameter = 0;
 
         // Image sources
+        cv::Mat srcRGB;
         cv::Mat srcGray;
         cv::Mat srcHSV;
         cv::Mat srcDepth;

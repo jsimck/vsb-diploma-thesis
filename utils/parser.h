@@ -27,7 +27,7 @@ namespace tless {
          *                         extracted + all quantized normals and gradient images are generated
          * @return                 Parsed template object
          */
-        Template parseTemplateInfo(uint index, const std::string &basePath, cv::FileNode &gtNode, cv::FileNode &infoNode, cv::Ptr<ClassifierCriteria> criteria);
+        Template parseTemplate(uint index, const std::string &basePath, cv::FileNode &gtNode, cv::FileNode &infoNode, cv::Ptr<ClassifierCriteria> criteria);
 
         /**
          * @brief Parses criteria for given template + generates quantized normals and gradients images
@@ -53,8 +53,8 @@ namespace tless {
          *                           during parsing stage + all quantized normals and gradient images are generated
          * @param[in]     indices    Optional parameter to parse only templates with defined indices
          */
-        void parseTemplate(const std::string &basePath, const std::string &modelsPath, std::vector<Template> &templates,
-                           cv::Ptr<ClassifierCriteria> criteria = cv::Ptr<ClassifierCriteria>(), std::vector<uint> indices = {});
+        void parseObject(const std::string &basePath, const std::string &modelsPath, std::vector<Template> &templates,
+                         cv::Ptr<ClassifierCriteria> criteria = cv::Ptr<ClassifierCriteria>(), std::vector<uint> indices = {});
 
         /**
          * @brief Parses scene info, images, computes quantized normals and gradients

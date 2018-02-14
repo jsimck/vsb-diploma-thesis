@@ -187,6 +187,7 @@ namespace tless {
     }
 
     void filterEdges(const cv::Mat &src, cv::Mat &dst, int kSize) {
+        // Checks
         assert(!src.empty());
         assert(src.type() == CV_8UC1);
 

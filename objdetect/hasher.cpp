@@ -104,7 +104,7 @@ namespace tless {
         // Generate triplets
         const uint N = criteria->tablesCount * 50;
         for (uint i = 0; i < N; ++i) {
-            tables.emplace_back(std::move(Triplet::create(criteria->tripletGrid, criteria->info.largestArea)));
+            tables.emplace_back(Triplet::create(criteria->tripletGrid, criteria->info.largestArea));
         }
 
         // Initialize bin ranges for each table

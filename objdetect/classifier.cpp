@@ -28,7 +28,7 @@ namespace tless {
             std::cout << "  |_ " << path;
 
             // Parse each object by one and save it
-            parser.parseTemplate(path, modelsPath, tpls, criteria, indices);
+            parser.parseObject(path, modelsPath, tpls, criteria, indices);
 
             // Train features for loaded templates
             matcher.train(tpls);
@@ -52,6 +52,8 @@ namespace tless {
             tpls.clear();
             std::cout << " -> " << trainedPath << std::endl;
         }
+
+        ifs.close();
 
         // Save data set
         cv::FileStorage fsw(resultPath + "classifier.yml.gz", cv::FileStorage::WRITE);

@@ -4,7 +4,8 @@
 #include "../objdetect/hasher.h"
 
 namespace tless {
-    void Parser::parseTemplate(const std::string &basePath, const std::string &modelsPath, std::vector<Template> &templates, cv::Ptr<ClassifierCriteria> criteria, std::vector<uint> indices) {
+    void Parser::parseObject(const std::string &basePath, const std::string &modelsPath, std::vector<Template> &templates,
+                             cv::Ptr<ClassifierCriteria> criteria, std::vector<uint> indices) {
         cv::FileStorage fs;
 
         // Parse object diameters if empty
@@ -47,14 +48,15 @@ namespace tless {
             if (gtNode.empty() || infoNode.empty()) break;
 
             // Parse template
-            templates.push_back(parseTemplateInfo(tplIndex, basePath, gtNode, infoNode, criteria));
+            templates.push_back(parseTemplate(tplIndex, basePath, gtNode, infoNode, criteria));
         }
 
         fsInfo.release();
         fs.release();
     }
 
-    Template Parser::parseTemplateInfo(uint index, const std::string &basePath, cv::FileNode &gtNode, cv::FileNode &infoNode, cv::Ptr<ClassifierCriteria> criteria) {
+    Template Parser::parseTemplate(uint index, const std::string &basePath, cv::FileNode &gtNode,
+                                   cv::FileNode &infoNode, cv::Ptr<ClassifierCriteria> criteria) {
         int id, elev, mode, azimuth;
         std::vector<float> vCamRm2c, vCamTm2c, vCamK;
         std::vector<int> vObjBB;
@@ -79,26 +81,27 @@ namespace tless {
         std::string fileName = ss.str();
 
         // Load source images
-        cv::Mat src = cv::imread(basePath + "/rgb/" + fileName + ".png", CV_LOAD_IMAGE_COLOR);
+        cv::Mat srcRGB = cv::imread(basePath + "/rgb/" + fileName + ".png", CV_LOAD_IMAGE_COLOR);
         cv::Mat srcDepth = cv::imread(basePath + "/depth/" + fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
 
-        assert(src.type() == CV_8UC3);
+        assert(srcRGB.type() == CV_8UC3);
         assert(srcDepth.type() == CV_16U);
 
-        cv::Mat srcHSV;
-        cv::cvtColor(src, srcHSV, CV_BGR2HSV);
-        cv::cvtColor(src, src, CV_BGR2GRAY);
+        cv::Mat srcHSV, srcGray;
+        cv::cvtColor(srcRGB, srcHSV, CV_BGR2HSV);
+        cv::cvtColor(srcRGB, srcGray, CV_BGR2GRAY);
 
         // Generate quantized orientations
         cv::Mat gradients, magnitudes;
-        quantizedOrientationGradients(src, gradients, magnitudes);
+        quantizedOrientationGradients(srcGray, gradients, magnitudes);
 
         // Create template
         Template t;
         t.id = index + (2000 * id);
         t.fileName = std::move(fileName);
         t.diameter = diameters[id];
-        t.srcGray = std::move(src);
+        t.srcRGB = std::move(srcRGB);
+        t.srcGray = std::move(srcGray);
         t.srcHSV = std::move(srcHSV);
         t.srcDepth = std::move(srcDepth);
         t.srcGradients = std::move(gradients);

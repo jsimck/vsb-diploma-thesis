@@ -31,6 +31,7 @@ namespace tless {
            << "fileName: " << t.fileName << std::endl
            << "diameter: " << t.diameter << std::endl
            << "srcGray (size): " << t.srcGray.size() << std::endl
+           << "srcRGB (size): " << t.srcRGB.size() << std::endl
            << "srcDepth (size): " << t.srcDepth.size() << std::endl
            << "srcGradients (size): " << t.srcGradients.size() << std::endl
            << "srcNormals (size): " << t.srcNormals.size() << std::endl
