@@ -128,55 +128,64 @@ namespace tless {
         Matcher matcher(criteria);
 
         // Load trained template data
-        const float scale = 1.2f * 1.2f * 1.05f;
+        const float scaleFactor = 1.2f;
+        const int finalScaleLevel = 6;
+        float scale = .578703704f;
         load(trainedTemplatesListPath, trainedPath);
 
         for (int i = 0; i < 503; ++i) {
-            Timer tTotal;
+            for (int pyramidLevel = 0; pyramidLevel < finalScaleLevel; ++pyramidLevel) {
+                Timer tTotal;
 
-            // Load scene
-            Timer tSceneLoading;
-            Scene scene = parser.parseScene("data/scene_01/", i, scale, criteria);
-            std::cout << "  |_ Scene loaded in: " << tSceneLoading.elapsed() << "s" << std::endl;
+                // Load scene
+                Timer tSceneLoading;
+                Scene scene = parser.parseScene("data/scene_01/", i, scale, criteria);
+                std::cout << "  |_ Scene loaded in: " << tSceneLoading.elapsed() << "s" << std::endl;
 
-            /// Objectness detection
-            assert(criteria->info.smallestTemplate.area() > 0);
-            assert(criteria->info.minEdgels > 0);
+                /// Objectness detection
+                assert(criteria->info.smallestTemplate.area() > 0);
+                assert(criteria->info.minEdgels > 0);
 
-            Timer tObjectness;
-            objectness.objectness(scene.srcDepth, windows, scale);
-            std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
+                Timer tObjectness;
+                objectness.objectness(scene.srcDepth, windows, scale);
+                std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
 
-//            Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Locations detected");
+    //            Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Locations detected");
 
-            /// Verification and filtering of template candidates
-            assert(!tables.empty());
+                /// Verification and filtering of template candidates
+                if (windows.empty()) {
+                    continue;
+                }
 
-            Timer tVerification;
-            hasher.verifyCandidates(scene.srcDepth, scene.normals, tables, windows);
-            std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
+                Timer tVerification;
+                hasher.verifyCandidates(scene.srcDepth, scene.normals, tables, windows);
+                std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
 
-//            for (auto &window : windows) {
-//                for (auto &tpl : templates) {
-//                    if (tpl.id > 59999) {
-//                        window.candidates.push_back(&tpl);
-//                    }
-//                }
-//            }
+    //            for (auto &window : windows) {
+    //                for (auto &tpl : templates) {
+    //                    if (tpl.id > 59999) {
+    //                        window.candidates.push_back(&tpl);
+    //                    }
+    //                }
+    //            }
 
-//            Visualizer::visualizeHashing(scene.srcRGB, scene.srcDepth, tables, windows, criteria, true);
-//            Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Filtered locations");
+    //            Visualizer::visualizeHashing(scene.srcRGB, scene.srcDepth, tables, windows, criteria, true);
+    //            Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Filtered locations");
 
-            /// Match templates
-            assert(!windows.empty());
-            matcher.match(scale, scene, windows, matches);
+                /// Match templates
+                assert(!windows.empty());
+                matcher.match(scale, scene, windows, matches);
 
-            /// Show matched template results
-            std::cout << std::endl << "Matches size: " << matches.size() << std::endl;
-            Visualizer::visualizeMatches(scene.srcRGB, matches, "data/", 1);
+                /// Show matched template results
+                std::cout << std::endl << "Matches size: " << matches.size() << std::endl;
+                Visualizer::visualizeMatches(scene.srcRGB, matches, "data/", 0);
 
-            std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
-            windows.clear();
+                std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
+                scale *= scaleFactor;
+                windows.clear();
+            }
+
+            scale = .578703704f;
             matches.clear();
         }
     }

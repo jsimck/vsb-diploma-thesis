@@ -6,17 +6,12 @@
 void tless::Converter::resizeAndSave(std::vector<tless::Template> &objectTemplates, const std::string &outputPath, int outputSize) {
     const cv::Size resizeSize(outputSize, outputSize);
     const int offset = 2;
-    int index = 0;
 
     // Create base path
     std::ostringstream oss;
     oss << outputPath << std::setw(2) << std::setfill('0') << (objectTemplates[0].id / 2000) << "/";
     std::string basePath = oss.str();
     oss.str("");
-
-//    cv::FileStorage fsInfo(basePath + "info.yml", cv::FileStorage::WRITE);
-//    cv::FileStorage fsGt(basePath + "gt.yml", cv::FileStorage::WRITE);
-//    fsInfo << "templates" << "[";
 
     for (auto &t : objectTemplates) {
         // Offset bounding box to preserve edges in resulted image
@@ -54,14 +49,7 @@ void tless::Converter::resizeAndSave(std::vector<tless::Template> &objectTemplat
         // Form output path and write results
         cv::imwrite(basePath + "rgb/" + t.fileName  + ".png", resizedRGB);
         cv::imwrite(basePath + "depth/" + t.fileName  + ".png", resizedDepth);
-
-//        fsInfo << t;
-//        index++;
     }
-
-//    fsInfo << "]";
-//    fsInfo.release();
-//    fsGt.release();
 }
 
 void tless::Converter::convert(std::string templatesListPath, std::string outputPath, std::string modelsPath, int outputSize) {
