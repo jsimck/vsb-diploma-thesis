@@ -127,37 +127,41 @@ namespace tless {
         cv::waitKey(wait);
     }
 
-    void Visualizer::visualizeMatches(cv::Mat &scene, std::vector<Match> &matches, const std::string &templatesPath,
+    void Visualizer::visualizeMatches(cv::Mat &scene, float scale, std::vector<Match> &matches, const std::string &templatesPath,
                                       int wait, const char *title) {
         cv::Mat viz = scene.clone();
         std::ostringstream oss;
         int tplCounter = 0;
 
         for (auto &match : matches) {
-            cv::rectangle(viz, match.objBB.tl(), match.objBB.br(), cv::Scalar(0, 255, 0));
+            cv::Rect matchBB = match.scaledBB(scale);
+            cv::rectangle(viz, matchBB.tl(), matchBB.br(), cv::Scalar(0, 255, 0));
 
             oss.str("");
             oss << "id: " << match.t->id;
-            setLabel(viz, oss.str(), match.objBB.tl() + cv::Point(match.objBB.width + 5, 10));
+            setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 10));
             oss.str("");
             oss.precision(2);
             oss << std::fixed << "score: " << match.score << " (" << (match.score * 100.0f) / 4.0f << "%)";
-            setLabel(viz, oss.str(), match.objBB.tl() + cv::Point(match.objBB.width + 5, 28));
+            setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 28));
             oss.str("");
             oss << "I: " << match.sI;
-            setLabel(viz, oss.str(), match.objBB.tl() + cv::Point(match.objBB.width + 5, 46));
+            setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 46));
             oss.str("");
             oss << "II: " << match.sII;
-            setLabel(viz, oss.str(), match.objBB.tl() + cv::Point(match.objBB.width + 5, 64));
+            setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 64));
             oss.str("");
             oss << "III: " << match.sIII;
-            setLabel(viz, oss.str(), match.objBB.tl() + cv::Point(match.objBB.width + 5, 82));
+            setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 82));
             oss.str("");
             oss << "IV: " << match.sIV;
-            setLabel(viz, oss.str(), match.objBB.tl() + cv::Point(match.objBB.width + 5, 100));
+            setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 100));
             oss.str("");
             oss << "V: " << match.sV;
-            setLabel(viz, oss.str(), match.objBB.tl() + cv::Point(match.objBB.width + 5, 118));
+            setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 118));
+            oss.str("");
+            oss << "scale: " << match.scale;
+            setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 132));
 
             // Load matched template
             cv::Mat tplSrc;

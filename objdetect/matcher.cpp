@@ -70,7 +70,7 @@ namespace tless {
                     // Save only points that have valid depth and are in defined thresholds
                     if (sobelValue > minEdgeMag) {
                         edgeVPoints.emplace_back(cv::Point(x, y), sobelValue);
-                    } else if (stableValue > minStableVal && t.srcDepth.at<ushort>(y, x) > 0) { // skip wrong depth values
+                    } else if (stableValue > minStableVal && t.srcDepth.at<ushort>(y, x) > 0) { // skip wrong depth values // TODO check if a point is not in neighbourhood of 0 pixe (e.g. 5x5)
                         stableVPoints.emplace_back(cv::Point(x, y), stableValue);
                     }
                 }
@@ -454,7 +454,7 @@ namespace tless {
                 cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
 
                 #pragma omp critical
-                matches.emplace_back(candidate, matchBB, score, score * (candidate->objBB.area() / scale), sI, sII, sIII, sIV, sV);
+                matches.emplace_back(candidate, matchBB, scale, score, score * (candidate->objBB.area() / scale), sI, sII, sIII, sIV, sV);
 
 #ifndef NDEBUG
                 std::cout

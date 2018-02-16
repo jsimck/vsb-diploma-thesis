@@ -20,6 +20,7 @@ namespace tless {
     std::ostream &operator<<(std::ostream &os, const Match &match) {
         os << "id: " << match.t->id
            << " objBB: " << match.objBB
+           << " scale: " << match.scale
            << " t: " << match.t
            << " score: " << match.score
            << " areaScore: " << match.areaScore
@@ -30,5 +31,16 @@ namespace tless {
            << " sV: " << match.sV;
 
         return os;
+    }
+
+    cv::Rect Match::scaledBB(float scale) {
+        float multiplier = scale / this->scale;
+
+        return cv::Rect(
+            static_cast<int>(this->objBB.x * multiplier),
+            static_cast<int>(this->objBB.y * multiplier),
+            static_cast<int>(this->objBB.width * multiplier),
+            static_cast<int>(this->objBB.height * multiplier)
+        );
     }
 }

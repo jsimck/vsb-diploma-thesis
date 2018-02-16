@@ -24,9 +24,8 @@ namespace tless {
                                      const char *title = nullptr);
 
         // Objectness
-        static void
-        visualizeMatches(cv::Mat &scene, std::vector<Match> &matches, const std::string &templatesPath = "data/",
-                         int wait = 0, const char *title = nullptr);
+        static void visualizeMatches(cv::Mat &scene, float scale, std::vector<Match> &matches, const std::string &templatesPath = "data/",
+                                     int wait = 0, const char *title = nullptr);
 
         // Results
         static void visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, bool continuous, int wait = 0,

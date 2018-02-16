@@ -129,9 +129,10 @@ namespace tless {
         Matcher matcher(criteria);
 
         // Load trained template data
-        const float scaleFactor = 1.2f;
-        const int finalScaleLevel = 6;
-        float scale = .578703704f;
+        cv::Mat result;
+        const float scaleFactor = 1.25f;
+        const int finalScaleLevel = 3;
+        float scale = 1.0f;
         load(trainedTemplatesListPath, trainedPath);
 
         for (int i = 0; i < 503; ++i) {
@@ -143,6 +144,11 @@ namespace tless {
                 Scene scene = parser.parseScene("data/scene_01/", i, scale);
                 std::cout << "  |_ Scene loaded in: " << tSceneLoading.elapsed() << "s" << std::endl;
 
+                // Save scene at scale 1.0f for visualization
+                if (scale == 1.0f) {
+                    result = scene.srcRGB.clone();
+                }
+
                 /// Objectness detection
                 assert(criteria->info.smallestTemplate.area() > 0);
                 assert(criteria->info.minEdgels > 0);
@@ -151,7 +157,7 @@ namespace tless {
                 objectness.objectness(scene.srcDepth, windows, scale);
                 std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
 
-    //            Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Locations detected");
+//                Visualizer::visualizeWindows(scene.srcRGB, windows, false, 0, "Locations detected");
 
                 /// Verification and filtering of template candidates
                 if (windows.empty()) {
@@ -170,8 +176,8 @@ namespace tless {
     //                }
     //            }
 
-    //            Visualizer::visualizeHashing(scene.srcRGB, scene.srcDepth, tables, windows, criteria, true);
-    //            Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Filtered locations");
+//                Visualizer::visualizeHashing(scene.srcRGB, scene.srcDepth, tables, windows, criteria, false);
+//                Visualizer::visualizeWindows(scene.srcRGB, windows, false, 0, "Filtered locations");
 
                 /// Match templates
                 assert(!windows.empty());
@@ -179,14 +185,17 @@ namespace tless {
 
                 /// Show matched template results
                 std::cout << std::endl << "Matches size: " << matches.size() << std::endl;
-                Visualizer::visualizeMatches(scene.srcRGB, matches, "data/", 0);
+                Visualizer::visualizeMatches(scene.srcRGB, scale, matches, "data/400x400/", 1);
 
                 std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
                 scale *= scaleFactor;
                 windows.clear();
             }
 
-            scale = .578703704f;
+            // Visualize results
+            Visualizer::visualizeMatches(result, 1.0f, matches, "data/400x400/", 1, "Pyramid results");
+
+            scale = 1.0f;
             matches.clear();
         }
     }

@@ -66,6 +66,8 @@ namespace tless {
             criteria->info.largestArea.height = tpl.objBB.height;
         }
 
+        // TODO check if a point is not in neighbourhood of 0 pixe (e.g. 5x5), otherwise local
+        // TODO minima may show interpolated value between 0 and other depth that occured during resitzing
         // Find max/min depth and max local depth for depth quantization
         ushort localMax = tpl.srcDepth.at<ushort>(tpl.objBB.tl());
         auto localMin = static_cast<ushort>(-1);

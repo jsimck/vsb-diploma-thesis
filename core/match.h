@@ -14,14 +14,23 @@ namespace tless {
     public:
         Template *t;
         cv::Rect objBB;
-        float score;
+        float scale = 1.0f;
+        float score = 0;
         // TODO - area score is in this case probably area in pixels covered by the template, not the object bounding box
-        float areaScore; //!< score * object.area()
-        int sI, sII, sIII, sIV, sV;
+        float areaScore = 0; //!< score * object.area()
+        int sI = 0, sII = 0, sIII = 0, sIV = 0, sV = 0;
 
         Match() = default;
-        Match(Template *t, cv::Rect &bb, float score, float areaScore, int sI, int sII, int sIII, int sIV, int sV)
-                : t(t), objBB(bb), score(score), areaScore(areaScore), sI(sI), sII(sII), sIII(sIII), sIV(sIV), sV(sV) {}
+        Match(Template *t, cv::Rect &bb, float scale, float score, float areaScore, int sI, int sII, int sIII, int sIV, int sV)
+                : t(t), objBB(bb), scale(scale), score(score), areaScore(areaScore), sI(sI), sII(sII), sIII(sIII), sIV(sIV), sV(sV) {}
+
+        /**
+         * @brief Scales the object bounding box at matched scale to the required scale provided in the param.
+         *
+         * @param scale Current scene scale to which we want to scale objBB to
+         * @return      Scaled objBB to fit scene at wanted scale
+         */
+        cv::Rect scaledBB(float scale);
 
         bool operator<(const Match &rhs) const;
         bool operator>(const Match &rhs) const;
