@@ -14,31 +14,26 @@ namespace tless {
      */
     class Parser {
     private:
-        std::vector<float> diameters;
+        cv::Ptr<ClassifierCriteria> criteria;
 
         /**
-         * @brief Parses template images, gt.yml and creates base Template object.
+         * @brief Parses template images and generates normals and gradients images for each template.
          *
-         * @param[in] index        Current template index
-         * @param[in] basePath     Base path to templates folder
-         * @param[in] gtNode       Template specific gt.yml file node
-         * @param[in] infoNode     Template specific info.yml file node
-         * @param[in,out] criteria Optional criteria parameter, if not null, template criteria are
-         *                         extracted + all quantized normals and gradient images are generated
-         * @return                 Parsed template object
+         * @param[in,out] tpl  Template object, load from info.yml meta to load images and additional data for
+         * @param[in] basePath Base path to templates folder
+         * @return             Parsed template object
          */
-        Template parseTemplate(uint index, const std::string &basePath, cv::FileNode &gtNode, cv::FileNode &infoNode, cv::Ptr<ClassifierCriteria> criteria);
+        void parseTemplate(Template &tpl, const std::string &basePath);
 
         /**
-         * @brief Parses criteria for given template + generates quantized normals and gradients images.
+         * @brief Parses criteria for given template + generates quantized normals.
          *
-         * @param[in,out] t        Template to extract criteria for
-         * @param[in,out] criteria Criteria objects which holds all currently extracted data
+         * @param[in,out] tpl Template to extract criteria for
          */
-        void parseCriteria(Template &t, cv::Ptr<ClassifierCriteria> criteria);
+        void parseCriteriaAndNormals(Template &tpl);
 
     public:
-        Parser() = default;
+        Parser(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {};
 
         /**
          * @brief Parses templates for one object in given path.
@@ -46,15 +41,11 @@ namespace tless {
          * Function expects rgb/, depth/ folders and gt.yml and info.yml
          * files in root folder defined by path param.
          *
-         * @param[in]     basePath   Path to object folder
-         * @param[in]     modelsPath Path to models folder (contains *.ply and info.yml files)
-         * @param[out]    templates  Output vector containing all parsed templates
-         * @param[in,out] criteria   Optional criteria parameter, if provided, template criteria gets extracted
-         *                           during parsing stage + all quantized normals and gradient images are generated
-         * @param[in]     indices    Optional parameter to parse only templates with defined indices
+         * @param[in]     basePath  Path to object folder
+         * @param[out]    templates Output vector containing all parsed templates
+         * @param[in]     indices   Optional parameter to parse only templates with defined indices
          */
-        void parseObject(const std::string &basePath, const std::string &modelsPath, std::vector<Template> &templates,
-                         cv::Ptr<ClassifierCriteria> criteria = cv::Ptr<ClassifierCriteria>(), std::vector<uint> indices = {});
+        void parseObject(const std::string &basePath, std::vector<Template> &templates, std::vector<uint> indices);
 
         /**
          * @brief Parses scene info, images, computes quantized normals and gradients.
@@ -62,10 +53,9 @@ namespace tless {
          * @param[in]     basePath Base path to scene folder with info.yml and rgb, depth folders
          * @param[in]     index    Current index of a scene image
          * @param[in]     scale    Current scale of image scale pyramid
-         * @param[in,out] criteria Optional criteria parameter, if provided, scene quantized normals and gradient images are generated
          * @return                 Parsed scene object
          */
-        Scene parseScene(const std::string &basePath, int index, float scale, cv::Ptr<ClassifierCriteria> criteria = cv::Ptr<ClassifierCriteria>());
+        Scene parseScene(const std::string &basePath, int index, float scale);
     };
 }
 

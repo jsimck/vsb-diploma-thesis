@@ -4,86 +4,32 @@
 #include "../objdetect/hasher.h"
 
 namespace tless {
-    void Parser::parseObject(const std::string &basePath, const std::string &modelsPath, std::vector<Template> &templates,
-                             cv::Ptr<ClassifierCriteria> criteria, std::vector<uint> indices) {
-        cv::FileStorage fs;
+    void Parser::parseObject(const std::string &basePath, std::vector<Template> &templates, std::vector<uint> indices) {
+        // Load object info.yml.gz at the root of each object folder
+        cv::FileStorage fsInfo(basePath + "info.yml.gz", cv::FileStorage::READ);
+        cv::FileNode tplNodes = fsInfo["templates"];
+        const size_t nodesSize = indices.empty() ? tplNodes.size() : indices.size();
 
-        // Parse object diameters if empty
-        if (diameters.empty()) {
-            fs.open(modelsPath + "info.yml", cv::FileStorage::READ);
-            assert(fs.isOpened());
+        // Loop through each template node and parse info + images
+        for (uint i = 0; i < nodesSize; i++) {
+            uint index = indices.empty() ? i : indices[i];
 
-            // Parse only diameters for now
-            for (uint i = 1;; i++) {
-                float diameter;
-                std::string index = "model_" + std::to_string(i);
-                cv::FileNode modelNode = fs[index];
+            // Load template info
+            Template tpl;
+            tplNodes[index] >> tpl;
 
-                // Break if obj is empty (last model)
-                if (modelNode.empty()) break;
-
-                // Parse diameter
-                modelNode["diameter"] >> diameter;
-                diameters.push_back(diameter);
-            }
-
-            fs.release();
-        }
-
-        // Load obj_gt and info
-        cv::FileStorage fsInfo(basePath + "info.yml", cv::FileStorage::READ);
-        fs.open(basePath + "gt.yml", cv::FileStorage::READ);
-        assert(fsInfo.isOpened());
-        assert(fs.isOpened());
-
-        // Parse objects
-        for (uint i = 0;; i++) {
-            auto tplIndex = static_cast<uint>((!indices.empty()) ? indices[i] : i);
-            std::string index = "tpl_" + std::to_string(tplIndex);
-
-            cv::FileNode gtNode = fs[index];
-            cv::FileNode infoNode = fsInfo[index];
-
-            // Break if obj is empty (last template)
-            if (gtNode.empty() || infoNode.empty()) break;
-
-            // Parse template
-            templates.push_back(parseTemplate(tplIndex, basePath, gtNode, infoNode, criteria));
+            // Load template images and generate gradients, normals, hsv, gray images
+            parseTemplate(tpl, basePath);
+            templates.push_back(tpl);
         }
 
         fsInfo.release();
-        fs.release();
     }
 
-    Template Parser::parseTemplate(uint index, const std::string &basePath, cv::FileNode &gtNode,
-                                   cv::FileNode &infoNode, cv::Ptr<ClassifierCriteria> criteria) {
-        int id, elev, mode, azimuth;
-        std::vector<float> vCamRm2c, vCamTm2c, vCamK;
-        std::vector<int> vObjBB;
-
-        // Parse data from .yml files
-        gtNode["obj_id"] >> id;
-        gtNode["obj_bb"] >> vObjBB;
-        gtNode["cam_R_m2c"] >> vCamRm2c;
-        gtNode["cam_t_m2c"] >> vCamTm2c;
-        infoNode["cam_K"] >> vCamK;
-        infoNode["elev"] >> elev;
-        infoNode["mode"] >> mode;
-        azimuth = 5 * (index % 72); // Training templates are sampled in 5 step azimuth
-
-        assert(!vObjBB.empty());
-        assert(!vCamRm2c.empty());
-        assert(!vCamTm2c.empty());
-
-        // Create filename from index
-        std::stringstream ss;
-        ss << std::setw(4) << std::setfill('0') << index;
-        std::string fileName = ss.str();
-
+    void Parser::parseTemplate(Template &tpl, const std::string &basePath) {
         // Load source images
-        cv::Mat srcRGB = cv::imread(basePath + "/rgb/" + fileName + ".png", CV_LOAD_IMAGE_COLOR);
-        cv::Mat srcDepth = cv::imread(basePath + "/depth/" + fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
-
+        cv::Mat srcRGB = cv::imread(basePath + "rgb/" + tpl.fileName + ".png", CV_LOAD_IMAGE_COLOR);
+        cv::Mat srcDepth = cv::imread(basePath + "depth/" + tpl.fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
         assert(srcRGB.type() == CV_8UC3);
         assert(srcDepth.type() == CV_16U);
 
@@ -95,33 +41,89 @@ namespace tless {
         cv::Mat gradients, magnitudes;
         quantizedOrientationGradients(srcGray, gradients, magnitudes);
 
-        // Create template
-        Template t;
-        t.id = index + (2000 * id);
-        t.fileName = std::move(fileName);
-        t.diameter = diameters[id];
-        t.srcRGB = std::move(srcRGB);
-        t.srcGray = std::move(srcGray);
-        t.srcHSV = std::move(srcHSV);
-        t.srcDepth = std::move(srcDepth);
-        t.srcGradients = std::move(gradients);
-        t.objBB = cv::Rect(vObjBB[0], vObjBB[1], vObjBB[2], vObjBB[3]);
-        t.camera = Camera(
-            cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()),
-            cv::Mat(3, 1, CV_32FC1, vCamTm2c.data()),
-            cv::Mat(3, 3, CV_32FC1, vCamK.data()),
-            elev, azimuth, mode
-        );
+        // Save images to template object
+        tpl.srcRGB = std::move(srcRGB);
+        tpl.srcGray = std::move(srcGray);
+        tpl.srcHSV = std::move(srcHSV);
+        tpl.srcDepth = std::move(srcDepth);
+        tpl.srcGradients = std::move(gradients);
 
         // Parse criteria from template and extract normals and gradient images
-        if (criteria != nullptr) {
-            parseCriteria(t, criteria);
-        }
-
-        return t;
+        parseCriteriaAndNormals(tpl);
     }
 
-    Scene Parser::parseScene(const std::string &basePath, int index, float scale, cv::Ptr<ClassifierCriteria> criteria) {
+    void Parser::parseCriteriaAndNormals(Template &tpl) {
+        // Parse largest area
+        if (tpl.objBB.area() < criteria->info.smallestTemplate.area()) {
+            criteria->info.smallestTemplate = tpl.objBB.size();
+        }
+
+        if (tpl.objBB.width > criteria->info.largestArea.width) {
+            criteria->info.largestArea.width = tpl.objBB.width;
+        }
+
+        if (tpl.objBB.height > criteria->info.largestArea.height) {
+            criteria->info.largestArea.height = tpl.objBB.height;
+        }
+
+        // Find max/min depth and max local depth for depth quantization
+        ushort localMax = tpl.srcDepth.at<ushort>(tpl.objBB.tl());
+        auto localMin = static_cast<ushort>(-1);
+        const int areaOffset = 0;
+
+        // Offset bounding box so we cover edges of object
+        for (int y = tpl.objBB.tl().y - areaOffset; y < tpl.objBB.br().y + areaOffset; y++) {
+            for (int x = tpl.objBB.tl().x - areaOffset; x < tpl.objBB.br().x + areaOffset; x++) {
+                ushort val = tpl.srcDepth.at<ushort>(y, x);
+
+                // Extract local max (val shouldn't also be bigger than 3 times local max, there shouldn't be so much swinging)
+                if (val > localMax && val < 3 * localMax) {
+                    localMax = val;
+                }
+
+                // Extract local min
+                if (val < localMin && val > 0) {
+                    localMin = val;
+                }
+
+                // Extract criteria
+                if (val > criteria->info.maxDepth && val < 3 * localMax) {
+                    criteria->info.maxDepth = val;
+                }
+
+                if (val < criteria->info.minDepth && val > 0) {
+                    criteria->info.minDepth = val;
+                }
+            }
+        }
+
+        // Normalize local max and min depths to define error corrected range
+        localMax /= depthNormalizationFactor(localMax, criteria->depthDeviationFun);
+        localMin *= depthNormalizationFactor(localMax, criteria->depthDeviationFun);
+
+        // TODO - Better minMag value definition here and in objectness handling
+        // Extract min edgels
+        cv::Mat integral;
+        depthEdgelsIntegral(tpl.srcDepth, integral, localMin, localMax);
+
+        // Cover little bit larger area than object bounding box, to count edges
+        cv::Point A(tpl.objBB.tl().x - areaOffset, tpl.objBB.tl().y - areaOffset);
+        cv::Point B(tpl.objBB.br().x + areaOffset, tpl.objBB.tl().y - areaOffset);
+        cv::Point C(tpl.objBB.tl().x - areaOffset, tpl.objBB.br().y + areaOffset);
+        cv::Point D(tpl.objBB.br().x + areaOffset, tpl.objBB.br().y + areaOffset);
+
+        // Get edgel count inside obj bounding box
+        int edgels = integral.at<int>(D) - integral.at<int>(B) - integral.at<int>(C) + integral.at<int>(A);
+
+        if (edgels < criteria->info.minEdgels) {
+            criteria->info.minEdgels = edgels;
+        }
+
+        // Compute normals
+        quantizedNormals(tpl.srcDepth, tpl.srcNormals, tpl.camera.fx(), tpl.camera.fy(), localMax, criteria->maxDepthDiff);
+    }
+
+    Scene Parser::parseScene(const std::string &basePath, int index, float scale) {
         Scene scene;
         std::ostringstream oss;
         oss << std::setw(4) << std::setfill('0') << index;
@@ -170,78 +172,5 @@ namespace tless {
         }
 
         return scene;
-    }
-
-    void Parser::parseCriteria(Template &t, cv::Ptr<ClassifierCriteria> criteria) {
-        t.objBB = cv::Rect(0, 0, 108, 108); // TODO Remove
-
-        // Parse largest area
-        if (t.objBB.area() < criteria->info.smallestTemplate.area()) {
-            criteria->info.smallestTemplate = t.objBB.size();
-        }
-
-        if (t.objBB.width > criteria->info.largestArea.width) {
-            criteria->info.largestArea.width = t.objBB.width;
-        }
-
-        if (t.objBB.height > criteria->info.largestArea.height) {
-            criteria->info.largestArea.height = t.objBB.height;
-        }
-
-        // Find max/min depth and max local depth for depth quantization
-        ushort localMax = t.srcDepth.at<ushort>(t.objBB.tl());
-        auto localMin = static_cast<ushort>(-1);
-        const int areaOffset = 0;
-
-        // Offset bounding box so we cover edges of object
-        for (int y = t.objBB.tl().y - areaOffset; y < t.objBB.br().y + areaOffset; y++) {
-            for (int x = t.objBB.tl().x - areaOffset; x < t.objBB.br().x + areaOffset; x++) {
-                ushort val = t.srcDepth.at<ushort>(y, x);
-
-                // Extract local max (val shouldn't also be bigger than 3 times local max, there shouldn't be so much swinging)
-                if (val > localMax && val < 3 * localMax) {
-                    localMax = val;
-                }
-
-                // Extract local min
-                if (val < localMin && val > 0) {
-                    localMin = val;
-                }
-
-                // Extract criteria
-                if (val > criteria->info.maxDepth && val < 3 * localMax) {
-                    criteria->info.maxDepth = val;
-                }
-
-                if (val < criteria->info.minDepth && val > 0) {
-                    criteria->info.minDepth = val;
-                }
-            }
-        }
-
-        // Normalize local max and min depths to define error corrected range
-        localMax /= depthNormalizationFactor(localMax, criteria->depthDeviationFun);
-        localMin *= depthNormalizationFactor(localMax, criteria->depthDeviationFun);
-
-        // TODO - Better minMag value definition here and in objectness handling
-        // Extract min edgels
-        cv::Mat integral;
-        depthEdgelsIntegral(t.srcDepth, integral, localMin, localMax);
-
-        // Cover little bit larger area than object bounding box, to count edges
-        cv::Point A(t.objBB.tl().x - areaOffset, t.objBB.tl().y - areaOffset);
-        cv::Point B(t.objBB.br().x + areaOffset, t.objBB.tl().y - areaOffset);
-        cv::Point C(t.objBB.tl().x - areaOffset, t.objBB.br().y + areaOffset);
-        cv::Point D(t.objBB.br().x + areaOffset, t.objBB.br().y + areaOffset);
-
-        // Get edgel count inside obj bounding box
-        int edgels = integral.at<int>(D) - integral.at<int>(B) - integral.at<int>(C) + integral.at<int>(A);
-
-        if (edgels < criteria->info.minEdgels) {
-            criteria->info.minEdgels = edgels;
-        }
-
-        // Compute normals
-        quantizedNormals(t.srcDepth, t.srcNormals, t.camera.fx(), t.camera.fy(), localMax, criteria->maxDepthDiff);
     }
 }

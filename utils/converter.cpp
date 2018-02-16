@@ -24,6 +24,7 @@ namespace tless {
 
         // Resize images by given ratio and recalculate depth values
         tpl.resizeRatio = outputSize / static_cast<float>(offsetBB.width);
+        tpl.objBB = cv::Rect(0, 0, outputSize, outputSize); // update new objBB
         assert(tpl.resizeRatio > 0);
 
         cv::Mat resizedRGB = tpl.srcRGB(offsetBB);

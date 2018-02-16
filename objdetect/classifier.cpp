@@ -5,17 +5,16 @@
 #include "../processing/processing.h"
 
 namespace tless {
-    void Classifier::train(std::string templatesListPath, std::string resultPath, std::string modelsPath, std::vector<uint> indices) {
+    void Classifier::train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices) {
         std::ifstream ifs(templatesListPath);
         assert(ifs.is_open());
 
-        // Init classifiers
+        // Init classifiers and parser
         Hasher hasher(criteria);
         Matcher matcher(criteria);
+        Parser parser(criteria);
 
-        // Init parser and common
-        Parser parser;
-
+        // Init common
         std::ostringstream oss;
         std::vector<Template> tpls, allTemplates;
         std::string path;
@@ -27,7 +26,7 @@ namespace tless {
             std::cout << "  |_ " << path;
 
             // Parse each object by one and save it
-            parser.parseObject(path, modelsPath, tpls, criteria, indices);
+            parser.parseObject(path, tpls, indices);
 
             // Train features for loaded templates
             matcher.train(tpls);
@@ -122,7 +121,7 @@ namespace tless {
 
     void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath) {
         // Init classifiers
-        Parser parser;
+        Parser parser(criteria);
         Objectness objectness(criteria);
         Hasher hasher(criteria);
         Matcher matcher(criteria);
@@ -139,7 +138,7 @@ namespace tless {
 
                 // Load scene
                 Timer tSceneLoading;
-                Scene scene = parser.parseScene("data/scene_01/", i, scale, criteria);
+                Scene scene = parser.parseScene("data/scene_01/", i, scale);
                 std::cout << "  |_ Scene loaded in: " << tSceneLoading.elapsed() << "s" << std::endl;
 
                 /// Objectness detection

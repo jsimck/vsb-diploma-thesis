@@ -36,7 +36,7 @@ namespace tless {
         Classifier(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
 
         // Methods
-        void train(std::string templatesListPath, std::string resultPath, std::string modelsPath, std::vector<uint> indices = {});
+        void train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices = {});
         void detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath);
     };
 }
