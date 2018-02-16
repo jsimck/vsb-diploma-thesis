@@ -102,7 +102,6 @@ namespace tless {
                 t.features.normals.emplace_back(t.srcNormals.at<uchar>(stable));
                 t.features.colors.push_back(remapBlackWhiteHSV(t.srcHSV.at<cv::Vec3b>(stable)));
             }
-
             // Calculate median of depths
             t.features.depthMedian = median<ushort>(t.features.depths);
 

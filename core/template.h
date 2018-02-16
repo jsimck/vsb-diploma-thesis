@@ -16,6 +16,7 @@ namespace tless {
         uint id = 0;
         std::string fileName;
         float diameter = 0;
+        float resizeRatio = 1.0f;
 
         // Image sources
         cv::Mat srcRGB;

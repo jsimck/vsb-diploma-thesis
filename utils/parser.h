@@ -17,7 +17,7 @@ namespace tless {
         std::vector<float> diameters;
 
         /**
-         * @brief Parses template images, gt.yml and creates base Template object
+         * @brief Parses template images, gt.yml and creates base Template object.
          *
          * @param[in] index        Current template index
          * @param[in] basePath     Base path to templates folder
@@ -30,7 +30,7 @@ namespace tless {
         Template parseTemplate(uint index, const std::string &basePath, cv::FileNode &gtNode, cv::FileNode &infoNode, cv::Ptr<ClassifierCriteria> criteria);
 
         /**
-         * @brief Parses criteria for given template + generates quantized normals and gradients images
+         * @brief Parses criteria for given template + generates quantized normals and gradients images.
          *
          * @param[in,out] t        Template to extract criteria for
          * @param[in,out] criteria Criteria objects which holds all currently extracted data
@@ -57,7 +57,7 @@ namespace tless {
                          cv::Ptr<ClassifierCriteria> criteria = cv::Ptr<ClassifierCriteria>(), std::vector<uint> indices = {});
 
         /**
-         * @brief Parses scene info, images, computes quantized normals and gradients
+         * @brief Parses scene info, images, computes quantized normals and gradients.
          *
          * @param[in]     basePath Base path to scene folder with info.yml and rgb, depth folders
          * @param[in]     index    Current index of a scene image

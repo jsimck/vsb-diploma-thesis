@@ -15,6 +15,7 @@ namespace tless {
         Template *t;
         cv::Rect objBB;
         float score;
+        // TODO - area score is in this case probably area in pixels covered by the template, not the object bounding box
         float areaScore; //!< score * object.area()
         int sI, sII, sIII, sIV, sV;
 
