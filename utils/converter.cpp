@@ -73,8 +73,8 @@ namespace tless {
         std::string fileName = ss.str();
 
         // Load source images
-        cv::Mat srcRGB = cv::imread(basePath + "/rgb/" + fileName + ".png", CV_LOAD_IMAGE_COLOR);
-        cv::Mat srcDepth = cv::imread(basePath + "/depth/" + fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
+        cv::Mat srcRGB = cv::imread(basePath + "rgb/" + fileName + ".png", CV_LOAD_IMAGE_COLOR);
+        cv::Mat srcDepth = cv::imread(basePath + "depth/" + fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
         assert(srcRGB.type() == CV_8UC3);
         assert(srcDepth.type() == CV_16U);
 

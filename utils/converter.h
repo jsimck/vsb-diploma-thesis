@@ -39,9 +39,10 @@ namespace tless {
         Converter() = default;
 
         /**
-         * @brief Parses templates downloaded from http://cmp.felk.cvut.cz/t-less/ and resizes them to
-         * given outputSize. Some additional meta details are also extracted/generated and then saved to
-         * accompanying info.yml file for further reference.
+         * @brief Parses templates downloaded from http://cmp.felk.cvut.cz/t-less/ and resizes them.
+         *
+         * Templates are parsed and resized to given outputSize. Some additional meta details are also
+         * extracted/generated and then saved to accompanying info.yml file for further reference.
          *
          * @param objectsListPath[in] List of object folders to parse
          * @param modelsInfoPath[in]  Path to the models/info.yml containing objects diameters and other info
