@@ -44,8 +44,11 @@ namespace tless {
         assert(resizedDepth.rows == outputSize);
 
         // Write results
+        // TODO - fix local build of opencv
+#ifndef GCC
         cv::imwrite(outputPath + "rgb/" + tpl.fileName + ".png", resizedRGB);
         cv::imwrite(outputPath + "depth/" + tpl.fileName + ".png", resizedDepth);
+#endif
     }
 
     Template Converter::parseTemplate(uint index, const std::string &basePath, cv::FileNode &gtNode, cv::FileNode &infoNode) {
@@ -178,4 +181,4 @@ namespace tless {
         ifs.close();
         std::cout << "DONE!" << std::endl << std::endl;
     }
-};
+}

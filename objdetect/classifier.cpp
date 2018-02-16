@@ -16,7 +16,7 @@ namespace tless {
 
         // Init common
         std::ostringstream oss;
-        std::vector<Template> tpls, allTemplates;
+        std::vector<Template> templates, allTemplates;
         std::string path;
 
         Timer t;
@@ -26,34 +26,36 @@ namespace tless {
             std::cout << "  |_ " << path;
 
             // Parse each object by one and save it
-            parser.parseObject(path, tpls, indices);
+            parser.parseObject(path, templates, indices);
 
             // Train features for loaded templates
-            matcher.train(tpls);
+            matcher.train(templates);
 
             // Save templates for later hash table generation
-            allTemplates.insert(allTemplates.end(), tpls.begin(), tpls.end());
+            allTemplates.insert(allTemplates.end(), templates.begin(), templates.end());
 
             // Persist trained data
-            oss.str("");
-            oss << resultPath << "trained_" << std::setw(2) << std::setfill('0') << tpls[0].id / 2000 << ".yml.gz";
+            oss << resultPath << "trained_" << std::setw(2) << std::setfill('0') << templates[0].id / 2000 << ".yml.gz";
             std::string trainedPath = oss.str();
             cv::FileStorage fsw(trainedPath, cv::FileStorage::WRITE);
 
+            // Save templates data
             fsw << "templates" << "[";
-            for (auto &tpl : tpls) {
+            for (auto &tpl : templates) {
                 fsw << tpl;
             }
             fsw << "]";
 
+            // Cleanup
+            oss.str("");
             fsw.release();
-            tpls.clear();
+            templates.clear();
             std::cout << " -> " << trainedPath << std::endl;
         }
 
         ifs.close();
 
-        // Save data set
+        // Save classifier info
         cv::FileStorage fsw(resultPath + "classifier.yml.gz", cv::FileStorage::WRITE);
         fsw << "criteria" << *criteria;
         std::cout << "  |_ info -> " << resultPath + "classifier.yml.gz" << std::endl;
@@ -71,8 +73,8 @@ namespace tless {
         }
         fsw << "]";
         fsw.release();
-        std::cout << "  |_ tables -> " << resultPath + "classifier.yml.gz" << std::endl;
 
+        std::cout << "  |_ tables -> " << resultPath + "classifier.yml.gz" << std::endl;
         std::cout << "DONE!, took: " << t.elapsed() << " s" << std::endl << std::endl;
     }
 
