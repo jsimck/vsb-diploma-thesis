@@ -3,6 +3,7 @@
 
 #include <opencv2/core/mat.hpp>
 #include "../core/template.h"
+#include "../core/match.h"
 
 namespace tless {
     // Lookup tables
@@ -82,6 +83,17 @@ namespace tless {
      * @return               Normalized pixel value where black and white colors are mapped to blue/yellow colors
      */
     cv::Vec3b remapBlackWhiteHSV(cv::Vec3b hsv, uchar value = 22, uchar saturation = 31);
+
+    /**
+     * @brief Applies non-maxima suppression to matches, removing matches with large overlap and lower score
+     *
+     * This function calculates overlap between each window, if the overlap is > than [maxOverlap]
+     * we only retain a match with higher score.
+     *
+     * @param[in,out] matches    Input/output array of matches to apply non-maxima suppression on
+     * @param[in]     maxOverlap Max allowed overlap between two matched bounding boxes
+     */
+    void nonMaximaSuppression(std::vector<Match> &matches, float maxOverlap);
 
     // TODO filter edges in all 3 rgb planes and take gradient with largest magnitude
     /**

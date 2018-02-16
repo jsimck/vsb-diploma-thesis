@@ -19,9 +19,9 @@ namespace tless {
         /**
          * @brief Resizes rgb and depth images of given template + recalculates depth values based on resize ratio.
          *
-         * @param tpl[in,out]    Template to resize image for (with rgb and depth images loaded)
-         * @param outputPath[in] Output path, where new resized template images should be saved
-         * @param outputSize[in] Size to which the template should be scaled to fit
+         * @param[in,out] tpl    Template to resize image for (with rgb and depth images loaded)
+         * @param[in] outputPath Output path, where new resized template images should be saved
+         * @param[in] outputSize Size to which the template should be scaled to fit
          */
         void resizeAndSave(Template &tpl, const std::string &outputPath, int outputSize);
 
@@ -41,13 +41,13 @@ namespace tless {
         /**
          * @brief Parses templates downloaded from http://cmp.felk.cvut.cz/t-less/ and resizes them.
          *
-         * Templates are parsed and resized to given outputSize. Some additional meta details are also
-         * extracted/generated and then saved to accompanying info.yml file for further reference.
+         * Templates are parsed and resized to given outputSize. Some additional meta details are also extracted/generated and then saved to
+         * accompanying info.yml file for further reference.
          *
-         * @param objectsListPath[in] List of object folders to parse
-         * @param modelsInfoPath[in]  Path to the models/info.yml containing objects diameters and other info
-         * @param outputPath[in]      Base output path to which the converted templates are saved
-         * @param outputSize[in]      Desired size of the final template to which the templates should be scaled to fit
+         * @param[in] objectsListPath List of object folders to parse
+         * @param[in] modelsInfoPath  Path to the models/info.yml containing objects diameters and other info
+         * @param[in] outputPath      Base output path to which the converted templates are saved
+         * @param[in] outputSize      Desired size of the final template to which the templates should be scaled to fit
          */
         void convert(const std::string &objectsListPath, const std::string &modelsInfoPath, std::string outputPath, int outputSize);
     };

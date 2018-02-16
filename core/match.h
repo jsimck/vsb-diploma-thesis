@@ -27,8 +27,8 @@ namespace tless {
         /**
          * @brief Scales the object bounding box at matched scale to the required scale provided in the param.
          *
-         * @param scale Current scene scale to which we want to scale objBB to
-         * @return      Scaled objBB to fit scene at wanted scale
+         * @param[in] scale Current scene scale to which we want to scale objBB to
+         * @return          Scaled objBB to fit scene at wanted scale
          */
         cv::Rect scaledBB(float scale);
 

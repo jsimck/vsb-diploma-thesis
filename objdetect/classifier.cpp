@@ -129,11 +129,13 @@ namespace tless {
         Matcher matcher(criteria);
 
         // Load trained template data
-        cv::Mat result;
-        const float scaleFactor = 1.25f;
-        const int finalScaleLevel = 3;
-        float scale = 1.0f;
         load(trainedTemplatesListPath, trainedPath);
+
+        cv::Mat result;
+        const float initialScale = 0.8f;
+        const float scaleFactor = 1.25f;
+        const int finalScaleLevel = 4;
+        float scale = initialScale;
 
         for (int i = 0; i < 503; ++i) {
             for (int pyramidLevel = 0; pyramidLevel < finalScaleLevel; ++pyramidLevel) {
@@ -168,16 +170,8 @@ namespace tless {
                 hasher.verifyCandidates(scene.srcDepth, scene.normals, tables, windows);
                 std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
 
-    //            for (auto &window : windows) {
-    //                for (auto &tpl : templates) {
-    //                    if (tpl.id > 59999) {
-    //                        window.candidates.push_back(&tpl);
-    //                    }
-    //                }
-    //            }
-
 //                Visualizer::visualizeHashing(scene.srcRGB, scene.srcDepth, tables, windows, criteria, false);
-//                Visualizer::visualizeWindows(scene.srcRGB, windows, false, 0, "Filtered locations");
+                Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Filtered locations");
 
                 /// Match templates
                 assert(!windows.empty());
@@ -192,10 +186,12 @@ namespace tless {
                 windows.clear();
             }
 
+            // Apply non-maxima suppresion
+            nonMaximaSuppression(matches, criteria->overlapFactor);
+
             // Visualize results
             Visualizer::visualizeMatches(result, 1.0f, matches, "data/400x400/", 1, "Pyramid results");
-
-            scale = 1.0f;
+            scale = initialScale;
             matches.clear();
         }
     }

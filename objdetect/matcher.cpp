@@ -111,57 +111,6 @@ namespace tless {
         }
     }
 
-    void Matcher::nonMaximaSuppression(std::vector<Match> &matches) {
-        if (matches.empty()) return;
-
-        // Sort all matches by their highest score
-        std::sort(matches.rbegin(), matches.rend());
-
-        std::vector<Match> pick;
-        std::vector<int> suppress(matches.size()); // Indexes of matches to remove
-        std::vector<int> idx(matches.size()); // Indexes of bounding boxes to check
-        std::iota(idx.begin(), idx.end(), 0); // Fill idx array with range 0..idx.size()
-
-        while (!idx.empty()) {
-            // Pick first element with highest score
-            Match &firstMatch = matches[idx[0]];
-
-            // Store this index into suppress array and push to final matches, we won't check against this match again
-            suppress.push_back(idx[0]);
-            pick.push_back(firstMatch);
-
-            // Check overlaps with all other bounding boxes, skipping first one (since it is the one we're checking with)
-            #pragma omp parallel for default(none) shared(firstMatch, matches, idx, suppress)
-            for (size_t i = 1; i < idx.size(); i++) {
-                // Get overlap BB coordinates of each other bounding box and compare with the first one
-                cv::Rect bb = matches[idx[i]].objBB;
-                int x1 = std::min<int>(bb.br().x, firstMatch.objBB.br().x);
-                int x2 = std::max<int>(bb.tl().x, firstMatch.objBB.tl().x);
-                int y1 = std::min<int>(bb.br().y, firstMatch.objBB.br().y);
-                int y2 = std::max<int>(bb.tl().y, firstMatch.objBB.tl().y);
-
-                // Calculate overlap area
-                int h = std::max<int>(0, y1 - y2);
-                int w = std::max<int>(0, x1 - x2);
-                float overlap = static_cast<float>(h * w) / static_cast<float>(firstMatch.objBB.area());
-
-                // If overlap is bigger than min threshold, remove the match
-                if (overlap > criteria->overlapFactor) {
-                    #pragma omp critical
-                    suppress.push_back(idx[i]);
-                }
-            }
-
-            // Remove all suppress indexes from idx array
-            idx.erase(std::remove_if(idx.begin(), idx.end(), [&suppress](int v) -> bool {
-                return std::find(suppress.begin(), suppress.end(), v) != suppress.end();
-            }), idx.end());
-            suppress.clear();
-        }
-
-        matches.swap(pick);
-    }
-
     // TODO implement object size test
     int Matcher::testObjectSize(float scale, ushort depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
         const unsigned long fSize = criteria->depthDeviationFun.size();
@@ -473,10 +422,5 @@ namespace tless {
         }
 
         std::cout << "  |_ Template matching took: " << tMatching.elapsed() << "s" << std::endl;
-
-        // Run non maxima suppression on matches
-        Timer tMaxima;
-        nonMaximaSuppression(matches);
-        std::cout << "  |_ Non maxima suppression took: " << tMaxima.elapsed() << "s" << std::endl;
     }
 }
