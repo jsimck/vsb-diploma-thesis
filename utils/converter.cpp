@@ -89,12 +89,12 @@ namespace tless {
         t.srcRGB = std::move(srcRGB);
         t.srcDepth = std::move(srcDepth);
         t.objBB = cv::Rect(vObjBB[0], vObjBB[1], vObjBB[2], vObjBB[3]);
-        t.camera = Camera(
-            cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()),
-            cv::Mat(3, 1, CV_32FC1, vCamTm2c.data()),
-            cv::Mat(3, 3, CV_32FC1, vCamK.data()),
-            elev, azimuth, mode
-        );
+        t.camera.R = cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone();
+        t.camera.t = cv::Mat(3, 1, CV_32FC1, vCamTm2c.data()).clone();
+        t.camera.K = cv::Mat(3, 3, CV_32FC1, vCamK.data()).clone();
+        t.camera.elev = elev;
+        t.camera.azimuth = azimuth;
+        t.camera.mode = mode;
 
         return t;
     }

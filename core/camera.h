@@ -16,8 +16,6 @@ public:
     int mode = 0;
 
     Camera() = default;
-    Camera(cv::Mat R, cv::Mat t, cv::Mat K, int elev, int azimuth, int mode)
-            : R(std::move(R)), t(std::move(t)), K(std::move(K)), elev(elev), azimuth(azimuth), mode(mode) {}
 
     /**
      * @brief Computes x-focal length from K camera matrix

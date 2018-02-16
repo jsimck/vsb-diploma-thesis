@@ -114,7 +114,6 @@ namespace tless {
 
         // Get edgel count inside obj bounding box
         int edgels = integral.at<int>(D) - integral.at<int>(B) - integral.at<int>(C) + integral.at<int>(A);
-
         if (edgels < criteria->info.minEdgels) {
             criteria->info.minEdgels = edgels;
         }
