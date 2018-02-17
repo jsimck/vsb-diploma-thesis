@@ -132,9 +132,9 @@ namespace tless {
         load(trainedTemplatesListPath, trainedPath);
 
         cv::Mat result;
-        const float initialScale = 0.8f;
+        const float initialScale = .4;
         const float scaleFactor = 1.25f;
-        const int finalScaleLevel = 4;
+        const int finalScaleLevel = 9;
         float scale = initialScale;
 
         for (int i = 0; i < 503; ++i) {
@@ -143,11 +143,11 @@ namespace tless {
 
                 // Load scene
                 Timer tSceneLoading;
-                Scene scene = parser.parseScene("data/scene_01/", i, scale);
+                Scene scene = parser.parseScene(scenePath, i, scale);
                 std::cout << "  |_ Scene loaded in: " << tSceneLoading.elapsed() << "s" << std::endl;
 
                 // Save scene at scale 1.0f for visualization
-                if (scale == 1.0f) {
+                if (scale <= 1.1f && scale >= 0.9f) {
                     result = scene.srcRGB.clone();
                 }
 
@@ -159,7 +159,7 @@ namespace tless {
                 objectness.objectness(scene.srcDepth, windows, scale);
                 std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
 
-//                Visualizer::visualizeWindows(scene.srcRGB, windows, false, 0, "Locations detected");
+                Visualizer::visualizeWindows(scene.srcRGB, windows, false, 0, "Locations detected");
 
                 /// Verification and filtering of template candidates
                 if (windows.empty()) {
@@ -170,7 +170,7 @@ namespace tless {
                 hasher.verifyCandidates(scene.srcDepth, scene.normals, tables, windows);
                 std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
 
-//                Visualizer::visualizeHashing(scene.srcRGB, scene.srcDepth, tables, windows, criteria, false);
+                Visualizer::visualizeHashing(scene.srcRGB, scene.srcDepth, tables, windows, criteria, false);
                 Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Filtered locations");
 
                 /// Match templates
@@ -179,14 +179,14 @@ namespace tless {
 
                 /// Show matched template results
                 std::cout << std::endl << "Matches size: " << matches.size() << std::endl;
-                Visualizer::visualizeMatches(scene.srcRGB, scale, matches, "data/400x400/", 1);
+                Visualizer::visualizeMatches(scene.srcRGB, scale, matches, "data/400x400/", 0);
 
                 std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
                 scale *= scaleFactor;
                 windows.clear();
             }
 
-            // Apply non-maxima suppresion
+            // Apply non-maxima suppression
             nonMaximaSuppression(matches, criteria->overlapFactor);
 
             // Visualize results
