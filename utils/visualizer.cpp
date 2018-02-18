@@ -142,7 +142,7 @@ namespace tless {
             setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 10));
             oss.str("");
             oss.precision(2);
-            oss << std::fixed << "score: " << match.score << " (" << (match.score * 100.0f) / 4.0f << "%)";
+            oss << std::fixed << "score: " << match.areaScore << " (" << (match.areaScore * 100.0f) / 4.0f << "%)";
             setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 28));
             oss.str("");
             oss << "I: " << match.sI;

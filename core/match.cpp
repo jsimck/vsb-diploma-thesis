@@ -2,7 +2,7 @@
 
 namespace tless {
     bool Match::operator<(const Match &rhs) const {
-        return score < rhs.score;
+        return areaScore < rhs.areaScore;
     }
 
     bool Match::operator>(const Match &rhs) const {

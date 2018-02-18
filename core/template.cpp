@@ -37,6 +37,7 @@ namespace tless {
            << "srcNormals (size): " << t.srcNormals.size() << std::endl
            << "resizeRatio: " << t.resizeRatio << std::endl
            << "objBB: " << t.objBB << std::endl
+           << "objArea: " << t.objArea << std::endl
            << "camera: " << t.camera << std::endl
            << "features - gradients size: " << t.features.gradients.size() << std::endl
            << "features - normals size: " << t.features.normals.size() << std::endl
@@ -60,6 +61,7 @@ namespace tless {
         node["depths"] >> t.features.depths;
         node["colors"] >> t.features.colors;
         node["objBB"] >> t.objBB;
+        node["objArea"] >> t.objArea;
         node["resizeRatio"] >> t.resizeRatio;
         node["camera"] >> t.camera;
     }
@@ -82,6 +84,7 @@ namespace tless {
 
         fs << "resizeRatio" << t.resizeRatio;
         fs << "objBB" << t.objBB;
+        fs << "objArea" << t.objArea;
         fs << "camera" << t.camera;
         fs << "}";
 

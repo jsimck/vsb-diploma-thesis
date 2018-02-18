@@ -49,6 +49,19 @@ namespace tless {
         cv::imwrite(outputPath + "rgb/" + tpl.fileName + ".png", resizedRGB);
         cv::imwrite(outputPath + "depth/" + tpl.fileName + ".png", resizedDepth);
 #endif
+
+        // Calculate object area
+        cv::Mat gray;
+        cv::cvtColor(resizedRGB, gray, CV_BGR2GRAY);
+        const uchar minValue = 20;
+
+        for (int y = 0; y < gray.rows; y++) {
+            for (int x = 0; x < gray.cols; x++) {
+                if (gray.at<uchar>(y, x) > minValue) {
+                    tpl.objArea++;
+                }
+            }
+        }
     }
 
     Template Converter::parseTemplate(uint index, const std::string &basePath, cv::FileNode &gtNode, cv::FileNode &infoNode) {

@@ -403,7 +403,7 @@ namespace tless {
                 cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
 
                 #pragma omp critical
-                matches.emplace_back(candidate, matchBB, scale, score, score * (candidate->objBB.area() / scale), sI, sII, sIII, sIV, sV);
+                matches.emplace_back(candidate, matchBB, scale, score, score * (candidate->objArea / scale), sI, sII, sIII, sIV, sV);
 
 #ifndef NDEBUG
                 std::cout

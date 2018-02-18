@@ -159,7 +159,7 @@ namespace tless {
                 objectness.objectness(scene.srcDepth, windows, scale);
                 std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
 
-                Visualizer::visualizeWindows(scene.srcRGB, windows, false, 0, "Locations detected");
+//                Visualizer::visualizeWindows(scene.srcRGB, windows, false, 0, "Locations detected");
 
                 /// Verification and filtering of template candidates
                 if (windows.empty()) {
@@ -170,8 +170,8 @@ namespace tless {
                 hasher.verifyCandidates(scene.srcDepth, scene.normals, tables, windows);
                 std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
 
-                Visualizer::visualizeHashing(scene.srcRGB, scene.srcDepth, tables, windows, criteria, false);
-                Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Filtered locations");
+//                Visualizer::visualizeHashing(scene.srcRGB, scene.srcDepth, tables, windows, criteria, false);
+//                Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Filtered locations");
 
                 /// Match templates
                 assert(!windows.empty());
@@ -179,7 +179,7 @@ namespace tless {
 
                 /// Show matched template results
                 std::cout << std::endl << "Matches size: " << matches.size() << std::endl;
-                Visualizer::visualizeMatches(scene.srcRGB, scale, matches, "data/400x400/", 0);
+//                Visualizer::visualizeMatches(scene.srcRGB, scale, matches, "data/400x400/", 0);
 
                 std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
                 scale *= scaleFactor;

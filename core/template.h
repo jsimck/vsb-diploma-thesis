@@ -40,6 +40,7 @@ namespace tless {
         } features;
 
         cv::Rect objBB; //!< Object bounding box
+        int objArea = 0;
         Camera camera; //!< Camera parameters
         int votes = 0;
 
