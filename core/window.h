@@ -18,6 +18,8 @@ namespace tless {
         Window() = default;
         Window(int x, int y, int width, int height, int edgels)
                 : x(x), y(y), width(width), height(height), edgels(edgels) {}
+        Window(cv::Rect rect, int edgels)
+                : x(rect.tl().x), y(rect.tl().y), width(rect.width), height(rect.height), edgels(edgels) {}
 
         cv::Point tl();
         cv::Point tr();

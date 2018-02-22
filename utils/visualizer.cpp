@@ -457,4 +457,43 @@ namespace tless {
         // Spacebar pressed
         return keyPressed == 32;
     }
+
+    cv::Mat Visualizer::loadSrc(Template &tpl, int flags) {
+        std::ostringstream oss;
+        oss << templatesPath;
+        oss << std::setw(2) << std::setfill('0') << static_cast<int>(std::floor(tpl.id / 2000));
+
+        if (flags == CV_LOAD_IMAGE_UNCHANGED) {
+            oss << "/depth/" << tpl.fileName << ".png";
+        } else {
+            oss << "/rgb/" << tpl.fileName << ".png";
+        }
+
+        return cv::imread(oss.str(), flags);
+    }
+
+    void Visualizer::visualizeCandidates(Scene &scene, Window &window, int wait, const char *title) {
+        cv::Mat result = scene.srcRGB.clone();
+        cv::rectangle(result, window.rect(), cv::Scalar(0, 255, 0));
+
+        if (!window.candidates.empty()) {
+            int size = window.candidates[0]->objBB.width;
+            auto gridSize = static_cast<int>(std::ceil(std::sqrt(window.candidates.size())));
+            cv::Mat tplMosaic = cv::Mat::zeros(gridSize * size, gridSize * size, CV_8UC3);
+
+            for (int i = 0; i < window.candidates.size(); ++i) {
+                Template *candidate = window.candidates[i];
+                cv::Mat src = loadSrc(*candidate);
+                src.copyTo(tplMosaic(cv::Rect((i % gridSize) * size, (i / gridSize) * size, size, size)));
+            }
+
+            cv::imshow("Window templates", tplMosaic);
+            cv::waitKey(0);
+        }
+
+        std::ostringstream oss;
+        oss << "Showing candidates for window " << window.rect();
+        cv::imshow(title == nullptr ? oss.str() : title, result);
+        cv::waitKey(wait);
+    }
 }

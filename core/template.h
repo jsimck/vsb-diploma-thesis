@@ -46,6 +46,7 @@ namespace tless {
 
         Template() = default;
 
+        // TODO REMOVE -> moved to visualizer
         /**
          * @brief Dynamic image loading when t.src are not load (mainly for debugging)
          *

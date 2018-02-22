@@ -9,14 +9,32 @@
 #include "../core/classifier_criteria.h"
 #include "../core/hash_table.h"
 #include "../core/match.h"
+#include "../core/scene.h"
 
 namespace tless {
     class Visualizer {
     private:
+        cv::Ptr<ClassifierCriteria> criteria;
+        std::string templatesPath;
+
         static void visualizeWindow(cv::Mat &scene, Window &window);
         static cv::Vec3b heatMapValue(int min, int max, int value);
 
+        /**
+         * @brief Dynamic image loading when t.src are not load (mainly for debugging)
+         *
+         * @param[in] tpl   Input template, used to compute path based on it's id and filename
+         * @param[in] flags Color of the loaded source image (CV_LOAD_IMAGE_COLOR, CV_LOAD_IMAGE_UNCHANGED)
+         * @return          Loaded image
+         */
+        cv::Mat loadSrc(Template &tpl, int flags = CV_LOAD_IMAGE_COLOR);
+
     public:
+        Visualizer(cv::Ptr<ClassifierCriteria> criteria, std::string templatesPath = "data/108x108/")
+                : criteria(criteria), templatesPath(templatesPath) {}
+
+        void visualizeCandidates(Scene &scene, Window &window, int wait = 0, const char *title = nullptr);
+
         // Hashing
         static void visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables,
                                      std::vector<Window> &windows,

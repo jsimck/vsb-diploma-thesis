@@ -21,7 +21,7 @@ namespace tless {
         int sI = 0, sII = 0, sIII = 0, sIV = 0, sV = 0;
 
         Match() = default;
-        Match(Template *t, cv::Rect &bb, float scale, float score, float areaScore, int sI, int sII, int sIII, int sIV, int sV)
+        Match(Template *t, cv::Rect bb, float scale, float score, float areaScore, int sI, int sII, int sIII, int sIV, int sV)
                 : t(t), objBB(bb), scale(scale), score(score), areaScore(areaScore), sI(sI), sII(sII), sIII(sIII), sIV(sIV), sV(sV) {}
 
         /**
