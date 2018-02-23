@@ -8,8 +8,11 @@ namespace tless {
     cv::Point Triplet::randPoint(cv::Size grid) {
         static std::random_device rd;
         static std::mt19937 gen(rd());
-        static std::normal_distribution<> dX(0, grid.width * 0.5f);
-        static std::normal_distribution<> dY(0, grid.height * 0.5f);
+        // TODO - check which distribution is better
+//        static std::normal_distribution<> dX(grid.width * 0.5f, grid.width * 0.4f);
+//        static std::normal_distribution<> dY(grid.height * 0.5f, grid.height * 0.4f);
+        static std::uniform_int_distribution<> dX(0, grid.width - 1);
+        static std::uniform_int_distribution<> dY(0, grid.height - 1);
 
         int x, y;
         do {

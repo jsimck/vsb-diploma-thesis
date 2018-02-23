@@ -24,6 +24,7 @@ namespace tless {
     }
 
     std::ostream &operator<<(std::ostream &os, const HashTable &table) {
+        os << "Size: " << table.size << std::endl;
         os << "Triplet " << table.triplet << std::endl;
 
         os << "Bin ranges:" << std::endl;
@@ -40,6 +41,7 @@ namespace tless {
             }
             os << ")" << std::endl;
         }
+
         return os;
     }
 

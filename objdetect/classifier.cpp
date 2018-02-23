@@ -66,6 +66,20 @@ namespace tless {
         assert(!tables.empty());
         std::cout << "    |_ " << tables.size() << " hash tables generated" << std::endl;
 
+        cv::Mat test = cv::Mat::zeros(108, 108, CV_8UC3);
+        for (auto &table : tables) {
+            cv::line(test, table.triplet.c, table.triplet.p1, cv::Scalar(0, 155, 0));
+            cv::line(test, table.triplet.c, table.triplet.p2, cv::Scalar(0, 155, 0));
+            cv::circle(test, table.triplet.c, 3, cv::Scalar(0, 0, 255), -1);
+            cv::circle(test, table.triplet.p1, 3, cv::Scalar(0, 255, 0), -1);
+            cv::circle(test, table.triplet.p2, 3, cv::Scalar(255, 0, 0), -1);
+
+            std::cout << table << std::endl;
+            cv::imshow("gray", test);
+            cv::waitKey(1);
+        }
+        cv::waitKey(0);
+
         // Persist hashTables
         fsw << "tables" << "[";
         for (auto &table : tables) {

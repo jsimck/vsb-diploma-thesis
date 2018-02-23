@@ -6,6 +6,7 @@
 #include <ostream>
 #include <utility>
 #include "camera.h"
+#include "triplet.h"
 
 namespace tless {
     /**
@@ -43,6 +44,7 @@ namespace tless {
         int objArea = 0;
         Camera camera; //!< Camera parameters
         int votes = 0;
+        std::vector<Triplet> triplets; // TODO - remove/refactor, mostly for debugging, Triplets that were equal in hashing verification
 
         Template() = default;
 

@@ -30,7 +30,7 @@ namespace tless {
          * @param[in]  minGray Minimum value of gray image to be considered as containing object
          * @return             Return true if triplet passed all validation tests
          */
-        bool validateTripletPoints(const Triplet &triplet, const cv::Mat &depth, const cv::Mat *gray, cv::Rect window,
+        bool validateTripletPoints(const Triplet &triplet, const cv::Mat &depth, const cv::Mat &gray, cv::Rect window,
                                    int &p1Diff, int &p2Diff, cv::Point &nC, cv::Point &nP1, cv::Point &nP2, uchar minGray = 40);
 
         /**

@@ -17,10 +17,8 @@ namespace tless {
      * on the custom hash key, that's formed on template quantized values.
      */
     class HashTable {
-    private:
-        size_t size = 0;  //!< Size of hash table (in terms of number of templates)
-
     public:
+        size_t size = 0;  //!< Size of hash table (in terms of number of templates)
         Triplet triplet;
         std::vector<cv::Range> binRanges;
         std::unordered_map<HashKey, std::vector<Template *>, HashKeyHasher> templates;

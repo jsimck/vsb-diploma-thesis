@@ -139,6 +139,10 @@ namespace tless {
         if (scale != 1.0f) {
             cv::resize(scene.srcRGB, scene.srcRGB, cv::Size(), scale, scale);
             cv::resize(scene.srcDepth, scene.srcDepth, cv::Size(), scale, scale);
+
+            // TODO - check if it's ok to do this based on objectness/matcher/hasher and correct all recalculations
+            // Recalculate depth values
+            scene.srcDepth = scene.srcDepth / scale;
         }
 
         // Convert to gray and hsv

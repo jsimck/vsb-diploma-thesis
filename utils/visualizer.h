@@ -35,6 +35,8 @@ namespace tless {
 
         void visualizeCandidates(Scene &scene, Window &window, int wait = 0, const char *title = nullptr);
 
+
+        // TODO REFACTOR ---->>>
         // Hashing
         static void visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables,
                                      std::vector<Window> &windows,
@@ -62,10 +64,10 @@ namespace tless {
                                       const char *title = nullptr);
 
         // Utils
-        static void setLabel(cv::Mat &im, const std::string &label, const cv::Point &origin, int padding = 1,
+        static void setLabel(cv::Mat &dst, const std::string &label, const cv::Point &origin, int padding = 1,
                              int fontFace = CV_FONT_HERSHEY_SIMPLEX, double scale = 0.4,
-                             const cv::Scalar &fColor = cv::Scalar(255, 255, 255),
-                             const cv::Scalar &bColor = cv::Scalar(0, 0, 0), int thickness = 1);
+                             cv::Scalar fColor = cv::Scalar(255, 255, 255),
+                             cv::Scalar bColor = cv::Scalar(0, 0, 0), int thickness = 1);
     };
 }
 

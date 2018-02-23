@@ -14,6 +14,8 @@ namespace tless {
         int width = 0, height = 0;
         int edgels = 0; //!< Number of edgels this window contain (detected in objectness detection)
         std::vector<Template *> candidates;
+        std::vector<int> votes; // TODO better handle saving of candidate votes
+        std::vector<std::vector<Triplet>> triplets; // TODO better handle saving of candidate triplets
 
         Window() = default;
         Window(int x, int y, int width, int height, int edgels)

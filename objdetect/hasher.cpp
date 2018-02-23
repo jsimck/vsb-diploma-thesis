@@ -5,7 +5,7 @@
 #include "../processing/computation.h"
 
 namespace tless {
-    bool Hasher::validateTripletPoints(const Triplet &triplet, const cv::Mat &depth, const cv::Mat *gray, cv::Rect window,
+    bool Hasher::validateTripletPoints(const Triplet &triplet, const cv::Mat &depth, const cv::Mat &gray, cv::Rect window,
                                        int &p1Diff, int &p2Diff, cv::Point &nC, cv::Point &nP1, cv::Point &nP2, uchar minGray) {
         // Offset triplet points by template bounding box
         nC = triplet.c + window.tl();
@@ -21,10 +21,10 @@ namespace tless {
         }
 
         // Check for minimal gray value (triplet is on an object)
-        if (gray != nullptr) {
-            if (gray->at<uchar>(nC) < minGray) return false;
-            if (gray->at<uchar>(nP1) < minGray) return false;
-            if (gray->at<uchar>(nP2) < minGray) return false;
+        if (!gray.empty()) {
+            if (gray.at<uchar>(nC) < minGray) return false;
+            if (gray.at<uchar>(nP1) < minGray) return false;
+            if (gray.at<uchar>(nP2) < minGray) return false;
         }
 
         // Get depth value at each triplet point
@@ -57,7 +57,7 @@ namespace tless {
                 int p1Diff, p2Diff;
 
                 // Skip if points are not valid
-                if (!validateTripletPoints(tables[i].triplet, t.srcDepth, &t.srcGray, t.objBB, p1Diff, p2Diff, c, p1, p2)) {
+                if (!validateTripletPoints(tables[i].triplet, t.srcDepth, t.srcGray, t.objBB, p1Diff, p2Diff, c, p1, p2)) {
                     continue;
                 }
 
@@ -102,7 +102,7 @@ namespace tless {
         assert(criteria->info.largestArea.area() > 0);
 
         // Generate triplets
-        const uint N = criteria->tablesCount * 50;
+        const uint N = criteria->tablesCount * criteria->tablesTrainingMultiplier;
         for (uint i = 0; i < N; ++i) {
             tables.emplace_back(Triplet::create(criteria->tripletGrid, criteria->info.largestArea));
         }
@@ -123,7 +123,7 @@ namespace tless {
                 int p1Diff, p2Diff;
 
                 // Skip if points are not valid
-                if (!validateTripletPoints(tables[i].triplet, t.srcDepth, nullptr, t.objBB, p1Diff, p2Diff, c, p1, p2)) {
+                if (!validateTripletPoints(tables[i].triplet, t.srcDepth, t.srcGray, t.objBB, p1Diff, p2Diff, c, p1, p2)) {
                     continue;
                 }
 
@@ -167,7 +167,7 @@ namespace tless {
                 int p1Diff, p2Diff;
 
                 // Skip if points are not valid
-                if (!validateTripletPoints(table.triplet, depth, nullptr, windows[i].rect(), p1Diff, p2Diff, c, p1, p2)) {
+                if (!validateTripletPoints(table.triplet, depth, cv::Mat(), windows[i].rect(), p1Diff, p2Diff, c, p1, p2)) {
                     continue;
                 }
 
@@ -182,16 +182,27 @@ namespace tless {
                 // Vote for each template in hash table at specific key and push unique to window candidates
                 for (auto &entry : table.templates[key]) {
                     entry->votes++;
+                    entry->triplets.push_back(table.triplet); // TODO remove, mostly for debugging
 
                     // pushes only unique templates with minimum of votes (minVotes) building vector of size up to N
                     windows[i].pushUnique(entry, criteria->tablesCount, criteria->minVotes);
-                    usedTemplates.emplace_back(entry);
+                    usedTemplates.push_back(entry);
                 }
+            }
+
+            // Sort candidates based on the votes
+            std::stable_sort(windows[i].candidates.begin(), windows[i].candidates.end(), [](Template *t1, Template *t2) { return t1->votes > t2->votes; }); // TODO remove, mostly for debugging
+
+            // Save votes for current window in separate array
+            for (auto &candidate : windows[i].candidates) {
+                windows[i].votes.push_back(candidate->votes);
+                windows[i].triplets.push_back(candidate->triplets); // TODO remove, mostly for debugging
             }
 
             // Reset votes for all used templates
             for (auto &t : usedTemplates) {
                 t->votes = 0;
+                t->triplets.clear(); // TODO remove, mostly for debugging
             }
 
             usedTemplates.clear();

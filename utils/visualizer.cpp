@@ -47,12 +47,12 @@ namespace tless {
         }
     }
 
-    void Visualizer::setLabel(cv::Mat &im, const std::string &label, const cv::Point &origin, int padding, int fontFace,
-                              double scale, const cv::Scalar &fColor, const cv::Scalar &bColor, int thickness) {
+    void Visualizer::setLabel(cv::Mat &dst, const std::string &label, const cv::Point &origin, int padding, int fontFace,
+                              double scale, cv::Scalar fColor, cv::Scalar bColor, int thickness) {
         cv::Size text = cv::getTextSize(label, fontFace, scale, thickness, nullptr);
-        rectangle(im, origin + cv::Point(-padding - 1, padding + 2),
+        rectangle(dst, origin + cv::Point(-padding - 1, padding + 2),
                   origin + cv::Point(text.width + padding, -text.height - padding - 2), bColor, CV_FILLED);
-        putText(im, label, origin, fontFace, scale, fColor, thickness, CV_AA);
+        putText(dst, label, origin, fontFace, scale, fColor, thickness, CV_AA);
     }
 
     void Visualizer::visualizeWindow(cv::Mat &scene, Window &window) {
@@ -474,26 +474,55 @@ namespace tless {
 
     void Visualizer::visualizeCandidates(Scene &scene, Window &window, int wait, const char *title) {
         cv::Mat result = scene.srcRGB.clone();
-        cv::rectangle(result, window.rect(), cv::Scalar(0, 255, 0));
+        std::ostringstream oss;
 
+        // Create template mosaic of found candidates
         if (!window.candidates.empty()) {
-            int size = window.candidates[0]->objBB.width;
+            // Define grid, offsets and initialize tpl mosaic matrix
+            const int offset = 8, topOffset = 30;
+            int x, y, width = window.candidates[0]->objBB.width;
+            int sizeX = width + 2 * offset, sizeY = width + offset + topOffset;
             auto gridSize = static_cast<int>(std::ceil(std::sqrt(window.candidates.size())));
-            cv::Mat tplMosaic = cv::Mat::zeros(gridSize * size, gridSize * size, CV_8UC3);
+            cv::Mat tplMosaic = cv::Mat::zeros(gridSize * sizeY, gridSize * sizeX, CV_8UC3);
 
             for (int i = 0; i < window.candidates.size(); ++i) {
                 Template *candidate = window.candidates[i];
+
+                // Calculate x, y and rect inside defined mosaic grid
+                x = (i % gridSize);
+                y = (i / gridSize);
+                cv::Rect rect(x * sizeX + offset, y * sizeY + offset, width, width);
+
+                // Load template src image
                 cv::Mat src = loadSrc(*candidate);
-                src.copyTo(tplMosaic(cv::Rect((i % gridSize) * size, (i / gridSize) * size, size, size)));
+                src.copyTo(tplMosaic(rect));
+
+                // Draw triplets
+                for (auto &triplet : window.triplets[i]) {
+                    cv::circle(tplMosaic, rect.tl() + triplet.c, 2, cv::Scalar(0, 0, 255), -1);
+                    cv::circle(tplMosaic, rect.tl() + triplet.p1, 2, cv::Scalar(0, 0, 255), -1);
+                    cv::circle(tplMosaic, rect.tl() + triplet.p2, 2, cv::Scalar(0, 0, 255), -1);
+                    cv::line(tplMosaic, rect.tl() + triplet.c, rect.tl() + triplet.p1, cv::Scalar(0, 0, 255));
+                    cv::line(tplMosaic, rect.tl() + triplet.c, rect.tl() + triplet.p2, cv::Scalar(0, 0, 255));
+                }
+
+                // Annotate templates in mosaic
+                cv::rectangle(tplMosaic, rect, cv::Scalar(0, 255, 0));
+                oss << "Votes: " << window.votes[i];
+                setLabel(tplMosaic, oss.str(), cv::Point(rect.x, rect.y + rect.height + 15));
+                oss.str("");
             }
 
-            cv::imshow("Window templates", tplMosaic);
-            cv::waitKey(0);
+            cv::imshow("Candidate templates", tplMosaic);
         }
 
-        std::ostringstream oss;
-        oss << "Showing candidates for window " << window.rect();
-        cv::imshow(title == nullptr ? oss.str() : title, result);
+        // Annotate scene
+        cv::rectangle(result, window.rect(), cv::Scalar(0, 255, 0));
+        oss << "Candidates: " << window.candidates.size();
+        setLabel(result, oss.str(), cv::Point(window.bl().x, window.bl().y + 15));
+
+        // Show results
+        cv::imshow(title == nullptr ? "Window candidates" : title, result);
         cv::waitKey(wait);
     }
 }
