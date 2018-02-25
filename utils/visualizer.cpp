@@ -165,7 +165,7 @@ namespace tless {
 
 //            // Load matched template
 //            cv::Mat tplSrc;
-//            Template::loadSrc(templatesPath, *match.t, tplSrc, CV_LOAD_IMAGE_COLOR);
+//            Template::loadTemplateSrc(templatesPath, *match.t, tplSrc, CV_LOAD_IMAGE_COLOR);
 //
 //            // draw label and bounding box
 //            cv::rectangle(tplSrc, match.t->objBB.tl(), match.t->objBB.br(), cv::Scalar(0, 255, 0));
@@ -458,7 +458,7 @@ namespace tless {
         return keyPressed == 32;
     }
 
-    cv::Mat Visualizer::loadSrc(Template &tpl, int flags) {
+    cv::Mat Visualizer::loadTemplateSrc(Template &tpl, int flags) {
         std::ostringstream oss;
         oss << templatesPath;
         oss << std::setw(2) << std::setfill('0') << static_cast<int>(std::floor(tpl.id / 2000));
@@ -472,14 +472,14 @@ namespace tless {
         return cv::imread(oss.str(), flags);
     }
 
-    void Visualizer::windowCandidates(Scene &scene, Window &window, int wait, const char *title) {
-        cv::Mat result = scene.srcRGB.clone();
+    void Visualizer::windowCandidates(const cv::Mat &src, cv::Mat &dst, Window &window) {
         std::ostringstream oss;
+        dst = src.clone();
 
         // Create template mosaic of found candidates
         if (!window.candidates.empty()) {
             // Define grid, offsets and initialize tpl mosaic matrix
-            const int offset = 8, topOffset = 30;
+            const int offset = 8, topOffset = 25;
             int x, y, width = window.candidates[0]->objBB.width;
             int sizeX = width + 2 * offset, sizeY = width + offset + topOffset;
             auto gridSize = static_cast<int>(std::ceil(std::sqrt(window.candidates.size())));
@@ -494,8 +494,8 @@ namespace tless {
                 cv::Rect rect(x * sizeX + offset, y * sizeY + offset, width, width);
 
                 // Load template src image
-                cv::Mat src = loadSrc(*candidate);
-                src.copyTo(tplMosaic(rect));
+                cv::Mat tplSrc = loadTemplateSrc(*candidate);
+                tplSrc.copyTo(tplMosaic(rect));
 
                 // Draw triplets
                 for (auto &triplet : window.triplets[i]) {
@@ -507,7 +507,7 @@ namespace tless {
                 }
 
                 // Annotate templates in mosaic
-                cv::rectangle(tplMosaic, rect, cv::Scalar(255, 255, 255), 1, CV_AA);
+                cv::rectangle(tplMosaic, rect, cv::Scalar(200, 200, 200), 1);
                 oss << "Votes: " << window.votes[i];
                 setLabel(tplMosaic, oss.str(), cv::Point(rect.x, rect.y + rect.height + 15));
                 oss.str("");
@@ -517,12 +517,52 @@ namespace tless {
         }
 
         // Annotate scene
-        cv::rectangle(result, window.rect(), cv::Scalar(0, 255, 0), 1, CV_AA);
-        oss << "Candidates: " << window.candidates.size();
-        setLabel(result, oss.str(), cv::Point(window.bl().x, window.bl().y + 15));
+        cv::rectangle(dst, window.rect(), cv::Scalar(0, 255, 0), 1, CV_AA);
 
-        // Show results
-        cv::imshow(title == nullptr ? "Window candidates" : title, result);
-        cv::waitKey(wait);
+        // Set labels
+        oss << "candidates: " << window.candidates.size();
+        setLabel(dst, oss.str(), window.tr() + cv::Point(5, 12));
+        oss.str("");
+        oss << "edgels: " << window.edgels;
+        setLabel(dst, oss.str(), window.tr() + cv::Point(5, 30));
+    }
+
+    void Visualizer::windowsCandidates(const cv::Mat &src, std::vector<Window> &windows, int wait, const char *title) {
+        const int winSize = static_cast<const int>(windows.size());
+        cv::Mat result;
+
+        for (int i = 0; i < windows.size(); ++i) {
+            result = src.clone();
+
+            // Draw all other windows in gray
+            for (auto &win : windows) {
+                cv::rectangle(result, win.rect(), cv::Scalar(90, 90, 90), 1);
+            }
+
+            // Vizualize window candidates
+            windowCandidates(result, result, windows[i]);
+
+            // Title
+            std::ostringstream oss;
+            oss << " Locations: " << windows.size();
+            setLabel(result, oss.str(), cv::Point(0, 12));
+            cv::imshow(title == nullptr ? "Window candidates" : title, result);
+
+            // Get key pressed
+            int key = cv::waitKey(wait);
+
+            // Navigation using arrow keys and spacebar
+            if (key == KEY_UP) {
+                i = (i + 10 < winSize) ? i + 9 : winSize - i - 1;
+            } else if (key == KEY_DOWN) {
+                i = (i - 10 > 0) ? i - 11 : -1;
+            } else if (key == KEY_LEFT) {
+                i = (i - 1 > 0) ? i - 2 : -1;
+            } else if (key == KEY_ENTER) {
+                i = (i + 100 < winSize) ? i + 99 : winSize - i - 1;
+            } else if (key == KEY_SPACEBAR) {
+                break;
+            }
+        }
     }
 }

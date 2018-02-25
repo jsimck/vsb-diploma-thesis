@@ -151,34 +151,24 @@ namespace tless {
         Visualizer viz(criteria);
         std::cout << *criteria << std::endl;
 
-        objectness.objectness(scene.srcDepth, windows);
-        Visualizer::visualizeWindows(scene.srcRGB, windows, false, 0, "Locations detected");
-        windows.clear();
-
         objectness.objectness(scene1.srcDepth, windows);
-        Visualizer::visualizeWindows(scene1.srcRGB, windows, false, 0, "Locations detected");
+//        Visualizer::visualizeWindows(scene1.srcRGB, windows, false, 1, "Locations detected");
         hasher.verifyCandidates(scene1.srcDepth, scene1.srcNormals, tables, windows);
-        for (auto &window : windows) {
-            viz.windowCandidates(scene1, window);
-        }
+        viz.windowsCandidates(scene1.srcRGB, windows);
 
         windows.clear();
 
         objectness.objectness(scene2.srcDepth, windows);
-        Visualizer::visualizeWindows(scene2.srcRGB, windows, false, 0, "Locations detected");
+//        Visualizer::visualizeWindows(scene2.srcRGB, windows, false, 1, "Locations detected");
         hasher.verifyCandidates(scene2.srcDepth, scene2.srcNormals, tables, windows);
-        for (auto &window : windows) {
-            viz.windowCandidates(scene2, window);
-        }
+        viz.windowsCandidates(scene2.srcRGB, windows);
 
         windows.clear();
 
         objectness.objectness(scene3.srcDepth, windows);
-        Visualizer::visualizeWindows(scene3.srcRGB, windows, false, 0, "Locations detected");
+//        Visualizer::visualizeWindows(scene3.srcRGB, windows, false, 1, "Locations detected");
         hasher.verifyCandidates(scene3.srcDepth, scene3.srcNormals, tables, windows);
-        for (auto &window : windows) {
-            viz.windowCandidates(scene3, window);
-        }
+        viz.windowsCandidates(scene3.srcRGB, windows);
 
         windows.clear();
 

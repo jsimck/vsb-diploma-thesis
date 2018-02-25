@@ -14,6 +14,9 @@
 namespace tless {
     class Visualizer {
     private:
+        // cv::waitKey() key values
+        const int KEY_UP = 0, KEY_DOWN = 1, KEY_LEFT = 2, KEY_RIGHT = 3, KEY_SPACEBAR = 32, KEY_ENTER = 13;
+
         cv::Ptr<ClassifierCriteria> criteria;
         std::string templatesPath;
 
@@ -27,21 +30,48 @@ namespace tless {
          * @param[in] flags Color of the loaded source image (CV_LOAD_IMAGE_COLOR, CV_LOAD_IMAGE_UNCHANGED)
          * @return          Loaded image
          */
-        cv::Mat loadSrc(Template &tpl, int flags = CV_LOAD_IMAGE_COLOR);
+        cv::Mat loadTemplateSrc(Template &tpl, int flags = CV_LOAD_IMAGE_COLOR);
+
+        /**
+         * @brief Vizualizes candidates for given window along with matched triplets and number of votes
+         *
+         * @param[in]  src    8-bit rgb image of the scene we want to vizualize hashing on
+         * @param[out] dst    Destination image annotated with current window
+         * @param[in]  window Sliding window that passed hashing verification
+         */
+        void windowCandidates(const cv::Mat &src, cv::Mat &dst, Window &window);
 
     public:
         Visualizer(cv::Ptr<ClassifierCriteria> criteria, const std::string &templatesPath = "data/108x108/")
                 : criteria(criteria), templatesPath(templatesPath) {}
 
         /**
-         * @brief Vizualizes candidates for given window along with matched triplets and number of votes
+         * @brief Draws label with surrounded background for better visibility on any source image
          *
-         * @param[in] scene  Scene object, to vizualize hashing candidates on
-         * @param[in] window Sliding window that passed hashing verification
-         * @param[in] wait   Optional wait time in waitKey() function
-         * @param[in] title  Optional image window title
+         * @param[in,out] dst       8-bit 3-channel RGB source image
+         * @param[in]     label     Text that should be displayed
+         * @param[in]     origin    Bottom left corner of the text, where it should be drawn
+         * @param[in]     padding   Padding inside text box
+         * @param[in]     fontFace  OpenCV Font Face
+         * @param[in]     scale     Font scale (size)
+         * @param[in]     fColor    Foreground color
+         * @param[in]     bColor    Background color
+         * @param[in]     thickness Font thickness
          */
-        void windowCandidates(Scene &scene, Window &window, int wait = 0, const char *title = nullptr);
+        static void setLabel(cv::Mat &dst, const std::string &label, const cv::Point &origin, int padding = 1,
+                             int fontFace = CV_FONT_HERSHEY_SIMPLEX, double scale = 0.4,
+                             cv::Scalar fColor = cv::Scalar(255, 255, 255),
+                             cv::Scalar bColor = cv::Scalar(0, 0, 0), int thickness = 1);
+
+        /**
+         * @brief Vizualizes candidates for given window array along with matched triplets and number of votes
+         *
+         * @param[in] src     8-bit rgb image of the scene we want to vizualize hashing on
+         * @param[in] windows Array of sliding windows that passed hashing verification and contain candidates
+         * @param[in] wait    Optional wait time in waitKey() function
+         * @param[in] title   Optional image window title
+         */
+        void windowsCandidates(const cv::Mat &src, std::vector<Window> &windows, int wait = 0, const char *title = nullptr);
 
 
         // TODO REFACTOR ---->>>
@@ -72,10 +102,6 @@ namespace tless {
                                       const char *title = nullptr);
 
         // Utils
-        static void setLabel(cv::Mat &dst, const std::string &label, const cv::Point &origin, int padding = 1,
-                             int fontFace = CV_FONT_HERSHEY_SIMPLEX, double scale = 0.4,
-                             cv::Scalar fColor = cv::Scalar(255, 255, 255),
-                             cv::Scalar bColor = cv::Scalar(0, 0, 0), int thickness = 1);
     };
 }
 
