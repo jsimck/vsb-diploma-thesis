@@ -24,4 +24,8 @@ namespace tless {
 
         return os;
     }
+
+    bool HashKey::empty() {
+        return d1 == 0 && d2 == 0 && n1 == 0 && n2 == 0 && n3 == 0;
+    }
 }

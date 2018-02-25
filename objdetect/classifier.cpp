@@ -66,20 +66,6 @@ namespace tless {
         assert(!tables.empty());
         std::cout << "    |_ " << tables.size() << " hash tables generated" << std::endl;
 
-        cv::Mat test = cv::Mat::zeros(108, 108, CV_8UC3);
-        for (auto &table : tables) {
-            cv::line(test, table.triplet.c, table.triplet.p1, cv::Scalar(0, 155, 0));
-            cv::line(test, table.triplet.c, table.triplet.p2, cv::Scalar(0, 155, 0));
-            cv::circle(test, table.triplet.c, 3, cv::Scalar(0, 0, 255), -1);
-            cv::circle(test, table.triplet.p1, 3, cv::Scalar(0, 255, 0), -1);
-            cv::circle(test, table.triplet.p2, 3, cv::Scalar(255, 0, 0), -1);
-
-            std::cout << table << std::endl;
-            cv::imshow("gray", test);
-            cv::waitKey(1);
-        }
-        cv::waitKey(0);
-
         // Persist hashTables
         fsw << "tables" << "[";
         for (auto &table : tables) {
@@ -146,7 +132,7 @@ namespace tless {
         load(trainedTemplatesListPath, trainedPath);
 
         cv::Mat result;
-        const float initialScale = .4;
+        const float initialScale = .4f;
         const float scaleFactor = 1.25f;
         const int finalScaleLevel = 9;
         float scale = initialScale;
@@ -156,10 +142,7 @@ namespace tless {
         // scale 2 = .736111111f at cv::Rect(211, 67, 108, 108) [530]
         // scale 3 = .402777778f at cv::Rect(116, 85, 108, 108) [290]
 
-        Match match1 = Match(nullptr, cv::Rect(122, 126, 108, 108), .722222222f, 1, 1, 60, 60, 60, 60, 60);
-        Match match2 = Match(nullptr, cv::Rect(211, 67, 108, 108), .736111111f, 1, 1, 60, 60, 60, 60, 60);
-        Match match3 = Match(nullptr, cv::Rect(116, 85, 108, 108), .402777778f, 1, 1, 60, 60, 60, 60, 60);
-
+        criteria->info.maxDepth = 20000;
         Scene scene = parser.parseScene(scenePath, 0, 1.0f);
         Scene scene1 = parser.parseScene(scenePath, 0, .722222222f);
         Scene scene2 = parser.parseScene(scenePath, 0, .736111111f);
@@ -174,13 +157,72 @@ namespace tless {
         windows2.push_back(window2);
         windows3.push_back(window3);
 
-        hasher.verifyCandidates(scene1.srcDepth, scene1.normals, tables, windows1);
-        hasher.verifyCandidates(scene2.srcDepth, scene2.normals, tables, windows2);
-        hasher.verifyCandidates(scene3.srcDepth, scene3.normals, tables, windows3);
+        hasher.verifyCandidates(scene1.srcDepth, scene1.srcNormals, tables, windows1);
+        hasher.verifyCandidates(scene2.srcDepth, scene2.srcNormals, tables, windows2);
+        hasher.verifyCandidates(scene3.srcDepth, scene3.srcNormals, tables, windows3);
+
+//        cv::Mat tpl, tplNormals, tplSrc = cv::imread("data/108x108/07/rgb/0137.png", CV_LOAD_IMAGE_COLOR);
+//        cv::Mat tplDepth = cv::imread("data/108x108/07/depth/0137.png", CV_LOAD_IMAGE_UNCHANGED);
+//
+//        for (auto &table : tables) {
+//            quantizedNormals(tplDepth, tplNormals, 382.f, 382.f, 30000, static_cast<int>(criteria->maxDepthDiff / 0.40f));
+//
+//            tpl = tplSrc.clone();
+//            cv::line(tpl, table.triplet.c, table.triplet.p1, cv::Scalar(0, 155, 0));
+//            cv::line(tpl, table.triplet.c, table.triplet.p2, cv::Scalar(0, 155, 0));
+//            cv::circle(tpl, table.triplet.c, 3, cv::Scalar(0, 0, 255), -1);
+//            cv::circle(tpl, table.triplet.p1, 3, cv::Scalar(0, 255, 0), -1);
+//            cv::circle(tpl, table.triplet.p2, 3, cv::Scalar(255, 0, 0), -1);
+//
+//            cv::Mat test = scene3.srcRGB.clone();
+//            cv::line(test, table.triplet.c + window3.tl(), table.triplet.p1 + window3.tl(), cv::Scalar(0, 155, 0));
+//            cv::line(test, table.triplet.c + window3.tl(), table.triplet.p2 + window3.tl(), cv::Scalar(0, 155, 0));
+//            cv::circle(test, table.triplet.c + window3.tl(), 3, cv::Scalar(0, 0, 255), -1);
+//            cv::circle(test, table.triplet.p1 + window3.tl(), 3, cv::Scalar(0, 255, 0), -1);
+//            cv::circle(test, table.triplet.p2 + window3.tl(), 3, cv::Scalar(255, 0, 0), -1);
+//
+//            cv::Mat testNormals = scene3.srcNormals.clone();
+//            cv::line(testNormals, table.triplet.c + window3.tl(), table.triplet.p1 + window3.tl(), cv::Scalar(255));
+//            cv::line(testNormals, table.triplet.c + window3.tl(), table.triplet.p2 + window3.tl(), cv::Scalar(255));
+//            cv::circle(testNormals, table.triplet.c + window3.tl(), 3, cv::Scalar(255), -1);
+//            cv::circle(testNormals, table.triplet.p1 + window3.tl(), 3, cv::Scalar(255), -1);
+//            cv::circle(testNormals, table.triplet.p2 + window3.tl(), 3, cv::Scalar(255), -1);
+//
+//            std::cout << "SCENE: " << std::endl;
+//            std::cout << "  c: " << static_cast<int>(scene3.srcDepth.at<ushort>(table.triplet.c + window3.tl()));
+//            std::cout << "  p1: " << static_cast<int>(scene3.srcDepth.at<ushort>(table.triplet.p1 + window3.tl()));
+//            std::cout << "  p2: " << static_cast<int>(scene3.srcDepth.at<ushort>(table.triplet.p2 + window3.tl())) << std::endl;
+//            std::cout << "  norm c: " << static_cast<int>(scene3.srcNormals.at<uchar>(table.triplet.c + window3.tl()));
+//            std::cout << "  norm p1: " << static_cast<int>(scene3.srcNormals.at<uchar>(table.triplet.p1 + window3.tl()));
+//            std::cout << "  norm p2: " << static_cast<int>(scene3.srcNormals.at<uchar>(table.triplet.p2 + window3.tl())) << std::endl << std::endl;
+//
+//            std::cout << "TEMPLATE: " << std::endl;
+//            std::cout << "  c: " << static_cast<int>(tplDepth.at<ushort>(table.triplet.c));
+//            std::cout << "  p1: " << static_cast<int>(tplDepth.at<ushort>(table.triplet.p1));
+//            std::cout << "  p2: " << static_cast<int>(tplDepth.at<ushort>(table.triplet.p2)) << std::endl;
+//            std::cout << "  norm c: " << static_cast<int>(tplNormals.at<uchar>(table.triplet.c));
+//            std::cout << "  norm p1: " << static_cast<int>(tplNormals.at<uchar>(table.triplet.p1));
+//            std::cout << "  norm p2: " << static_cast<int>(tplNormals.at<uchar>(table.triplet.p2)) << std::endl << std::endl;
+//
+//            cv::line(tplNormals, table.triplet.c, table.triplet.p1, cv::Scalar(255));
+//            cv::line(tplNormals, table.triplet.c, table.triplet.p2, cv::Scalar(255));
+//            cv::circle(tplNormals, table.triplet.c, 3, cv::Scalar(255), -1);
+//            cv::circle(tplNormals, table.triplet.p1, 3, cv::Scalar(255), -1);
+//            cv::circle(tplNormals, table.triplet.p2, 3, cv::Scalar(255), -1);
+//
+//            cv::imshow("tpl - depth", tplDepth);
+//            cv::imshow("tpl - srcNormals", tplNormals);
+//            cv::imshow("tpl", tpl);
+//
+//            cv::imshow("scene3 - depth", scene3.srcDepth);
+//            cv::imshow("scene3 - srcNormals", testNormals);
+//            cv::imshow("scene", test);
+//            cv::waitKey(0);
+//        }
 
         Visualizer viz(criteria);
-        viz.visualizeCandidates(scene2, windows2[0]);
         viz.visualizeCandidates(scene1, windows1[0]);
+        viz.visualizeCandidates(scene2, windows2[0]);
         viz.visualizeCandidates(scene3, windows3[0]);
 
 //        std::cout << "windows1 candidates: " << windows1[0].candidates.size() << std::endl;
@@ -231,7 +273,7 @@ namespace tless {
 //                }
 //
 //                Timer tVerification;
-//                hasher.verifyCandidates(scene.srcDepth, scene.normals, tables, windows);
+//                hasher.verifyCandidates(scene.srcDepth, scene.srcNormals, tables, windows);
 //                std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
 //
 ////                Visualizer::visualizeHashing(scene.srcRGB, scene.srcDepth, tables, windows, criteria, false);

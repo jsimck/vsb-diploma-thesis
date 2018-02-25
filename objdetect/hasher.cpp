@@ -5,65 +5,93 @@
 #include "../processing/computation.h"
 
 namespace tless {
-    bool Hasher::validateTripletPoints(const Triplet &triplet, const cv::Mat &depth, const cv::Mat &gray, cv::Rect window,
-                                       int &p1Diff, int &p2Diff, cv::Point &nC, cv::Point &nP1, cv::Point &nP2, uchar minGray) {
+    HashKey Hasher::validateTripletAndComputeHashKey(const Triplet &triplet, std::vector<cv::Range> binRanges, const cv::Mat &depth,
+                                                     const cv::Mat &normals, const cv::Mat &gray, cv::Rect window, uchar minGray) {
+        // Checks
+        assert(depth.type() == CV_16UC1);
+        assert(normals.type() == CV_8UC1);
+        assert(window.area() > 0);
+
         // Offset triplet points by template bounding box
-        nC = triplet.c + window.tl();
-        nP1 = triplet.p1 + window.tl();
-        nP2 = triplet.p2 + window.tl();
+        cv::Point nP1 = triplet.p1 + window.tl();
+        cv::Point nP2 = triplet.p2 + window.tl();
+        cv::Point nC = triplet.c + window.tl();
 
         const int brX = window.br().x;
         const int brY = window.br().y;
 
         // Ignore if we're out of object bounding box
         if (nC.x >= brX || nP1.x >= brX || nP2.x >= brX || nC.y >= brY || nP1.y >= brY || nP2.y >= brY) {
-            return false;
+            return {};
         }
 
         // Check for minimal gray value (triplet is on an object)
         if (!gray.empty()) {
-            if (gray.at<uchar>(nC) < minGray) return false;
-            if (gray.at<uchar>(nP1) < minGray) return false;
-            if (gray.at<uchar>(nP2) < minGray) return false;
+            assert(gray.type() == CV_8UC1);
+            if (gray.at<uchar>(nP1) < minGray) return {};
+            if (gray.at<uchar>(nP2) < minGray) return {};
+            if (gray.at<uchar>(nC) < minGray) return {};
+        }
+
+        // Get quantized normals at triplet points
+        uchar n1 = normals.at<uchar>(nP1);
+        uchar n2 = normals.at<uchar>(nP2);
+        uchar n3 = normals.at<uchar>(nC);
+
+        // Validate quantized srcNormals
+        if (n1 == 0 || n2 == 0 || n3 == 0) {
+            return {};
         }
 
         // Get depth value at each triplet point
-        auto cD = static_cast<int>(depth.at<ushort>(nC));
         auto p1D = static_cast<int>(depth.at<ushort>(nP1));
         auto p2D = static_cast<int>(depth.at<ushort>(nP2));
+        auto cD = static_cast<int>(depth.at<ushort>(nC));
 
         // Ignore if there are any incorrect depth values
         if (cD <= 0 || p1D <= 0 || p2D <= 0) {
-            return false;
+            return {};
         }
 
-        // Calculate relative depths
-        p1Diff = p1D - cD;
-        p2Diff = p2D - cD;
+        // Initialize to invalid value, but != 0 to pass validation in bin Ranges generation
+        uchar d1 = 200, d2 = 200;
 
-        return true;
+        // Quantize depths
+        if (!binRanges.empty()) {
+            d1 = quantizeDepth(p1D - cD, binRanges);
+            d2 = quantizeDepth(p2D - cD, binRanges);
+        }
+
+        return {d1, d2, n1, n2, n3};
     }
 
     void Hasher::initializeBinRanges(std::vector<Template> &templates, std::vector<HashTable> &tables) {
         #pragma omp parallel for shared(templates, tables)
         for (size_t i = 0; i < tables.size(); i++) {
-            const int binCount = 5;
+            const int binCount = criteria->depthBinCount;
             std::vector<int> rDepths;
 
             for (auto &t : templates) {
                 assert(!t.srcDepth.empty());
 
-                cv::Point c, p1, p2;
-                int p1Diff, p2Diff;
-
-                // Skip if points are not valid
-                if (!validateTripletPoints(tables[i].triplet, t.srcDepth, t.srcGray, t.objBB, p1Diff, p2Diff, c, p1, p2)) {
+                // Validate triplet
+                if (validateTripletAndComputeHashKey(tables[i].triplet, {}, t.srcDepth, t.srcNormals, t.srcGray, t.objBB).empty()) {
                     continue;
                 }
 
+                // Offset triplet points by template bounding box
+                cv::Point nP1 = tables[i].triplet.p1 + t.objBB.tl();
+                cv::Point nP2 = tables[i].triplet.p2 + t.objBB.tl();
+                cv::Point nC = tables[i].triplet.c + t.objBB.tl();
+
+                // Get depth value at each triplet point
+                auto p1D = static_cast<int>(t.srcDepth.at<ushort>(nP1));
+                auto p2D = static_cast<int>(t.srcDepth.at<ushort>(nP2));
+                auto cD = static_cast<int>(t.srcDepth.at<ushort>(nC));
+
                 // Push relative depths
-                rDepths.push_back(p1Diff);
-                rDepths.push_back(p2Diff);
+                rDepths.push_back(p1D - cD);
+                rDepths.push_back(p2D - cD);
             }
 
             // Sort depths to calculate bin ranges
@@ -119,22 +147,13 @@ namespace tless {
                     continue;
                 }
 
-                cv::Point c, p1, p2;
-                int p1Diff, p2Diff;
+                // Validate and generate hash key at given triplet point
+                HashKey key = validateTripletAndComputeHashKey(tables[i].triplet, tables[i].binRanges, t.srcDepth, t.srcNormals, t.srcGray, t.objBB);
 
-                // Skip if points are not valid
-                if (!validateTripletPoints(tables[i].triplet, t.srcDepth, t.srcGray, t.objBB, p1Diff, p2Diff, c, p1, p2)) {
+                // Skip if validation failed, e.g. key is empty
+                if (key.empty()) {
                     continue;
                 }
-
-                // Generate hash key
-                HashKey key(
-                    quantizeDepth(p1Diff, tables[i].binRanges),
-                    quantizeDepth(p2Diff, tables[i].binRanges),
-                    t.srcNormals.at<uchar>(c),
-                    t.srcNormals.at<uchar>(p1),
-                    t.srcNormals.at<uchar>(p2)
-                );
 
                 // Push unique templates to table
                 tables[i].pushUnique(key, t);
@@ -163,21 +182,13 @@ namespace tless {
                     continue;
                 }
 
-                cv::Point c, p1, p2;
-                int p1Diff, p2Diff;
+                // Validate and generate hash key at given triplet point
+                HashKey key = validateTripletAndComputeHashKey(table.triplet, table.binRanges, depth, normals, cv::Mat(), windows[i].rect());
 
-                // Skip if points are not valid
-                if (!validateTripletPoints(table.triplet, depth, cv::Mat(), windows[i].rect(), p1Diff, p2Diff, c, p1, p2)) {
+                // Skip if validation failed, e.g. key is empty
+                if (key.empty()) {
                     continue;
                 }
-
-                HashKey key(
-                    quantizeDepth(p1Diff, table.binRanges),
-                    quantizeDepth(p2Diff, table.binRanges),
-                    normals.at<uchar>(c),
-                    normals.at<uchar>(p1),
-                    normals.at<uchar>(p2)
-                );
 
                 // Vote for each template in hash table at specific key and push unique to window candidates
                 for (auto &entry : table.templates[key]) {

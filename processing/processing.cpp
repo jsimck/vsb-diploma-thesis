@@ -35,6 +35,7 @@ namespace tless {
         b[1] += fy * delta;
     }
 
+    // TODO - consider refactoring and sending scale along with other params, max depth and difference can be than modified inside this function ranther than outside
     void quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, float fy, int maxDepth, int maxDifference) {
         assert(!src.empty());
         assert(src.type() == CV_16UC1);

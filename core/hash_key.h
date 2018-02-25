@@ -23,6 +23,13 @@ namespace tless {
         HashKey() = default;
         HashKey(uchar d1, uchar d2, uchar n1, uchar n2, uchar n3) : d1(d1), d2(d2), n1(n1), n2(n2), n3(n3) {}
 
+        /**
+         * @brief Returns true if key is not empty e.g. none of the key values are equal to 0
+         *
+         * @return false/true whether key is empty or not
+         */
+        bool empty();
+
         bool operator==(const HashKey &rhs) const;
         bool operator!=(const HashKey &rhs) const;
         friend std::ostream &operator<<(std::ostream &os, const HashKey &key);

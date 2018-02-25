@@ -5,8 +5,9 @@ namespace tless {
     std::ostream &operator<<(std::ostream &os, const ClassifierCriteria &crit) {
         os << "Params: " << std::endl;
         os << "  |_ tripletGrid: " << crit.tripletGrid.width << "x" << crit.tripletGrid.height << std::endl;
-        os << "  |_ maxTripletDist: " << crit.maxTripletDist << std::endl;
         os << "  |_ tablesCount: " << crit.tablesCount << std::endl;
+        os << "  |_ depthBinCount: " << crit.depthBinCount << std::endl;
+        os << "  |_ tablesTrainingMultiplier: " << crit.tablesTrainingMultiplier << std::endl;
         os << "  |_ featurePointsCount: " << crit.featurePointsCount << std::endl;
         os << "  |_ minMagnitude: " << crit.minMagnitude << std::endl;
         os << "  |_ maxDepthDiff: " << crit.maxDepthDiff << std::endl;
@@ -38,12 +39,14 @@ namespace tless {
         node["depthDeviationFun"] >> crit->depthDeviationFun;
 
         // Load unsigned int params
-        int maxTripletDist, tablesCount, featurePointsCount;
-        node["maxTripletDist"] >> maxTripletDist;
+        int tablesCount, featurePointsCount, depthBinCount, tablesTrainingMultiplier;
         node["tablesCount"] >> tablesCount;
+        node["depthBinCount"] >> depthBinCount;
+        node["tablesTrainingMultiplier"] >> tablesTrainingMultiplier;
         node["featurePointsCount"] >> featurePointsCount;
-        crit->maxTripletDist = static_cast<uint>(maxTripletDist);
         crit->tablesCount = static_cast<uint>(tablesCount);
+        crit->depthBinCount = static_cast<uint>(depthBinCount);
+        crit->tablesTrainingMultiplier = static_cast<uint>(tablesTrainingMultiplier);
         crit->featurePointsCount = static_cast<uint>(featurePointsCount);
 
         cv::FileNode info = node["info"];
@@ -58,8 +61,9 @@ namespace tless {
     cv::FileStorage &operator<<(cv::FileStorage &fs, const ClassifierCriteria &crit) {
         fs << "{";
         fs << "tripletGrid" << crit.tripletGrid;
-        fs << "maxTripletDist" << static_cast<int>(crit.maxTripletDist);
         fs << "tablesCount" << static_cast<int>(crit.tablesCount);
+        fs << "depthBinCount" << static_cast<int>(crit.depthBinCount);
+        fs << "tablesTrainingMultiplier" << static_cast<int>(crit.tablesTrainingMultiplier);
         fs << "featurePointsCount" << static_cast<int>(crit.featurePointsCount);
         fs << "minMagnitude" << crit.minMagnitude;
         fs << "maxDepthDiff" << crit.maxDepthDiff;

@@ -14,9 +14,9 @@ namespace tless {
     public:
         // Train params
         cv::Size tripletGrid{12, 12}; //!< Relative size of the triplet grid, 12x12 yields 144 possible locations
-        uint maxTripletDist = 3; //!< Maximum distance between p1, p2 from center in hash table triplets
+        uint depthBinCount = 5;  //!< Amount of bins that are used in depth difference quantization in hashing
         uint tablesCount = 100;  //!< Amount of tables to generate for hashing verification
-        uint tablesTrainingMultiplier = 5;  //!< tablesTrainingMultiplier * tablesCount = yields amount of tables that are generated before only tablesCount containing most templates are picked
+        uint tablesTrainingMultiplier = 10;  //!< tablesTrainingMultiplier * tablesCount = yields amount of tables that are generated before only tablesCount containing most templates are picked
         uint featurePointsCount = 100; //!< Amount of points to generate for feature points matching
         float minMagnitude = 0.1f; //!< Minimal magnitude of edge gradient to classify it as valid
         ushort maxDepthDiff = 100; //!< When computing surface normals, contribution of pixel is ignored if the depth difference with central pixel is above this threshold

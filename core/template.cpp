@@ -39,8 +39,8 @@ namespace tless {
            << "objBB: " << t.objBB << std::endl
            << "objArea: " << t.objArea << std::endl
            << "camera: " << t.camera << std::endl
-           << "features - gradients size: " << t.features.gradients.size() << std::endl
-           << "features - normals size: " << t.features.normals.size() << std::endl
+           << "features - srcGradients size: " << t.features.gradients.size() << std::endl
+           << "features - srcNormals size: " << t.features.normals.size() << std::endl
            << "features - depths size: " << t.features.depths.size() << std::endl
            << "features - colors size: " << t.features.colors.size() << std::endl;
 
@@ -56,8 +56,8 @@ namespace tless {
         node["edgePoints"] >> t.edgePoints;
         node["stablePoints"] >> t.stablePoints;
         node["depthMedian"] >> t.features.depthMedian;
-        node["gradients"] >> t.features.gradients;
-        node["normals"] >> t.features.normals;
+        node["srcGradients"] >> t.features.gradients;
+        node["srcNormals"] >> t.features.normals;
         node["depths"] >> t.features.depths;
         node["colors"] >> t.features.colors;
         node["objBB"] >> t.objBB;
@@ -76,8 +76,8 @@ namespace tless {
             fs << "edgePoints" << t.edgePoints;
             fs << "stablePoints" << t.stablePoints;
             fs << "depthMedian" << t.features.depthMedian;
-            fs << "gradients" << t.features.gradients;
-            fs << "normals" << t.features.normals;
+            fs << "srcGradients" << t.features.gradients;
+            fs << "srcNormals" << t.features.normals;
             fs << "depths" << t.features.depths;
             fs << "colors" << t.features.colors;
         }

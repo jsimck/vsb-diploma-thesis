@@ -16,22 +16,25 @@ namespace tless {
         cv::Ptr<ClassifierCriteria> criteria;
 
         /**
-         * @brief Applies validations to triplet points (out of objBB, wrong depth), generates normalized triplet points and relative depths
+         * @brief Validates and generates hash key at triplet position if it's valid
          *
-         * @param[in]  triplet Generated triplet from a hash table
-         * @param[in]  depth   16-bit depth image to compute relative depths from
-         * @param[in]  gray    8-bit optional gray image, in training phase we check if the value is above threshold (to validate there's an object)
-         * @param[in]  window  Triplet positions are being offset to this window size
-         * @param[out] p1Diff  Relative depth between depths at c and p1 triplet points locations (cD - p1D)
-         * @param[out] p2Diff  Relative depth between depths at c and p2 triplet points locations (cD - p2D)
-         * @param[out] nC      Center triplet point, normalized into objBB coordinates
-         * @param[out] nP1     P1 triplet point, normalized into objBB coordinates
-         * @param[out] nP2     P2 triplet point, normalized into objBB coordinates
-         * @param[in]  minGray Minimum value of gray image to be considered as containing object
-         * @return             Return true if triplet passed all validation tests
+         * First the triplet points are offset by window.tl() position (which is mostly used in scene verification).
+         * After then we do checks whether the triplet is not out of window boundary, if gray value at triplet points
+         * is bigger than minGray (if gray provided). Finally we get quantized normals and perform validity check (n != 0),
+         * compute depth differences between each triplet point and return valid HashKey if all those above are valid.
+         *
+         * @param[in] triplet   Generated triplet from a hash table
+         * @param[in] binRanges Array of binRanges of quantized depths computed for each hash table, if not provided hash key is still valid but
+         *                      with random depths, this is to assure that validation passes in bin ranges initialization.
+         * @param[in] depth     16-bit depth image to compute relative depths from
+         * @param[in] normals   8-bit uchar image of quantized normals
+         * @param[in] gray      8-bit optional gray image, in training phase we check if the value is above threshold (to validate there's an object)
+         * @param[in] window    Triplet positions are being offset to this window size
+         * @param[in] minGray   Minimum value of gray image to be considered as containing object
+         * @return              Returns valid HashKey if all points and quantized values were valid, otherwise returns empty HashKey
          */
-        bool validateTripletPoints(const Triplet &triplet, const cv::Mat &depth, const cv::Mat &gray, cv::Rect window,
-                                   int &p1Diff, int &p2Diff, cv::Point &nC, cv::Point &nP1, cv::Point &nP2, uchar minGray = 40);
+        HashKey validateTripletAndComputeHashKey(const Triplet &triplet, std::vector<cv::Range> binRanges, const cv::Mat &depth, const cv::Mat &normals,
+                                              const cv::Mat &gray, cv::Rect window, uchar minGray = 40);
 
         /**
          * @brief Computes bin ranges for each table (triplet) across all templates based on relative depths
@@ -50,7 +53,8 @@ namespace tless {
          * @brief Generates and trains hash table on given array of Templates
          *
          * This function computes [criteria.tablesCount] hash tables. To provide better
-         * results and fill tables as much as possible we first generate [50 * criteria.tablesCount]
+         * results and fill tables as much as possible we first generate
+         * [criteria.tablesTrainingMultiplier * criteria.tablesCount]
          * hash tables, train them and retain only the amount of [criteria.tablesCount] of the most
          * covered values i.e. containing most templates at generated hash keys.
          *

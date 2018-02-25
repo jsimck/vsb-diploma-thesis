@@ -244,11 +244,11 @@ namespace tless {
     void Matcher::match(float scale, Scene &scene, std::vector<Window> &windows, std::vector<Match> &matches) {
         // Checks
         assert(!scene.srcDepth.empty());
-        assert(!scene.magnitudes.empty());
-        assert(!scene.normals.empty());
+        assert(!scene.srcMagnitudes.empty());
+        assert(!scene.srcNormals.empty());
         assert(scene.srcHSV.type() == CV_8UC3);
         assert(scene.srcDepth.type() == CV_16U);
-        assert(scene.normals.type() == CV_8UC1);
+        assert(scene.srcNormals.type() == CV_8UC1);
         assert(!windows.empty());
 
         // Min threshold of matched feature points
@@ -307,11 +307,11 @@ namespace tless {
 #endif
                 for (uint i = 0; i < N; i++) {
 #ifdef VISUALIZE
-                    int tmpResult = testSurfaceNormal(candidate->features.normals[i], windows[l], scene.normals, candidate->stablePoints[i]);
+                    int tmpResult = testSurfaceNormal(candidate->features.srcNormals[i], windows[l], scene.srcNormals, candidate->stablePoints[i]);
                     sII += tmpResult;
                     tIITrue.push_back(tmpResult);
 #else
-                    sII += testSurfaceNormal(candidate->features.normals[i], windows[l], scene.normals, candidate->stablePoints[i]);
+                    sII += testSurfaceNormal(candidate->features.normals[i], windows[l], scene.srcNormals, candidate->stablePoints[i]);
 #endif
                 }
 
@@ -331,11 +331,11 @@ namespace tless {
 #endif
                 for (uint i = 0; i < N; i++) {
 #ifdef VISUALIZE
-                    int tmpResult = testGradients(candidate->features.gradients[i], windows[l], scene.gradients, scene.magnitudes, candidate->edgePoints[i]);
+                    int tmpResult = testGradients(candidate->features.srcGradients[i], windows[l], scene.srcGradients, scene.srcMagnitudes, candidate->edgePoints[i]);
                     sIII += tmpResult;
                     tIIITrue.push_back(tmpResult);
 #else
-                    sIII += testGradients(candidate->features.gradients[i], windows[l], scene.gradients, scene.magnitudes, candidate->edgePoints[i]);
+                    sIII += testGradients(candidate->features.gradients[i], windows[l], scene.srcGradients, scene.srcMagnitudes, candidate->edgePoints[i]);
 #endif
                 }
 

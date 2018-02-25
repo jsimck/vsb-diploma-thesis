@@ -62,6 +62,12 @@ namespace tless {
                 }
             }
         }
+
+        // Adjust intristic camera parameters based on resize ratio
+        tpl.camera.K.at<float>(0, 0) *= tpl.resizeRatio;
+        tpl.camera.K.at<float>(0, 2) *= tpl.resizeRatio;
+        tpl.camera.K.at<float>(1, 1) *= tpl.resizeRatio;
+        tpl.camera.K.at<float>(1, 2) *= tpl.resizeRatio;
     }
 
     Template Converter::parseTemplate(uint index, const std::string &basePath, cv::FileNode &gtNode, cv::FileNode &infoNode) {

@@ -121,7 +121,8 @@ namespace tless {
         }
 
         // Compute normals
-        quantizedNormals(tpl.srcDepth, tpl.srcNormals, tpl.camera.fx(), tpl.camera.fy(), localMax, criteria->maxDepthDiff);
+        quantizedNormals(tpl.srcDepth, tpl.srcNormals, tpl.camera.fx(), tpl.camera.fy(), localMax,
+                         static_cast<int>(criteria->maxDepthDiff / tpl.resizeRatio));
     }
 
     Scene Parser::parseScene(const std::string &basePath, int index, float scale) {
@@ -166,15 +167,20 @@ namespace tless {
         camera.K = cv::Mat(3, 3, CV_32FC1, vCamK.data());
         camera.R = cv::Mat(3, 3, CV_32FC1, vCamRw2c.data());
         camera.t = cv::Mat(3, 1, CV_32FC1, vCamTw2c.data());
+
+        // Update intristic camera params based on current scale
+        camera.K.at<float>(0, 0) *= scale;
+        camera.K.at<float>(0, 2) *= scale;
+        camera.K.at<float>(1, 1) *= scale;
+        camera.K.at<float>(1, 2) *= scale;
         scene.camera = std::move(camera);
 
         // Generate quantized normals and orientations
-        if (criteria != nullptr) {
-            float ratio = depthNormalizationFactor(criteria->info.maxDepth * scale, criteria->depthDeviationFun);
-            quantizedOrientationGradients(scene.srcGray, scene.gradients, scene.magnitudes);
-            quantizedNormals(scene.srcDepth, scene.normals, scene.camera.fx(), scene.camera.fy(),
-                             static_cast<int>((criteria->info.maxDepth * scale) / ratio), criteria->maxDepthDiff);
-        }
+        // TODO - consider making criteria->info.maxDepth already normalized
+        float ratio = depthNormalizationFactor(criteria->info.maxDepth, criteria->depthDeviationFun);
+        quantizedOrientationGradients(scene.srcGray, scene.srcGradients, scene.srcMagnitudes);
+        quantizedNormals(scene.srcDepth, scene.srcNormals, scene.camera.fx(), scene.camera.fy(),
+                         static_cast<int>(criteria->info.maxDepth / ratio), static_cast<int>(criteria->maxDepthDiff / scale));
 
         return scene;
     }

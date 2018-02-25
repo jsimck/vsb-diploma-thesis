@@ -19,6 +19,8 @@ namespace tless {
         /**
          * @brief Resizes rgb and depth images of given template + recalculates depth values based on resize ratio.
          *
+         * Intristic camera parameters are also modified based on the resize ratio.
+         *
          * @param[in,out] tpl    Template to resize image for (with rgb and depth images loaded)
          * @param[in] outputPath Output path, where new resized template images should be saved
          * @param[in] outputSize Size to which the template should be scaled to fit
