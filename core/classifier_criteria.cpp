@@ -19,9 +19,11 @@ namespace tless {
         os << "  |_ matchFactor: " << crit.matchFactor << std::endl;
         os << "  |_ overlapFactor: " << crit.overlapFactor << std::endl;
         os << "  |_ depthK: " << crit.depthK << std::endl;
+        os << "  |_ objectnessDiameterThreshold: " << crit.objectnessDiameterThreshold << std::endl;
         os << "Info: " << std::endl;
         os << "  |_ minDepth: " << crit.info.minDepth << std::endl;
         os << "  |_ maxDepth: " << crit.info.maxDepth << std::endl;
+        os << "  |_ smallestDiameter: " << crit.info.smallestDiameter << std::endl;
         os << "  |_ minEdgels: " << crit.info.minEdgels << std::endl;
         os << "  |_ depthScaleFactor: " << crit.info.depthScaleFactor << std::endl;
         os << "  |_ smallestTemplate: " << crit.info.smallestTemplate.width << "x" << crit.info.smallestTemplate.height
@@ -37,6 +39,7 @@ namespace tless {
         node["minMagnitude"] >> crit->minMagnitude;
         node["maxDepthDiff"] >> crit->maxDepthDiff;
         node["depthDeviationFun"] >> crit->depthDeviationFun;
+        node["objectnessDiameterThreshold"] >> crit->objectnessDiameterThreshold;
 
         // Load unsigned int params
         int tablesCount, featurePointsCount, depthBinCount, tablesTrainingMultiplier;
@@ -56,6 +59,7 @@ namespace tless {
         info["minEdgels"] >> crit->info.minEdgels;
         info["minDepth"] >> crit->info.minDepth;
         info["maxDepth"] >> crit->info.maxDepth;
+        info["smallestDiameter"] >> crit->info.smallestDiameter;
     }
 
     cv::FileStorage &operator<<(cv::FileStorage &fs, const ClassifierCriteria &crit) {
@@ -68,6 +72,7 @@ namespace tless {
         fs << "minMagnitude" << crit.minMagnitude;
         fs << "maxDepthDiff" << crit.maxDepthDiff;
         fs << "depthDeviationFun" << crit.depthDeviationFun;
+        fs << "objectnessDiameterThreshold" << crit.objectnessDiameterThreshold;
         fs << "info" << "{";
         fs << "depthScaleFactor" << crit.info.depthScaleFactor;
         fs << "smallestTemplate" << crit.info.smallestTemplate;
@@ -75,6 +80,7 @@ namespace tless {
         fs << "minEdgels" << crit.info.minEdgels;
         fs << "minDepth" << crit.info.minDepth;
         fs << "maxDepth" << crit.info.maxDepth;
+        fs << "smallestDiameter" << crit.info.smallestDiameter;
         fs << "}";
         fs << "}";
 

@@ -472,7 +472,7 @@ namespace tless {
         return cv::imread(oss.str(), flags);
     }
 
-    void Visualizer::visualizeCandidates(Scene &scene, Window &window, int wait, const char *title) {
+    void Visualizer::windowCandidates(Scene &scene, Window &window, int wait, const char *title) {
         cv::Mat result = scene.srcRGB.clone();
         std::ostringstream oss;
 
@@ -499,15 +499,15 @@ namespace tless {
 
                 // Draw triplets
                 for (auto &triplet : window.triplets[i]) {
-                    cv::circle(tplMosaic, rect.tl() + triplet.c, 2, cv::Scalar(0, 0, 255), -1);
-                    cv::circle(tplMosaic, rect.tl() + triplet.p1, 2, cv::Scalar(0, 0, 255), -1);
-                    cv::circle(tplMosaic, rect.tl() + triplet.p2, 2, cv::Scalar(0, 0, 255), -1);
-                    cv::line(tplMosaic, rect.tl() + triplet.c, rect.tl() + triplet.p1, cv::Scalar(0, 0, 255));
-                    cv::line(tplMosaic, rect.tl() + triplet.c, rect.tl() + triplet.p2, cv::Scalar(0, 0, 255));
+                    cv::line(tplMosaic, rect.tl() + triplet.c, rect.tl() + triplet.p1, cv::Scalar(0, 180, 0), 1, CV_AA);
+                    cv::line(tplMosaic, rect.tl() + triplet.c, rect.tl() + triplet.p2, cv::Scalar(0, 180, 0), 1, CV_AA);
+                    cv::circle(tplMosaic, rect.tl() + triplet.c, 2, cv::Scalar(0, 255, 0), -1, CV_AA);
+                    cv::circle(tplMosaic, rect.tl() + triplet.p1, 2, cv::Scalar(255, 0, 0), -1, CV_AA);
+                    cv::circle(tplMosaic, rect.tl() + triplet.p2, 2, cv::Scalar(0, 0, 255), -1, CV_AA);
                 }
 
                 // Annotate templates in mosaic
-                cv::rectangle(tplMosaic, rect, cv::Scalar(0, 255, 0));
+                cv::rectangle(tplMosaic, rect, cv::Scalar(255, 255, 255), 1, CV_AA);
                 oss << "Votes: " << window.votes[i];
                 setLabel(tplMosaic, oss.str(), cv::Point(rect.x, rect.y + rect.height + 15));
                 oss.str("");
@@ -517,7 +517,7 @@ namespace tless {
         }
 
         // Annotate scene
-        cv::rectangle(result, window.rect(), cv::Scalar(0, 255, 0));
+        cv::rectangle(result, window.rect(), cv::Scalar(0, 255, 0), 1, CV_AA);
         oss << "Candidates: " << window.candidates.size();
         setLabel(result, oss.str(), cv::Point(window.bl().x, window.bl().y + 15));
 

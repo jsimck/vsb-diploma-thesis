@@ -3,7 +3,7 @@
 #include "../processing/processing.h"
 
 namespace tless {
-    void Objectness::objectness(cv::Mat &src, std::vector<Window> &windows, float scale) {
+    void Objectness::objectness(cv::Mat &src, std::vector<Window> &windows) {
         assert(criteria->info.smallestTemplate.area() > 0);
         assert(criteria->info.minEdgels > 0);
         assert(criteria->objectnessFactor > 0);
@@ -11,14 +11,13 @@ namespace tless {
         assert(src.type() == CV_16U);
 
         // Normalize min and max depths to look for objectness in
-        float minDepth = criteria->info.minDepth * scale;
-        float maxDepth = criteria->info.maxDepth * scale;
-        minDepth *= depthNormalizationFactor(minDepth, criteria->depthDeviationFun);
-        maxDepth /= depthNormalizationFactor(maxDepth, criteria->depthDeviationFun);
+        auto minDepth = static_cast<int>(criteria->info.minDepth * depthNormalizationFactor(criteria->info.minDepth, criteria->depthDeviationFun));
+        auto maxDepth = static_cast<int>(criteria->info.maxDepth / depthNormalizationFactor(criteria->info.maxDepth, criteria->depthDeviationFun));
 
         // Generate integral image of detected edgels
         cv::Mat integral;
-        depthEdgelsIntegral(src, integral, static_cast<int>(minDepth), static_cast<int>(maxDepth));
+        auto minMag = static_cast<int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
+        depthEdgelsIntegral(src, integral, minDepth, maxDepth, minMag);
 
         const auto minEdgels = static_cast<const int>(criteria->info.minEdgels * criteria->objectnessFactor);
         const int sizeX = criteria->info.smallestTemplate.width;

@@ -54,7 +54,7 @@ namespace tless {
      * @param[in]  maxDepth Ignore pixels with depth higher then this threshold
      * @param[in]  minMag   Ignore pixels with edge magnitude lower than this
      */
-    void depthEdgelsIntegral(const cv::Mat &src, cv::Mat &sum, int minDepth, int maxDepth, int minMag = 380);
+    void depthEdgelsIntegral(const cv::Mat &src, cv::Mat &sum, int minDepth, int maxDepth, int minMag);
 
     /**
      * @brief Finds normalization (error) factor, to help define range in which the given depth value can be

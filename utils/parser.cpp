@@ -2,6 +2,7 @@
 #include "../processing/processing.h"
 #include "../objdetect/matcher.h"
 #include "../objdetect/hasher.h"
+#include "../core/classifier_criteria.h"
 
 namespace tless {
     void Parser::parseObject(const std::string &basePath, std::vector<Template> &templates, std::vector<uint> indices) {
@@ -53,66 +54,32 @@ namespace tless {
     }
 
     void Parser::parseCriteriaAndNormals(Template &tpl) {
-        // Parse largest area
-        if (tpl.objBB.area() < criteria->info.smallestTemplate.area()) {
-            criteria->info.smallestTemplate = tpl.objBB.size();
-        }
+        // Parse largest area and smallest areas
+        if (tpl.objBB.area() < criteria->info.smallestTemplate.area()) { criteria->info.smallestTemplate = tpl.objBB.size(); }
+        if (tpl.objBB.width > criteria->info.largestArea.width) { criteria->info.largestArea.width = tpl.objBB.width; }
+        if (tpl.objBB.height > criteria->info.largestArea.height) { criteria->info.largestArea.height = tpl.objBB.height; }
 
-        if (tpl.objBB.width > criteria->info.largestArea.width) {
-            criteria->info.largestArea.width = tpl.objBB.width;
-        }
+        // Extract criteria depth extremes from local extremes
+        if (tpl.maxDepth > criteria->info.maxDepth) { criteria->info.maxDepth = tpl.maxDepth; }
+        if (tpl.minDepth < criteria->info.minDepth) { criteria->info.minDepth = tpl.minDepth; }
 
-        if (tpl.objBB.height > criteria->info.largestArea.height) {
-            criteria->info.largestArea.height = tpl.objBB.height;
-        }
-
-        // TODO check if a point is not in neighbourhood of 0 pixe (e.g. 5x5), otherwise local
-        // TODO minima may show interpolated value between 0 and other depth that occured during resitzing
-        // Find max/min depth and max local depth for depth quantization
-        ushort localMax = tpl.srcDepth.at<ushort>(tpl.objBB.tl());
-        auto localMin = static_cast<ushort>(-1);
-        const int areaOffset = 0;
-
-        // Offset bounding box so we cover edges of object
-        for (int y = tpl.objBB.tl().y - areaOffset; y < tpl.objBB.br().y + areaOffset; y++) {
-            for (int x = tpl.objBB.tl().x - areaOffset; x < tpl.objBB.br().x + areaOffset; x++) {
-                ushort val = tpl.srcDepth.at<ushort>(y, x);
-
-                // Extract local max (val shouldn't also be bigger than 3 times local max, there shouldn't be so much swinging)
-                if (val > localMax && val < 3 * localMax) {
-                    localMax = val;
-                }
-
-                // Extract local min
-                if (val < localMin && val > 0) {
-                    localMin = val;
-                }
-
-                // Extract criteria
-                if (val > criteria->info.maxDepth && val < 3 * localMax) {
-                    criteria->info.maxDepth = val;
-                }
-
-                if (val < criteria->info.minDepth && val > 0) {
-                    criteria->info.minDepth = val;
-                }
-            }
-        }
+        // Extract smallest diameter
+        if (tpl.diameter < criteria->info.smallestDiameter) { criteria->info.smallestDiameter = tpl.diameter; }
 
         // Normalize local max and min depths to define error corrected range
-        localMax /= depthNormalizationFactor(localMax, criteria->depthDeviationFun);
-        localMin *= depthNormalizationFactor(localMax, criteria->depthDeviationFun);
+        int localMax = static_cast<int>(tpl.maxDepth / depthNormalizationFactor(tpl.maxDepth, criteria->depthDeviationFun));
+        int localMin = static_cast<int>(tpl.minDepth * depthNormalizationFactor(tpl.minDepth, criteria->depthDeviationFun));
 
-        // TODO - Better minMag value definition here and in objectness handling
         // Extract min edgels
         cv::Mat integral;
-        depthEdgelsIntegral(tpl.srcDepth, integral, localMin, localMax);
+        depthEdgelsIntegral(tpl.srcDepth, integral, localMin, localMax,
+                            static_cast<int>(criteria->objectnessDiameterThreshold * tpl.diameter * criteria->info.depthScaleFactor));
 
-        // Cover little bit larger area than object bounding box, to count edges
-        cv::Point A(tpl.objBB.tl().x - areaOffset, tpl.objBB.tl().y - areaOffset);
-        cv::Point B(tpl.objBB.br().x + areaOffset, tpl.objBB.tl().y - areaOffset);
-        cv::Point C(tpl.objBB.tl().x - areaOffset, tpl.objBB.br().y + areaOffset);
-        cv::Point D(tpl.objBB.br().x + areaOffset, tpl.objBB.br().y + areaOffset);
+        // Get objBB corners for sum area table calculation
+        cv::Point A(tpl.objBB.tl().x, tpl.objBB.tl().y);
+        cv::Point B(tpl.objBB.br().x, tpl.objBB.tl().y);
+        cv::Point C(tpl.objBB.tl().x, tpl.objBB.br().y);
+        cv::Point D(tpl.objBB.br().x, tpl.objBB.br().y);
 
         // Get edgel count inside obj bounding box
         int edgels = integral.at<int>(D) - integral.at<int>(B) - integral.at<int>(C) + integral.at<int>(A);
@@ -176,7 +143,6 @@ namespace tless {
         scene.camera = std::move(camera);
 
         // Generate quantized normals and orientations
-        // TODO - consider making criteria->info.maxDepth already normalized
         float ratio = depthNormalizationFactor(criteria->info.maxDepth, criteria->depthDeviationFun);
         quantizedOrientationGradients(scene.srcGray, scene.srcGradients, scene.srcMagnitudes);
         quantizedNormals(scene.srcDepth, scene.srcNormals, scene.camera.fx(), scene.camera.fy(),

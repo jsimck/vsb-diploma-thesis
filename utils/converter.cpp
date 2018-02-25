@@ -4,12 +4,11 @@
 #include <fstream>
 
 namespace tless {
-    void Converter::resizeAndSave(Template &tpl, const std::string &outputPath, int outputSize) {
+    void Converter::resizeAndSave(Template &t, const std::string &outputPath, int outputSize) {
         const cv::Size resizeSize(outputSize, outputSize);
-        const int offset = 2;
 
         // Offset bounding box to preserve edges in resulted image
-        cv::Rect offsetBB(tpl.objBB.x - offset, tpl.objBB.y - offset, tpl.objBB.width + (offset * 2), tpl.objBB.height + (offset * 2));
+        cv::Rect offsetBB(t.objBB.x - this->offset, t.objBB.y - this->offset, t.objBB.width + (this->offset * 2), t.objBB.height + (this->offset * 2));
 
         // Shift bounding box so object is in it's center + make sure bounding box is always equal to resizeSize
         if (offsetBB.width < offsetBB.height) {
@@ -23,17 +22,21 @@ namespace tless {
         }
 
         // Resize images by given ratio and recalculate depth values
-        tpl.resizeRatio = outputSize / static_cast<float>(offsetBB.width);
-        tpl.objBB = cv::Rect(0, 0, outputSize, outputSize); // update new objBB
-        assert(tpl.resizeRatio > 0);
+        t.resizeRatio = outputSize / static_cast<float>(offsetBB.width);
+        t.objBB = cv::Rect(0, 0, outputSize, outputSize); // update new objBB
+        assert(t.resizeRatio > 0);
 
-        cv::Mat resizedRGB = tpl.srcRGB(offsetBB);
-        cv::Mat resizedDepth = tpl.srcDepth(offsetBB);
+        cv::Mat resizedRGB = t.srcRGB(offsetBB);
+        cv::Mat resizedDepth = t.srcDepth(offsetBB);
 
-        int interpolation = (tpl.resizeRatio > 1.0f) ? CV_INTER_LANCZOS4 : CV_INTER_AREA;
+        int interpolation = (t.resizeRatio > 1.0f) ? CV_INTER_LANCZOS4 : CV_INTER_AREA;
         cv::resize(resizedRGB, resizedRGB, resizeSize, interpolation);
         cv::resize(resizedDepth, resizedDepth, resizeSize, interpolation);
-        resizedDepth = resizedDepth / tpl.resizeRatio;
+        resizedDepth = resizedDepth / t.resizeRatio;
+
+        // Adjust local depth extremes based on ratio
+        t.minDepth /= t.resizeRatio;
+        t.maxDepth /= t.resizeRatio;
 
         // Validate that conversion didn't change image format
         assert(resizedRGB.type() == CV_8UC3);
@@ -50,24 +53,23 @@ namespace tless {
         cv::imwrite(outputPath + "depth/" + tpl.fileName + ".png", resizedDepth);
 #endif
 
-        // Calculate object area
-        cv::Mat gray;
-        cv::cvtColor(resizedRGB, gray, CV_BGR2GRAY);
-        const uchar minValue = 20;
+        // Extract object area
+        cv::Mat resizedGray;
+        cv::cvtColor(resizedRGB, resizedGray, CV_BGR2GRAY);
 
-        for (int y = 0; y < gray.rows; y++) {
-            for (int x = 0; x < gray.cols; x++) {
-                if (gray.at<uchar>(y, x) > minValue) {
-                    tpl.objArea++;
+        for (int y = 0; y < resizedGray.rows; y++) {
+            for (int x = 0; x < resizedGray.cols; x++) {
+                if (t.srcGray.at<uchar>(y, x) > this->minGray) {
+                    t.objArea++;
                 }
             }
         }
 
         // Adjust intristic camera parameters based on resize ratio
-        tpl.camera.K.at<float>(0, 0) *= tpl.resizeRatio;
-        tpl.camera.K.at<float>(0, 2) *= tpl.resizeRatio;
-        tpl.camera.K.at<float>(1, 1) *= tpl.resizeRatio;
-        tpl.camera.K.at<float>(1, 2) *= tpl.resizeRatio;
+        t.camera.K.at<float>(0, 0) *= t.resizeRatio;
+        t.camera.K.at<float>(0, 2) *= t.resizeRatio;
+        t.camera.K.at<float>(1, 1) *= t.resizeRatio;
+        t.camera.K.at<float>(1, 2) *= t.resizeRatio;
     }
 
     Template Converter::parseTemplate(uint index, const std::string &basePath, cv::FileNode &gtNode, cv::FileNode &infoNode) {
@@ -100,6 +102,9 @@ namespace tless {
         assert(srcRGB.type() == CV_8UC3);
         assert(srcDepth.type() == CV_16U);
 
+        cv::Mat srcGray;
+        cv::cvtColor(srcRGB, srcGray, CV_BGR2GRAY);
+
         // Create template
         Template t;
         t.id = index + (2000 * id);
@@ -114,6 +119,25 @@ namespace tless {
         t.camera.elev = elev;
         t.camera.azimuth = azimuth;
         t.camera.mode = mode;
+
+        // Extract local depth extremes, search in object bounding box
+        for (int y = t.objBB.tl().y - this->offset; y < t.objBB.br().y + this->offset; y++) {
+            for (int x = t.objBB.tl().x - this->offset; x < t.objBB.br().x + this->offset; x++) {
+                if (t.srcGray.at<uchar>(y, x) > this->minGray) {
+                    ushort depth = t.srcDepth.at<ushort>(y, x);
+
+                    // Extract local max
+                    if (depth > t.maxDepth) {
+                        t.maxDepth = depth;
+                    }
+
+                    // Extract local min
+                    if (depth < t.minDepth && depth > 0) {
+                        t.minDepth = depth;
+                    }
+                }
+            }
+        }
 
         return t;
     }

@@ -21,7 +21,7 @@ namespace tless {
         static cv::Vec3b heatMapValue(int min, int max, int value);
 
         /**
-         * @brief Dynamic image loading when t.src are not load (mainly for debugging)
+         * @brief Dynamic image loading for Templates
          *
          * @param[in] tpl   Input template, used to compute path based on it's id and filename
          * @param[in] flags Color of the loaded source image (CV_LOAD_IMAGE_COLOR, CV_LOAD_IMAGE_UNCHANGED)
@@ -30,10 +30,18 @@ namespace tless {
         cv::Mat loadSrc(Template &tpl, int flags = CV_LOAD_IMAGE_COLOR);
 
     public:
-        Visualizer(cv::Ptr<ClassifierCriteria> criteria, std::string templatesPath = "data/108x108/")
+        Visualizer(cv::Ptr<ClassifierCriteria> criteria, const std::string &templatesPath = "data/108x108/")
                 : criteria(criteria), templatesPath(templatesPath) {}
 
-        void visualizeCandidates(Scene &scene, Window &window, int wait = 0, const char *title = nullptr);
+        /**
+         * @brief Vizualizes candidates for given window along with matched triplets and number of votes
+         *
+         * @param[in] scene  Scene object, to vizualize hashing candidates on
+         * @param[in] window Sliding window that passed hashing verification
+         * @param[in] wait   Optional wait time in waitKey() function
+         * @param[in] title  Optional image window title
+         */
+        void windowCandidates(Scene &scene, Window &window, int wait = 0, const char *title = nullptr);
 
 
         // TODO REFACTOR ---->>>

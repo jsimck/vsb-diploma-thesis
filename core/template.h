@@ -40,10 +40,13 @@ namespace tless {
             std::vector<cv::Vec3b> colors; //!< HSV color space value
         } features;
 
+        // Other params
         cv::Rect objBB; //!< Object bounding box
-        int objArea = 0;
         Camera camera; //!< Camera parameters
+        int objArea = 0;
         int votes = 0;
+        ushort minDepth = std::numeric_limits<unsigned short>::max(), maxDepth = 0; //!< Minimum and maximum depth of the object in this template
+
         std::vector<Triplet> triplets; // TODO - remove/refactor, mostly for debugging, Triplets that were equal in hashing verification
 
         Template() = default;

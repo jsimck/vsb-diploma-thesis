@@ -142,30 +142,65 @@ namespace tless {
         // scale 2 = .736111111f at cv::Rect(211, 67, 108, 108) [530]
         // scale 3 = .402777778f at cv::Rect(116, 85, 108, 108) [290]
 
-        criteria->info.maxDepth = 20000;
+//        criteria->info.maxDepth = 20000;
         Scene scene = parser.parseScene(scenePath, 0, 1.0f);
         Scene scene1 = parser.parseScene(scenePath, 0, .722222222f);
         Scene scene2 = parser.parseScene(scenePath, 0, .736111111f);
         Scene scene3 = parser.parseScene(scenePath, 0, .402777778f);
 
-        Window window1(cv::Rect(122, 126, 108, 108), 100);
-        Window window2(cv::Rect(211, 67, 108, 108), 100);
-        Window window3(cv::Rect(116, 85, 108, 108), 100);
+        Visualizer viz(criteria);
+        std::cout << *criteria << std::endl;
 
-        std::vector<Window> windows1, windows2, windows3;
-        windows1.push_back(window1);
-        windows2.push_back(window2);
-        windows3.push_back(window3);
+        objectness.objectness(scene.srcDepth, windows);
+        Visualizer::visualizeWindows(scene.srcRGB, windows, false, 0, "Locations detected");
+        windows.clear();
 
-        hasher.verifyCandidates(scene1.srcDepth, scene1.srcNormals, tables, windows1);
-        hasher.verifyCandidates(scene2.srcDepth, scene2.srcNormals, tables, windows2);
-        hasher.verifyCandidates(scene3.srcDepth, scene3.srcNormals, tables, windows3);
+        objectness.objectness(scene1.srcDepth, windows);
+        Visualizer::visualizeWindows(scene1.srcRGB, windows, false, 0, "Locations detected");
+        hasher.verifyCandidates(scene1.srcDepth, scene1.srcNormals, tables, windows);
+        for (auto &window : windows) {
+            viz.windowCandidates(scene1, window);
+        }
 
-//        cv::Mat tpl, tplNormals, tplSrc = cv::imread("data/108x108/07/rgb/0137.png", CV_LOAD_IMAGE_COLOR);
-//        cv::Mat tplDepth = cv::imread("data/108x108/07/depth/0137.png", CV_LOAD_IMAGE_UNCHANGED);
+        windows.clear();
+
+        objectness.objectness(scene2.srcDepth, windows);
+        Visualizer::visualizeWindows(scene2.srcRGB, windows, false, 0, "Locations detected");
+        hasher.verifyCandidates(scene2.srcDepth, scene2.srcNormals, tables, windows);
+        for (auto &window : windows) {
+            viz.windowCandidates(scene2, window);
+        }
+
+        windows.clear();
+
+        objectness.objectness(scene3.srcDepth, windows);
+        Visualizer::visualizeWindows(scene3.srcRGB, windows, false, 0, "Locations detected");
+        hasher.verifyCandidates(scene3.srcDepth, scene3.srcNormals, tables, windows);
+        for (auto &window : windows) {
+            viz.windowCandidates(scene3, window);
+        }
+
+        windows.clear();
+
+
+//        Window window1(cv::Rect(122, 126, 108, 108), 100);
+//        Window window2(cv::Rect(211, 67, 108, 108), 100);
+//        Window window3(cv::Rect(116, 85, 108, 108), 100);
+//
+//        std::vector<Window> windows1, windows2, windows3;
+//        windows1.push_back(window1);
+//        windows2.push_back(window2);
+//        windows3.push_back(window3);
+//
+//        hasher.verifyCandidates(scene1.srcDepth, scene1.srcNormals, tables, windows1);
+//        hasher.verifyCandidates(scene2.srcDepth, scene2.srcNormals, tables, windows2);
+//        hasher.verifyCandidates(scene3.srcDepth, scene3.srcNormals, tables, windows3);
+
+//        cv::Mat tpl, tplNormals, tplSrc = cv::imread("data/108x108/05/rgb/0190.png", CV_LOAD_IMAGE_COLOR);
+//        cv::Mat tplDepth = cv::imread("data/108x108/05/depth/0190.png", CV_LOAD_IMAGE_UNCHANGED);
 //
 //        for (auto &table : tables) {
-//            quantizedNormals(tplDepth, tplNormals, 382.f, 382.f, 30000, static_cast<int>(criteria->maxDepthDiff / 0.40f));
+//            quantizedNormals(tplDepth, tplNormals, 640.f, 640.f, 30000, static_cast<int>(criteria->maxDepthDiff / 0.61f));
 //
 //            tpl = tplSrc.clone();
 //            cv::line(tpl, table.triplet.c, table.triplet.p1, cv::Scalar(0, 155, 0));
@@ -220,10 +255,10 @@ namespace tless {
 //            cv::waitKey(0);
 //        }
 
-        Visualizer viz(criteria);
-        viz.visualizeCandidates(scene1, windows1[0]);
-        viz.visualizeCandidates(scene2, windows2[0]);
-        viz.visualizeCandidates(scene3, windows3[0]);
+//        Visualizer viz(criteria);
+//        viz.windowCandidates(scene1, windows1[0]);
+//        viz.windowCandidates(scene2, windows2[0]);
+//        viz.windowCandidates(scene3, windows3[0]);
 
 //        std::cout << "windows1 candidates: " << windows1[0].candidates.size() << std::endl;
 //        std::cout << "windows2 candidates: " << windows2[0].candidates.size() << std::endl;
@@ -243,6 +278,8 @@ namespace tless {
 //        cv::imshow("scene3", scene3.srcRGB);
 //        cv::waitKey(0);
 
+//        Visualizer viz(criteria);
+//
 //        for (int i = 0; i < 503; ++i) {
 //            for (int pyramidLevel = 0; pyramidLevel < finalScaleLevel; ++pyramidLevel) {
 //                Timer tTotal;
@@ -265,7 +302,7 @@ namespace tless {
 //                objectness.objectness(scene.srcDepth, windows, scale);
 //                std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
 //
-////                Visualizer::visualizeWindows(scene.srcRGB, windows, false, 0, "Locations detected");
+//                Visualizer::visualizeWindows(scene.srcRGB, windows, false, 0, "Locations detected");
 //
 //                /// Verification and filtering of template candidates
 //                if (windows.empty()) {
@@ -275,6 +312,10 @@ namespace tless {
 //                Timer tVerification;
 //                hasher.verifyCandidates(scene.srcDepth, scene.srcNormals, tables, windows);
 //                std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
+//
+//                for (auto &window : windows) {
+//                    viz.windowCandidates(scene, window);
+//                }
 //
 ////                Visualizer::visualizeHashing(scene.srcRGB, scene.srcDepth, tables, windows, criteria, false);
 ////                Visualizer::visualizeWindows(scene.srcRGB, windows, false, 1, "Filtered locations");

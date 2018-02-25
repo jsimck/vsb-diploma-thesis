@@ -14,6 +14,8 @@ namespace tless {
      */
     class Converter {
     private:
+        const uchar minGray = 20; //!< Minimal gray color value of image to consider containing object
+        const int offset = 2; //!< Offset for object bounding boxes, when cropping we enlarge the objBB by this value in both directions to not cut any edges
         std::vector<float> diameters;
 
         /**
@@ -21,11 +23,11 @@ namespace tless {
          *
          * Intristic camera parameters are also modified based on the resize ratio.
          *
-         * @param[in,out] tpl    Template to resize image for (with rgb and depth images loaded)
-         * @param[in] outputPath Output path, where new resized template images should be saved
-         * @param[in] outputSize Size to which the template should be scaled to fit
+         * @param[in,out] t          Template to resize image for (with rgb and depth images loaded)
+         * @param[in]     outputPath Output path, where new resized template images should be saved
+         * @param[in]     outputSize Size to which the template should be scaled to fit
          */
-        void resizeAndSave(Template &tpl, const std::string &outputPath, int outputSize);
+        void resizeAndSave(Template &t, const std::string &outputPath, int outputSize);
 
         /**
          * @brief Parses template images, gt.yml and creates base Template object.

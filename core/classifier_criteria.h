@@ -20,8 +20,9 @@ namespace tless {
         uint featurePointsCount = 100; //!< Amount of points to generate for feature points matching
         float minMagnitude = 0.1f; //!< Minimal magnitude of edge gradient to classify it as valid
         ushort maxDepthDiff = 100; //!< When computing surface normals, contribution of pixel is ignored if the depth difference with central pixel is above this threshold
+        float objectnessDiameterThreshold = 0.3f; //!< Minimal threshold of sobel operator when computing depth edgels. (objectnessDiameterThreshold * objectDiameter * info.depthScaleFactor)
         // TODO fix deviation function based on the other paper
-        std::vector<cv::Vec2f> depthDeviationFun{{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {70000, 0.08f}}; //!< Depth error function, allowing depth values to be match within giveninterval
+        std::vector<cv::Vec2f> depthDeviationFun{{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {70000, 0.08f}}; //!< Depth error function, allowing depth values to be match within given interval
 
         // Detect Params
         int minVotes = 3; //!< Minimum amount of votes to classify template as a valid candidate for given window
@@ -33,10 +34,11 @@ namespace tless {
         float depthK = 0.05f; //!< Constant used in depth test in template matching phase
 
         struct {
-            ushort minDepth = (ushort) -1; //!< Minimum depth found across all templates withing their bounding box
+            ushort minDepth = std::numeric_limits<unsigned short>::max(); //!< Minimum depth found across all templates withing their bounding box
             ushort maxDepth = 0; //!< Maximum depth found across all templates withing their bounding box
-            int minEdgels = INT_MAX; //!< Minimum number of edgels found in any template
+            int minEdgels = std::numeric_limits<int>::max(); //!< Minimum number of edgels found in any template
             float depthScaleFactor = 10.0f; //!< Depth scaling factor to convert depth value to millimeters
+            float smallestDiameter = std::numeric_limits<float>::max(); //!< Smallest physical diameter of object in database (in mm)
             cv::Size smallestTemplate{500, 500}; //!< Size of the largest template found across all templates
             cv::Size largestArea{0, 0}; //!< Size of the largest area (largest width and largest height) found across all templates
         } info;

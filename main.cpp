@@ -66,7 +66,7 @@ int main() {
     // Training params
     criteria->tablesCount = 200;
     criteria->minVotes = 3;
-    criteria->depthBinCount = 4;
+    criteria->depthBinCount = 5;
 
     // Detect params
     criteria->matchFactor = 0.6f;

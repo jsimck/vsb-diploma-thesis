@@ -30,9 +30,8 @@ namespace tless {
          *
          * @param[in]  src     Source 16-bit depth image (in mm)
          * @param[out] windows Contains all window positions, that were detected as containing object
-         * @param[in]  scale   Optional scale parameter, to scale depth values according to current level of image scale pyramid
          */
-        void objectness(cv::Mat &src, std::vector<Window> &windows, float scale);
+        void objectness(cv::Mat &src, std::vector<Window> &windows);
     };
 }
 
