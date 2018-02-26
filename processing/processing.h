@@ -85,6 +85,15 @@ namespace tless {
     cv::Vec3b remapBlackWhiteHSV(cv::Vec3b hsv, uchar value = 22, uchar saturation = 31);
 
     /**
+     * @brief Remaps white and black colors of HSV image to yellow and blue for HSV recognition
+     *
+     * @param[in,out] hsv        Input/output 8-bit HSV image to normalize
+     * @param[in]     value      Value threshold, values below this threshold [blacks] are mapped to blue color
+     * @param[in]     saturation Saturation threshold, values below this and above value threshold [white] are mapped to yellow color
+     */
+    void normalizeHSV(cv::Mat &hsv, uchar value = 22, uchar saturation = 31);
+
+    /**
      * @brief Applies non-maxima suppression to matches, removing matches with large overlap and lower score.
      *
      * This function calculates overlap between each window, if the overlap is > than [maxOverlap]

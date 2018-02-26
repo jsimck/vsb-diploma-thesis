@@ -175,7 +175,7 @@ namespace tless {
         return DEPTH_LUT[ranges.size() - 1];
     }
 
-    cv::Vec3b remapBlackWhiteHSV(cv::Vec3b hsv, uchar saturation, uchar value) {
+    cv::Vec3b remapBlackWhiteHSV(cv::Vec3b hsv, uchar value, uchar saturation) {
         if (hsv[2] <= value) {
             hsv[0] = 120; // Set from black to blue
         } else if (hsv[1] < saturation) {
@@ -183,6 +183,14 @@ namespace tless {
         }
 
         return hsv;
+    }
+
+    void normalizeHSV(cv::Mat &hsv, uchar value, uchar saturation) {
+        for (int y = 0; y < hsv.rows; y++) {
+            for (int x = 0; x < hsv.cols; x++) {
+                hsv.at<cv::Vec3b>(y, x) = remapBlackWhiteHSV(hsv.at<cv::Vec3b>(y, x));
+            }
+        }
     }
 
     void nonMaximaSuppression(std::vector<Match> &matches, float maxOverlap) {

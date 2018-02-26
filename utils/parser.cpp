@@ -118,6 +118,9 @@ namespace tless {
         cv::cvtColor(scene.srcRGB, scene.srcGray, CV_BGR2GRAY);
         cv::cvtColor(scene.srcRGB, scene.srcHSV, CV_BGR2HSV);
 
+        // Normalize HSV
+        normalizeHSV(scene.srcHSV);
+
         // Load camera
         std::string infoIndex = "scene_" + std::to_string(index);
         cv::FileStorage fs(basePath + "info.yml", cv::FileStorage::READ);

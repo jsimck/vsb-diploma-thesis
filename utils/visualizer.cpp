@@ -490,27 +490,70 @@ namespace tless {
                               std::vector<std::vector<std::pair<cv::Point, int>>> scores, int patchOffset,
                               int pointsCount, int minThreshold, int wait, const char *title) {
         std::ostringstream oss;
-        cv::Mat result = scene.srcRGB.clone();
-        cv::Scalar cGreen(0, 255, 0), cRed(0, 0, 255), cBlue(255, 0, 0);
+        cv::Scalar cGreen(0, 255, 0), cRed(0, 0, 255), cBlue(255, 0, 0), cWhite(255, 255, 255), cGray(90, 90, 90);
         cv::Point offsetStart(-patchOffset, -patchOffset), offsetEnd(patchOffset, patchOffset);
 
+        // Load scene and define offsets
+        const int offset = 15;
+        const cv::Size winSize(window.width, window.height);
+        const cv::Size stripSize(scene.srcRGB.cols + offset * 3, candidate.objBB.height * 4 + offset * 5);
+        const cv::Size resultSize(stripSize.width + candidate.objBB.width, (scene.srcRGB.rows > stripSize.height) ? scene.srcRGB.rows : stripSize.height);
+
+        // Define ROIs for scene sources
+        cv::Rect sceneROI(cv::Rect(offset, offset, scene.srcRGB.cols,  scene.srcRGB.rows));
+        cv::Rect depthROI(scene.srcRGB.cols + offset * 2, offset, winSize.width, winSize.height);
+        cv::Rect normalsROI(depthROI.x, depthROI.y + winSize.height + offset, winSize.width, winSize.height);
+        cv::Rect gradientsROI(normalsROI.x, normalsROI.y + winSize.height + offset, winSize.width, winSize.height);
+        cv::Rect hsvROI(gradientsROI.x, gradientsROI.y + winSize.height + offset, winSize.width, winSize.height);
+
+        // Convert sources to 8UC3 so they can be copied
+        cv::Mat depth = scene.srcDepth.clone(), normals = scene.srcNormals.clone();
+        cv::Mat gradients = scene.srcGradients.clone(), hsv = scene.srcHSV.clone();
+        depth.convertTo(depth, CV_8UC1, 255.0f / 65535.0f);
+        cv::normalize(gradients, gradients, 0, 255, CV_MINMAX);
+        cv::normalize(normals, normals, 0, 255, CV_MINMAX);
+        cv::cvtColor(depth, depth, CV_GRAY2BGR);
+        cv::cvtColor(gradients, gradients, CV_GRAY2BGR);
+        cv::cvtColor(normals, normals, CV_GRAY2BGR);
+        
         for (int i = 0; i < scores.size(); ++i) {
+            // Copy scene to result
+            cv::Mat result = cv::Mat::zeros(resultSize, CV_8UC3);
+            scene.srcRGB.copyTo(result(sceneROI));
+            depth(window.rect()).copyTo(result(depthROI));
+            normals(window.rect()).copyTo(result(normalsROI));
+            gradients(window.rect()).copyTo(result(gradientsROI));
+            hsv(window.rect()).copyTo(result(hsvROI));
+
+            // Offset sliding window
+            cv::Rect offsetWindow(window.tl().x + offset, window.tl().y + offset, window.width, window.height);
+
             // Draw points
             for (auto &score : scores[i]) {
                 cv::Scalar color = (score.second == 1) ? cGreen : cRed;
-                cv::Point tl = window.tl() + score.first + offsetStart;
-                cv::Point br = window.tl() + score.first + offsetEnd;
+                cv::Point tl = score.first + offsetStart;
+                cv::Point br = score.first + offsetEnd;
 
                 // Draw small rectangles around matched feature points
-                cv::rectangle(result, tl, br, color, 1);
-                cv::rectangle(result, tl, br, color, 1);
+                cv::rectangle(result, offsetWindow.tl() + tl, offsetWindow.tl() + br, color, 1);
+
+                // Draw small rectangles around object sources
+                if (i == 0 || i == 3) { cv::rectangle(result, depthROI.tl() + tl, depthROI.tl() + br, color, 1); }
+                else if (i == 1) { cv::rectangle(result, normalsROI.tl() + tl, normalsROI.tl() + br, color, 1); }
+                else if (i == 2) { cv::rectangle(result, gradientsROI.tl() + tl, gradientsROI.tl() + br, color, 1); }
+                else if (i == 4) { cv::rectangle(result, hsvROI.tl() + tl, hsvROI.tl() + br, color, 1); }
             }
 
-            // Draw rectangle around object
-            cv::rectangle(result, window.tl(), window.br(), cGreen, 1);
+            // Draw rectangles around sources, highlight current test
+            cv::rectangle(result, sceneROI.tl(), sceneROI.br(), cWhite, 1);
+            cv::rectangle(result, depthROI.tl(), depthROI.br(), (i == 0 || i == 3) ? cGreen : cWhite, 1);
+            cv::rectangle(result, normalsROI.tl(), normalsROI.br(), (i == 1) ? cGreen : cWhite, 1);
+            cv::rectangle(result, gradientsROI.tl(), gradientsROI.br(), (i == 2) ? cGreen : cWhite, 1);
+            cv::rectangle(result, hsvROI.tl(), hsvROI.br(), (i == 4) ? cGreen : cWhite, 1);
 
             // Annotate scene
-            cv::Point textTl(window.br().x + 5, window.tl().y + 10);
+            cv::rectangle(result, offsetWindow.tl(), offsetWindow.br(), cGreen, 1);
+            cv::Point textTl(offsetWindow.br().x + 5, offsetWindow.tl().y + 10);
 
             oss.str("");
             oss << "Test: " << i + 1;
@@ -542,7 +585,6 @@ namespace tless {
             oss.str("");
             oss << "Score: " << (finalScore / 100.0f);
             label(result, oss.str(), textTl);
-            textTl.y += 18;
 
             // Show results and save key press
             cv::imshow(title == nullptr ? "Matched feature points" : title, result);
