@@ -167,9 +167,9 @@ namespace tless {
                 }
 
                 Timer tVerification;
-                hasher.verifyCandidates(scene.srcDepth, scene.srcNormals, tables, windows);
+                hasher.verifyCandidates(scene.srcDepth, scene.srcNormals, tables, windows); // TODO refactor to use Scene as input
                 std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
-                viz.windowsCandidates(scene, windows);
+//                viz.windowsCandidates(scene, windows);
 
                 /// Match templates
                 Timer tMatching;

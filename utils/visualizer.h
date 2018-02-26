@@ -86,6 +86,10 @@ namespace tless {
          */
         void tplFeaturePoints(const Template &t, int wait = 0, const char *title = nullptr);
 
+        void matching(const Scene &scene, const Template &candidate, Window &window,
+                      std::vector<std::vector<std::pair<cv::Point, int>>> scores, int patchOffset,
+                      int pointsCount, int minThreshold, int wait = 0, const char *title = nullptr);
+
         // TODO REFACTOR ---->>>
         // Objectness
         static void visualizeMatches(cv::Mat &scene, float scale, std::vector<Match> &matches,

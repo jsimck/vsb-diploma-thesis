@@ -448,29 +448,35 @@ namespace tless {
         cv::Point textTl(offset, rgbROI.height + offset);
 
         oss.str("");
-        oss << "Template: " << t.fileName;
+        oss << "Template: " << t.fileName << " (" << (t.id / 2000) << ")";
         textTl.y += 18;
         label(result, oss.str(), textTl);
+
         oss.str("");
         oss << "mode: " << t.camera.mode;
         textTl.y += 18;
         label(result, oss.str(), textTl);
+
         oss.str("");
         oss << "elev: " << t.camera.elev;
         textTl.y += 18;
         label(result, oss.str(), textTl);
+
         oss.str("");
         oss << "srcGradients: " << t.features.gradients.size();
         textTl.y += 18;
         label(result, oss.str(), textTl);
+
         oss.str("");
         oss << "srcNormals: " << t.features.normals.size();
         textTl.y += 18;
         label(result, oss.str(), textTl);
+
         oss.str("");
         oss << "depths: " << t.features.depths.size();
         textTl.y += 18;
         label(result, oss.str(), textTl);
+
         oss.str("");
         oss << "colors: " << t.features.colors.size();
         textTl.y += 18;
@@ -478,5 +484,76 @@ namespace tless {
 
         cv::imshow(title == nullptr ? "Template features" : title, result);
         cv::waitKey(wait);
+    }
+
+    void Visualizer::matching(const Scene &scene, const Template &candidate, Window &window,
+                              std::vector<std::vector<std::pair<cv::Point, int>>> scores, int patchOffset,
+                              int pointsCount, int minThreshold, int wait, const char *title) {
+        std::ostringstream oss;
+        cv::Mat result = scene.srcRGB.clone();
+        cv::Scalar cGreen(0, 255, 0), cRed(0, 0, 255), cBlue(255, 0, 0);
+        cv::Point offsetStart(-patchOffset, -patchOffset), offsetEnd(patchOffset, patchOffset);
+
+        for (int i = 0; i < scores.size(); ++i) {
+            // Draw points
+            for (auto &score : scores[i]) {
+                cv::Scalar color = (score.second == 1) ? cGreen : cRed;
+                cv::Point tl = window.tl() + score.first + offsetStart;
+                cv::Point br = window.tl() + score.first + offsetEnd;
+
+                // Draw small rectangles around matched feature points
+                cv::rectangle(result, tl, br, color, 1);
+                cv::rectangle(result, tl, br, color, 1);
+            }
+
+            // Draw rectangle around object
+            cv::rectangle(result, window.tl(), window.br(), cGreen, 1);
+
+            // Annotate scene
+            cv::Point textTl(window.br().x + 5, window.tl().y + 10);
+
+            oss.str("");
+            oss << "Test: " << i + 1;
+            label(result, oss.str(), textTl);
+            textTl.y += 18;
+
+            oss.str("");
+            oss << "Template: " << candidate.fileName << " (" << (candidate.id / 2000) << ")";
+            label(result, oss.str(), textTl);
+            textTl.y += 18;
+
+            // Draw scores
+            float finalScore = 0;
+            for (int l = 0; l < scores.size(); ++l) {
+                int score = 0;
+
+                for (auto &point : scores[l]) {
+                    score += point.second;
+                }
+
+                finalScore += score;
+                oss.str("");
+
+                oss << "s" << (l + 1) << ": " << score << "/" << pointsCount;
+                label(result, oss.str(), textTl, 0.4, 1, 1, cv::Scalar(0, 0, 0), (score < minThreshold) ? cRed : cGreen);
+                textTl.y += 18;
+            }
+
+            oss.str("");
+            oss << "Score: " << (finalScore / 100.0f);
+            label(result, oss.str(), textTl);
+            textTl.y += 18;
+
+            // Show results and save key press
+            cv::imshow(title == nullptr ? "Matched feature points" : title, result);
+            int key = cv::waitKey(wait);
+
+            // Navigation using arrow keys and spacebar
+             if (key == KEY_LEFT) {
+                i = (i - 1 > 0) ? i - 2 : -1;
+            } else if (key == KEY_SPACEBAR) {
+                break;
+            }
+        }
     }
 }
