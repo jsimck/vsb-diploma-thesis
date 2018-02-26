@@ -7,6 +7,12 @@
 #include "../core/template.h"
 
 namespace tless {
+    Visualizer::Visualizer(cv::Ptr<ClassifierCriteria> criteria, const std::string &templatesPath)
+            : criteria(criteria), templatesPath(templatesPath){
+        // Initialize settings
+        settings[SETTINGS_GRID] = true;
+    }
+
     cv::Mat Visualizer::loadTemplateSrc(const Template &tpl, int flags) {
         std::ostringstream oss;
         oss << templatesPath;
@@ -481,10 +487,11 @@ namespace tless {
         cv::waitKey(wait);
     }
 
-    void Visualizer::matching(const Scene &scene, Template &candidate, Window &window,
+    bool Visualizer::matching(const Scene &scene, Template &candidate, std::vector<Window> &windows, int &currentIndex,
                               std::vector<std::vector<std::pair<cv::Point, int>>> scores, int patchOffset,
                               int pointsCount, int minThreshold, int wait, const char *title) {
         std::ostringstream oss;
+        Window &window = windows[currentIndex];
         cv::Scalar cGreen(0, 255, 0), cRed(0, 0, 255), cBlue(255, 0, 0), cWhite(255, 255, 255), cGray(90, 90, 90);
         cv::Point offsetStart(-patchOffset, -patchOffset), offsetEnd(patchOffset, patchOffset);
 
@@ -527,6 +534,13 @@ namespace tless {
             // Offset sliding window
             cv::Rect offsetWindow(window.tl().x + offset, window.tl().y + offset, window.width, window.height);
 
+            // Draw all windows with candidates
+            if (settings[SETTINGS_GRID]) {
+                for (auto &win : windows) {
+                    cv::rectangle(result, win.tl() + sceneROI.tl(), win.br() + sceneROI.tl(), cv::Scalar(90, 90, 90), 1);
+                }
+            }
+
             // Draw points
             for (auto &score : scores[i]) {
                 cv::Scalar color = (score.second == 1) ? cGreen : cRed;
@@ -554,16 +568,6 @@ namespace tless {
             cv::rectangle(result, offsetWindow.tl(), offsetWindow.br(), cGreen, 1);
             cv::Point textTl(offsetWindow.br().x + 5, offsetWindow.tl().y + 10);
 
-            oss.str("");
-            oss << "Test: " << i + 1;
-            label(result, oss.str(), textTl);
-            textTl.y += 18;
-
-            oss.str("");
-            oss << "Template: " << candidate.fileName << " (" << (candidate.id / 2000) << ")";
-            label(result, oss.str(), textTl);
-            textTl.y += 18;
-
             // Draw scores
             float finalScore = 0;
             for (int l = 0; l < scores.size(); ++l) {
@@ -576,8 +580,12 @@ namespace tless {
                 finalScore += score;
                 oss.str("");
 
+                // Highlight current score
+                cv::Scalar sGreen = (l == i) ? cGreen : cv::Scalar(0, 170, 0);
+                cv::Scalar sRed = (l == i) ? cRed : cv::Scalar(0, 0, 170);
+
                 oss << "s" << (l + 1) << ": " << score << "/" << pointsCount;
-                label(result, oss.str(), textTl, 0.4, 1, 1, cv::Scalar(0, 0, 0), (score < minThreshold) ? cRed : cGreen);
+                label(result, oss.str(), textTl, 0.4, 1, 1, cv::Scalar(0, 0, 0), (score < minThreshold) ? sRed : sGreen);
                 textTl.y += 18;
             }
 
@@ -585,17 +593,47 @@ namespace tless {
             oss << "Score: " << (finalScore / 100.0f);
             label(result, oss.str(), textTl);
 
+            oss.str("");
+            oss << "Candidates: " << window.candidates.size();
+            label(result, oss.str(), textTl);
+
             // Show results and save key press
             tplMatch(candidate, scores[i], i, patchOffset, 1);
             cv::imshow(title == nullptr ? "Matched feature points" : title, result);
             int key = cv::waitKey(wait);
+            int winSize = windows.size();
 
             // Navigation using arrow keys and spacebar
-             if (key == KEY_LEFT) {
-                i = (i - 1 > 0) ? i - 2 : -1;
+            if (key == KEY_UP) {
+                currentIndex = (currentIndex + 10 < winSize) ? currentIndex + 9 : winSize - 2;
+                return true;
+            } else if (key == KEY_DOWN) {
+                currentIndex = (currentIndex - 10 > 0) ? currentIndex - 11 : -1;
+                return true;
+            } else if (key == KEY_LEFT) {
+                currentIndex = (currentIndex - 1 > 0) ? currentIndex - 2 : -1;
+                return true;
+            } else if (key == KEY_ENTER) {
+                currentIndex = (currentIndex + 100 < winSize) ? currentIndex + 99 : winSize - 2;
+                return true;
+            } else if (key == KEY_RIGHT) {
+                return true;
             } else if (key == KEY_SPACEBAR) {
                 break;
+            } else if (key == KEY_K) {
+                // Switch current test (scores)
+                i = (i + 1 < scores.size()) ? i : -1;
+            } else if (key == KEY_S) {
+                // Skip completely
+                currentIndex = winSize + 1;
+                return true;
+            } else if (key == KEY_G) {
+                // Update settings and roll back indexes
+                settings[SETTINGS_GRID] = !settings[SETTINGS_GRID];
+                i = (i - 1 > 0) ? i - 2 : -1;
             }
         }
+
+        return false;
     }
 }

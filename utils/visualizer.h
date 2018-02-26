@@ -14,7 +14,11 @@
 namespace tless {
     class Visualizer {
     private:
-        const int KEY_UP = 0, KEY_DOWN = 1, KEY_LEFT = 2, KEY_RIGHT = 3, KEY_SPACEBAR = 32, KEY_ENTER = 13;
+        const int KEY_UP = 0, KEY_DOWN = 1, KEY_LEFT = 2, KEY_RIGHT = 3, KEY_SPACEBAR = 32,
+                KEY_ENTER = 13, KEY_G = 103, KEY_S = 115, KEY_K = 107;
+        const int SETTINGS_GRID = 0;
+
+        std::unordered_map<int, bool> settings;
         cv::Ptr<ClassifierCriteria> criteria;
         std::string templatesPath;
 
@@ -37,8 +41,7 @@ namespace tless {
         void windowCandidates(const cv::Mat &src, cv::Mat &dst, Window &window);
 
     public:
-        Visualizer(cv::Ptr<ClassifierCriteria> criteria, const std::string &templatesPath = "data/108x108/")
-                : criteria(criteria), templatesPath(templatesPath) {}
+        Visualizer(cv::Ptr<ClassifierCriteria> criteria, const std::string &templatesPath = "data/108x108/");
 
         /**
          * @brief Draws label with surrounded background for better visibility on any source image.
@@ -104,15 +107,18 @@ namespace tless {
          *
          * @param[in] scene        Scene to visualize feature match on
          * @param[in] candidate    Current candidate we want to compare with the scene
-         * @param[in] window       Current position of sliding window
+         * @param[in] windows      Sliding windows that passed hashing verification
+         * @param[in] currentIndex Index of a currently processed window
          * @param[in] scores       Array of matched scores and feature points
          * @param[in] patchOffset  Patch offset, e.g. area around feature point to look for match
          * @param[in] pointsCount  Final count of all feature points
          * @param[in] minThreshold Minimum number of points that should match, to continue with other tests
          * @param[in] wait         Optional wait time in waitKey() function
          * @param[in] title        Optional image window title
+         *
+         * @return true/false used for navigation
          */
-        void matching(const Scene &scene, Template &candidate, Window &window,
+        bool matching(const Scene &scene, Template &candidate, std::vector<Window> &windows, int &currentIndex,
                       std::vector<std::vector<std::pair<cv::Point, int>>> scores, int patchOffset,
                       int pointsCount, int minThreshold, int wait = 0, const char *title = nullptr);
 

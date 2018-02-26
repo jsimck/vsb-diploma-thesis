@@ -257,9 +257,31 @@ namespace tless {
         const long lSize = windows.size();
 
 //        #pragma omp parallel for shared(scene, windows, matches) firstprivate(N, minThreshold, scale)
-        for (long l = 0; l < lSize; l++) {
+        for (int l = 0; l < lSize; l++) {
             for (auto &candidate : windows[l].candidates) {
                 assert(candidate != nullptr);
+
+#ifndef NDEBUG
+                // Vizualization
+                std::vector<std::pair<cv::Point, int>> vsI, vsII, vsIII, vsIV, vsV;
+
+                // Save validation for all points
+                for (uint i = 0; i < N; i++) {
+                    vsI.emplace_back(candidate->stablePoints[i], testObjectSize(scale, candidate->features.depths[i], windows[l], scene.srcDepth, candidate->stablePoints[i]));
+                    vsII.emplace_back(candidate->stablePoints[i], testSurfaceNormal(candidate->features.normals[i], windows[l], scene.srcNormals, candidate->stablePoints[i]));
+                    vsIII.emplace_back(candidate->edgePoints[i], testGradients(candidate->features.gradients[i], windows[l], scene.srcGradients, scene.srcMagnitudes, candidate->edgePoints[i]));
+                    vsIV.emplace_back(candidate->stablePoints[i], testDepth(scale, candidate->diameter, candidate->features.depthMedian, windows[l], scene.srcDepth, candidate->stablePoints[i]));
+                    vsV.emplace_back(candidate->stablePoints[i], testColor(candidate->features.hue[i], windows[l], scene.srcHue, candidate->stablePoints[i]));
+                }
+
+                // Push each score to scores vector
+                std::vector<std::vector<std::pair<cv::Point, int>>> scores = {vsI, vsII, vsIII, vsIV, vsV};
+
+                // Visualize matching
+                if (viz.matching(scene, *candidate, windows, l, scores, criteria->patchOffset, N, minThreshold)) {
+                    break;
+                }
+#endif
 
                 // Scores for each test
                 float sI = 0, sII = 0, sIII = 0, sIV = 0, sV = 0;
@@ -310,27 +332,6 @@ namespace tless {
 
                 #pragma omp critical
                 matches.emplace_back(candidate, matchBB, scale, score, score * (candidate->objArea / scale), sI, sII, sIII, sIV, sV);
-
-
-
-
-                // Vizualization
-                std::vector<std::pair<cv::Point, int>> vsI, vsII, vsIII, vsIV, vsV;
-
-                // Save validation for all points
-                for (uint i = 0; i < N; i++) {
-                    vsI.emplace_back(candidate->stablePoints[i], testObjectSize(scale, candidate->features.depths[i], windows[l], scene.srcDepth, candidate->stablePoints[i]));
-                    vsII.emplace_back(candidate->stablePoints[i], testSurfaceNormal(candidate->features.normals[i], windows[l], scene.srcNormals, candidate->stablePoints[i]));
-                    vsIII.emplace_back(candidate->edgePoints[i], testGradients(candidate->features.gradients[i], windows[l], scene.srcGradients, scene.srcMagnitudes, candidate->edgePoints[i]));
-                    vsIV.emplace_back(candidate->stablePoints[i], testDepth(scale, candidate->diameter, candidate->features.depthMedian, windows[l], scene.srcDepth, candidate->stablePoints[i]));
-                    vsV.emplace_back(candidate->stablePoints[i], testColor(candidate->features.hue[i], windows[l], scene.srcHue, candidate->stablePoints[i]));
-                }
-
-                // Push each score to scores vector
-                std::vector<std::vector<std::pair<cv::Point, int>>> scores = {vsI, vsII, vsIII, vsIV, vsV};
-
-                // Visualize matching
-                viz.matching(scene, *candidate, windows[l], scores, criteria->patchOffset, N, minThreshold);
             }
         }
     }
