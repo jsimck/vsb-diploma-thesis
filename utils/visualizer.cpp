@@ -193,6 +193,8 @@ namespace tless {
             } else if (key == KEY_ENTER) {
                 i = (i + 100 < winSize) ? i + 99 : winSize - i - 1;
             } else if (key == KEY_SPACEBAR) {
+                i = (i - 100 > 0) ? i - 99 : -1;
+            } else if (key == KEY_S) {
                 break;
             }
         }
@@ -223,9 +225,11 @@ namespace tless {
             resultDepth = depth.clone();
 
             // Draw all other windows in gray
-            for (auto &win : windows) {
-                cv::rectangle(result, win.rect(), cv::Scalar(90, 90, 90), 1);
-                cv::rectangle(resultEdgels, win.rect(), cv::Scalar(23, 35, 24), 1);
+            if (settings[SETTINGS_GRID]) {
+                for (auto &win : windows) {
+                    cv::rectangle(result, win.rect(), cv::Scalar(90, 90, 90), 1);
+                    cv::rectangle(resultEdgels, win.rect(), cv::Scalar(23, 35, 24), 1);
+                }
             }
 
             // Annotate scene
@@ -276,6 +280,10 @@ namespace tless {
                 i = (i + 100 < winSize) ? i + 99 : winSize - i - 1;
             } else if (key == KEY_SPACEBAR) {
                 break;
+            } else if (key == KEY_G) {
+                // Update settings and roll back indexes
+                settings[SETTINGS_GRID] = !settings[SETTINGS_GRID];
+                i = (i - 1 > 0) ? i - 2 : -1;
             }
         }
     }

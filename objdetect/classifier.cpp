@@ -138,7 +138,7 @@ namespace tless {
         const int finalScaleLevel = 9;
         float scale = initialScale;
 
-        for (int i = 300; i < 503; ++i) {
+        for (int i = 0; i < 503; ++i) {
             for (int pyramidLevel = 0; pyramidLevel < finalScaleLevel; ++pyramidLevel) {
                 Timer tTotal;
 
@@ -169,7 +169,7 @@ namespace tless {
                 Timer tVerification;
                 hasher.verifyCandidates(scene.srcDepth, scene.srcNormals, tables, windows); // TODO refactor to use Scene as input
                 std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
-//                viz.windowsCandidates(scene, windows);
+                viz.windowsCandidates(scene, windows);
 
                 /// Match templates
                 Timer tMatching;
