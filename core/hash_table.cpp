@@ -79,9 +79,9 @@ namespace tless {
                 id = static_cast<uint>(tmp);
 
                 // Loop through existing templates and save pointers to matching ids
-                for (auto &tpl : templates) {
-                    if (id == tpl.id) {
-                        table.pushUnique(key, tpl);
+                for (auto &t : templates) {
+                    if (id == t.id) {
+                        table.pushUnique(key, t);
                     }
                 }
             }
@@ -132,8 +132,8 @@ namespace tless {
 
             // Save template IDS
             fs << "templates" << "[";
-            for (auto &tpl : tableRow.second) {
-                fs << static_cast<int>(tpl->id);
+            for (auto &t : tableRow.second) {
+                fs << static_cast<int>(t->id);
             }
             fs << "]";
             fs << "}";

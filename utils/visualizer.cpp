@@ -6,7 +6,7 @@
 #include "../core/classifier_criteria.h"
 
 namespace tless {
-    cv::Mat Visualizer::loadTemplateSrc(Template &tpl, int flags) {
+    cv::Mat Visualizer::loadTemplateSrc(const Template &tpl, int flags) {
         std::ostringstream oss;
         oss << templatesPath;
         oss << std::setw(2) << std::setfill('0') << static_cast<int>(std::floor(tpl.id / 2000));
@@ -20,8 +20,8 @@ namespace tless {
         return cv::imread(oss.str(), flags);
     }
 
-    void Visualizer::label(cv::Mat &dst, const std::string &label, const cv::Point &origin, cv::Scalar fColor, cv::Scalar bColor,
-                              double scale, int padding, int thickness, int fontFace) {
+    void Visualizer::label(cv::Mat &dst, const std::string &label, const cv::Point &origin, double scale,
+                           int padding, int thickness, cv::Scalar fColor, cv::Scalar bColor, int fontFace) {
         cv::Size text = cv::getTextSize(label, fontFace, scale, thickness, nullptr);
         rectangle(dst, origin + cv::Point(-padding - 1, padding + 2),
                   origin + cv::Point(text.width + padding, -text.height - padding - 2), bColor, CV_FILLED);
@@ -40,37 +40,29 @@ namespace tless {
 
             oss.str("");
             oss << "id: " << match.t->id;
-            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 10), cv::Scalar(), cv::Scalar(), 0, 0, 0,
-                  0);
+            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 10));
             oss.str("");
             oss.precision(2);
             oss << std::fixed << "score: " << match.areaScore << " (" << (match.areaScore * 100.0f) / 4.0f << "%)";
-            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 28), cv::Scalar(), cv::Scalar(), 0, 0, 0,
-                  0);
+            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 28));
             oss.str("");
             oss << "I: " << match.sI;
-            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 46), cv::Scalar(), cv::Scalar(), 0, 0, 0,
-                  0);
+            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 46));
             oss.str("");
             oss << "II: " << match.sII;
-            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 64), cv::Scalar(), cv::Scalar(), 0, 0, 0,
-                  0);
+            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 64));
             oss.str("");
             oss << "III: " << match.sIII;
-            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 82), cv::Scalar(), cv::Scalar(), 0, 0, 0,
-                  0);
+            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 82));
             oss.str("");
             oss << "IV: " << match.sIV;
-            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 100), cv::Scalar(), cv::Scalar(), 0, 0, 0,
-                  0);
+            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 100));
             oss.str("");
             oss << "V: " << match.sV;
-            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 118), cv::Scalar(), cv::Scalar(), 0, 0, 0,
-                  0);
+            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 118));
             oss.str("");
             oss << "scale: " << match.scale;
-            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 132), cv::Scalar(), cv::Scalar(), 0, 0, 0,
-                  0);
+            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 132));
 
 //            // Load matched template
 //            cv::Mat tplSrc;
@@ -104,7 +96,7 @@ namespace tless {
 
         // Dynamically load template
         if (tpl.srcRGB.empty()) {
-            Template::loadSrc(templatesPath, tpl, result, CV_LOAD_IMAGE_COLOR);
+//            Template::loadSrc(templatesPath, tpl, result, CV_LOAD_IMAGE_COLOR);
         } else {
             result = tpl.srcRGB.clone();
         }
@@ -129,28 +121,22 @@ namespace tless {
         // Put text data to template image
         std::ostringstream oss;
         oss << "mode: " << tpl.camera.mode;
-        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 28), cv::Scalar(), cv::Scalar(), 0, 0,
-              0, 0);
+        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 28));
         oss.str("");
         oss << "elev: " << tpl.camera.elev;
-        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 46), cv::Scalar(), cv::Scalar(), 0, 0,
-              0, 0);
+        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 46));
         oss.str("");
         oss << "srcGradients: " << tpl.features.gradients.size();
-        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 64), cv::Scalar(), cv::Scalar(), 0, 0,
-              0, 0);
+        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 64));
         oss.str("");
         oss << "srcNormals: " << tpl.features.normals.size();
-        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 82), cv::Scalar(), cv::Scalar(), 0, 0,
-              0, 0);
+        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 82));
         oss.str("");
         oss << "depths: " << tpl.features.depths.size();
-        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 100), cv::Scalar(), cv::Scalar(), 0, 0,
-              0, 0);
+        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 100));
         oss.str("");
         oss << "colors: " << tpl.features.colors.size();
-        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 118), cv::Scalar(), cv::Scalar(), 0, 0,
-              0, 0);
+        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 118));
 
         oss.str("");
         oss << "Template: " << tpl.id;
@@ -180,7 +166,7 @@ namespace tless {
 
         // Dynamically load template src
         if (tpl.srcHSV.empty()) {
-            Template::loadSrc(templatesPath, tpl, result, CV_LOAD_IMAGE_COLOR);
+//            Template::loadSrc(templatesPath, tpl, result, CV_LOAD_IMAGE_COLOR);
         } else {
             cv::cvtColor(tpl.srcHSV, result, CV_HSV2BGR);
         }
@@ -230,44 +216,31 @@ namespace tless {
         // Draw info labels
         oss.str("");
         oss << "I: " << scoreITrue << "/" << pointsCount;
-        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 10),
-                          currentTest == 1 ? (scoreITrue > minThreshold ? colorGreen : colorRed) : colorWhite,
-                          cv::Scalar(), 0.4, 1, 0, 0);
+//        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 10), currentTest == 1 ? (scoreITrue > minThreshold ? colorGreen : colorRed) : colorWhite, cv::Scalar(), 0.4, 1, 0, 0);
         oss.str("");
         oss << "II: " << scoreIITrue << "/" << pointsCount;
-        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 28),
-                          currentTest == 2 ? (scoreIITrue > minThreshold ? colorGreen : colorRed) : colorWhite,
-                          cv::Scalar(), 0.4, 1, 0, 0);
+//        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 28), currentTest == 2 ? (scoreIITrue > minThreshold ? colorGreen : colorRed) : colorWhite, cv::Scalar(), 0.4, 1, 0, 0);
         oss.str("");
         oss << "III: " << scoreIIITrue << "/" << pointsCount;
-        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 46),
-                          currentTest == 3 ? (scoreIIITrue > minThreshold ? colorGreen : colorRed) : colorWhite,
-                          cv::Scalar(), 0.4, 1, 0, 0);
+//        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 46), currentTest == 3 ? (scoreIIITrue > minThreshold ? colorGreen : colorRed) : colorWhite, cv::Scalar(), 0.4, 1, 0, 0);
         oss.str("");
         oss << "IV: " << scoreIVTrue << "/" << pointsCount;
-        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 64),
-                          currentTest == 4 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite,
-                          cv::Scalar(), 0.4, 1, 0, 0);
+//        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 64), currentTest == 4 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite, cv::Scalar(), 0.4, 1, 0, 0);
         oss.str("");
         oss << "V: " << scoreVTrue << "/" << pointsCount;
-        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 82),
-                          currentTest == 5 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite,
-                          cv::Scalar(), 0.4, 1, 0, 0);
+//        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 82), currentTest == 5 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite, cv::Scalar(), 0.4, 1, 0, 0);
         oss.str("");
         oss.precision(2);
         oss << "score: " << std::fixed
             << scoreITrue / static_cast<float>(pointsCount) + scoreIITrue / static_cast<float>(pointsCount) +
                scoreIIITrue / static_cast<float>(pointsCount) + scoreIVTrue / static_cast<float>(pointsCount) +
                scoreVTrue / static_cast<float>(pointsCount);
-        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 100),
-                          currentTest >= 5 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite,
-                          cv::Scalar(), 0.4, 1, 0, 0);
+//        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 100), currentTest >= 5 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite, cv::Scalar(), 0.4, 1, 0, 0);
 
         // Number of candidates on this window
         oss.str("");
         oss << "candidates: " << window.candidates.size();
-        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(0, -15), colorWhite, cv::Scalar(), 0.4, 1, 0,
-                          0);
+//        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(0, -15), colorWhite, cv::Scalar(), 0.4, 1, 0, 0);
 
         // Show results
         cv::imshow(title == nullptr ? "Hashing visualization" : oss.str(), result);
@@ -366,10 +339,10 @@ namespace tless {
             // Title
             oss.str("");
             oss << "Locations: " << winSize;
-            label(result, oss.str(), cv::Point(2, 14), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
+            label(result, oss.str(), cv::Point(2, 14), 0.5, 2);
             oss.str("");
             oss << "Scene: " << scene.id;
-            label(result, oss.str(), cv::Point(2, 34), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
+            label(result, oss.str(), cv::Point(2, 34), 0.5, 2);
 
             // Show results
             cv::imshow(title == nullptr ? "Window candidates" : title, result);
@@ -437,19 +410,19 @@ namespace tless {
             // Locations title
             oss.str("");
             oss << "Locations: " << windows.size();
-            label(result, oss.str(), cv::Point(2, 14), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
-            label(resultDepth, oss.str(), cv::Point(2, 14), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
-            label(resultEdgels, oss.str(), cv::Point(2, 14), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
+            label(result, oss.str(), cv::Point(2, 14), 0.5, 2);
+            label(resultDepth, oss.str(), cv::Point(2, 14), 0.5, 2);
+            label(resultEdgels, oss.str(), cv::Point(2, 14), 0.5, 2);
             oss.str("");
             oss << "Min edgels: " << (criteria->info.minEdgels * criteria->objectnessFactor);
-            label(result, oss.str(), cv::Point(2, 34), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
-            label(resultDepth, oss.str(), cv::Point(2, 34), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
-            label(resultEdgels, oss.str(), cv::Point(2, 34), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
+            label(result, oss.str(), cv::Point(2, 34), 0.5, 2);
+            label(resultDepth, oss.str(), cv::Point(2, 34), 0.5, 2);
+            label(resultEdgels, oss.str(), cv::Point(2, 34), 0.5, 2);
             oss.str("");
             oss << "Scene: " << scene.id;
-            label(result, oss.str(), cv::Point(2, 54), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
-            label(resultDepth, oss.str(), cv::Point(2, 54), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
-            label(resultEdgels, oss.str(), cv::Point(2, 54), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
+            label(result, oss.str(), cv::Point(2, 54), 0.5, 2);
+            label(resultDepth, oss.str(), cv::Point(2, 54), 0.5, 2);
+            label(resultEdgels, oss.str(), cv::Point(2, 54), 0.5, 2);
 
             // Show results
             cv::imshow(title == nullptr ? "Objectness locations - rgb" : title, result);
@@ -472,5 +445,91 @@ namespace tless {
                 break;
             }
         }
+    }
+
+    void Visualizer::tplFeaturePoints(const Template &t, int wait, const char *title) {
+        // Dynamically load template
+        cv::Mat tplRGB = loadTemplateSrc(t, CV_LOAD_IMAGE_COLOR);
+        cv::Mat tplDepth = loadTemplateSrc(t, CV_LOAD_IMAGE_UNCHANGED);
+        tplDepth.convertTo(tplDepth, CV_8UC1, 255.0f / 65535.0f);
+        cv::cvtColor(tplDepth, tplDepth, CV_GRAY2BGR);
+
+        // Compute edges
+        cv::Mat gray, edges;
+        cv::cvtColor(tplRGB, gray, CV_BGR2GRAY);
+        filterEdges(t.srcGray, edges);
+        cv::cvtColor(edges, edges, CV_GRAY2BGR);
+
+        // ROIs
+        const int offset = 10;
+        cv::Rect rgbROI(offset, offset, tplRGB.cols, tplRGB.rows);
+        cv::Rect depthROI(rgbROI.br().x + offset, offset, tplDepth.cols, tplDepth.rows);
+        cv::Rect edgesROI(depthROI.br().x + offset, offset, tplDepth.cols, tplDepth.rows);
+
+        // Result size
+        cv::Size resultSize(rgbROI.width * 3 + offset * 4, rgbROI.height + offset * 2 + 130);
+        cv::Mat result = cv::Mat::zeros(resultSize, CV_8UC3);
+        
+        // Copy to result roi
+        tplRGB.copyTo(result(rgbROI));
+        tplDepth.copyTo(result(depthROI));
+        edges.copyTo(result(edgesROI));
+
+        // Draw bounding box
+        cv::rectangle(result, rgbROI.tl(), rgbROI.br(), cv::Scalar(90, 90, 90), 1);
+        cv::rectangle(result, depthROI.tl(), depthROI.br(), cv::Scalar(90, 90, 90), 1);
+        cv::rectangle(result, edgesROI.tl(), edgesROI.br(), cv::Scalar(90, 90, 90), 1);
+
+        // Draw edge points
+        if (!t.edgePoints.empty()) {
+            for (auto &point : t.edgePoints) {
+                cv::circle(result, point + rgbROI.tl(), 1, cv::Scalar(0, 0, 255), -1, CV_AA);
+                cv::circle(result, point + edgesROI.tl(), 1, cv::Scalar(0, 0, 255), -1, CV_AA);
+            }
+        }
+
+        // Draw stable points
+        if (!t.stablePoints.empty()) {
+            for (auto &point : t.stablePoints) {
+                cv::circle(result, point + rgbROI.tl(), 1, cv::Scalar(255, 0, 0), -1, CV_AA);
+                cv::circle(result, point + depthROI.tl(), 1, cv::Scalar(255, 0, 0), -1, CV_AA);
+            }
+        }
+
+        // Put text data to template image
+        std::ostringstream oss;
+        cv::Point textTl(offset, rgbROI.height + offset);
+
+        oss.str("");
+        oss << "Template: " << t.fileName;
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+        oss.str("");
+        oss << "mode: " << t.camera.mode;
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+        oss.str("");
+        oss << "elev: " << t.camera.elev;
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+        oss.str("");
+        oss << "srcGradients: " << t.features.gradients.size();
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+        oss.str("");
+        oss << "srcNormals: " << t.features.normals.size();
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+        oss.str("");
+        oss << "depths: " << t.features.depths.size();
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+        oss.str("");
+        oss << "colors: " << t.features.colors.size();
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+
+        cv::imshow(title == nullptr ? "Template features" : title, result);
+        cv::waitKey(wait);
     }
 }

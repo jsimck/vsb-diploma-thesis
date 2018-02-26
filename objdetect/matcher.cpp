@@ -70,7 +70,7 @@ namespace tless {
                     // Save only points that have valid depth and are in defined thresholds
                     if (sobelValue > minEdgeMag) {
                         edgeVPoints.emplace_back(cv::Point(x, y), sobelValue);
-                    } else if (stableValue > minStableVal && t.srcDepth.at<ushort>(y, x) > 0) { // skip wrong depth values // TODO check if a point is not in neighbourhood of 0 pixe (e.g. 5x5)
+                    } else if (stableValue > minStableVal && t.srcDepth.at<ushort>(y, x) >= t.minDepth) { // skip wrong depth values
                         stableVPoints.emplace_back(cv::Point(x, y), stableValue);
                     }
                 }
@@ -106,7 +106,8 @@ namespace tless {
             t.features.depthMedian = median<ushort>(t.features.depths);
 
 #ifndef NDEBUG
-//            Visualizer::visualizeTemplate(t, "data/", 0, "Template feature points");
+//            Visualizer viz(criteria);
+//            viz.tplFeaturePoints(t, 0, "Template feature points");
 #endif
         }
     }
@@ -255,9 +256,6 @@ namespace tless {
         const auto N = criteria->featurePointsCount;
         const auto minThreshold = static_cast<int>(criteria->featurePointsCount * criteria->matchFactor); // 60%
         const long lSize = windows.size();
-
-        // Stop template matching time
-        Timer tMatching;
 
         // TODO - go from start not from end
 #ifndef VISUALIZE
@@ -420,7 +418,5 @@ namespace tless {
 #endif
             }
         }
-
-        std::cout << "  |_ Template matching took: " << tMatching.elapsed() << "s" << std::endl;
     }
 }

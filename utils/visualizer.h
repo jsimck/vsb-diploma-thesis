@@ -21,11 +21,11 @@ namespace tless {
         /**
          * @brief Dynamic image loading for Templates.
          *
-         * @param[in] tpl   Input template, used to compute path based on it's id and filename
+         * @param[in] t     Input template, used to compute path based on it's id and filename
          * @param[in] flags Color of the loaded source image (CV_LOAD_IMAGE_COLOR, CV_LOAD_IMAGE_UNCHANGED)
          * @return          Loaded image
          */
-        cv::Mat loadTemplateSrc(Template &tpl, int flags = CV_LOAD_IMAGE_COLOR);
+        cv::Mat loadTemplateSrc(const Template &t, int flags = CV_LOAD_IMAGE_COLOR);
 
         /**
          * @brief Vizualizes candidates for given window along with matched triplets and number of votes.
@@ -46,16 +46,16 @@ namespace tless {
          * @param[in,out] dst       8-bit 3-channel RGB source image
          * @param[in]     label     Text that should be displayed
          * @param[in]     origin    Bottom left corner of the text, where it should be drawn
-         * @param[in]     padding   Padding inside text box
-         * @param[in]     fontFace  OpenCV Font Face
          * @param[in]     scale     Font scale (size)
+         * @param[in]     padding   Padding inside text box
+         * @param[in]     thickness Font thickness
          * @param[in]     fColor    Foreground color
          * @param[in]     bColor    Background color
-         * @param[in]     thickness Font thickness
+         * @param[in]     fontFace  OpenCV Font Face
          */
-        static void label(cv::Mat &dst, const std::string &label, const cv::Point &origin, cv::Scalar fColor = cv::Scalar(255, 255, 255),
-                          cv::Scalar bColor = cv::Scalar(0, 0, 0), double scale = 0.4,
-                          int padding = 1, int thickness = 1, int fontFace = CV_FONT_HERSHEY_SIMPLEX);
+        static void label(cv::Mat &dst, const std::string &label, const cv::Point &origin, double scale = 0.4,
+                          int padding = 1, int thickness = 1, cv::Scalar fColor = cv::Scalar(255, 255, 255),
+                          cv::Scalar bColor = cv::Scalar(0, 0, 0), int fontFace = CV_FONT_HERSHEY_SIMPLEX);
 
         /**
          * @brief Vizualizes candidates for given window array along with matched triplets and number of votes.
@@ -77,9 +77,19 @@ namespace tless {
          */
         void objectness(const Scene &scene, std::vector<Window> &windows, int wait = 0, const char *title = nullptr);
 
+        /**
+         * @brief Vizualizes template feature points after template training.
+         *
+         * @param[in] t     Template object with generated feature points
+         * @param[in] wait  Optional wait time in waitKey() function
+         * @param[in] title Optional image window title
+         */
+        void tplFeaturePoints(const Template &t, int wait = 0, const char *title = nullptr);
+
         // TODO REFACTOR ---->>>
         // Objectness
-        static void visualizeMatches(cv::Mat &scene, float scale, std::vector<Match> &matches, const std::string &templatesPath = "data/",
+        static void visualizeMatches(cv::Mat &scene, float scale, std::vector<Match> &matches,
+                                     const std::string &templatesPath = "data/",
                                      int wait = 0, const char *title = nullptr);
 
         // Tests
@@ -93,8 +103,6 @@ namespace tless {
         // Templates
         static void visualizeTemplate(Template &tpl, const std::string &templatesPath = "data/", int wait = 0,
                                       const char *title = nullptr);
-
-        // Utils
     };
 }
 

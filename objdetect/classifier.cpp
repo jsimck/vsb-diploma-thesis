@@ -19,7 +19,7 @@ namespace tless {
         std::vector<Template> templates, allTemplates;
         std::string path;
 
-        Timer t;
+        Timer tTraining;
         std::cout << "Training... " << std::endl;
 
         while (ifs >> path) {
@@ -41,8 +41,8 @@ namespace tless {
 
             // Save templates data
             fsw << "templates" << "[";
-            for (auto &tpl : templates) {
-                fsw << tpl;
+            for (auto &t : templates) {
+                fsw << t;
             }
             fsw << "]";
 
@@ -75,14 +75,14 @@ namespace tless {
         fsw.release();
 
         std::cout << "  |_ tables -> " << resultPath + "classifier.yml.gz" << std::endl;
-        std::cout << "DONE!, took: " << t.elapsed() << " s" << std::endl << std::endl;
+        std::cout << "DONE!, took: " << tTraining.elapsed() << " s" << std::endl << std::endl;
     }
 
     void Classifier::load(const std::string &trainedTemplatesListPath, const std::string &trainedPath) {
         std::ifstream ifs(trainedTemplatesListPath);
         assert(ifs.is_open());
 
-        Timer t;
+        Timer tLoading;
         std::string path;
         std::cout << "Loading trained templates... " << std::endl;
 
@@ -94,9 +94,9 @@ namespace tless {
             cv::FileNode tpls = fsr["templates"];
 
             // Loop through templates
-            for (auto &&tpl : tpls) {
+            for (auto &&t : tpls) {
                 Template nTpl;
-                tpl >> nTpl;
+                t >> nTpl;
                 templates.push_back(nTpl);
             }
 
@@ -118,7 +118,7 @@ namespace tless {
 
         fsr.release();
         std::cout << "  |_ hashTables -> LOADED (" << tables.size() << ")" << std::endl;
-        std::cout << "DONE!, took: " << t.elapsed() << " s" << std::endl << std::endl;
+        std::cout << "DONE!, took: " << tLoading.elapsed() << " s" << std::endl << std::endl;
     }
 
     void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath) {
@@ -138,7 +138,7 @@ namespace tless {
         const int finalScaleLevel = 9;
         float scale = initialScale;
 
-        for (int i = 0; i < 503; ++i) {
+        for (int i = 300; i < 503; ++i) {
             for (int pyramidLevel = 0; pyramidLevel < finalScaleLevel; ++pyramidLevel) {
                 Timer tTotal;
 
@@ -159,7 +159,7 @@ namespace tless {
                 Timer tObjectness;
                 objectness.objectness(scene.srcDepth, windows);
                 std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
-                viz.objectness(scene, windows);
+//                viz.objectness(scene, windows);
 
                 /// Verification and filtering of template candidates
                 if (windows.empty()) {
@@ -172,9 +172,10 @@ namespace tless {
                 viz.windowsCandidates(scene, windows);
 
                 /// Match templates
-//                assert(!windows.empty());
-//                matcher.match(scale, scene, windows, matches);
-//
+                Timer tMatching;
+                matcher.match(scale, scene, windows, matches);
+                std::cout << "  |_ Template matching took: " << tMatching.elapsed() << "s" << std::endl;
+
 //                /// Show matched template results
 //                std::cout << std::endl << "Matches size: " << matches.size() << std::endl;
 ////                Visualizer::visualizeMatches(scene.srcRGB, scale, matches, "data/400x400/", 0);

@@ -19,17 +19,17 @@ namespace tless {
         /**
          * @brief Parses template images and generates gray, hsv and gradient images for each template.
          *
-         * @param[in,out] tpl  Template object, loaded from info.yml meta to load images and additional data for
+         * @param[in,out] t    Template object, loaded from info.yml meta to load images and additional data for
          * @param[in] basePath Base path to object folder
          */
-        void parseTemplate(Template &tpl, const std::string &basePath);
+        void parseTemplate(Template &t, const std::string &basePath);
 
         /**
          * @brief Parses criteria for given template + generates quantized normals.
          *
-         * @param[in,out] tpl Template to extract criteria and normals for
+         * @param[in,out] t Template to extract criteria and normals for
          */
-        void parseCriteriaAndNormals(Template &tpl);
+        void parseCriteriaAndNormals(Template &t);
 
     public:
         Parser(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {};

@@ -27,10 +27,10 @@ namespace tless {
         fsInfo.release();
     }
 
-    void Parser::parseTemplate(Template &tpl, const std::string &basePath) {
+    void Parser::parseTemplate(Template &t, const std::string &basePath) {
         // Load source images
-        cv::Mat srcRGB = cv::imread(basePath + "rgb/" + tpl.fileName + ".png", CV_LOAD_IMAGE_COLOR);
-        cv::Mat srcDepth = cv::imread(basePath + "depth/" + tpl.fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
+        cv::Mat srcRGB = cv::imread(basePath + "rgb/" + t.fileName + ".png", CV_LOAD_IMAGE_COLOR);
+        cv::Mat srcDepth = cv::imread(basePath + "depth/" + t.fileName + ".png", CV_LOAD_IMAGE_UNCHANGED);
         assert(srcRGB.type() == CV_8UC3);
         assert(srcDepth.type() == CV_16U);
 
@@ -43,43 +43,43 @@ namespace tless {
         quantizedOrientationGradients(srcGray, gradients, magnitudes);
 
         // Save images to template object
-        tpl.srcRGB = std::move(srcRGB);
-        tpl.srcGray = std::move(srcGray);
-        tpl.srcHSV = std::move(srcHSV);
-        tpl.srcDepth = std::move(srcDepth);
-        tpl.srcGradients = std::move(gradients);
+        t.srcRGB = std::move(srcRGB);
+        t.srcGray = std::move(srcGray);
+        t.srcHSV = std::move(srcHSV);
+        t.srcDepth = std::move(srcDepth);
+        t.srcGradients = std::move(gradients);
 
         // Parse criteria from template and extract normals and gradient images
-        parseCriteriaAndNormals(tpl);
+        parseCriteriaAndNormals(t);
     }
 
-    void Parser::parseCriteriaAndNormals(Template &tpl) {
+    void Parser::parseCriteriaAndNormals(Template &t) {
         // Parse largest area and smallest areas
-        if (tpl.objBB.area() < criteria->info.smallestTemplate.area()) { criteria->info.smallestTemplate = tpl.objBB.size(); }
-        if (tpl.objBB.width > criteria->info.largestArea.width) { criteria->info.largestArea.width = tpl.objBB.width; }
-        if (tpl.objBB.height > criteria->info.largestArea.height) { criteria->info.largestArea.height = tpl.objBB.height; }
+        if (t.objBB.area() < criteria->info.smallestTemplate.area()) { criteria->info.smallestTemplate = t.objBB.size(); }
+        if (t.objBB.width > criteria->info.largestArea.width) { criteria->info.largestArea.width = t.objBB.width; }
+        if (t.objBB.height > criteria->info.largestArea.height) { criteria->info.largestArea.height = t.objBB.height; }
 
         // Extract criteria depth extremes from local extremes
-        if (tpl.maxDepth > criteria->info.maxDepth) { criteria->info.maxDepth = tpl.maxDepth; }
-        if (tpl.minDepth < criteria->info.minDepth) { criteria->info.minDepth = tpl.minDepth; }
+        if (t.maxDepth > criteria->info.maxDepth) { criteria->info.maxDepth = t.maxDepth; }
+        if (t.minDepth < criteria->info.minDepth) { criteria->info.minDepth = t.minDepth; }
 
         // Extract smallest diameter
-        if (tpl.diameter < criteria->info.smallestDiameter) { criteria->info.smallestDiameter = tpl.diameter; }
+        if (t.diameter < criteria->info.smallestDiameter) { criteria->info.smallestDiameter = t.diameter; }
 
         // Normalize local max and min depths to define error corrected range
-        int localMax = static_cast<int>(tpl.maxDepth / depthNormalizationFactor(tpl.maxDepth, criteria->depthDeviationFun));
-        int localMin = static_cast<int>(tpl.minDepth * depthNormalizationFactor(tpl.minDepth, criteria->depthDeviationFun));
+        int localMax = static_cast<int>(t.maxDepth / depthNormalizationFactor(t.maxDepth, criteria->depthDeviationFun));
+        int localMin = static_cast<int>(t.minDepth * depthNormalizationFactor(t.minDepth, criteria->depthDeviationFun));
 
         // Extract min edgels
         cv::Mat integral, edgels;
-        depthEdgels(tpl.srcDepth, edgels, localMin, localMax, static_cast<int>(criteria->objectnessDiameterThreshold * tpl.diameter * criteria->info.depthScaleFactor));
+        depthEdgels(t.srcDepth, edgels, localMin, localMax, static_cast<int>(criteria->objectnessDiameterThreshold * t.diameter * criteria->info.depthScaleFactor));
         cv::integral(edgels, integral, CV_32S);
 
         // Get objBB corners for sum area table calculation
-        cv::Point A(tpl.objBB.tl().x, tpl.objBB.tl().y);
-        cv::Point B(tpl.objBB.br().x, tpl.objBB.tl().y);
-        cv::Point C(tpl.objBB.tl().x, tpl.objBB.br().y);
-        cv::Point D(tpl.objBB.br().x, tpl.objBB.br().y);
+        cv::Point A(t.objBB.tl().x, t.objBB.tl().y);
+        cv::Point B(t.objBB.br().x, t.objBB.tl().y);
+        cv::Point C(t.objBB.tl().x, t.objBB.br().y);
+        cv::Point D(t.objBB.br().x, t.objBB.br().y);
 
         // Get edgel count inside obj bounding box
         int edgelsCount = integral.at<int>(D) - integral.at<int>(B) - integral.at<int>(C) + integral.at<int>(A);
@@ -88,8 +88,8 @@ namespace tless {
         }
 
         // Compute normals
-        quantizedNormals(tpl.srcDepth, tpl.srcNormals, tpl.camera.fx(), tpl.camera.fy(), localMax,
-                         static_cast<int>(criteria->maxDepthDiff / tpl.resizeRatio));
+        quantizedNormals(t.srcDepth, t.srcNormals, t.camera.fx(), t.camera.fy(), localMax,
+                         static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
     }
 
     Scene Parser::parseScene(const std::string &basePath, int index, float scale) {
@@ -99,7 +99,7 @@ namespace tless {
         oss << ".png";
 
         // Load depth, hsv, gray images
-        scene.id = index;
+        scene.id = static_cast<uint>(index);
         scene.scale = scale;
         scene.srcRGB = cv::imread(basePath + "rgb/" + oss.str(), CV_LOAD_IMAGE_COLOR);
         scene.srcDepth = cv::imread(basePath + "depth/" + oss.str(), CV_LOAD_IMAGE_UNCHANGED);

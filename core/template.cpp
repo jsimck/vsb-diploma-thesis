@@ -1,23 +1,6 @@
 #include "template.h"
 
 namespace tless {
-    void Template::loadSrc(const std::string &basePath, const Template &tpl, cv::Mat &dst, int iscolor) {
-        std::ostringstream oss;
-
-        // Generate path
-        oss << basePath;
-        oss << std::setw(2) << std::setfill('0') << static_cast<int>(std::floor(tpl.id / 2000));
-
-        if (iscolor == CV_LOAD_IMAGE_UNCHANGED) {
-            oss << "/depth/" << tpl.fileName << ".png";
-            dst = cv::imread(oss.str(), iscolor);
-            dst.convertTo(dst, CV_32FC1, 1.0f / 65536.0f);
-        } else {
-            oss << "/rgb/" << tpl.fileName << ".png";
-            dst = cv::imread(oss.str(), iscolor);
-        }
-    }
-
     bool Template::operator==(const Template &rhs) const {
         return id == rhs.id;
     }

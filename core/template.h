@@ -51,17 +51,6 @@ namespace tless {
 
         Template() = default;
 
-        // TODO REMOVE -> moved to visualizer
-        /**
-         * @brief Dynamic image loading when t.src are not load (mainly for debugging).
-         *
-         * @param[in]  basePath Full path to template source image
-         * @param[in]  tpl      Input template, used to compute path based on it's id and obj type
-         * @param[out] dst      Destination of loaded template image
-         * @param[in]  iscolor  Color of the loaded source image (CV_LOAD_IMAGE_COLOR, CV_LOAD_IMAGE_UNCHANGED)
-         */
-        static void loadSrc(const std::string &basePath, const Template &tpl, cv::Mat &dst, int iscolor);
-
         bool operator==(const Template &rhs) const;
         bool operator!=(const Template &rhs) const;
         friend void operator>>(const cv::FileNode &node, Template &t);
