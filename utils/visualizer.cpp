@@ -4,6 +4,7 @@
 #include "../objdetect/hasher.h"
 #include "../processing/processing.h"
 #include "../core/classifier_criteria.h"
+#include "../core/template.h"
 
 namespace tless {
     cv::Mat Visualizer::loadTemplateSrc(const Template &tpl, int flags) {
@@ -283,7 +284,7 @@ namespace tless {
         // Compute edges
         cv::Mat gray, edges;
         cv::cvtColor(tplRGB, gray, CV_BGR2GRAY);
-        filterEdges(t.srcGray, edges);
+        filterEdges(gray, edges);
         cv::cvtColor(edges, edges, CV_GRAY2BGR);
 
         // ROIs
@@ -324,7 +325,7 @@ namespace tless {
 
         // Put text data to template image
         std::ostringstream oss;
-        cv::Point textTl(offset, rgbROI.height + offset);
+        cv::Point textTl(offset, rgbROI.height + offset + 4);
 
         oss.str("");
         oss << "Template: " << t.fileName << " (" << (t.id / 2000) << ")";
@@ -342,22 +343,22 @@ namespace tless {
         label(result, oss.str(), textTl);
 
         oss.str("");
-        oss << "srcGradients: " << t.features.gradients.size();
+        oss << "diameter: " << std::fixed << std::setprecision(2) << t.diameter;
         textTl.y += 18;
         label(result, oss.str(), textTl);
 
         oss.str("");
-        oss << "srcNormals: " << t.features.normals.size();
+        oss << "rszRatio: " << std::fixed << std::setprecision(2) << t.resizeRatio;
         textTl.y += 18;
         label(result, oss.str(), textTl);
 
         oss.str("");
-        oss << "depths: " << t.features.depths.size();
+        oss << "objArea: " << t.objArea;
         textTl.y += 18;
         label(result, oss.str(), textTl);
 
         oss.str("");
-        oss << "hue: " << t.features.hue.size();
+        oss << "median: " << t.features.depthMedian;
         textTl.y += 18;
         label(result, oss.str(), textTl);
 
@@ -365,7 +366,122 @@ namespace tless {
         cv::waitKey(wait);
     }
 
-    void Visualizer::matching(const Scene &scene, const Template &candidate, Window &window,
+    void Visualizer::tplMatch(Template &t, std::vector<std::pair<cv::Point, int>> features,
+                              int highlight, int patchOffset, int wait, const char *title) {
+        const int offset = 15;
+        cv::Mat result = cv::Mat::zeros(5 * offset + 4 * t.objBB.height, offset * 3 + t.objBB.width * 2, CV_8UC3);
+        cv::Scalar cGreen(0, 255, 0), cRed(0, 0, 255), cBlue(255, 0, 0), cWhite(255, 255, 255), cGray(90, 90, 90);
+        cv::Point offsetStart(-patchOffset, -patchOffset), offsetEnd(patchOffset, patchOffset);
+
+        // Dynamically load template images
+        cv::Mat gray, rgb = loadTemplateSrc(t, CV_LOAD_IMAGE_COLOR);
+        cv::Mat depth = loadTemplateSrc(t, CV_LOAD_IMAGE_UNCHANGED);
+
+        // Load orientation gradients
+        cv::Mat gradients, magnitudes;
+        cv::cvtColor(rgb, gray, CV_BGR2GRAY);
+        quantizedOrientationGradients(gray, gradients, magnitudes);
+
+        // Load normals
+        cv::Mat normals;
+        int localMax = static_cast<int>(t.maxDepth / depthNormalizationFactor(t.maxDepth, criteria->depthDeviationFun));
+        quantizedNormals(depth, normals, t.camera.fx(), t.camera.fy(), localMax, static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
+
+        // Load hue
+        cv::Mat hue, hsv;
+        cv::cvtColor(rgb, hsv, CV_BGR2HSV);
+        normalizeHSV(hsv, hue);
+
+        // Multiply normals and gradients to be better visible
+        gradients *= 16;
+        normals *= 2;
+
+        // Normalize images to 8UC3
+        depth.convertTo(depth, CV_8UC1, 255.0f / 65535.0f);
+        cv::cvtColor(depth, depth, CV_GRAY2BGR);
+        cv::cvtColor(gradients, gradients, CV_GRAY2BGR);
+        cv::cvtColor(normals, normals, CV_GRAY2BGR);
+        cv::cvtColor(hue, hue, CV_GRAY2BGR);
+
+        // Define rois for every image
+        cv::Rect rgbROI(rgb.cols + offset * 2, offset, rgb.cols, rgb.rows);
+        cv::Rect depthROI(offset, offset, rgbROI.width, rgbROI.height);
+        cv::Rect normalsROI(offset, offset + depthROI.br().y, rgbROI.width, rgbROI.height);
+        cv::Rect gradientsROI(offset, offset + normalsROI.br().y, rgbROI.width, rgbROI.height);
+        cv::Rect hueROI(offset, offset + gradientsROI.br().y, rgbROI.width, rgbROI.height);
+
+        // Copy images to result
+        rgb.copyTo(result(rgbROI));
+        depth.copyTo(result(depthROI));
+        normals.copyTo(result(normalsROI));
+        gradients.copyTo(result(gradientsROI));
+        hue.copyTo(result(hueROI));
+
+        // Draw rectangle around all objects
+        cv::rectangle(result, rgbROI.tl(), rgbROI.br(), cWhite, 1);
+        cv::rectangle(result, depthROI.tl(), depthROI.br(), (highlight == 0 || highlight == 3) ? cGreen : cWhite, 1);
+        cv::rectangle(result, normalsROI.tl(), normalsROI.br(), (highlight == 1) ? cGreen : cWhite, 1);
+        cv::rectangle(result, gradientsROI.tl(), gradientsROI.br(), (highlight == 2) ? cGreen : cWhite, 1);
+        cv::rectangle(result, hueROI.tl(), hueROI.br(), (highlight == 4) ? cGreen : cWhite, 1);
+
+        // Draw features points in the active window
+        for (auto &feature : features) {
+            cv::Scalar color = (feature.second == 1) ? cGreen : cRed;
+            cv::Point tl = feature.first + offsetStart;
+            cv::Point br = feature.first + offsetEnd;
+
+            // Draw small rectangles around object sources
+            if (highlight == 0 || highlight == 3) { cv::rectangle(result, depthROI.tl() + tl, depthROI.tl() + br, color, 1); }
+            else if (highlight == 1) { cv::rectangle(result, normalsROI.tl() + tl, normalsROI.tl() + br, color, 1); }
+            else if (highlight == 2) { cv::rectangle(result, gradientsROI.tl() + tl, gradientsROI.tl() + br, color, 1); }
+            else if (highlight == 4) { cv::rectangle(result, hueROI.tl() + tl, hueROI.tl() + br, color, 1); }
+        }
+
+        // Show template info
+        std::ostringstream oss;
+        cv::Point textTl(depthROI.width + offset * 2, depthROI.height + offset + 4);
+
+        oss.str("");
+        oss << "Tpl: " << t.fileName << " (" << (t.id / 2000) << ")";
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+
+        oss.str("");
+        oss << "mode: " << t.camera.mode;
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+
+        oss.str("");
+        oss << "elev: " << t.camera.elev;
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+
+        oss.str("");
+        oss << "diameter: " << std::fixed << std::setprecision(2) << t.diameter;
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+
+        oss.str("");
+        oss << "rszRatio: " << std::fixed << std::setprecision(2) << t.resizeRatio;
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+
+        oss.str("");
+        oss << "objArea: " << t.objArea;
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+
+        oss.str("");
+        oss << "median: " << t.features.depthMedian;
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+
+        // Show results
+        cv::imshow(title == nullptr ? "Template features" : title, result);
+        cv::waitKey(wait);
+    }
+
+    void Visualizer::matching(const Scene &scene, Template &candidate, Window &window,
                               std::vector<std::vector<std::pair<cv::Point, int>>> scores, int patchOffset,
                               int pointsCount, int minThreshold, int wait, const char *title) {
         std::ostringstream oss;
@@ -389,12 +505,15 @@ namespace tless {
         cv::Mat depth = scene.srcDepth.clone(), normals = scene.srcNormals.clone();
         cv::Mat gradients = scene.srcGradients.clone(), hue = scene.srcHue.clone();
         depth.convertTo(depth, CV_8UC1, 255.0f / 65535.0f);
-        cv::normalize(gradients, gradients, 0, 255, CV_MINMAX);
-        cv::normalize(normals, normals, 0, 255, CV_MINMAX);
         cv::cvtColor(depth, depth, CV_GRAY2BGR);
-        cv::cvtColor(gradients, gradients, CV_GRAY2BGR);
-        cv::cvtColor(normals, normals, CV_GRAY2BGR);
         cv::cvtColor(hue, hue, CV_GRAY2BGR);
+
+        // Multiply normals and gradients by 16 to be better visible
+        gradients *= 16;
+        normals *= 2;
+
+        cv::cvtColor(normals, normals, CV_GRAY2BGR);
+        cv::cvtColor(gradients, gradients, CV_GRAY2BGR);
 
         for (int i = 0; i < scores.size(); ++i) {
             // Copy scene to result
@@ -467,6 +586,7 @@ namespace tless {
             label(result, oss.str(), textTl);
 
             // Show results and save key press
+            tplMatch(candidate, scores[i], i, patchOffset, 1);
             cv::imshow(title == nullptr ? "Matched feature points" : title, result);
             int key = cv::waitKey(wait);
 

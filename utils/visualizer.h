@@ -86,7 +86,33 @@ namespace tless {
          */
         void tplFeaturePoints(const Template &t, int wait = 0, const char *title = nullptr);
 
-        void matching(const Scene &scene, const Template &candidate, Window &window,
+        /**
+         * @brief Vizualizes template matching features during template matching.
+         *
+         * @param[in] t            Template object with generated feature points
+         * @param[in] features     Array of feature points + validity whether it was matched or not
+         * @param[in] highlight    Index of source image to highlight feature points on (rgb, depth, normals, gradients, hue)
+         * @param[in] patchOffset  Patch offset, e.g. area around feature point to look for match
+         * @param[in] wait         Optional wait time in waitKey() function
+         * @param[in] title        Optional image window title
+         */
+        void tplMatch(Template &t, std::vector<std::pair<cv::Point, int>> features,
+                      int highlight, int patchOffset, int wait = 0, const char *title = nullptr);
+
+        /**
+         * @brief Vizualizes matched features between scene and current candidate.
+         *
+         * @param[in] scene        Scene to visualize feature match on
+         * @param[in] candidate    Current candidate we want to compare with the scene
+         * @param[in] window       Current position of sliding window
+         * @param[in] scores       Array of matched scores and feature points
+         * @param[in] patchOffset  Patch offset, e.g. area around feature point to look for match
+         * @param[in] pointsCount  Final count of all feature points
+         * @param[in] minThreshold Minimum number of points that should match, to continue with other tests
+         * @param[in] wait         Optional wait time in waitKey() function
+         * @param[in] title        Optional image window title
+         */
+        void matching(const Scene &scene, Template &candidate, Window &window,
                       std::vector<std::vector<std::pair<cv::Point, int>>> scores, int patchOffset,
                       int pointsCount, int minThreshold, int wait = 0, const char *title = nullptr);
 

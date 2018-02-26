@@ -306,15 +306,15 @@ namespace tless {
 
         // Quantize
         if (degPI >= 0 && degPI < 36) {
-            return 0;
-        } else if (degPI >= 36 && degPI < 72) {
             return 1;
-        } else if (degPI >= 72 && degPI < 108) {
+        } else if (degPI >= 36 && degPI < 72) {
             return 2;
-        } else if (degPI >= 108 && degPI < 144) {
-            return 3;
-        } else {
+        } else if (degPI >= 72 && degPI < 108) {
             return 4;
+        } else if (degPI >= 108 && degPI < 144) {
+            return 8;
+        } else {
+            return 16;
         }
     }
 }

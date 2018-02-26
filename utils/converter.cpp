@@ -59,7 +59,7 @@ namespace tless {
 
         for (int y = 0; y < resizedGray.rows; y++) {
             for (int x = 0; x < resizedGray.cols; x++) {
-                if (t.srcGray.at<uchar>(y, x) > this->minGray) {
+                if (resizedGray.at<uchar>(y, x) > this->minGray) {
                     t.objArea++;
                 }
             }
@@ -111,6 +111,7 @@ namespace tless {
         t.fileName = std::move(fileName);
         t.diameter = diameters[id];
         t.srcRGB = std::move(srcRGB);
+        t.srcGray = std::move(srcGray);
         t.srcDepth = std::move(srcDepth);
         t.objBB = cv::Rect(vObjBB[0], vObjBB[1], vObjBB[2], vObjBB[3]);
         t.camera.R = cv::Mat(3, 3, CV_32FC1, vCamRm2c.data()).clone();
