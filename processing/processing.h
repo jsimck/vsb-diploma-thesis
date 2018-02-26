@@ -46,18 +46,18 @@ namespace tless {
     void quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, float fy, int maxDepth, int maxDifference);
 
     /**
-     * @brief Generates integral image of visible depth edgels, detected in depth image within (min, max) depths
+     * @brief Generates binary image of visible depth edgels, detected in depth image within (min, max) depths.
      *
      * @param[in]  src      Source 16-bit depth image (in mm)
-     * @param[out] sum      Destination 32-bit signed integer integral image
+     * @param[out] dst      8-bit uchar binary image containing 1 where edgels arise in depth image
      * @param[in]  minDepth Ignore pixels with depth lower then this threshold
      * @param[in]  maxDepth Ignore pixels with depth higher then this threshold
      * @param[in]  minMag   Ignore pixels with edge magnitude lower than this
      */
-    void depthEdgelsIntegral(const cv::Mat &src, cv::Mat &sum, int minDepth, int maxDepth, int minMag);
+    void depthEdgels(const cv::Mat &src, cv::Mat &dst, int minDepth, int maxDepth, int minMag);
 
     /**
-     * @brief Finds normalization (error) factor, to help define range in which the given depth value can be
+     * @brief Finds normalization (error) factor, to help define range in which the given depth value can be.
      *
      * @param[in] depth         Depth value to get normalization factor for
      * @param[in] errorFunction Normalization function (vector of 2 values, first is upperBound, second is normalization factor)
@@ -66,7 +66,7 @@ namespace tless {
     float depthNormalizationFactor(float depth, std::vector<cv::Vec2f> errorFunction);
 
     /**
-     * @brief Returns quantized depth into one of 5 bins defined in ranges
+     * @brief Returns quantized depth into one of 5 bins defined in ranges.
      *
      * @param[in] depth  Depth value (32-bit signed int)
      * @param[in] ranges Vector of ranges defining bounds for each quantization bin
@@ -75,7 +75,7 @@ namespace tless {
     uchar quantizeDepth(int depth, std::vector<cv::Range> &ranges);
 
     /**
-     * @brief Remaps black and white colors of HSV color space to blue and yellow colors
+     * @brief Remaps black and white colors of HSV color space to blue and yellow colors.
      *
      * @param[in] hsv        Pixel value to normalize in HSV color space
      * @param[in] value      Value threshold, values below this threshold [blacks] are mapped to blue color
@@ -85,7 +85,7 @@ namespace tless {
     cv::Vec3b remapBlackWhiteHSV(cv::Vec3b hsv, uchar value = 22, uchar saturation = 31);
 
     /**
-     * @brief Applies non-maxima suppression to matches, removing matches with large overlap and lower score
+     * @brief Applies non-maxima suppression to matches, removing matches with large overlap and lower score.
      *
      * This function calculates overlap between each window, if the overlap is > than [maxOverlap]
      * we only retain a match with higher score.
@@ -97,7 +97,7 @@ namespace tless {
 
     // TODO filter edges in all 3 rgb planes and take gradient with largest magnitude
     /**
-     * @brief Finds edges in gray image using sobel operator (applies erosion and gaussian blur in pre-processing)
+     * @brief Finds edges in gray image using sobel operator (applies erosion and gaussian blur in pre-processing).
      *
      * @param[in]  src   8-bit gray source image
      * @param[out] dst   8-bit image with detected edges

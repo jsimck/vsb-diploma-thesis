@@ -8,7 +8,7 @@
 
 namespace tless {
     /**
-     * @brief Holds matched templates along with their location and final score
+     * @brief Holds matched templates along with their location and final score.
      */
     struct Match {
     public:

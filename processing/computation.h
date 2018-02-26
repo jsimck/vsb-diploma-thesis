@@ -6,7 +6,7 @@
 
 namespace tless {
     /**
-     * @brief Converts angle from degrees to radians
+     * @brief Converts angle from degrees to radians.
      *
      * @tparam    T   Angle data type (decimal number)
      * @param[in] deg Angle in degrees
@@ -18,7 +18,7 @@ namespace tless {
     }
 
     /**
-     * @brief Converts angle from radians to degrees
+     * @brief Converts angle from radians to degrees.
      *
      * @tparam    T   Angle data type (decimal number)
      * @param[in] rad Angle in radians
@@ -30,7 +30,7 @@ namespace tless {
     }
 
     /**
-     * @brief Computes power of 2 on value x
+     * @brief Computes power of 2 on value x.
      *
      * @tparam    T X value data type
      * @param[in] x Value to apply power of 2 on
@@ -42,7 +42,7 @@ namespace tless {
     }
 
     /**
-     * @brief Returns median value of input array
+     * @brief Returns median value of input array.
      *
      * @tparam    T      Values data type
      * @param[in] values Array of input values
@@ -66,7 +66,7 @@ namespace tless {
     }
 
     /**
-     * @brief Removes elements at indexes to_remove from the input array
+     * @brief Removes elements at indexes to_remove from the input array.
      *
      * @tparam    T        elements data type
      * @param[in] elements Array of input elements

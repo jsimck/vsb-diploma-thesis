@@ -14,17 +14,12 @@
 namespace tless {
     class Visualizer {
     private:
-        // cv::waitKey() key values
         const int KEY_UP = 0, KEY_DOWN = 1, KEY_LEFT = 2, KEY_RIGHT = 3, KEY_SPACEBAR = 32, KEY_ENTER = 13;
-
         cv::Ptr<ClassifierCriteria> criteria;
         std::string templatesPath;
 
-        static void visualizeWindow(cv::Mat &scene, Window &window);
-        static cv::Vec3b heatMapValue(int min, int max, int value);
-
         /**
-         * @brief Dynamic image loading for Templates
+         * @brief Dynamic image loading for Templates.
          *
          * @param[in] tpl   Input template, used to compute path based on it's id and filename
          * @param[in] flags Color of the loaded source image (CV_LOAD_IMAGE_COLOR, CV_LOAD_IMAGE_UNCHANGED)
@@ -33,7 +28,7 @@ namespace tless {
         cv::Mat loadTemplateSrc(Template &tpl, int flags = CV_LOAD_IMAGE_COLOR);
 
         /**
-         * @brief Vizualizes candidates for given window along with matched triplets and number of votes
+         * @brief Vizualizes candidates for given window along with matched triplets and number of votes.
          *
          * @param[in]  src    8-bit rgb image of the scene we want to vizualize hashing on
          * @param[out] dst    Destination image annotated with current window
@@ -46,7 +41,7 @@ namespace tless {
                 : criteria(criteria), templatesPath(templatesPath) {}
 
         /**
-         * @brief Draws label with surrounded background for better visibility on any source image
+         * @brief Draws label with surrounded background for better visibility on any source image.
          *
          * @param[in,out] dst       8-bit 3-channel RGB source image
          * @param[in]     label     Text that should be displayed
@@ -58,36 +53,34 @@ namespace tless {
          * @param[in]     bColor    Background color
          * @param[in]     thickness Font thickness
          */
-        static void setLabel(cv::Mat &dst, const std::string &label, const cv::Point &origin, int padding = 1,
-                             int fontFace = CV_FONT_HERSHEY_SIMPLEX, double scale = 0.4,
-                             cv::Scalar fColor = cv::Scalar(255, 255, 255),
-                             cv::Scalar bColor = cv::Scalar(0, 0, 0), int thickness = 1);
+        static void label(cv::Mat &dst, const std::string &label, const cv::Point &origin, cv::Scalar fColor = cv::Scalar(255, 255, 255),
+                          cv::Scalar bColor = cv::Scalar(0, 0, 0), double scale = 0.4,
+                          int padding = 1, int thickness = 1, int fontFace = CV_FONT_HERSHEY_SIMPLEX);
 
         /**
-         * @brief Vizualizes candidates for given window array along with matched triplets and number of votes
+         * @brief Vizualizes candidates for given window array along with matched triplets and number of votes.
          *
-         * @param[in] src     8-bit rgb image of the scene we want to vizualize hashing on
+         * @param[in] scene   Scene object we want to vizualize hashing on
          * @param[in] windows Array of sliding windows that passed hashing verification and contain candidates
          * @param[in] wait    Optional wait time in waitKey() function
          * @param[in] title   Optional image window title
          */
-        void windowsCandidates(const cv::Mat &src, std::vector<Window> &windows, int wait = 0, const char *title = nullptr);
+        void windowsCandidates(const Scene &scene, std::vector<Window> &windows, int wait = 0, const char *title = nullptr);
 
+        /**
+         * @brief Vizualizes window locations after objectness detection has been performed.
+         *
+         * @param[in] scene   Scene object we want to vizualize window locations on
+         * @param[in] windows Array of sliding windows that passed objectness detection
+         * @param[in] wait    Optional wait time in waitKey() function
+         * @param[in] title   Optional image window title
+         */
+        void objectness(const Scene &scene, std::vector<Window> &windows, int wait = 0, const char *title = nullptr);
 
         // TODO REFACTOR ---->>>
-        // Hashing
-        static void visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables,
-                                     std::vector<Window> &windows,
-                                     cv::Ptr<ClassifierCriteria> criteria, bool continuous, int wait = 0,
-                                     const char *title = nullptr);
-
         // Objectness
         static void visualizeMatches(cv::Mat &scene, float scale, std::vector<Match> &matches, const std::string &templatesPath = "data/",
                                      int wait = 0, const char *title = nullptr);
-
-        // Results
-        static void visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, bool continuous, int wait = 0,
-                                     const char *title = nullptr);
 
         // Tests
         static bool visualizeTests(Template &tpl, const cv::Mat &sceneHSV, const cv::Mat &sceneDepth, Window &window,

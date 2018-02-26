@@ -9,14 +9,14 @@
 
 namespace tless {
     /**
-     * @brief Class used to train HashTables and quickly verify what templates should be matched per each window passed form objectness detection
+     * @brief Class used to train HashTables and quickly verify what templates should be matched per each window passed form objectness detection.
      */
     class Hasher {
     private:
         cv::Ptr<ClassifierCriteria> criteria;
 
         /**
-         * @brief Validates and generates hash key at triplet position if it's valid
+         * @brief Validates and generates hash key at triplet position if it's valid.
          *
          * First the triplet points are offset by window.tl() position (which is mostly used in scene verification).
          * After then we do checks whether the triplet is not out of window boundary, if gray value at triplet points
@@ -37,7 +37,7 @@ namespace tless {
                                               const cv::Mat &gray, cv::Rect window, uchar minGray = 40);
 
         /**
-         * @brief Computes bin ranges for each table (triplet) across all templates based on relative depths
+         * @brief Computes bin ranges for each table (triplet) across all templates based on relative depths.
          *
          * @param[in]     templates Input array of all templates parsed for detection
          * @param[in,out] tables    Input array of tables, which are then updated with their computed bin range
@@ -50,7 +50,7 @@ namespace tless {
         Hasher(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
 
         /**
-         * @brief Generates and trains hash table on given array of Templates
+         * @brief Generates and trains hash table on given array of Templates.
          *
          * This function computes [criteria.tablesCount] hash tables. To provide better
          * results and fill tables as much as possible we first generate
@@ -65,7 +65,7 @@ namespace tless {
 
         // TODO - Refactor function to perform better in parallel
         /**
-         * @brief Picks first 100 best candidates for each window from included hashing tables
+         * @brief Picks first 100 best candidates for each window from included hashing tables.
          *
          * This function computes hash keys on hash table triplets per each window. Then it looks
          * at the contents of hash table at computed key and votes for templates located at that key.

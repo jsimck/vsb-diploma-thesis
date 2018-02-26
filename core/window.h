@@ -6,7 +6,7 @@
 
 namespace tless {
     /**
-     * @brief Contains location of windows that passed objectness detection
+     * @brief Contains location of windows that passed objectness detection.
      */
     class Window {
     public:
@@ -30,14 +30,14 @@ namespace tless {
         cv::Rect rect();
 
         /**
-         * @brief Returns true whether there are any templates (candidates) in candidates array
+         * @brief Returns true whether there are any templates (candidates) in candidates array.
          *
          * @return True if candidates array is not empty
          */
         bool hasCandidates();
 
         /**
-         * @brief Used in hashing verification, to push only new unique candidates to candidates array
+         * @brief Used in hashing verification, to push only new unique candidates to candidates array.
          *
          * @param[in] t        Template to push to candidates array
          * @param[in] N        Maximum number of templates the candidate array can hold (it will always hold top N candidates)

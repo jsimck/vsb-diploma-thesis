@@ -71,9 +71,9 @@ namespace tless {
         int localMin = static_cast<int>(tpl.minDepth * depthNormalizationFactor(tpl.minDepth, criteria->depthDeviationFun));
 
         // Extract min edgels
-        cv::Mat integral;
-        depthEdgelsIntegral(tpl.srcDepth, integral, localMin, localMax,
-                            static_cast<int>(criteria->objectnessDiameterThreshold * tpl.diameter * criteria->info.depthScaleFactor));
+        cv::Mat integral, edgels;
+        depthEdgels(tpl.srcDepth, edgels, localMin, localMax, static_cast<int>(criteria->objectnessDiameterThreshold * tpl.diameter * criteria->info.depthScaleFactor));
+        cv::integral(edgels, integral, CV_32S);
 
         // Get objBB corners for sum area table calculation
         cv::Point A(tpl.objBB.tl().x, tpl.objBB.tl().y);
@@ -82,9 +82,9 @@ namespace tless {
         cv::Point D(tpl.objBB.br().x, tpl.objBB.br().y);
 
         // Get edgel count inside obj bounding box
-        int edgels = integral.at<int>(D) - integral.at<int>(B) - integral.at<int>(C) + integral.at<int>(A);
-        if (edgels < criteria->info.minEdgels) {
-            criteria->info.minEdgels = edgels;
+        int edgelsCount = integral.at<int>(D) - integral.at<int>(B) - integral.at<int>(C) + integral.at<int>(A);
+        if (edgelsCount < criteria->info.minEdgels) {
+            criteria->info.minEdgels = edgelsCount;
         }
 
         // Compute normals
@@ -99,6 +99,7 @@ namespace tless {
         oss << ".png";
 
         // Load depth, hsv, gray images
+        scene.id = index;
         scene.scale = scale;
         scene.srcRGB = cv::imread(basePath + "rgb/" + oss.str(), CV_LOAD_IMAGE_COLOR);
         scene.srcDepth = cv::imread(basePath + "depth/" + oss.str(), CV_LOAD_IMAGE_UNCHANGED);

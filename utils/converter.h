@@ -9,8 +9,9 @@
 
 namespace tless {
     /**
-     * @brief Utility class which parses, converts and resizes templates downloaded from http://cmp.felk.cvut.cz/t-less/
-     * to desired output size + recalculates depth values based on the resize ratio.
+     * @brief Utility class which parses, converts and resizes templates downloaded from http://cmp.felk.cvut.cz/t-less/.
+     *
+     * Conversion is doe to desired output size + recalculates depth values based on the resize ratio.
      */
     class Converter {
     private:

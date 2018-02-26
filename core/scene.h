@@ -7,10 +7,11 @@
 
 namespace tless {
     /**
-     * @brief Scene wrapper, holds all scene images/normals etc. throughout classification
+     * @brief Scene wrapper, holds all scene images/normals etc. throughout classification.
      */
     struct Scene {
     public:
+        uint id = 0;
         Camera camera;
         float scale = 1.0f;  //!< Current scale of scale pyramid
         int elev = 0, mode = 0;

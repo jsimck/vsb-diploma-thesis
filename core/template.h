@@ -53,7 +53,7 @@ namespace tless {
 
         // TODO REMOVE -> moved to visualizer
         /**
-         * @brief Dynamic image loading when t.src are not load (mainly for debugging)
+         * @brief Dynamic image loading when t.src are not load (mainly for debugging).
          *
          * @param[in]  basePath Full path to template source image
          * @param[in]  tpl      Input template, used to compute path based on it's id and obj type

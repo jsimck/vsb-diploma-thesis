@@ -7,18 +7,18 @@
 
 namespace tless {
     /**
-     * @brief Represents set of 3 points in absolute coordinates
+     * @brief Represents set of 3 points in absolute coordinates.
      *
      * Relative points coordinates are calculated inside of defined grid of (criteria.tripletGrid)
-     * these coordinates are then converted to absolute values (real x,y) based on criteria.info.largestTemplate
+     * these coordinates are then converted to absolute values (real x,y) based on criteria.info.largestTemplate.
      */
     class Triplet {
     private:
         /**
-         * @brief Generates random points in normal distribution (u = 0, dev = grid.width / 2)
+         * @brief Generates random points in normal distribution (u = 0, dev = grid.width / 2).
          *
          * Generates positions in normal distributions, this allows us to generate more positions in top
-         * left corner where most templates are placed to further improve the quantization of template values
+         * left corner where most templates are placed to further improve the quantization of template values.
          *
          * @param[in] grid Size of the grid, in which points are generated
          * @return         Random point generated inside the grid rectangle
@@ -29,7 +29,7 @@ namespace tless {
         cv::Point c, p1, p2;
 
         /**
-         * @brief Generate random point in given grid, inside window sized rect
+         * @brief Generate random point in given grid, inside window sized rect.
          *
          * Generates triplets with positions generated on the given grid in normal distributions.
          * This is to further improve detection, since more points are in top left corner, where most

@@ -10,7 +10,7 @@
 
 namespace tless {
     /**
-     * @brief Class providing objectness detection over depth images
+     * @brief Class providing objectness detection over depth images.
      */
     class Objectness {
     private:
@@ -20,7 +20,7 @@ namespace tless {
         explicit Objectness(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
 
         /**
-         * @brief Applies simple objectness detection on source depth image based on depth discontinuities
+         * @brief Applies simple objectness detection on source depth image based on depth discontinuities.
          *
          * Depth discontinuities are areas where pixel arise on the edges of objects. Sliding window
          * is used to slide through the scene (using size of a smallest template in dataset) and calculating

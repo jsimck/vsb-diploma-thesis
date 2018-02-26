@@ -10,7 +10,7 @@
 
 namespace tless {
     /**
-     * @brief  Utility class to parse templates downloaded from http://cmp.felk.cvut.cz/t-less/
+     * @brief  Utility class to parse templates downloaded from http://cmp.felk.cvut.cz/t-less/.
      */
     class Parser {
     private:

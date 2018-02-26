@@ -107,15 +107,15 @@ namespace tless {
         cv::medianBlur(dst, dst, 5);
     }
 
-    void depthEdgelsIntegral(const cv::Mat &src, cv::Mat &sum, int minDepth, int maxDepth, int minMag) {
+    void depthEdgels(const cv::Mat &src, cv::Mat &dst, int minDepth, int maxDepth, int minMag) {
         assert(!src.empty());
         assert(src.type() == CV_16U);
 
         const int filterX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
         const int filterY[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
-        cv::Mat edgels = cv::Mat::zeros(src.size(), CV_8UC1);
+        dst = cv::Mat::zeros(src.size(), CV_8UC1);
 
-        #pragma omp parallel for default(none) shared(src, edgels, filterX, filterY) firstprivate(minDepth, maxDepth, minMag)
+        #pragma omp parallel for default(none) shared(src, dst, filterX, filterY) firstprivate(minDepth, maxDepth, minMag)
         for (int y = 1; y < src.rows - 1; y++) {
             for (int x = 1; x < src.cols - 1; x++) {
                 int i = 0, sumX = 0, sumY = 0;
@@ -141,11 +141,9 @@ namespace tless {
                     continue;
                 }
 
-                edgels.at<uchar>(y, x) = static_cast<uchar>((std::sqrt(sqr<float>(sumX) + sqr<float>(sumY)) > minMag) ? 1 : 0);
+                dst.at<uchar>(y, x) = static_cast<uchar>((std::sqrt(sqr<float>(sumX) + sqr<float>(sumY)) > minMag) ? 1 : 0);
             }
         }
-
-        cv::integral(edgels, sum, CV_32S);
     }
 
     float depthNormalizationFactor(float depth, std::vector<cv::Vec2f> errorFunction) {

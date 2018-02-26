@@ -8,7 +8,7 @@
 
 namespace tless {
     /**
-     * @brief Defines parameters for classifier behaviour and holds info about dataset
+     * @brief Defines parameters for classifier behaviour and holds info about dataset.
      */
     struct ClassifierCriteria {
     public:

@@ -27,7 +27,7 @@ namespace tless {
         HashTable(Triplet triplet) : triplet(triplet) {}
 
         /**
-         * @brief Loads hash table from trained classifier.yml file
+         * @brief Loads hash table from trained classifier.yml file.
          *
          * @param[in] node      File node identifying hash table in classifier.yml file
          * @param[in] templates Templates from dataset, these are used to assign correct pointers for each hash key
@@ -37,7 +37,7 @@ namespace tless {
         static HashTable load(cv::FileNode &node, std::vector<Template> &templates);
 
         /**
-         * @brief Use when pushing new templates to hash table
+         * @brief Use when pushing new templates to hash table.
          *
          * This function makes sure that when you push new template to the hash table at specific key, it either
          * initializes that key and pushes the template or checks, if the template is not already present at given key

@@ -6,125 +6,26 @@
 #include "../core/classifier_criteria.h"
 
 namespace tless {
-    cv::Vec3b Visualizer::heatMapValue(int min, int max, int value) {
-        float range = max - min;
-        float percentage = 0;
+    cv::Mat Visualizer::loadTemplateSrc(Template &tpl, int flags) {
+        std::ostringstream oss;
+        oss << templatesPath;
+        oss << std::setw(2) << std::setfill('0') << static_cast<int>(std::floor(tpl.id / 2000));
 
-        if (range) {
-            percentage = static_cast<float>(value - min) / range;
+        if (flags == CV_LOAD_IMAGE_UNCHANGED) {
+            oss << "/depth/" << tpl.fileName << ".png";
         } else {
-            return cv::Vec3b(90, 90, 90);
+            oss << "/rgb/" << tpl.fileName << ".png";
         }
 
-        if (percentage >= 0 && percentage < 0.1f) {
-            return cv::Vec3b(90, 90, 90);
-        }
-        if (percentage >= 0.1f && percentage < 0.2f) {
-            return cv::Vec3b(180, 181, 201);
-        }
-        if (percentage >= 0.2f && percentage < 0.3f) {
-            return cv::Vec3b(178, 179, 226);
-        }
-        if (percentage >= 0.3f && percentage < 0.4f) {
-            return cv::Vec3b(174, 176, 244);
-        }
-        if (percentage >= 0.4f && percentage < 0.5f) {
-            return cv::Vec3b(151, 153, 241);
-        }
-        if (percentage >= 0.5f && percentage < 0.6f) {
-            return cv::Vec3b(126, 129, 239);
-        }
-        if (percentage >= 0.6f && percentage < 0.7f) {
-            return cv::Vec3b(96, 101, 237);
-        }
-        if (percentage >= 0.7f && percentage < 0.8f) {
-            return cv::Vec3b(74, 82, 236);
-        }
-        if (percentage >= 0.8f && percentage < 0.9f) {
-            return cv::Vec3b(51, 62, 235);
-        } else {
-            return cv::Vec3b(35, 50, 235);
-        }
+        return cv::imread(oss.str(), flags);
     }
 
-    void Visualizer::setLabel(cv::Mat &dst, const std::string &label, const cv::Point &origin, int padding, int fontFace,
-                              double scale, cv::Scalar fColor, cv::Scalar bColor, int thickness) {
+    void Visualizer::label(cv::Mat &dst, const std::string &label, const cv::Point &origin, cv::Scalar fColor, cv::Scalar bColor,
+                              double scale, int padding, int thickness, int fontFace) {
         cv::Size text = cv::getTextSize(label, fontFace, scale, thickness, nullptr);
         rectangle(dst, origin + cv::Point(-padding - 1, padding + 2),
                   origin + cv::Point(text.width + padding, -text.height - padding - 2), bColor, CV_FILLED);
         putText(dst, label, origin, fontFace, scale, fColor, thickness, CV_AA);
-    }
-
-    void Visualizer::visualizeWindow(cv::Mat &scene, Window &window) {
-        std::ostringstream oss;
-        cv::rectangle(scene, window.tl(), window.br(), cv::Scalar(0, 255, 0), 1);
-
-        // Set labels
-        oss << "candidates: " << window.candidates.size();
-        setLabel(scene, oss.str(), window.tr() + cv::Point(5, 10));
-
-        oss.str("");
-        oss << "edges: " << window.edgels;
-        setLabel(scene, oss.str(), window.tr() + cv::Point(5, 28));
-    }
-
-    void Visualizer::visualizeWindows(cv::Mat &scene, std::vector<Window> &windows, bool continuous, int wait,
-                                      const char *title) {
-        // Init common variables
-        cv::Mat result = scene.clone();
-
-        // Title
-        std::ostringstream oss;
-        oss << "Window result detected: " << windows.size();
-        std::string defTitle = oss.str();
-
-        // Scene label
-        oss.str("");
-        oss << "Locations: " << windows.size();
-        std::string locTitle = oss.str();
-
-        // Sort windows for heat map
-        std::vector<Window> sortedWindows(windows.size());
-        std::copy(windows.begin(), windows.end(), sortedWindows.begin());
-        std::stable_sort(sortedWindows.begin(), sortedWindows.end());
-
-        // Get max for heat map
-        unsigned long max = sortedWindows[sortedWindows.size() - 1].candidates.size();
-
-        if (continuous) {
-            // Visualize each window
-            for (auto &window : windows) {
-                result = scene.clone();
-
-                // Draw all windows in gray
-                for (auto win : sortedWindows) {
-                    cv::rectangle(result, win.tl(), win.br(),
-                                  heatMapValue(0, static_cast<int>(max), static_cast<int>(win.candidates.size())));
-                }
-
-                // Show current window with labels
-                visualizeWindow(result, window);
-                setLabel(result, locTitle, cv::Point(0, 20), 4, 0, 0.5);
-
-                // Show results
-                cv::imshow(title == nullptr ? oss.str() : title, result);
-                cv::waitKey(50);
-            }
-        } else {
-            // Draw all windows in gray
-            for (auto win : windows) {
-                cv::rectangle(result, win.tl(), win.br(),
-                              heatMapValue(0, static_cast<int>(max), static_cast<int>(win.candidates.size())));
-            }
-
-            // Show current window with labels
-            Visualizer::visualizeWindow(result, sortedWindows[0]);
-            setLabel(result, locTitle, cv::Point(0, 20), 4, 0, 0.5);
-        }
-
-        // Show results
-        cv::imshow(title == nullptr ? oss.str() : title, result);
-        cv::waitKey(wait);
     }
 
     void Visualizer::visualizeMatches(cv::Mat &scene, float scale, std::vector<Match> &matches, const std::string &templatesPath,
@@ -139,29 +40,37 @@ namespace tless {
 
             oss.str("");
             oss << "id: " << match.t->id;
-            setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 10));
+            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 10), cv::Scalar(), cv::Scalar(), 0, 0, 0,
+                  0);
             oss.str("");
             oss.precision(2);
             oss << std::fixed << "score: " << match.areaScore << " (" << (match.areaScore * 100.0f) / 4.0f << "%)";
-            setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 28));
+            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 28), cv::Scalar(), cv::Scalar(), 0, 0, 0,
+                  0);
             oss.str("");
             oss << "I: " << match.sI;
-            setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 46));
+            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 46), cv::Scalar(), cv::Scalar(), 0, 0, 0,
+                  0);
             oss.str("");
             oss << "II: " << match.sII;
-            setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 64));
+            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 64), cv::Scalar(), cv::Scalar(), 0, 0, 0,
+                  0);
             oss.str("");
             oss << "III: " << match.sIII;
-            setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 82));
+            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 82), cv::Scalar(), cv::Scalar(), 0, 0, 0,
+                  0);
             oss.str("");
             oss << "IV: " << match.sIV;
-            setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 100));
+            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 100), cv::Scalar(), cv::Scalar(), 0, 0, 0,
+                  0);
             oss.str("");
             oss << "V: " << match.sV;
-            setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 118));
+            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 118), cv::Scalar(), cv::Scalar(), 0, 0, 0,
+                  0);
             oss.str("");
             oss << "scale: " << match.scale;
-            setLabel(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 132));
+            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 132), cv::Scalar(), cv::Scalar(), 0, 0, 0,
+                  0);
 
 //            // Load matched template
 //            cv::Mat tplSrc;
@@ -171,7 +80,7 @@ namespace tless {
 //            cv::rectangle(tplSrc, match.t->objBB.tl(), match.t->objBB.br(), cv::Scalar(0, 255, 0));
 //            oss.str("");
 //            oss << "id: " << match.t->id;
-//            setLabel(tplSrc, oss.str(), cv::Point(match.t->objBB.br().x + 5, match.t->objBB.tl().y + 10));
+//            label(tplSrc, oss.str(), cv::Point(match.t->objBB.br().x + 5, match.t->objBB.tl().y + 10));
 //
 //            oss.str("");
 //            oss << "Template: " << tplCounter;
@@ -220,115 +129,33 @@ namespace tless {
         // Put text data to template image
         std::ostringstream oss;
         oss << "mode: " << tpl.camera.mode;
-        setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 28));
+        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 28), cv::Scalar(), cv::Scalar(), 0, 0,
+              0, 0);
         oss.str("");
         oss << "elev: " << tpl.camera.elev;
-        setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 46));
+        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 46), cv::Scalar(), cv::Scalar(), 0, 0,
+              0, 0);
         oss.str("");
         oss << "srcGradients: " << tpl.features.gradients.size();
-        setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 64));
+        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 64), cv::Scalar(), cv::Scalar(), 0, 0,
+              0, 0);
         oss.str("");
         oss << "srcNormals: " << tpl.features.normals.size();
-        setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 82));
+        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 82), cv::Scalar(), cv::Scalar(), 0, 0,
+              0, 0);
         oss.str("");
         oss << "depths: " << tpl.features.depths.size();
-        setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 100));
+        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 100), cv::Scalar(), cv::Scalar(), 0, 0,
+              0, 0);
         oss.str("");
         oss << "colors: " << tpl.features.colors.size();
-        setLabel(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 118));
+        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 118), cv::Scalar(), cv::Scalar(), 0, 0,
+              0, 0);
 
         oss.str("");
         oss << "Template: " << tpl.id;
         cv::imshow(title == nullptr ? "Window locations detected:" : title, result);
         cv::waitKey(wait);
-    }
-
-    void Visualizer::visualizeHashing(cv::Mat &scene, cv::Mat &sceneDepth, std::vector<HashTable> &tables,
-                                      std::vector<Window> &windows,
-                                      cv::Ptr<ClassifierCriteria> criteria, bool continuous, int wait, const char *title) {
-        // Init common
-        cv::Scalar colorRed(0, 0, 255), colorGreen(0, 255, 0);
-        std::ostringstream oss;
-
-        // TODO user proper fx and fy
-        // Init surface srcNormals
-        cv::Mat sceneSurfaceNormals;
-        quantizedNormals(sceneDepth, sceneSurfaceNormals, 1150, 1150, criteria->info.maxDepth, criteria->maxDepthDiff);
-
-        for (size_t i = 0, windowsSize = windows.size(); i < windowsSize; ++i) {
-            cv::Mat result = scene.clone();
-            int matched = 0;
-
-            // Draw processed windows
-            for (size_t j = 0; j < i; j++) {
-                cv::rectangle(result, windows[j].tl(), windows[j].br(), cv::Scalar::all(90));
-            }
-
-            // Draw window and searched box rectangles
-            cv::rectangle(result, windows[i].tl(), windows[i].tl() + cv::Point(criteria->info.largestArea),
-                          cv::Scalar::all(255));
-            cv::rectangle(result, windows[i].tl(), windows[i].br(), cv::Scalar(0, 255, 0));
-
-            for (auto &table : tables) {
-                // Prepare train to load hash key
-                cv::Point c = table.triplet.c + windows[i].tl();
-                cv::Point p1 = table.triplet.p1 + windows[i].tl();
-                cv::Point p2 = table.triplet.p2 + windows[i].tl();
-
-                // If any point of triplet is out of scene boundaries, ignore it to not get false data
-                if ((c.x < 0 || c.x >= sceneSurfaceNormals.cols || c.y < 0 || c.y >= sceneSurfaceNormals.rows) ||
-                    (p1.x < 0 || p1.x >= sceneSurfaceNormals.cols || p1.y < 0 || p1.y >= sceneSurfaceNormals.rows) ||
-                    (p2.x < 0 || p2.x >= sceneSurfaceNormals.cols || p2.y < 0 || p2.y >= sceneSurfaceNormals.rows))
-                    continue;
-
-                // Relative depths
-                auto cD = static_cast<int>(sceneDepth.at<float>(c));
-                auto p1D = static_cast<int>(sceneDepth.at<float>(p1));
-                auto p2D = static_cast<int>(sceneDepth.at<float>(p2));
-
-                // Generate hash key
-                HashKey key(
-                    quantizeDepth(p2D - cD, table.binRanges),
-                    quantizeDepth(p1D - cD, table.binRanges),
-                    sceneSurfaceNormals.at<uchar>(c),
-                    sceneSurfaceNormals.at<uchar>(p1),
-                    sceneSurfaceNormals.at<uchar>(p2)
-                );
-
-                // Draw only triplets that are matched
-                if (!table.templates[key].empty()) {
-                    matched++;
-                }
-
-                cv::circle(result, c, 2, table.templates[key].empty() ? colorRed : colorGreen, -1);
-                cv::circle(result, p1, 2, table.templates[key].empty() ? colorRed : colorGreen, -1);
-                cv::circle(result, p2, 2, table.templates[key].empty() ? colorRed : colorGreen, -1);
-                cv::line(result, c, p1, table.templates[key].empty() ? colorRed : colorGreen);
-                cv::line(result, c, p2, table.templates[key].empty() ? colorRed : colorGreen);
-            }
-
-            // Labels
-            oss.str("");
-            oss << "candidates: " << windows[i].candidates.size();
-            Visualizer::setLabel(result, oss.str(),
-                                 windows[i].tl() + cv::Point(criteria->info.largestArea.width + 5, 10));
-            oss.str("");
-            oss << "matched: " << matched << "/" << tables.size();
-            Visualizer::setLabel(result, oss.str(),
-                                 windows[i].tl() + cv::Point(criteria->info.largestArea.width + 5, 28));
-            oss.str("");
-            oss << "edgels: " << windows[i].edgels;
-            Visualizer::setLabel(result, oss.str(),
-                                 windows[i].tl() + cv::Point(criteria->info.largestArea.width + 5, 46));
-
-            // Show results
-            cv::imshow(title == nullptr ? "Hashing visualization" : title, result);
-            if (continuous) {
-                cv::waitKey(1);
-            }
-        }
-
-        cv::waitKey(0);
     }
 
     bool Visualizer::visualizeTests(Template &tpl, const cv::Mat &sceneHSV, const cv::Mat &sceneDepth, Window &window,
@@ -403,37 +230,44 @@ namespace tless {
         // Draw info labels
         oss.str("");
         oss << "I: " << scoreITrue << "/" << pointsCount;
-        Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 10), 1, 0, 0.4,
-                             currentTest == 1 ? (scoreITrue > minThreshold ? colorGreen : colorRed) : colorWhite);
+        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 10),
+                          currentTest == 1 ? (scoreITrue > minThreshold ? colorGreen : colorRed) : colorWhite,
+                          cv::Scalar(), 0.4, 1, 0, 0);
         oss.str("");
         oss << "II: " << scoreIITrue << "/" << pointsCount;
-        Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 28), 1, 0, 0.4,
-                             currentTest == 2 ? (scoreIITrue > minThreshold ? colorGreen : colorRed) : colorWhite);
+        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 28),
+                          currentTest == 2 ? (scoreIITrue > minThreshold ? colorGreen : colorRed) : colorWhite,
+                          cv::Scalar(), 0.4, 1, 0, 0);
         oss.str("");
         oss << "III: " << scoreIIITrue << "/" << pointsCount;
-        Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 46), 1, 0, 0.4,
-                             currentTest == 3 ? (scoreIIITrue > minThreshold ? colorGreen : colorRed) : colorWhite);
+        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 46),
+                          currentTest == 3 ? (scoreIIITrue > minThreshold ? colorGreen : colorRed) : colorWhite,
+                          cv::Scalar(), 0.4, 1, 0, 0);
         oss.str("");
         oss << "IV: " << scoreIVTrue << "/" << pointsCount;
-        Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 64), 1, 0, 0.4,
-                             currentTest == 4 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite);
+        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 64),
+                          currentTest == 4 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite,
+                          cv::Scalar(), 0.4, 1, 0, 0);
         oss.str("");
         oss << "V: " << scoreVTrue << "/" << pointsCount;
-        Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 82), 1, 0, 0.4,
-                             currentTest == 5 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite);
+        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 82),
+                          currentTest == 5 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite,
+                          cv::Scalar(), 0.4, 1, 0, 0);
         oss.str("");
         oss.precision(2);
         oss << "score: " << std::fixed
             << scoreITrue / static_cast<float>(pointsCount) + scoreIITrue / static_cast<float>(pointsCount) +
                scoreIIITrue / static_cast<float>(pointsCount) + scoreIVTrue / static_cast<float>(pointsCount) +
                scoreVTrue / static_cast<float>(pointsCount);
-        Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 100), 1, 0, 0.4,
-                             currentTest >= 5 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite);
+        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(tpl.objBB.width + 5, 100),
+                          currentTest >= 5 ? (scoreVTrue > minThreshold ? colorGreen : colorRed) : colorWhite,
+                          cv::Scalar(), 0.4, 1, 0, 0);
 
         // Number of candidates on this window
         oss.str("");
         oss << "candidates: " << window.candidates.size();
-        Visualizer::setLabel(resultScene, oss.str(), window.tl() + cv::Point(0, -15), 1, 0, 0.4, colorWhite);
+        Visualizer::label(resultScene, oss.str(), window.tl() + cv::Point(0, -15), colorWhite, cv::Scalar(), 0.4, 1, 0,
+                          0);
 
         // Show results
         cv::imshow(title == nullptr ? "Hashing visualization" : oss.str(), result);
@@ -456,20 +290,6 @@ namespace tless {
 
         // Spacebar pressed
         return keyPressed == 32;
-    }
-
-    cv::Mat Visualizer::loadTemplateSrc(Template &tpl, int flags) {
-        std::ostringstream oss;
-        oss << templatesPath;
-        oss << std::setw(2) << std::setfill('0') << static_cast<int>(std::floor(tpl.id / 2000));
-
-        if (flags == CV_LOAD_IMAGE_UNCHANGED) {
-            oss << "/depth/" << tpl.fileName << ".png";
-        } else {
-            oss << "/rgb/" << tpl.fileName << ".png";
-        }
-
-        return cv::imread(oss.str(), flags);
     }
 
     void Visualizer::windowCandidates(const cv::Mat &src, cv::Mat &dst, Window &window) {
@@ -509,7 +329,7 @@ namespace tless {
                 // Annotate templates in mosaic
                 cv::rectangle(tplMosaic, rect, cv::Scalar(200, 200, 200), 1);
                 oss << "Votes: " << window.votes[i];
-                setLabel(tplMosaic, oss.str(), cv::Point(rect.x, rect.y + rect.height + 15));
+                label(tplMosaic, oss.str(), cv::Point(rect.x, rect.y + rect.height + 15));
                 oss.str("");
             }
 
@@ -521,18 +341,19 @@ namespace tless {
 
         // Set labels
         oss << "candidates: " << window.candidates.size();
-        setLabel(dst, oss.str(), window.tr() + cv::Point(5, 12));
+        label(dst, oss.str(), window.tr() + cv::Point(5, 12));
         oss.str("");
         oss << "edgels: " << window.edgels;
-        setLabel(dst, oss.str(), window.tr() + cv::Point(5, 30));
+        label(dst, oss.str(), window.tr() + cv::Point(5, 30));
     }
 
-    void Visualizer::windowsCandidates(const cv::Mat &src, std::vector<Window> &windows, int wait, const char *title) {
-        const int winSize = static_cast<const int>(windows.size());
+    void Visualizer::windowsCandidates(const Scene &scene, std::vector<Window> &windows, int wait, const char *title) {
+        const auto winSize = static_cast<const int>(windows.size());
+        std::ostringstream oss;
         cv::Mat result;
 
-        for (int i = 0; i < windows.size(); ++i) {
-            result = src.clone();
+        for (int i = 0; i < winSize; ++i) {
+            result = scene.srcRGB.clone();
 
             // Draw all other windows in gray
             for (auto &win : windows) {
@@ -543,10 +364,97 @@ namespace tless {
             windowCandidates(result, result, windows[i]);
 
             // Title
-            std::ostringstream oss;
-            oss << " Locations: " << windows.size();
-            setLabel(result, oss.str(), cv::Point(0, 12));
+            oss.str("");
+            oss << "Locations: " << winSize;
+            label(result, oss.str(), cv::Point(2, 14), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
+            oss.str("");
+            oss << "Scene: " << scene.id;
+            label(result, oss.str(), cv::Point(2, 34), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
+
+            // Show results
             cv::imshow(title == nullptr ? "Window candidates" : title, result);
+
+            // Get key pressed
+            int key = cv::waitKey(wait);
+
+            // Navigation using arrow keys and spacebar
+            if (key == KEY_UP) {
+                i = (i + 10 < winSize) ? i + 9 : winSize - i - 1;
+            } else if (key == KEY_DOWN) {
+                i = (i - 10 > 0) ? i - 11 : -1;
+            } else if (key == KEY_LEFT) {
+                i = (i - 1 > 0) ? i - 2 : -1;
+            } else if (key == KEY_ENTER) {
+                i = (i + 100 < winSize) ? i + 99 : winSize - i - 1;
+            } else if (key == KEY_SPACEBAR) {
+                break;
+            }
+        }
+    }
+
+    void Visualizer::objectness(const Scene &scene, std::vector<Window> &windows, int wait, const char *title) {
+        const auto winSize = static_cast<const int>(windows.size());
+        auto minMag = static_cast<int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
+        cv::Mat result, depth, edgels, resultDepth, resultEdgels;
+        std::ostringstream oss;
+
+        // Normalize min and max depths to look for objectness in
+        auto minDepth = static_cast<int>(criteria->info.minDepth * depthNormalizationFactor(criteria->info.minDepth, criteria->depthDeviationFun));
+        auto maxDepth = static_cast<int>(criteria->info.maxDepth / depthNormalizationFactor(criteria->info.maxDepth, criteria->depthDeviationFun));
+
+        // Convert depth
+        scene.srcDepth.convertTo(depth, CV_8UC1, 255.0f / 65535.0f);
+        cv::cvtColor(depth, depth, CV_GRAY2BGR);
+
+        // Edgels computation
+        depthEdgels(scene.srcDepth, edgels, minDepth, maxDepth, minMag);
+        cv::normalize(edgels, edgels, 0, 255, CV_MINMAX);
+        cv::cvtColor(edgels, edgels, CV_GRAY2BGR);
+
+        for (int i = 0; i < windows.size(); ++i) {
+            result = scene.srcRGB.clone();
+            resultEdgels = edgels.clone();
+            resultDepth = depth.clone();
+
+            // Draw all other windows in gray
+            for (auto &win : windows) {
+                cv::rectangle(result, win.rect(), cv::Scalar(90, 90, 90), 1);
+                cv::rectangle(resultEdgels, win.rect(), cv::Scalar(23, 35, 24), 1);
+            }
+
+            // Annotate scene
+            cv::rectangle(result, windows[i].rect(), cv::Scalar(0, 255, 0), 1, CV_AA);
+            cv::rectangle(resultDepth, windows[i].rect(), cv::Scalar(0, 255, 0), 1, CV_AA);
+            cv::rectangle(resultEdgels, windows[i].rect(), cv::Scalar(0, 255, 0), 1, CV_AA);
+
+            // Set labels
+            oss.str("");
+            oss << "edgels: " << windows[i].edgels;
+            label(result, oss.str(), windows[i].tr() + cv::Point(5, 12));
+            label(resultDepth, oss.str(), windows[i].tr() + cv::Point(5, 12));
+            label(resultEdgels, oss.str(), windows[i].tr() + cv::Point(5, 12));
+
+            // Locations title
+            oss.str("");
+            oss << "Locations: " << windows.size();
+            label(result, oss.str(), cv::Point(2, 14), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
+            label(resultDepth, oss.str(), cv::Point(2, 14), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
+            label(resultEdgels, oss.str(), cv::Point(2, 14), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
+            oss.str("");
+            oss << "Min edgels: " << (criteria->info.minEdgels * criteria->objectnessFactor);
+            label(result, oss.str(), cv::Point(2, 34), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
+            label(resultDepth, oss.str(), cv::Point(2, 34), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
+            label(resultEdgels, oss.str(), cv::Point(2, 34), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
+            oss.str("");
+            oss << "Scene: " << scene.id;
+            label(result, oss.str(), cv::Point(2, 54), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
+            label(resultDepth, oss.str(), cv::Point(2, 54), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
+            label(resultEdgels, oss.str(), cv::Point(2, 54), cv::Scalar(255, 255, 255), cv::Scalar(0, 0, 0), 0.5, 2);
+
+            // Show results
+            cv::imshow(title == nullptr ? "Objectness locations - rgb" : title, result);
+            cv::imshow("Objectness locations - depth", resultDepth);
+            cv::imshow("Objectness locations - edgels", resultEdgels);
 
             // Get key pressed
             int key = cv::waitKey(wait);

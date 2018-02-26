@@ -15,9 +15,10 @@ namespace tless {
         auto maxDepth = static_cast<int>(criteria->info.maxDepth / depthNormalizationFactor(criteria->info.maxDepth, criteria->depthDeviationFun));
 
         // Generate integral image of detected edgels
-        cv::Mat integral;
+        cv::Mat edgels, integral;
         auto minMag = static_cast<int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
-        depthEdgelsIntegral(src, integral, minDepth, maxDepth, minMag);
+        depthEdgels(src, edgels, minDepth, maxDepth, minMag);
+        cv::integral(edgels, integral, CV_32S);
 
         const auto minEdgels = static_cast<const int>(criteria->info.minEdgels * criteria->objectnessFactor);
         const int sizeX = criteria->info.smallestTemplate.width;

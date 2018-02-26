@@ -21,7 +21,7 @@ namespace tless {
         cv::Ptr<ClassifierCriteria> criteria;
 
         /**
-         * @brief Selects scattered feature points, that are somehow uniformly distributed over the template
+         * @brief Selects scattered feature points, that are somehow uniformly distributed over the template.
          *
          * @param[in]  points    Array of input points to extract scattered points from (pay attention to sorting)
          * @param[in]  count     Final number of points we want to extract from the points array
@@ -40,7 +40,7 @@ namespace tless {
         Matcher(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
 
         /**
-         * @brief Applies template matching for each template in candidate list of each window
+         * @brief Applies template matching for each template in candidate list of each window.
          *
          * Each template candidate for each window needs to pass 5 tests where we compare object size, surface normals, gradients
          * depth and color between template trained features and scene features on trained feature points. Feature point is matched
@@ -58,7 +58,7 @@ namespace tless {
         void match(float scale, Scene &scene, std::vector<Window> &windows, std::vector<Match> &matches);
 
         /**
-         * @brief Generates feature points and extract features for each template
+         * @brief Generates feature points and extract features for each template.
          *
          * Edge points are detected by applying sobel operator on gray image (which was eroded and blurred) and
          * picking points with magnitude > minEdgeMag. Stable points are then selected as points with pixel value > minStableVal

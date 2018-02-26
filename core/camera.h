@@ -19,21 +19,21 @@ namespace tless {
         Camera() = default;
 
         /**
-         * @brief Returns x-focal length from K camera matrix
+         * @brief Returns x-focal length from K camera matrix.
          *
          * @return x-focal length
          */
         float fx();
 
         /**
-         * @brief Returns y-focal length from K camera matrix
+         * @brief Returns y-focal length from K camera matrix.
          *
          * @return y-focal length
          */
         float fy();
 
         /**
-         * @brief Computes vector in camera space on screen (x, y) coordinates
+         * @brief Computes vector in camera space on screen (x, y) coordinates.
          *
          * @param[in] x      Screen x position
          * @param[in] width  Screen width

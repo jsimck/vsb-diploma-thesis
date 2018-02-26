@@ -6,10 +6,10 @@
 
 namespace tless {
     /**
-     * @brief Utility class used to measure computing time
+     * @brief Utility class used to measure computing time.
      *
      * To use first create object -> Timer t; then print time using
-     * t.elapsed(), optionally reset time again t.reset(). Results are in seconds
+     * t.elapsed(), optionally reset time again t.reset(). Results are in seconds.
      */
     class Timer {
     private:
@@ -21,14 +21,14 @@ namespace tless {
         Timer();
 
         /**
-         * @brief Returns time that elapsed from last reset or construction in seconds
+         * @brief Returns time that elapsed from last reset or construction in seconds.
          *
          * @return Elapsed time from last reset [seconds]
          */
         double elapsed() const;
 
         /**
-         * @brief Sets start timer to current system time
+         * @brief Sets start timer to current system time.
          */
         void reset();
     };
