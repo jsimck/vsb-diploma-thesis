@@ -95,14 +95,6 @@ namespace tless {
         static void visualizeMatches(cv::Mat &scene, float scale, std::vector<Match> &matches,
                                      const std::string &templatesPath = "data/",
                                      int wait = 0, const char *title = nullptr);
-
-        // Tests
-        static bool visualizeTests(Template &tpl, const cv::Mat &sceneHSV, const cv::Mat &sceneDepth, Window &window,
-                                   std::vector<cv::Point> &stablePoints, std::vector<cv::Point> &edgePoints,
-                                   int patchOffset, std::vector<int> &scoreI, std::vector<int> &scoreII,
-                                   std::vector<int> &scoreIII, std::vector<int> &scoreIV, std::vector<int> &scoreV,
-                                   int pointsCount, int minThreshold, int currentTest, bool continuous,
-                                   const std::string &templatesPath, int wait, const char *title);
     };
 }
 
