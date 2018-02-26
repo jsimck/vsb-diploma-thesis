@@ -91,59 +91,6 @@ namespace tless {
         cv::waitKey(wait);
     }
 
-    void Visualizer::visualizeTemplate(Template &tpl, const std::string &templatesPath, int wait, const char *title) {
-        cv::Mat result;
-
-        // Dynamically load template
-        if (tpl.srcRGB.empty()) {
-//            Template::loadSrc(templatesPath, tpl, result, CV_LOAD_IMAGE_COLOR);
-        } else {
-            result = tpl.srcRGB.clone();
-        }
-
-        // Draw edge points
-        if (!tpl.edgePoints.empty()) {
-            for (auto &point : tpl.edgePoints) {
-                cv::circle(result, point, 1, cv::Scalar(0, 0, 255), -1);
-            }
-        }
-
-        // Draw stable points
-        if (!tpl.stablePoints.empty()) {
-            for (auto &point : tpl.stablePoints) {
-                cv::circle(result, point, 1, cv::Scalar(255, 0, 0), -1);
-            }
-        }
-
-        // Draw bounding box
-        cv::rectangle(result, tpl.objBB.tl(), tpl.objBB.br(), cv::Scalar(255, 255, 255), 1);
-
-        // Put text data to template image
-        std::ostringstream oss;
-        oss << "mode: " << tpl.camera.mode;
-        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 28));
-        oss.str("");
-        oss << "elev: " << tpl.camera.elev;
-        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 46));
-        oss.str("");
-        oss << "srcGradients: " << tpl.features.gradients.size();
-        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 64));
-        oss.str("");
-        oss << "srcNormals: " << tpl.features.normals.size();
-        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 82));
-        oss.str("");
-        oss << "depths: " << tpl.features.depths.size();
-        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 100));
-        oss.str("");
-        oss << "colors: " << tpl.features.colors.size();
-        label(result, oss.str(), tpl.objBB.tl() + cv::Point(tpl.objBB.width + 5, 118));
-
-        oss.str("");
-        oss << "Template: " << tpl.id;
-        cv::imshow(title == nullptr ? "Window locations detected:" : title, result);
-        cv::waitKey(wait);
-    }
-
     bool Visualizer::visualizeTests(Template &tpl, const cv::Mat &sceneHSV, const cv::Mat &sceneDepth, Window &window,
                                     std::vector<cv::Point> &stablePoints, std::vector<cv::Point> &edgePoints,
                                     int patchOffset, std::vector<int> &scoreI, std::vector<int> &scoreII,

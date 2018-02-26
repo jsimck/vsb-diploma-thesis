@@ -99,10 +99,6 @@ namespace tless {
                                    std::vector<int> &scoreIII, std::vector<int> &scoreIV, std::vector<int> &scoreV,
                                    int pointsCount, int minThreshold, int currentTest, bool continuous,
                                    const std::string &templatesPath, int wait, const char *title);
-
-        // Templates
-        static void visualizeTemplate(Template &tpl, const std::string &templatesPath = "data/", int wait = 0,
-                                      const char *title = nullptr);
     };
 }
 
