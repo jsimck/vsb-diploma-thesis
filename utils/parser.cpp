@@ -19,7 +19,7 @@ namespace tless {
             Template tpl;
             tplNodes[index] >> tpl;
 
-            // Load template images and generate gradients, normals, hsv, gray images
+            // Load template images and generate gradients, normals, hue, gray images
             parseTemplate(tpl, basePath);
             templates.push_back(tpl);
         }
@@ -34,9 +34,12 @@ namespace tless {
         assert(srcRGB.type() == CV_8UC3);
         assert(srcDepth.type() == CV_16U);
 
-        cv::Mat srcHSV, srcGray;
+        cv::Mat srcHSV, srcHue, srcGray;
         cv::cvtColor(srcRGB, srcHSV, CV_BGR2HSV);
         cv::cvtColor(srcRGB, srcGray, CV_BGR2GRAY);
+
+        // Normalize HSV
+        normalizeHSV(srcHSV, srcHue);
 
         // Generate quantized orientations
         cv::Mat gradients, magnitudes;
@@ -45,7 +48,7 @@ namespace tless {
         // Save images to template object
         t.srcRGB = std::move(srcRGB);
         t.srcGray = std::move(srcGray);
-        t.srcHSV = std::move(srcHSV);
+        t.srcHue = std::move(srcHue);
         t.srcDepth = std::move(srcDepth);
         t.srcGradients = std::move(gradients);
 
@@ -98,7 +101,7 @@ namespace tless {
         oss << std::setw(4) << std::setfill('0') << index;
         oss << ".png";
 
-        // Load depth, hsv, gray images
+        // Load depth, hue, gray images
         scene.id = static_cast<uint>(index);
         scene.scale = scale;
         scene.srcRGB = cv::imread(basePath + "rgb/" + oss.str(), CV_LOAD_IMAGE_COLOR);
@@ -109,18 +112,17 @@ namespace tless {
             cv::resize(scene.srcRGB, scene.srcRGB, cv::Size(), scale, scale);
             cv::resize(scene.srcDepth, scene.srcDepth, cv::Size(), scale, scale);
 
-            // TODO - check if it's ok to do this based on objectness/matcher/hasher and correct all recalculations
             // Recalculate depth values
             scene.srcDepth = scene.srcDepth / scale;
         }
 
         // Convert to gray and hsv
+        cv::Mat hsv;
         cv::cvtColor(scene.srcRGB, scene.srcGray, CV_BGR2GRAY);
-        cv::cvtColor(scene.srcRGB, scene.srcHSV, CV_BGR2HSV);
+        cv::cvtColor(scene.srcRGB, hsv, CV_BGR2HSV);
 
         // Normalize HSV
-        // TODO check for ideal saturation and value coefficients
-        normalizeHSV(scene.srcHSV);
+        normalizeHSV(hsv, scene.srcHue);
 
         // Load camera
         std::string infoIndex = "scene_" + std::to_string(index);

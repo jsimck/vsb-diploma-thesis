@@ -175,20 +175,22 @@ namespace tless {
         return DEPTH_LUT[ranges.size() - 1];
     }
 
-    cv::Vec3b remapBlackWhiteHSV(cv::Vec3b hsv, uchar value, uchar saturation) {
-        if (hsv[2] <= value) {
-            hsv[0] = 120; // Set from black to blue
-        } else if (hsv[1] < saturation) {
-            hsv[0] = 30; // Set from white to yellow
-        }
+    void normalizeHSV(const cv::Mat &src, cv::Mat &dst, uchar value, uchar saturation) {
+        dst = cv::Mat(src.size(), CV_8UC1);
 
-        return hsv;
-    }
+        for (int y = 0; y < src.rows; y++) {
+            for (int x = 0; x < src.cols; x++) {
+                cv::Vec3b hsv = src.at<cv::Vec3b>(y, x);
 
-    void normalizeHSV(cv::Mat &hsv, uchar value, uchar saturation) {
-        for (int y = 0; y < hsv.rows; y++) {
-            for (int x = 0; x < hsv.cols; x++) {
-                hsv.at<cv::Vec3b>(y, x) = remapBlackWhiteHSV(hsv.at<cv::Vec3b>(y, x));
+                // Normalize hue value
+                if (hsv[2] <= value) {
+                    hsv[0] = 120; // Set from black to blue
+                } else if (hsv[1] < saturation) {
+                    hsv[0] = 30; // Set from white to yellow
+                }
+
+                // Save only hue to dst
+                dst.at<uchar>(y, x) = hsv[0];
             }
         }
     }

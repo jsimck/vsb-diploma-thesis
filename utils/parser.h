@@ -17,7 +17,7 @@ namespace tless {
         cv::Ptr<ClassifierCriteria> criteria;
 
         /**
-         * @brief Parses template images and generates gray, hsv and gradient images for each template.
+         * @brief Parses template images and generates gray, hue and gradient images for each template.
          *
          * @param[in,out] t    Template object, loaded from info.yml meta to load images and additional data for
          * @param[in] basePath Base path to object folder

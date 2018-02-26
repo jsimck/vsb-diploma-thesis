@@ -22,7 +22,7 @@ namespace tless {
         // Image sources
         cv::Mat srcRGB;
         cv::Mat srcGray;
-        cv::Mat srcHSV;
+        cv::Mat srcHue;
         cv::Mat srcDepth;
 
         // Extracted template feature points
@@ -37,7 +37,7 @@ namespace tless {
             std::vector<uchar> gradients; //!< quantized oriented gradients
             std::vector<uchar> normals; //!< quantized surface normals
             std::vector<ushort> depths; //!< depth value
-            std::vector<cv::Vec3b> colors; //!< HSV color space value
+            std::vector<uchar> hue; //!< hue value from HSV color space
         } features;
 
         // Other params

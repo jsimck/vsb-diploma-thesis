@@ -27,7 +27,7 @@ namespace tless {
            << "features - srcGradients size: " << t.features.gradients.size() << std::endl
            << "features - srcNormals size: " << t.features.normals.size() << std::endl
            << "features - depths size: " << t.features.depths.size() << std::endl
-           << "features - colors size: " << t.features.colors.size() << std::endl;
+           << "features - hue size: " << t.features.hue.size() << std::endl;
 
         return os;
     }
@@ -44,7 +44,7 @@ namespace tless {
         node["srcGradients"] >> t.features.gradients;
         node["srcNormals"] >> t.features.normals;
         node["depths"] >> t.features.depths;
-        node["colors"] >> t.features.colors;
+        node["hue"] >> t.features.hue;
         node["objBB"] >> t.objBB;
         node["objArea"] >> t.objArea;
         node["minDepth"] >> t.minDepth;
@@ -66,7 +66,7 @@ namespace tless {
             fs << "srcGradients" << t.features.gradients;
             fs << "srcNormals" << t.features.normals;
             fs << "depths" << t.features.depths;
-            fs << "colors" << t.features.colors;
+            fs << "hue" << t.features.hue;
         }
 
         fs << "resizeRatio" << t.resizeRatio;

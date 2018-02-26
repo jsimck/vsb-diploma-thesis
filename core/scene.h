@@ -16,7 +16,7 @@ namespace tless {
         float scale = 1.0f;  //!< Current scale of scale pyramid
         int elev = 0, mode = 0;
 
-        cv::Mat srcRGB, srcGray, srcHSV, srcDepth; //!< Source scene in different
+        cv::Mat srcRGB, srcGray, srcHue, srcDepth; //!< Source scene in different
         cv::Mat srcGradients, srcNormals, srcMagnitudes; //!< Matrix of quantized features
 
         Scene() = default;

@@ -100,7 +100,7 @@ namespace tless {
                 t.features.depths.push_back(t.srcDepth.at<ushort>(stable));
                 t.features.gradients.emplace_back(t.srcGradients.at<uchar>(edge));
                 t.features.normals.emplace_back(t.srcNormals.at<uchar>(stable));
-                t.features.colors.push_back(remapBlackWhiteHSV(t.srcHSV.at<cv::Vec3b>(stable)));
+                t.features.hue.push_back(t.srcHue.at<uchar>(stable));
             }
             // Calculate median of depths
             t.features.depthMedian = median<ushort>(t.features.depths);
@@ -217,7 +217,7 @@ namespace tless {
     }
 
 // TODO consider eroding object in training stage to be more tolerant to inaccuracy on the edges
-    int Matcher::testColor(cv::Vec3b HSV, Window &window, cv::Mat &sceneHSV, cv::Point &stable) {
+    int Matcher::testColor(uchar hue, Window &window, cv::Mat &sceneHSV, cv::Point &stable) {
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
@@ -228,11 +228,7 @@ namespace tless {
                     offsetP.x < 0 || offsetP.y < 0)
                     continue;
 
-                // Normalize scene HSV value
-                auto hT = static_cast<int>(HSV[0]);
-                auto hS = static_cast<int>(remapBlackWhiteHSV(sceneHSV.at<cv::Vec3b>(offsetP))[0]);
-
-                if (std::abs(hT - hS) < 3) {
+                if (std::abs(hue - sceneHSV.at<uchar>(offsetP)) < 3) {
                     return 1;
                 }
             }
@@ -245,9 +241,9 @@ namespace tless {
         // Checks
         assert(!scene.srcDepth.empty());
         assert(!scene.srcNormals.empty());
-        assert(!scene.srcHSV.empty());
+        assert(!scene.srcHue.empty());
         assert(!scene.srcMagnitudes.empty());
-        assert(scene.srcHSV.type() == CV_8UC3);
+        assert(scene.srcHue.type() == CV_8UC1);
         assert(scene.srcDepth.type() == CV_16U);
         assert(scene.srcNormals.type() == CV_8UC1);
         assert(!windows.empty());
@@ -303,7 +299,7 @@ namespace tless {
                 // Test V
                 #pragma omp parallel for reduction(+:sV)
                 for (uint i = 0; i < N; i++) {
-                    sV += testColor(candidate->features.colors[i], windows[l], scene.srcHSV, candidate->stablePoints[i]);
+                    sV += testColor(candidate->features.hue[i], windows[l], scene.srcHue, candidate->stablePoints[i]);
                 }
 
                 if (sV < minThreshold) continue;
@@ -327,7 +323,7 @@ namespace tless {
                     vsII.emplace_back(candidate->stablePoints[i], testSurfaceNormal(candidate->features.normals[i], windows[l], scene.srcNormals, candidate->stablePoints[i]));
                     vsIII.emplace_back(candidate->edgePoints[i], testGradients(candidate->features.gradients[i], windows[l], scene.srcGradients, scene.srcMagnitudes, candidate->edgePoints[i]));
                     vsIV.emplace_back(candidate->stablePoints[i], testDepth(scale, candidate->diameter, candidate->features.depthMedian, windows[l], scene.srcDepth, candidate->stablePoints[i]));
-                    vsV.emplace_back(candidate->stablePoints[i], testColor(candidate->features.colors[i], windows[l], scene.srcHSV, candidate->stablePoints[i]));
+                    vsV.emplace_back(candidate->stablePoints[i], testColor(candidate->features.hue[i], windows[l], scene.srcHue, candidate->stablePoints[i]));
                 }
 
                 // Push each score to scores vector

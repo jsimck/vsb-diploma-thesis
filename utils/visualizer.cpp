@@ -357,7 +357,7 @@ namespace tless {
         label(result, oss.str(), textTl);
 
         oss.str("");
-        oss << "colors: " << t.features.colors.size();
+        oss << "hue: " << t.features.hue.size();
         textTl.y += 18;
         label(result, oss.str(), textTl);
 
@@ -383,18 +383,19 @@ namespace tless {
         cv::Rect depthROI(scene.srcRGB.cols + offset * 2, offset, winSize.width, winSize.height);
         cv::Rect normalsROI(depthROI.x, depthROI.y + winSize.height + offset, winSize.width, winSize.height);
         cv::Rect gradientsROI(normalsROI.x, normalsROI.y + winSize.height + offset, winSize.width, winSize.height);
-        cv::Rect hsvROI(gradientsROI.x, gradientsROI.y + winSize.height + offset, winSize.width, winSize.height);
+        cv::Rect hueROI(gradientsROI.x, gradientsROI.y + winSize.height + offset, winSize.width, winSize.height);
 
         // Convert sources to 8UC3 so they can be copied
         cv::Mat depth = scene.srcDepth.clone(), normals = scene.srcNormals.clone();
-        cv::Mat gradients = scene.srcGradients.clone(), hsv = scene.srcHSV.clone();
+        cv::Mat gradients = scene.srcGradients.clone(), hue = scene.srcHue.clone();
         depth.convertTo(depth, CV_8UC1, 255.0f / 65535.0f);
         cv::normalize(gradients, gradients, 0, 255, CV_MINMAX);
         cv::normalize(normals, normals, 0, 255, CV_MINMAX);
         cv::cvtColor(depth, depth, CV_GRAY2BGR);
         cv::cvtColor(gradients, gradients, CV_GRAY2BGR);
         cv::cvtColor(normals, normals, CV_GRAY2BGR);
-        
+        cv::cvtColor(hue, hue, CV_GRAY2BGR);
+
         for (int i = 0; i < scores.size(); ++i) {
             // Copy scene to result
             cv::Mat result = cv::Mat::zeros(resultSize, CV_8UC3);
@@ -402,7 +403,7 @@ namespace tless {
             depth(window.rect()).copyTo(result(depthROI));
             normals(window.rect()).copyTo(result(normalsROI));
             gradients(window.rect()).copyTo(result(gradientsROI));
-            hsv(window.rect()).copyTo(result(hsvROI));
+            hue(window.rect()).copyTo(result(hueROI));
 
             // Offset sliding window
             cv::Rect offsetWindow(window.tl().x + offset, window.tl().y + offset, window.width, window.height);
@@ -420,7 +421,7 @@ namespace tless {
                 if (i == 0 || i == 3) { cv::rectangle(result, depthROI.tl() + tl, depthROI.tl() + br, color, 1); }
                 else if (i == 1) { cv::rectangle(result, normalsROI.tl() + tl, normalsROI.tl() + br, color, 1); }
                 else if (i == 2) { cv::rectangle(result, gradientsROI.tl() + tl, gradientsROI.tl() + br, color, 1); }
-                else if (i == 4) { cv::rectangle(result, hsvROI.tl() + tl, hsvROI.tl() + br, color, 1); }
+                else if (i == 4) { cv::rectangle(result, hueROI.tl() + tl, hueROI.tl() + br, color, 1); }
             }
 
             // Draw rectangles around sources, highlight current test
@@ -428,7 +429,7 @@ namespace tless {
             cv::rectangle(result, depthROI.tl(), depthROI.br(), (i == 0 || i == 3) ? cGreen : cWhite, 1);
             cv::rectangle(result, normalsROI.tl(), normalsROI.br(), (i == 1) ? cGreen : cWhite, 1);
             cv::rectangle(result, gradientsROI.tl(), gradientsROI.br(), (i == 2) ? cGreen : cWhite, 1);
-            cv::rectangle(result, hsvROI.tl(), hsvROI.br(), (i == 4) ? cGreen : cWhite, 1);
+            cv::rectangle(result, hueROI.tl(), hueROI.br(), (i == 4) ? cGreen : cWhite, 1);
 
             // Annotate scene
             cv::rectangle(result, offsetWindow.tl(), offsetWindow.br(), cGreen, 1);

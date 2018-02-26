@@ -75,23 +75,14 @@ namespace tless {
     uchar quantizeDepth(int depth, std::vector<cv::Range> &ranges);
 
     /**
-     * @brief Remaps black and white colors of HSV color space to blue and yellow colors.
-     *
-     * @param[in] hsv        Pixel value to normalize in HSV color space
-     * @param[in] value      Value threshold, values below this threshold [blacks] are mapped to blue color
-     * @param[in] saturation Saturation threshold, values below this and above value threshold [white] are mapped to yellow color
-     * @return               Normalized pixel value where black and white colors are mapped to blue/yellow colors
-     */
-    cv::Vec3b remapBlackWhiteHSV(cv::Vec3b hsv, uchar value = 22, uchar saturation = 31);
-
-    /**
      * @brief Remaps white and black colors of HSV image to yellow and blue for HSV recognition
      *
-     * @param[in,out] hsv        Input/output 8-bit HSV image to normalize
-     * @param[in]     value      Value threshold, values below this threshold [blacks] are mapped to blue color
-     * @param[in]     saturation Saturation threshold, values below this and above value threshold [white] are mapped to yellow color
+     * @param[in]  src        Input 8-bit HSV image to normalize
+     * @param[out] dst        Normalized 8-bit 1-channel image containing hue values from HSV
+     * @param[in]  value      Value threshold, values below this threshold [blacks] are mapped to blue color
+     * @param[in]  saturation Saturation threshold, values below this and above value threshold [white] are mapped to yellow color
      */
-    void normalizeHSV(cv::Mat &hsv, uchar value = 22, uchar saturation = 31);
+    void normalizeHSV(const cv::Mat &src, cv::Mat &dst, uchar value = 22, uchar saturation = 31);
 
     /**
      * @brief Applies non-maxima suppression to matches, removing matches with large overlap and lower score.
