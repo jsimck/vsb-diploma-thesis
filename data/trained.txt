@@ -1,0 +1,3 @@
+data/trained/trained_05.yml.gz
+data/trained/trained_06.yml.gz
+data/trained/trained_07.yml.gz

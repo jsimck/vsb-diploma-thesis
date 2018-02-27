@@ -76,8 +76,8 @@ int main() {
 
     // Run classifier
 //    classifier.train("data/templates.txt", "data/trained/", { 0, 20, 25, 29, 23, 120, 250, 774, 998, 1100, 400, 478, 1095, 1015, 72 });
-//    classifier.train("data/templates.txt", "data/trained/");
-    classifier.detect("data/trained_templates.txt", "data/trained/", "data/scenes/02/");
+    classifier.train("data/templates.txt", "data/trained/");
+//    classifier.detect("data/trained.txt", "data/trained/", "data/scenes/02/");
 
     return 0;
 }
