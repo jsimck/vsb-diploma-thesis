@@ -112,9 +112,7 @@ namespace tless {
         }
     }
 
-    int Matcher::testObjectSize(float scale, ushort depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
-        const unsigned long fSize = criteria->depthDeviationFun.size();
-
+    int Matcher::testObjectSize(ushort depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
@@ -152,9 +150,9 @@ namespace tless {
                 cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
 
                 // Template points in larger templates can go beyond scene boundaries (don't count)
-                if (offsetP.x >= sceneSurfaceNormalsQuantized.cols || offsetP.y >= sceneSurfaceNormalsQuantized.rows ||
-                    offsetP.x < 0 || offsetP.y < 0)
+                if (offsetP.x >= sceneSurfaceNormalsQuantized.cols || offsetP.y >= sceneSurfaceNormalsQuantized.rows || offsetP.x < 0 || offsetP.y < 0) {
                     continue;
+                }
 
                 if (sceneSurfaceNormalsQuantized.at<uchar>(offsetP) == normal) {
                     return 1;
@@ -174,9 +172,9 @@ namespace tless {
                 cv::Point offsetP(edge.x + window.tl().x + x, edge.y + window.tl().y + y);
 
                 // Template points in larger templates can go beyond scene boundaries (don't count)
-                if (offsetP.x >= sceneAnglesQuantized.cols || offsetP.y >= sceneAnglesQuantized.rows ||
-                    offsetP.x < 0 || offsetP.y < 0)
+                if (offsetP.x >= sceneAnglesQuantized.cols || offsetP.y >= sceneAnglesQuantized.rows || offsetP.x < 0 || offsetP.y < 0) {
                     continue;
+                }
 
                 // TODO - make member threshold (detect automatically based on training values)
                 if (sceneAnglesQuantized.at<uchar>(offsetP) == gradient &&
@@ -189,20 +187,18 @@ namespace tless {
         return 0;
     }
 
-    int Matcher::testDepth(float scale, float diameter, ushort depthMedian, Window &window, cv::Mat &sceneDepth,
-                           cv::Point &stable) {
+    int Matcher::testDepth(float diameter, ushort depthMedian, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
                 cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
 
                 // Template points in larger templates can go beyond scene boundaries (don't count)
-                if (offsetP.x >= sceneDepth.cols || offsetP.y >= sceneDepth.rows ||
-                    offsetP.x < 0 || offsetP.y < 0)
+                if (offsetP.x >= sceneDepth.cols || offsetP.y >= sceneDepth.rows || offsetP.x < 0 || offsetP.y < 0) {
                     continue;
+                }
 
-                if ((sceneDepth.at<ushort>(offsetP) - depthMedian * scale) <
-                    (criteria->depthK * diameter * criteria->info.depthScaleFactor)) {
+                if ((sceneDepth.at<ushort>(offsetP) - depthMedian) < (criteria->depthK * diameter * criteria->info.depthScaleFactor)) {
                     return 1;
                 }
             }
@@ -264,10 +260,10 @@ namespace tless {
 
                 // Save validation for all points
                 for (uint i = 0; i < N; i++) {
-                    vsI.emplace_back(candidate->stablePoints[i], testObjectSize(scale, candidate->features.depths[i], windows[l], scene.srcDepth, candidate->stablePoints[i]));
+                    vsI.emplace_back(candidate->stablePoints[i], testObjectSize(candidate->features.depths[i], windows[l], scene.srcDepth, candidate->stablePoints[i]));
                     vsII.emplace_back(candidate->stablePoints[i], testSurfaceNormal(candidate->features.normals[i], windows[l], scene.srcNormals, candidate->stablePoints[i]));
                     vsIII.emplace_back(candidate->edgePoints[i], testGradients(candidate->features.gradients[i], windows[l], scene.srcGradients, scene.srcMagnitudes, candidate->edgePoints[i]));
-                    vsIV.emplace_back(candidate->stablePoints[i], testDepth(scale, candidate->diameter, candidate->features.depthMedian, windows[l], scene.srcDepth, candidate->stablePoints[i]));
+                    vsIV.emplace_back(candidate->stablePoints[i], testDepth(candidate->diameter, candidate->features.depthMedian, windows[l], scene.srcDepth, candidate->stablePoints[i]));
                     vsV.emplace_back(candidate->stablePoints[i], testColor(candidate->features.hue[i], windows[l], scene.srcHue, candidate->stablePoints[i]));
                 }
 
@@ -286,7 +282,7 @@ namespace tless {
                 // Test I
                 #pragma omp parallel for reduction(+:sI)
                 for (uint i = 0; i < N; i++) {
-                    sI += testObjectSize(scale, candidate->features.depths[i], windows[l], scene.srcDepth, candidate->stablePoints[i]);
+                    sI += testObjectSize(candidate->features.depths[i], windows[l], scene.srcDepth, candidate->stablePoints[i]);
                 }
 
                 if (sI < minThreshold) continue;
@@ -310,7 +306,7 @@ namespace tless {
                 // Test IV
                 #pragma omp parallel for reduction(+:sIV)
                 for (uint i = 0; i < N; i++) {
-                    sIV += testDepth(scale, candidate->diameter, candidate->features.depthMedian, windows[l], scene.srcDepth, candidate->stablePoints[i]);
+                    sIV += testDepth(candidate->diameter, candidate->features.depthMedian, windows[l], scene.srcDepth, candidate->stablePoints[i]);
                 }
 
                 if (sIV < minThreshold) continue;

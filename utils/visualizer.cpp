@@ -630,6 +630,11 @@ namespace tless {
                 oss << "Scene: " << scene.id;
                 textTl.y += 18;
                 label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+
+                oss.str("");
+                oss << "Scale: " << scene.scale;
+                textTl.y += 18;
+                label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
             }
 
             // Show results and save key press

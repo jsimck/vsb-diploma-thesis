@@ -176,6 +176,7 @@ namespace tless {
                 matcher.match(scale, scene, windows, matches);
                 std::cout << "  |_ Template matching took: " << tMatching.elapsed() << "s" << std::endl;
 
+
 //                /// Show matched template results
 //                std::cout << std::endl << "Matches size: " << matches.size() << std::endl;
 ////                Visualizer::visualizeMatches(scene.srcRGB, scale, matches, "data/400x400/", 0);
@@ -184,6 +185,8 @@ namespace tless {
                 scale *= scaleFactor;
                 windows.clear();
             }
+
+            std::cout << "Matches size: " << matches.size() << std::endl;
 
             // Apply non-maxima suppression
 //            nonMaximaSuppression(matches, criteria->overlapFactor);
