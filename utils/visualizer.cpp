@@ -13,6 +13,8 @@ namespace tless {
         settings[SETTINGS_GRID] = true;
         settings[SETTINGS_TITLE] = true;
         settings[SETTINGS_INFO] = true;
+        settings[SETTINGS_FEATURE_POINT_STYLE] = true;
+        settings[SETTINGS_FEATURE_POINT] = true;
     }
 
     cv::Mat Visualizer::loadTemplateSrc(const Template &tpl, int flags) {
@@ -417,16 +419,27 @@ namespace tless {
         cv::rectangle(result, hueROI.tl(), hueROI.br(), (highlight == 4) ? cGreen : cWhite, 1);
 
         // Draw features points in the active window
-        for (auto &feature : features) {
-            cv::Scalar color = (feature.second == 1) ? cGreen : cRed;
-            cv::Point tl = feature.first + offsetStart;
-            cv::Point br = feature.first + offsetEnd;
+        if (settings[SETTINGS_FEATURE_POINT]) {
+            for (auto &feature : features) {
+                cv::Scalar color = (feature.second == 1) ? cGreen : cRed;
 
-            // Draw small rectangles around object sources
-            if (highlight == 0 || highlight == 3) { cv::rectangle(result, depthROI.tl() + tl, depthROI.tl() + br, color, 1); }
-            else if (highlight == 1) { cv::rectangle(result, normalsROI.tl() + tl, normalsROI.tl() + br, color, 1); }
-            else if (highlight == 2) { cv::rectangle(result, gradientsROI.tl() + tl, gradientsROI.tl() + br, color, 1); }
-            else if (highlight == 4) { cv::rectangle(result, hueROI.tl() + tl, hueROI.tl() + br, color, 1); }
+                if (settings[SETTINGS_FEATURE_POINT_STYLE]) {
+                    cv::Point tl = feature.first + offsetStart;
+                    cv::Point br = feature.first + offsetEnd;
+
+                    // Draw small rectangles around object sources
+                    if (highlight == 0 || highlight == 3) { cv::rectangle(result, depthROI.tl() + tl, depthROI.tl() + br, color, 1); }
+                    else if (highlight == 1) { cv::rectangle(result, normalsROI.tl() + tl, normalsROI.tl() + br, color, 1); }
+                    else if (highlight == 2) { cv::rectangle(result, gradientsROI.tl() + tl, gradientsROI.tl() + br, color, 1); }
+                    else if (highlight == 4) { cv::rectangle(result, hueROI.tl() + tl, hueROI.tl() + br, color, 1); }
+                } else {
+                    // Draw small circles around object sources
+                    if (highlight == 0 || highlight == 3) { cv::circle(result, depthROI.tl() + feature.first, 1, color, -1); }
+                    else if (highlight == 1) { cv::circle(result, normalsROI.tl() + feature.first, 1, color, -1); }
+                    else if (highlight == 2) { cv::circle(result, gradientsROI.tl() + feature.first, 1, color, -1); }
+                    else if (highlight == 4) { cv::circle(result, hueROI.tl() + feature.first, 1, color, -1); }
+                }
+            }
         }
 
         // Show template info
@@ -480,19 +493,20 @@ namespace tless {
         Window &window = windows[currentIndex];
         cv::Scalar cGreen(0, 255, 0), cRed(0, 0, 255), cBlue(255, 0, 0), cWhite(255, 255, 255), cGray(90, 90, 90);
         cv::Point offsetStart(-patchOffset, -patchOffset), offsetEnd(patchOffset, patchOffset);
+        auto winSize = static_cast<int>(windows.size());
 
         // Load scene and define offsets
         const int offset = 15;
-        const cv::Size winSize(window.width, window.height);
+        const cv::Size slidingWinSize(window.width, window.height);
         const cv::Size stripSize(scene.srcRGB.cols + offset * 3, candidate.objBB.height * 4 + offset * 5);
         const cv::Size resultSize(stripSize.width + candidate.objBB.width, (scene.srcRGB.rows > stripSize.height) ? scene.srcRGB.rows : stripSize.height);
 
         // Define ROIs for scene sources
         cv::Rect sceneROI(cv::Rect(offset, offset, scene.srcRGB.cols,  scene.srcRGB.rows));
-        cv::Rect depthROI(scene.srcRGB.cols + offset * 2, offset, winSize.width, winSize.height);
-        cv::Rect normalsROI(depthROI.x, depthROI.y + winSize.height + offset, winSize.width, winSize.height);
-        cv::Rect gradientsROI(normalsROI.x, normalsROI.y + winSize.height + offset, winSize.width, winSize.height);
-        cv::Rect hueROI(gradientsROI.x, gradientsROI.y + winSize.height + offset, winSize.width, winSize.height);
+        cv::Rect depthROI(scene.srcRGB.cols + offset * 2, offset, slidingWinSize.width, slidingWinSize.height);
+        cv::Rect normalsROI(depthROI.x, depthROI.y + slidingWinSize.height + offset, slidingWinSize.width, slidingWinSize.height);
+        cv::Rect gradientsROI(normalsROI.x, normalsROI.y + slidingWinSize.height + offset, slidingWinSize.width, slidingWinSize.height);
+        cv::Rect hueROI(gradientsROI.x, gradientsROI.y + slidingWinSize.height + offset, slidingWinSize.width, slidingWinSize.height);
 
         // Convert sources to 8UC3 so they can be copied
         cv::Mat depth = scene.srcDepth.clone(), normals = scene.srcNormals.clone();
@@ -528,19 +542,33 @@ namespace tless {
             }
 
             // Draw points
-            for (auto &score : scores[i]) {
-                cv::Scalar color = (score.second == 1) ? cGreen : cRed;
-                cv::Point tl = score.first + offsetStart;
-                cv::Point br = score.first + offsetEnd;
+            if (settings[SETTINGS_FEATURE_POINT]) {
+                for (auto &score : scores[i]) {
+                    cv::Scalar color = (score.second == 1) ? cGreen : cRed;
 
-                // Draw small rectangles around matched feature points
-                cv::rectangle(result, offsetWindow.tl() + tl, offsetWindow.tl() + br, color, 1);
+                    // Draw rectangles or points around feature points based on the settings
+                    if (settings[SETTINGS_FEATURE_POINT_STYLE]) {
+                        // Draw small rectangles around matched feature points
+                        cv::Point tl = score.first + offsetStart;
+                        cv::Point br = score.first + offsetEnd;
+                        cv::rectangle(result, offsetWindow.tl() + tl, offsetWindow.tl() + br, color, 1);
 
-                // Draw small rectangles around object sources
-                if (i == 0 || i == 3) { cv::rectangle(result, depthROI.tl() + tl, depthROI.tl() + br, color, 1); }
-                else if (i == 1) { cv::rectangle(result, normalsROI.tl() + tl, normalsROI.tl() + br, color, 1); }
-                else if (i == 2) { cv::rectangle(result, gradientsROI.tl() + tl, gradientsROI.tl() + br, color, 1); }
-                else if (i == 4) { cv::rectangle(result, hueROI.tl() + tl, hueROI.tl() + br, color, 1); }
+                        // Draw small rectangles around object sources
+                        if (i == 0 || i == 3) { cv::rectangle(result, depthROI.tl() + tl, depthROI.tl() + br, color, 1); }
+                        else if (i == 1) { cv::rectangle(result, normalsROI.tl() + tl, normalsROI.tl() + br, color, 1); }
+                        else if (i == 2) { cv::rectangle(result, gradientsROI.tl() + tl, gradientsROI.tl() + br, color, 1); }
+                        else if (i == 4) { cv::rectangle(result, hueROI.tl() + tl, hueROI.tl() + br, color, 1); }
+                    } else {
+                        // Draw small circles around matched feature points
+                        cv::circle(result, offsetWindow.tl() + score.first, 1, color, -1);
+
+                        // Draw small circles around object sources
+                        if (i == 0 || i == 3) { cv::circle(result, depthROI.tl() + score.first, 1, color, -1); }
+                        else if (i == 1) { cv::circle(result, normalsROI.tl() + score.first, 1, color, -1); }
+                        else if (i == 2) { cv::circle(result, gradientsROI.tl() + score.first, 1, color, -1); }
+                        else if (i == 4) { cv::circle(result, hueROI.tl() + score.first, 1, color, -1); }
+                    }
+                }
             }
 
             // Draw rectangles around sources, highlight current test
@@ -563,60 +591,88 @@ namespace tless {
                     score += point.second;
                 }
 
-                finalScore += score;
-                oss.str("");
+                if (settings[SETTINGS_INFO]) {
+                    finalScore += score;
 
-                // Highlight current score
-                cv::Scalar sGreen = (l == i) ? cGreen : cv::Scalar(0, 170, 0);
-                cv::Scalar sRed = (l == i) ? cRed : cv::Scalar(0, 0, 170);
+                    // Highlight current score
+                    cv::Scalar sGreen = (l == i) ? cGreen : cv::Scalar(0, 170, 0);
+                    cv::Scalar sRed = (l == i) ? cRed : cv::Scalar(0, 0, 170);
 
-                oss << "s" << (l + 1) << ": " << score << "/" << pointsCount;
-                label(result, oss.str(), textTl, 0.4, 1, 1, cv::Scalar(0, 0, 0), (score < minThreshold) ? sRed : sGreen);
-                textTl.y += 18;
+                    oss.str("");
+                    oss << "s" << (l + 1) << ": " << score << "/" << pointsCount;
+                    label(result, oss.str(), textTl, 0.4, 1, 1, cv::Scalar(0, 0, 0), (score < minThreshold) ? sRed : sGreen);
+                    textTl.y += 18;
+                }
             }
 
-            oss.str("");
-            oss << "Score: " << (finalScore / 100.0f);
-            label(result, oss.str(), textTl);
+            // Draw info next to sliding window
+            if (settings[SETTINGS_INFO]) {
+                oss.str("");
+                oss << "Score: " << (finalScore / 100.0f);
+                label(result, oss.str(), textTl);
 
-            oss.str("");
-            oss << "Candidates: " << window.candidates.size();
-            label(result, oss.str(), textTl);
+                oss.str("");
+                oss << "Candidates: " << window.candidates.size();
+                label(result, oss.str(), textTl);
+            }
+
+            // Scene info in top left corner
+            if (settings[SETTINGS_TITLE]) {
+                oss.str("");
+                textTl.x = sceneROI.x + 1;
+                textTl.y = sceneROI.y + 12;
+                oss << "Locations: " << winSize;
+                label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+            }
 
             // Show results and save key press
             tplMatch(candidate, scores[i], i, patchOffset, 1);
             cv::imshow(title == nullptr ? "Matched feature points" : title, result);
             int key = cv::waitKey(wait);
-            int winSize = windows.size();
 
             // Navigation using arrow keys and spacebar
-            if (key == KEY_UP) {
+            if (key == KEY_RIGHT) {
+                currentIndex = (currentIndex + 1 < winSize) ? currentIndex : winSize - 2;
+                return true;
+            } else if (key == KEY_UP) {
                 currentIndex = (currentIndex + 10 < winSize) ? currentIndex + 9 : winSize - 2;
-                return true;
-            } else if (key == KEY_DOWN) {
-                currentIndex = (currentIndex - 10 > 0) ? currentIndex - 11 : -1;
-                return true;
-            } else if (key == KEY_LEFT) {
-                currentIndex = (currentIndex - 1 > 0) ? currentIndex - 2 : -1;
                 return true;
             } else if (key == KEY_ENTER) {
                 currentIndex = (currentIndex + 100 < winSize) ? currentIndex + 99 : winSize - 2;
                 return true;
-            } else if (key == KEY_RIGHT) {
+            } else if (key == KEY_LEFT) {
+                currentIndex = (currentIndex - 1 > 0) ? currentIndex - 2 : -1;
+                return true;
+            } else if (key == KEY_DOWN) {
+                currentIndex = (currentIndex - 10 > 0) ? currentIndex - 11 : -1;
                 return true;
             } else if (key == KEY_SPACEBAR) {
-                break;
-            } else if (key == KEY_K) {
-                // Switch current test (scores)
-                i = (i + 1 < scores.size()) ? i : -1;
-            } else if (key == KEY_S) {
-                // Skip completely
-                currentIndex = winSize + 1;
+                currentIndex = (currentIndex - 100 > 0) ? currentIndex - 99 : -1;
                 return true;
+            } else if (key == KEY_K) {
+                i = (i + 1 < scores.size()) ? i : -1; // Switch current test (scores)
             } else if (key == KEY_G) {
-                // Update settings and roll back indexes
                 settings[SETTINGS_GRID] = !settings[SETTINGS_GRID];
-                i = (i - 1 > 0) ? i - 2 : -1;
+                i = i - 1;
+            } else if (key == KEY_T) {
+                settings[SETTINGS_TITLE] = !settings[SETTINGS_TITLE];
+                i = i - 1;
+            } else if (key == KEY_I) {
+                settings[SETTINGS_INFO] = !settings[SETTINGS_INFO];
+                i = i - 1;
+            } else if (key == KEY_L) {
+                settings[SETTINGS_FEATURE_POINT_STYLE] = !settings[SETTINGS_FEATURE_POINT_STYLE];
+                i = i - 1;
+            } else if (key == KEY_J) {
+                settings[SETTINGS_FEATURE_POINT] = !settings[SETTINGS_FEATURE_POINT];
+                i = i - 1;
+            } else if (key == KEY_S) {
+                currentIndex = winSize + 1;
+                return true; // Skip
+            } else if (key == KEY_C) {
+                break; // TODO Go to prev candidate
+            } else if (key == KEY_V) {
+                break; // Go to next candidate
             }
         }
 

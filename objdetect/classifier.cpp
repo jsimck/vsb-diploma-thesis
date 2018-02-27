@@ -159,7 +159,7 @@ namespace tless {
                 Timer tObjectness;
                 objectness.objectness(scene.srcDepth, windows);
                 std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
-                viz.objectness(scene, windows);
+//                viz.objectness(scene, windows);
 
                 /// Verification and filtering of template candidates
                 if (windows.empty()) {
@@ -169,7 +169,7 @@ namespace tless {
                 Timer tVerification;
                 hasher.verifyCandidates(scene.srcDepth, scene.srcNormals, tables, windows); // TODO refactor to use Scene as input
                 std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
-                viz.windowsCandidates(scene, windows);
+//                viz.windowsCandidates(scene, windows);
 
                 /// Match templates
                 Timer tMatching;

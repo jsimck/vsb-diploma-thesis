@@ -14,7 +14,8 @@
 namespace tless {
     class Visualizer {
     private:
-        const int SETTINGS_GRID = 0, SETTINGS_TITLE = 1, SETTINGS_INFO = 2;
+        const int SETTINGS_GRID = 0, SETTINGS_TITLE = 1, SETTINGS_INFO = 2, SETTINGS_FEATURE_POINT_STYLE = 3,
+            SETTINGS_FEATURE_POINT = 4;
 
         std::unordered_map<int, bool> settings;
         cv::Ptr<ClassifierCriteria> criteria;
@@ -40,7 +41,8 @@ namespace tless {
 
     public:
         static const int KEY_UP = 0, KEY_DOWN = 1, KEY_LEFT = 2, KEY_RIGHT = 3, KEY_SPACEBAR = 32,
-                KEY_ENTER = 13, KEY_G = 103, KEY_S = 115, KEY_K = 107, KEY_T = 116, KEY_I = 105;
+                KEY_ENTER = 13, KEY_G = 103, KEY_S = 115, KEY_K = 107, KEY_T = 116, KEY_I = 105,
+                KEY_C = 99, KEY_V = 118, KEY_L = 108, KEY_J = 106;
 
         Visualizer(cv::Ptr<ClassifierCriteria> criteria, const std::string &templatesPath = "data/108x108/");
 
