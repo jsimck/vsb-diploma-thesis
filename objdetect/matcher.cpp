@@ -246,7 +246,7 @@ namespace tless {
         const auto minThreshold = static_cast<int>(criteria->featurePointsCount * criteria->matchFactor);
         const long lSize = windows.size();
 
-//        #pragma omp parallel for shared(scene, windows, matches) firstprivate(N, minThreshold, scale)
+        #pragma omp parallel for shared(scene, windows, matches) firstprivate(N, minThreshold, scale)
         for (int l = 0; l < lSize; l++) {
             const long canSize =  windows[l].candidates.size();
 
@@ -255,25 +255,25 @@ namespace tless {
                 assert(candidate != nullptr);
 
 #ifndef NDEBUG
-                // Vizualization
-                std::vector<std::pair<cv::Point, int>> vsI, vsII, vsIII, vsIV, vsV;
-
-                // Save validation for all points
-                for (uint i = 0; i < N; i++) {
-                    vsI.emplace_back(candidate->stablePoints[i], testObjectSize(candidate->features.depths[i], windows[l], scene.srcDepth, candidate->stablePoints[i]));
-                    vsII.emplace_back(candidate->stablePoints[i], testSurfaceNormal(candidate->features.normals[i], windows[l], scene.srcNormals, candidate->stablePoints[i]));
-                    vsIII.emplace_back(candidate->edgePoints[i], testGradients(candidate->features.gradients[i], windows[l], scene.srcGradients, scene.srcMagnitudes, candidate->edgePoints[i]));
-                    vsIV.emplace_back(candidate->stablePoints[i], testDepth(candidate->diameter, candidate->features.depthMedian, windows[l], scene.srcDepth, candidate->stablePoints[i]));
-                    vsV.emplace_back(candidate->stablePoints[i], testColor(candidate->features.hue[i], windows[l], scene.srcHue, candidate->stablePoints[i]));
-                }
-
-                // Push each score to scores vector
-                std::vector<std::vector<std::pair<cv::Point, int>>> scores = {vsI, vsII, vsIII, vsIV, vsV};
-
-                // Visualize matching
-                if (viz.matching(scene, *candidate, windows, l, c, scores, criteria->patchOffset, N, minThreshold)) {
-                    break;
-                }
+//                // Vizualization
+//                std::vector<std::pair<cv::Point, int>> vsI, vsII, vsIII, vsIV, vsV;
+//
+//                // Save validation for all points
+//                for (uint i = 0; i < N; i++) {
+//                    vsI.emplace_back(candidate->stablePoints[i], testObjectSize(candidate->features.depths[i], windows[l], scene.srcDepth, candidate->stablePoints[i]));
+//                    vsII.emplace_back(candidate->stablePoints[i], testSurfaceNormal(candidate->features.normals[i], windows[l], scene.srcNormals, candidate->stablePoints[i]));
+//                    vsIII.emplace_back(candidate->edgePoints[i], testGradients(candidate->features.gradients[i], windows[l], scene.srcGradients, scene.srcMagnitudes, candidate->edgePoints[i]));
+//                    vsIV.emplace_back(candidate->stablePoints[i], testDepth(candidate->diameter, candidate->features.depthMedian, windows[l], scene.srcDepth, candidate->stablePoints[i]));
+//                    vsV.emplace_back(candidate->stablePoints[i], testColor(candidate->features.hue[i], windows[l], scene.srcHue, candidate->stablePoints[i]));
+//                }
+//
+//                // Push each score to scores vector
+//                std::vector<std::vector<std::pair<cv::Point, int>>> scores = {vsI, vsII, vsIII, vsIV, vsV};
+//
+//                // Visualize matching
+//                if (viz.matching(scene, *candidate, windows, l, c, scores, criteria->patchOffset, N, minThreshold)) {
+//                    break;
+//                }
 #endif
 
                 // Scores for each test
@@ -320,7 +320,7 @@ namespace tless {
                 if (sV < minThreshold) continue;
 
                 // Push template that passed all tests to matches array
-                float score = (sII / N) + (sIII / N) + (sIV / N) + (sV / N);
+                float score = (sI / N) + (sII / N) + (sIII / N) + (sIV / N) + (sV / N);
                 cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
 
                 #pragma omp critical

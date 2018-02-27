@@ -176,6 +176,7 @@ namespace tless {
     }
 
     void normalizeHSV(const cv::Mat &src, cv::Mat &dst, uchar value, uchar saturation) {
+        // TODO debug the best values for saturation and value
         dst = cv::Mat(src.size(), CV_8UC1);
 
         for (int y = 0; y < src.rows; y++) {

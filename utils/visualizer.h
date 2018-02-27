@@ -15,7 +15,7 @@ namespace tless {
     class Visualizer {
     private:
         const int SETTINGS_GRID = 0, SETTINGS_TITLE = 1, SETTINGS_INFO = 2, SETTINGS_FEATURE_POINT_STYLE = 3,
-            SETTINGS_FEATURE_POINT = 4;
+            SETTINGS_FEATURE_POINT = 4, SETTINGS_TPL_OVERLAY = 5;
 
         std::unordered_map<int, bool> settings;
         cv::Ptr<ClassifierCriteria> criteria;
@@ -125,6 +125,8 @@ namespace tless {
         bool matching(const Scene &scene, Template &candidate, std::vector<Window> &windows, int &currentIndex,
                       int &candidateIndex, std::vector<std::vector<std::pair<cv::Point, int>>> scores, int patchOffset,
                       int pointsCount, int minThreshold, int wait = 0, const char *title = nullptr);
+
+        void matches(const Scene &scene, std::vector<Match> &matches, int wait = 0, const char *title = nullptr);
     };
 }
 

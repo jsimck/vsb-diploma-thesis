@@ -132,25 +132,19 @@ namespace tless {
         // Load trained template data
         load(trainedTemplatesListPath, trainedPath);
 
-        cv::Mat result;
         const float initialScale = .4f;
         const float scaleFactor = 1.25f;
         const int finalScaleLevel = 9;
         float scale = initialScale;
 
         for (int i = 0; i < 503; ++i) {
-            for (int pyramidLevel = 0; pyramidLevel < finalScaleLevel; ++pyramidLevel) {
-                Timer tTotal;
+            Timer tTotal;
 
+            for (int pyramidLevel = 0; pyramidLevel < finalScaleLevel; ++pyramidLevel) {
                 // Load scene
                 Timer tSceneLoading;
                 Scene scene = parser.parseScene(scenePath, i, scale);
                 std::cout << "  |_ Scene loaded in: " << tSceneLoading.elapsed() << "s" << std::endl;
-
-                // Save scene at scale 1.0f for visualization
-                if (scale <= 1.1f && scale >= 0.9f) {
-                    result = scene.srcRGB.clone();
-                }
 
                 /// Objectness detection
                 assert(criteria->info.smallestTemplate.area() > 0);
@@ -176,12 +170,6 @@ namespace tless {
                 matcher.match(scale, scene, windows, matches);
                 std::cout << "  |_ Template matching took: " << tMatching.elapsed() << "s" << std::endl;
 
-
-//                /// Show matched template results
-//                std::cout << std::endl << "Matches size: " << matches.size() << std::endl;
-////                Visualizer::visualizeMatches(scene.srcRGB, scale, matches, "data/400x400/", 0);
-//
-//                std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
                 scale *= scaleFactor;
                 windows.clear();
             }
@@ -189,10 +177,14 @@ namespace tless {
             std::cout << "Matches size: " << matches.size() << std::endl;
 
             // Apply non-maxima suppression
-//            nonMaximaSuppression(matches, criteria->overlapFactor);
+            nonMaximaSuppression(matches, criteria->overlapFactor);
+            std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
 
             // Visualize results
-//            Visualizer::visualizeMatches(result, 1.0f, matches, "data/400x400/", 1, "Pyramid results");
+            Scene scene = parser.parseScene(scenePath, i, 1.0f);
+            viz.matches(scene, matches);
+
+            // Set scale to initial for next scene
             scale = initialScale;
 //            matches.clear();
         }

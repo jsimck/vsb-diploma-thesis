@@ -15,6 +15,7 @@ namespace tless {
         settings[SETTINGS_INFO] = true;
         settings[SETTINGS_FEATURE_POINT_STYLE] = true;
         settings[SETTINGS_FEATURE_POINT] = true;
+        settings[SETTINGS_TPL_OVERLAY] = true;
     }
 
     cv::Mat Visualizer::loadTemplateSrc(const Template &tpl, int flags) {
@@ -691,5 +692,140 @@ namespace tless {
         }
 
         return false;
+    }
+
+    void Visualizer::matches(const Scene &scene, std::vector<Match> &matches, int wait, const char *title) {
+        std::ostringstream oss;
+        const int offset = 15, textWidth = 160;
+        const auto matchSize = static_cast<const int>(matches.size());
+        const int perRow = (matchSize > 7) ? 7 : matchSize;
+
+        while (true) {
+            cv::Mat result = scene.srcRGB.clone();
+
+            if (!matches.empty()) {
+                // Define final mosaic image size
+                cv::Size cellSize = matches[0].objBB.size();
+                auto cols = static_cast<int>(std::ceil((matchSize + perRow) / perRow));
+                cv::Mat tplMosaic = cv::Mat::zeros(matches[0].objBB.height * perRow + (perRow * 2) * offset,
+                                                   matches[0].objBB.width * cols + textWidth * cols + (cols * 2 + 1) * offset, CV_8UC3);
+
+                // Size of one column and row including text
+                int sizeX = offset * 2 + cellSize.width + textWidth;
+                int sizeY = offset * 2 + cellSize.height;
+
+                // Go through each match and draw it on scene + tpl mosaic
+                for (int i = 0; i < matchSize; ++i) {
+                    Match &match = matches[i];
+                    cv::Rect scaledBB = match.scaledBB(scene.scale);
+
+                    // Calculate col, row and rect inside defined mosaic grid
+                    int col = (i / perRow);
+                    int row = (i % perRow);
+                    cv::Rect rect(col * sizeX + offset, row * sizeY + offset, cellSize.width, cellSize.height);
+
+                    // Draw rectangles around found matches on the scene
+                    cv::rectangle(result, scaledBB.tl(), scaledBB.br(), cv::Scalar(0, 255, 0));
+
+                    // Load template src image
+                    cv::Mat tplSrc = loadTemplateSrc(*match.t);
+                    tplSrc.copyTo(tplMosaic(rect));
+
+                    // Draw green template overlay into scene
+                    if (settings[SETTINGS_TPL_OVERLAY]) {
+                        cv::Mat tplGray;
+                        cv::cvtColor(tplSrc, tplGray, CV_BGR2GRAY);
+                        cv::resize(tplGray, tplGray, cv::Size(), 1.0f / match.scale, 1.0f / match.scale);
+
+                        for (int y = 0; y < tplGray.rows; y++) {
+                            for (int x = 0; x < tplGray.cols; x++) {
+                                uchar px = tplGray.at<uchar>(y, x);
+                                if (px > 30) {
+                                    result.at<cv::Vec3b>(y + scaledBB.y, x + scaledBB.x) = cv::Vec3b(0, px, 0);
+                                }
+                            }
+                        }
+                    }
+
+                    // Annotate templates in mosaic
+                    cv::rectangle(tplMosaic, rect, cv::Scalar(200, 200, 200), 1);
+
+                    // Show text info next to each template
+                    cv::Point mosaicTextTl(rect.x + rect.width + 5, rect.y - 8);
+                    oss.str("");
+                    oss << "Template: " << match.t->fileName << " (" << (match.t->id / 2000) << ")";
+                    mosaicTextTl.y += 18;
+                    label(tplMosaic, oss.str(), mosaicTextTl);
+
+                    oss.str("");
+                    oss << "Area score: " << match.areaScore;
+                    mosaicTextTl.y += 18;
+                    label(tplMosaic, oss.str(), mosaicTextTl);
+
+                    oss.str("");
+                    oss << "Score: " << match.score;
+                    mosaicTextTl.y += 18;
+                    label(tplMosaic, oss.str(), mosaicTextTl);
+
+                    oss.str("");
+                    oss << "Scale: " << match.scale;
+                    mosaicTextTl.y += 18;
+                    label(tplMosaic, oss.str(), mosaicTextTl);
+
+                    // Text info on the scene
+                    if (settings[SETTINGS_INFO]) {
+                        cv::Point textTl(scaledBB.br().x + 5, scaledBB.tl().y - 8);
+                        oss.str("");
+                        oss << "Template: " << match.t->fileName << " (" << (match.t->id / 2000) << ")";
+                        textTl.y += 18;
+                        label(result, oss.str(), textTl);
+
+                        oss.str("");
+                        oss << "Area score: " << match.areaScore;
+                        textTl.y += 18;
+                        label(result, oss.str(), textTl);
+
+                        oss.str("");
+                        oss << "Score: " << match.score;
+                        textTl.y += 18;
+                        label(result, oss.str(), textTl);
+
+                        oss.str("");
+                        oss << "Scale: " << match.scale;
+                        textTl.y += 18;
+                        label(result, oss.str(), textTl);
+                    }
+                }
+
+                cv::imshow("Matched templates", tplMosaic);
+            }
+
+            // Draw info in the top left corner of the scene
+            if (settings[SETTINGS_TITLE]) {
+                cv::Point sceneTl(-4, 12);
+                oss.str("");
+                oss << " Matches: " << matchSize;
+                label(result, oss.str(), sceneTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+                sceneTl.y += 17;
+
+                oss.str("");
+                oss << " Scene: " << scene.id;
+                label(result, oss.str(), sceneTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+            }
+
+            cv::imshow(title == nullptr ? "Matched results" : title, result);
+            int key = cv::waitKey(wait);
+
+            // Controls using keys
+            if (key == KEY_K) {
+                settings[SETTINGS_TPL_OVERLAY] = !settings[SETTINGS_TPL_OVERLAY];
+            } else if (key == KEY_I) {
+                settings[SETTINGS_INFO] = !settings[SETTINGS_INFO];
+            } else if (key == KEY_T) {
+                settings[SETTINGS_TITLE] = !settings[SETTINGS_TITLE];
+            } else {
+                break;
+            }
+        }
     }
 }
