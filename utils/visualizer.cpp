@@ -500,7 +500,7 @@ namespace tless {
         const int offset = 15;
         const cv::Size slidingWinSize(window.width, window.height);
         const cv::Size stripSize(scene.srcRGB.cols + offset * 3, candidate.objBB.height * 4 + offset * 5);
-        const cv::Size resultSize(stripSize.width + candidate.objBB.width, (scene.srcRGB.rows > stripSize.height) ? scene.srcRGB.rows : stripSize.height);
+        const cv::Size resultSize(stripSize.width + candidate.objBB.width, (scene.srcRGB.rows + 2 * offset > stripSize.height) ? scene.srcRGB.rows + 2 * offset : stripSize.height);
 
         // Define ROIs for scene sources
         cv::Rect sceneROI(cv::Rect(offset, offset, scene.srcRGB.cols,  scene.srcRGB.rows));
@@ -624,6 +624,11 @@ namespace tless {
                 textTl.y = sceneROI.y + 12;
                 oss << "Locations: " << winSize;
                 label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+
+                oss.str("");
+                oss << "Scene: " << scene.id;
+                textTl.y += 18;
+                label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
             }
 
             // Show results and save key press
@@ -669,7 +674,7 @@ namespace tless {
                 i = i - 1;
             } else if (key == KEY_S) {
                 currentIndex = winSize + 1;
-                return true; // Skip
+                return true; // Skip all windows
             } else if (key == KEY_C) {
                 candidateIndex = (candidateIndex - 1 > 0) ? candidateIndex - 2 : -1;
                 return false;
