@@ -14,9 +14,7 @@
 namespace tless {
     class Visualizer {
     private:
-        const int KEY_UP = 0, KEY_DOWN = 1, KEY_LEFT = 2, KEY_RIGHT = 3, KEY_SPACEBAR = 32,
-                KEY_ENTER = 13, KEY_G = 103, KEY_S = 115, KEY_K = 107;
-        const int SETTINGS_GRID = 0;
+        const int SETTINGS_GRID = 0, SETTINGS_TITLE = 1, SETTINGS_INFO = 2;
 
         std::unordered_map<int, bool> settings;
         cv::Ptr<ClassifierCriteria> criteria;
@@ -41,6 +39,9 @@ namespace tless {
         void windowCandidates(const cv::Mat &src, cv::Mat &dst, Window &window);
 
     public:
+        static const int KEY_UP = 0, KEY_DOWN = 1, KEY_LEFT = 2, KEY_RIGHT = 3, KEY_SPACEBAR = 32,
+                KEY_ENTER = 13, KEY_G = 103, KEY_S = 115, KEY_K = 107, KEY_T = 116, KEY_I = 105;
+
         Visualizer(cv::Ptr<ClassifierCriteria> criteria, const std::string &templatesPath = "data/108x108/");
 
         /**
@@ -121,12 +122,6 @@ namespace tless {
         bool matching(const Scene &scene, Template &candidate, std::vector<Window> &windows, int &currentIndex,
                       std::vector<std::vector<std::pair<cv::Point, int>>> scores, int patchOffset,
                       int pointsCount, int minThreshold, int wait = 0, const char *title = nullptr);
-
-        // TODO REFACTOR ---->>>
-        // Objectness
-        static void visualizeMatches(cv::Mat &scene, float scale, std::vector<Match> &matches,
-                                     const std::string &templatesPath = "data/",
-                                     int wait = 0, const char *title = nullptr);
     };
 }
 

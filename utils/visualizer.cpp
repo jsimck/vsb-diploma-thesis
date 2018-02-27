@@ -11,6 +11,8 @@ namespace tless {
             : criteria(criteria), templatesPath(templatesPath){
         // Initialize settings
         settings[SETTINGS_GRID] = true;
+        settings[SETTINGS_TITLE] = true;
+        settings[SETTINGS_INFO] = true;
     }
 
     cv::Mat Visualizer::loadTemplateSrc(const Template &tpl, int flags) {
@@ -33,69 +35,6 @@ namespace tless {
         rectangle(dst, origin + cv::Point(-padding - 1, padding + 2),
                   origin + cv::Point(text.width + padding, -text.height - padding - 2), bColor, CV_FILLED);
         putText(dst, label, origin, fontFace, scale, fColor, thickness, CV_AA);
-    }
-
-    void Visualizer::visualizeMatches(cv::Mat &scene, float scale, std::vector<Match> &matches, const std::string &templatesPath,
-                                      int wait, const char *title) {
-        cv::Mat viz = scene.clone();
-        std::ostringstream oss;
-        int tplCounter = 0;
-
-        for (auto &match : matches) {
-            cv::Rect matchBB = match.scaledBB(scale);
-            cv::rectangle(viz, matchBB.tl(), matchBB.br(), cv::Scalar(0, 255, 0));
-
-            oss.str("");
-            oss << "id: " << match.t->id;
-            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 10));
-            oss.str("");
-            oss.precision(2);
-            oss << std::fixed << "score: " << match.areaScore << " (" << (match.areaScore * 100.0f) / 4.0f << "%)";
-            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 28));
-            oss.str("");
-            oss << "I: " << match.sI;
-            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 46));
-            oss.str("");
-            oss << "II: " << match.sII;
-            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 64));
-            oss.str("");
-            oss << "III: " << match.sIII;
-            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 82));
-            oss.str("");
-            oss << "IV: " << match.sIV;
-            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 100));
-            oss.str("");
-            oss << "V: " << match.sV;
-            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 118));
-            oss.str("");
-            oss << "scale: " << match.scale;
-            label(viz, oss.str(), matchBB.tl() + cv::Point(matchBB.width + 5, 132));
-
-//            // Load matched template
-//            cv::Mat tplSrc;
-//            Template::loadTemplateSrc(templatesPath, *match.t, tplSrc, CV_LOAD_IMAGE_COLOR);
-//
-//            // draw label and bounding box
-//            cv::rectangle(tplSrc, match.t->objBB.tl(), match.t->objBB.br(), cv::Scalar(0, 255, 0));
-//            oss.str("");
-//            oss << "id: " << match.t->id;
-//            label(tplSrc, oss.str(), cv::Point(match.t->objBB.br().x + 5, match.t->objBB.tl().y + 10));
-//
-//            oss.str("");
-//            oss << "Template: " << tplCounter;
-//            std::string winName = oss.str();
-//
-//            // Show in resizable window
-//            cv::namedWindow(winName, 0);
-//            cv::imshow(winName, tplSrc);
-//            tplCounter++;
-        }
-
-        // Show in resizable window
-        std::string winName = title != nullptr ? title : "Matched results";
-        cv::namedWindow(winName, 0);
-        cv::imshow(winName, viz);
-        cv::waitKey(wait);
     }
 
     void Visualizer::windowCandidates(const cv::Mat &src, cv::Mat &dst, Window &window) {
@@ -146,11 +85,13 @@ namespace tless {
         cv::rectangle(dst, window.rect(), cv::Scalar(0, 255, 0), 1, CV_AA);
 
         // Set labels
-        oss << "candidates: " << window.candidates.size();
-        label(dst, oss.str(), window.tr() + cv::Point(5, 12));
-        oss.str("");
-        oss << "edgels: " << window.edgels;
-        label(dst, oss.str(), window.tr() + cv::Point(5, 30));
+        if (settings[SETTINGS_INFO]) {
+            oss << "candidates: " << window.candidates.size();
+            label(dst, oss.str(), window.tl() + cv::Point(5, 16));
+            oss.str("");
+            oss << "edgels: " << window.edgels;
+            label(dst, oss.str(), window.tl() + cv::Point(5, 34));
+        }
     }
 
     void Visualizer::windowsCandidates(const Scene &scene, std::vector<Window> &windows, int wait, const char *title) {
@@ -162,20 +103,27 @@ namespace tless {
             result = scene.srcRGB.clone();
 
             // Draw all other windows in gray
-            for (auto &win : windows) {
-                cv::rectangle(result, win.rect(), cv::Scalar(90, 90, 90), 1);
+            if (settings[SETTINGS_GRID]) {
+                for (auto &win : windows) {
+                    cv::rectangle(result, win.rect(), cv::Scalar(90, 90, 90), 1);
+                }
             }
 
             // Vizualize window candidates
             windowCandidates(result, result, windows[i]);
 
             // Title
-            oss.str("");
-            oss << "Locations: " << winSize;
-            label(result, oss.str(), cv::Point(2, 14), 0.5, 2);
-            oss.str("");
-            oss << "Scene: " << scene.id;
-            label(result, oss.str(), cv::Point(2, 34), 0.5, 2);
+            if (settings[SETTINGS_TITLE]) {
+                cv::Point textTl(-4, 12);
+                oss.str("");
+                oss << " Locations: " << winSize;
+                label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+                textTl.y += 17;
+
+                oss.str("");
+                oss << " Scene: " << scene.id;
+                label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+            }
 
             // Show results
             cv::imshow(title == nullptr ? "Window candidates" : title, result);
@@ -184,16 +132,27 @@ namespace tless {
             int key = cv::waitKey(wait);
 
             // Navigation using arrow keys and spacebar
-            if (key == KEY_UP) {
-                i = (i + 10 < winSize) ? i + 9 : winSize - i - 1;
-            } else if (key == KEY_DOWN) {
-                i = (i - 10 > 0) ? i - 11 : -1;
+            if (key == KEY_RIGHT) {
+                i = (i + 1 < winSize) ? i : winSize - 2;
+            } else if (key == KEY_UP) {
+                i = (i + 10 < winSize) ? i + 9 : winSize - 2;
+            } else if (key == KEY_ENTER) {
+                i = (i + 100 < winSize) ? i + 99 : winSize - 2;
             } else if (key == KEY_LEFT) {
                 i = (i - 1 > 0) ? i - 2 : -1;
-            } else if (key == KEY_ENTER) {
-                i = (i + 100 < winSize) ? i + 99 : winSize - i - 1;
+            } else if (key == KEY_DOWN) {
+                i = (i - 10 > 0) ? i - 11 : -1;
             } else if (key == KEY_SPACEBAR) {
                 i = (i - 100 > 0) ? i - 99 : -1;
+            } else if (key == KEY_G) {
+                settings[SETTINGS_GRID] = !settings[SETTINGS_GRID];
+                i = i - 1;
+            } else if (key == KEY_T) {
+                settings[SETTINGS_TITLE] = !settings[SETTINGS_TITLE];
+                i = i - 1;
+            } else if (key == KEY_I) {
+                settings[SETTINGS_INFO] = !settings[SETTINGS_INFO];
+                i = i - 1;
             } else if (key == KEY_S) {
                 break;
             }
@@ -228,7 +187,8 @@ namespace tless {
             if (settings[SETTINGS_GRID]) {
                 for (auto &win : windows) {
                     cv::rectangle(result, win.rect(), cv::Scalar(90, 90, 90), 1);
-                    cv::rectangle(resultEdgels, win.rect(), cv::Scalar(23, 35, 24), 1);
+                    cv::rectangle(resultEdgels, win.rect(), cv::Scalar(46, 70, 48), 1);
+                    cv::rectangle(resultDepth, win.rect(), cv::Scalar(46, 70, 48), 1);
                 }
             }
 
@@ -238,28 +198,37 @@ namespace tless {
             cv::rectangle(resultEdgels, windows[i].rect(), cv::Scalar(0, 255, 0), 1, CV_AA);
 
             // Set labels
-            oss.str("");
-            oss << "edgels: " << windows[i].edgels;
-            label(result, oss.str(), windows[i].tr() + cv::Point(5, 12));
-            label(resultDepth, oss.str(), windows[i].tr() + cv::Point(5, 12));
-            label(resultEdgels, oss.str(), windows[i].tr() + cv::Point(5, 12));
+            if (settings[SETTINGS_INFO]) {
+                oss.str("");
+                oss << "edgels: " << windows[i].edgels;
+                label(result, oss.str(), windows[i].tl() + cv::Point(5, 16));
+                label(resultDepth, oss.str(), windows[i].tl() + cv::Point(5, 16));
+                label(resultEdgels, oss.str(), windows[i].tl() + cv::Point(5, 16));
+            }
 
             // Locations title
-            oss.str("");
-            oss << "Locations: " << windows.size();
-            label(result, oss.str(), cv::Point(2, 14), 0.5, 2);
-            label(resultDepth, oss.str(), cv::Point(2, 14), 0.5, 2);
-            label(resultEdgels, oss.str(), cv::Point(2, 14), 0.5, 2);
-            oss.str("");
-            oss << "Min edgels: " << (criteria->info.minEdgels * criteria->objectnessFactor);
-            label(result, oss.str(), cv::Point(2, 34), 0.5, 2);
-            label(resultDepth, oss.str(), cv::Point(2, 34), 0.5, 2);
-            label(resultEdgels, oss.str(), cv::Point(2, 34), 0.5, 2);
-            oss.str("");
-            oss << "Scene: " << scene.id;
-            label(result, oss.str(), cv::Point(2, 54), 0.5, 2);
-            label(resultDepth, oss.str(), cv::Point(2, 54), 0.5, 2);
-            label(resultEdgels, oss.str(), cv::Point(2, 54), 0.5, 2);
+            if (settings[SETTINGS_TITLE]) {
+                cv::Point textTl(-4, 12);
+                oss.str("");
+                oss << " Locations: " << windows.size();
+                label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+                label(resultDepth, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+                label(resultEdgels, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+                textTl.y += 17;
+
+                oss.str("");
+                oss << " Min edgels: " << (criteria->info.minEdgels * criteria->objectnessFactor);
+                label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+                label(resultDepth, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+                label(resultEdgels, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+                textTl.y += 17;
+
+                oss.str("");
+                oss << " Scene: " << scene.id;
+                label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+                label(resultDepth, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+                label(resultEdgels, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+            }
 
             // Show results
             cv::imshow(title == nullptr ? "Objectness locations - rgb" : title, result);
@@ -270,20 +239,29 @@ namespace tless {
             int key = cv::waitKey(wait);
 
             // Navigation using arrow keys and spacebar
-            if (key == KEY_UP) {
-                i = (i + 10 < winSize) ? i + 9 : winSize - i - 1;
-            } else if (key == KEY_DOWN) {
-                i = (i - 10 > 0) ? i - 11 : -1;
+            if (key == KEY_RIGHT) {
+                i = (i + 1 < winSize) ? i : winSize - 2;
+            } else if (key == KEY_UP) {
+                i = (i + 10 < winSize) ? i + 9 : winSize - 2;
+            } else if (key == KEY_ENTER) {
+                i = (i + 100 < winSize) ? i + 99 : winSize - 2;
             } else if (key == KEY_LEFT) {
                 i = (i - 1 > 0) ? i - 2 : -1;
-            } else if (key == KEY_ENTER) {
-                i = (i + 100 < winSize) ? i + 99 : winSize - i - 1;
+            } else if (key == KEY_DOWN) {
+                i = (i - 10 > 0) ? i - 11 : -1;
             } else if (key == KEY_SPACEBAR) {
-                break;
+                i = (i - 100 > 0) ? i - 99 : -1;
             } else if (key == KEY_G) {
-                // Update settings and roll back indexes
                 settings[SETTINGS_GRID] = !settings[SETTINGS_GRID];
-                i = (i - 1 > 0) ? i - 2 : -1;
+                i = i - 1;
+            } else if (key == KEY_T) {
+                settings[SETTINGS_TITLE] = !settings[SETTINGS_TITLE];
+                i = i - 1;
+            } else if (key == KEY_I) {
+                settings[SETTINGS_INFO] = !settings[SETTINGS_INFO];
+                i = i - 1;
+            } else if (key == KEY_S) {
+                break;
             }
         }
     }

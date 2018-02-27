@@ -159,7 +159,7 @@ namespace tless {
                 Timer tObjectness;
                 objectness.objectness(scene.srcDepth, windows);
                 std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
-//                viz.objectness(scene, windows);
+                viz.objectness(scene, windows);
 
                 /// Verification and filtering of template candidates
                 if (windows.empty()) {
