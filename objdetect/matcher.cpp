@@ -258,7 +258,10 @@ namespace tless {
 
 //        #pragma omp parallel for shared(scene, windows, matches) firstprivate(N, minThreshold, scale)
         for (int l = 0; l < lSize; l++) {
-            for (auto &candidate : windows[l].candidates) {
+            const long canSize =  windows[l].candidates.size();
+
+            for (int c = 0; c < canSize; ++c) {
+                Template *candidate = windows[l].candidates[c];
                 assert(candidate != nullptr);
 
 #ifndef NDEBUG
@@ -278,7 +281,7 @@ namespace tless {
                 std::vector<std::vector<std::pair<cv::Point, int>>> scores = {vsI, vsII, vsIII, vsIV, vsV};
 
                 // Visualize matching
-                if (viz.matching(scene, *candidate, windows, l, scores, criteria->patchOffset, N, minThreshold)) {
+                if (viz.matching(scene, *candidate, windows, l, c, scores, criteria->patchOffset, N, minThreshold)) {
                     break;
                 }
 #endif

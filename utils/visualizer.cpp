@@ -487,13 +487,14 @@ namespace tless {
     }
 
     bool Visualizer::matching(const Scene &scene, Template &candidate, std::vector<Window> &windows, int &currentIndex,
-                              std::vector<std::vector<std::pair<cv::Point, int>>> scores, int patchOffset,
+                              int &candidateIndex, std::vector<std::vector<std::pair<cv::Point, int>>> scores, int patchOffset,
                               int pointsCount, int minThreshold, int wait, const char *title) {
         std::ostringstream oss;
         Window &window = windows[currentIndex];
         cv::Scalar cGreen(0, 255, 0), cRed(0, 0, 255), cBlue(255, 0, 0), cWhite(255, 255, 255), cGray(90, 90, 90);
         cv::Point offsetStart(-patchOffset, -patchOffset), offsetEnd(patchOffset, patchOffset);
         auto winSize = static_cast<int>(windows.size());
+        auto canSize = static_cast<int>(window.candidates.size());
 
         // Load scene and define offsets
         const int offset = 15;
@@ -612,7 +613,7 @@ namespace tless {
                 label(result, oss.str(), textTl);
 
                 oss.str("");
-                oss << "Candidates: " << window.candidates.size();
+                oss << "Candidate: " << (candidateIndex + 1) << "/" << canSize;
                 label(result, oss.str(), textTl);
             }
 
@@ -670,9 +671,11 @@ namespace tless {
                 currentIndex = winSize + 1;
                 return true; // Skip
             } else if (key == KEY_C) {
-                break; // TODO Go to prev candidate
+                candidateIndex = (candidateIndex - 1 > 0) ? candidateIndex - 2 : -1;
+                return false;
             } else if (key == KEY_V) {
-                break; // Go to next candidate
+                candidateIndex = (candidateIndex + 1 < canSize) ? candidateIndex : canSize - 2;
+                return false;
             }
         }
 
