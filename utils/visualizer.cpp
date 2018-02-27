@@ -611,6 +611,7 @@ namespace tless {
                 oss.str("");
                 oss << "Score: " << (finalScore / 100.0f);
                 label(result, oss.str(), textTl);
+                textTl.y += 18;
 
                 oss.str("");
                 oss << "Candidate: " << (candidateIndex + 1) << "/" << canSize;

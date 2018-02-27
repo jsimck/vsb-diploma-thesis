@@ -112,7 +112,6 @@ namespace tless {
         }
     }
 
-    // TODO implement object size test
     int Matcher::testObjectSize(float scale, ushort depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
         const unsigned long fSize = criteria->depthDeviationFun.size();
 
@@ -127,20 +126,16 @@ namespace tless {
                     continue;
 
                 // Get depth value at point
-                float ratio = 0;
                 float sDepth = sceneDepth.at<ushort>(offsetP);
-                // TODO better wrong depth handling
+
+                // Validate depth
                 if (sDepth == 0) continue;
 
                 // Get correct deviation ratio
-                for (size_t j = 0; j < fSize - 1; j++) {
-                    if (sDepth < criteria->depthDeviationFun[j + 1][0]) {
-                        ratio = (1 - criteria->depthDeviationFun[j + 1][1]);
-                        break;
-                    }
-                }
+                float ratio = depthNormalizationFactor(sDepth, criteria->depthDeviationFun);
 
-                if (sDepth >= ((depth * scale) * ratio) && sDepth <= ((depth * scale) / ratio)) {
+                // Check if template depth is in defined bounds  of scene depth
+                if (sDepth >= (depth * ratio) && sDepth <= (depth / ratio)) {
                     return 1;
                 }
             }
@@ -149,7 +144,7 @@ namespace tless {
         return 0;
     }
 
-// TODO Use bitwise operations using response maps
+    // TODO Use bitwise operations using response maps
     int Matcher::testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormalsQuantized, cv::Point &stable) {
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
@@ -170,7 +165,7 @@ namespace tless {
         return 0;
     }
 
-// TODO Use bitwise operations using response maps
+    // TODO Use bitwise operations using response maps
     int Matcher::testGradients(uchar gradient, Window &window, cv::Mat &sceneAnglesQuantized, cv::Mat &sceneMagnitudes,
                                cv::Point &edge) {
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
@@ -216,7 +211,6 @@ namespace tless {
         return 0;
     }
 
-// TODO consider eroding object in training stage to be more tolerant to inaccuracy on the edges
     int Matcher::testColor(uchar hue, Window &window, cv::Mat &sceneHSV, cv::Point &stable) {
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
