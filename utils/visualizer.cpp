@@ -291,7 +291,7 @@ namespace tless {
         // Result size
         cv::Size resultSize(rgbROI.width * 3 + offset * 4, rgbROI.height + offset * 2 + 130);
         cv::Mat result = cv::Mat::zeros(resultSize, CV_8UC3);
-        
+
         // Copy to result roi
         tplRGB.copyTo(result(rgbROI));
         tplDepth.copyTo(result(depthROI));
@@ -420,7 +420,7 @@ namespace tless {
         cv::rectangle(result, hueROI.tl(), hueROI.br(), (highlight == 4) ? cGreen : cWhite, 1);
 
         // Draw features points in the active window
-        if (settings[SETTINGS_FEATURE_POINT]) {
+        if (settings[SETTINGS_FEATURE_POINT] && !features.empty()) {
             for (auto &feature : features) {
                 cv::Scalar color = (feature.second == 1) ? cGreen : cRed;
 
@@ -706,7 +706,7 @@ namespace tless {
             if (!matches.empty()) {
                 // Define final mosaic image size
                 cv::Size cellSize = matches[0].objBB.size();
-                auto cols = static_cast<int>(std::ceil((matchSize + perRow) / perRow));
+                auto cols = static_cast<int>(std::ceil(matchSize / perRow));
                 cv::Mat tplMosaic = cv::Mat::zeros(matches[0].objBB.height * perRow + (perRow * 2) * offset,
                                                    matches[0].objBB.width * cols + textWidth * cols + (cols * 2 + 1) * offset, CV_8UC3);
 
@@ -825,6 +825,117 @@ namespace tless {
                 settings[SETTINGS_TITLE] = !settings[SETTINGS_TITLE];
             } else {
                 break;
+            }
+        }
+    }
+
+    void Visualizer::preNonMaxima(const Scene &scene, std::vector<Match> &matches, int wait, const char *title) {
+
+        std::ostringstream oss;
+        const auto matchSize = static_cast<const int>(matches.size());
+
+        // Sort all matches by their highest score
+        std::vector<Match> sortedMatches = matches;
+        std::sort(sortedMatches.rbegin(), sortedMatches.rend());
+
+        for (int i = 0; i < matchSize; ++i) {
+            cv::Mat result = scene.srcRGB.clone();
+            Match &currentMatch = sortedMatches[i];
+            cv::Rect currentBB = currentMatch.scaledBB(1.0f);
+
+            // Vizualize matched template
+            tplMatch(*currentMatch.t, {}, -1, 0, 1, "Matched template");
+
+            if (!sortedMatches.empty()) {
+                // Draw rectangles for other matches
+                for (auto &match : sortedMatches) {
+                    cv::Rect scaledBB = match.scaledBB(1.0f);
+                    cv::rectangle(result, scaledBB, cv::Scalar(90, 90, 90));
+                }
+            }
+
+            // Draw current match
+            cv::rectangle(result, currentBB, cv::Scalar(0, 255, 0));
+
+            // Draw info in the top left corner of the scene
+            if (settings[SETTINGS_TITLE]) {
+                cv::Point sceneTl(-4, 12);
+                oss.str("");
+                oss << " Matches: " << matchSize;
+                label(result, oss.str(), sceneTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+                sceneTl.y += 17;
+
+                oss.str("");
+                oss << " Scene: " << scene.id;
+                label(result, oss.str(), sceneTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+            }
+
+            // Text info on the scene
+            if (settings[SETTINGS_INFO]) {
+                cv::Point textTl(currentBB.br().x + 5, currentBB.tl().y - 8);
+                oss.str("");
+                oss << "Template: " << currentMatch.t->fileName << " (" << (currentMatch.t->id / 2000) << ")";
+                textTl.y += 18;
+                label(result, oss.str(), textTl);
+
+                oss.str("");
+                oss << "Area score: " << currentMatch.areaScore;
+                textTl.y += 18;
+                label(result, oss.str(), textTl);
+
+                oss.str("");
+                oss << "Score: " << currentMatch.score;
+                textTl.y += 18;
+                label(result, oss.str(), textTl);
+
+                oss.str("");
+                oss << "Scale: " << currentMatch.scale;
+                textTl.y += 18;
+                label(result, oss.str(), textTl);
+
+                oss.str("");
+                oss << "Match: " << (i + 1) << "/" << matchSize;
+                textTl.y += 18;
+                label(result, oss.str(), textTl);
+            }
+
+            // Draw info in the top left corner of the scene
+            if (settings[SETTINGS_TITLE]) {
+                cv::Point sceneTl(-4, 12);
+                oss.str("");
+                oss << " Matches: " << matchSize;
+                label(result, oss.str(), sceneTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+                sceneTl.y += 17;
+
+                oss.str("");
+                oss << " Scene: " << scene.id;
+                label(result, oss.str(), sceneTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+            }
+
+            cv::imshow(title == nullptr ? "Matched results" : title, result);
+            int key = cv::waitKey(wait);
+
+            // Controls using keys
+            if (key == KEY_RIGHT) {
+                i = (i + 1 < matchSize) ? i : matchSize - 2;
+            } else if (key == KEY_UP) {
+                i = (i + 10 < matchSize) ? i + 9 : matchSize - 2;
+            } else if (key == KEY_ENTER) {
+                i = (i + 100 < matchSize) ? i + 99 : matchSize - 2;
+            } else if (key == KEY_LEFT) {
+                i = (i - 1 > 0) ? i - 2 : -1;
+            } else if (key == KEY_DOWN) {
+                i = (i - 10 > 0) ? i - 11 : -1;
+            } else if (key == KEY_SPACEBAR) {
+                i = (i - 100 > 0) ? i - 99 : -1;
+            } else if (key == KEY_G) {
+                settings[SETTINGS_GRID] = !settings[SETTINGS_GRID];
+            } else if (key == KEY_I) {
+                settings[SETTINGS_INFO] = !settings[SETTINGS_INFO];
+            } else if (key == KEY_T) {
+                settings[SETTINGS_TITLE] = !settings[SETTINGS_TITLE];
+            } else if (key == KEY_S) {
+                break; // Skip
             }
         }
     }

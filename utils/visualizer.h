@@ -126,7 +126,25 @@ namespace tless {
                       int &candidateIndex, std::vector<std::vector<std::pair<cv::Point, int>>> scores, int patchOffset,
                       int pointsCount, int minThreshold, int wait = 0, const char *title = nullptr);
 
+        /**
+         * @brief Vizualizes final matches after they all passed through the cascade.
+         *
+         * @param[in] scene   Input scene we want to vizualize matches on
+         * @param[in] matches Array of final matched matches
+         * @param[in] wait    Optional wait time in waitKey() function
+         * @param[in] title   Optional image window title
+         */
         void matches(const Scene &scene, std::vector<Match> &matches, int wait = 0, const char *title = nullptr);
+
+        /**
+         * @brief Vizualizes final matches pre non-maxima-suppression applied
+         *
+         * @param[in] scene   Input scene we want to vizualize matches on
+         * @param[in] matches Array of final matched matches
+         * @param[in] wait    Optional wait time in waitKey() function
+         * @param[in] title   Optional image window title
+         */
+        void preNonMaxima(const Scene &scene, std::vector<Match> &matches, int wait = 0, const char *title = nullptr);
     };
 }
 
