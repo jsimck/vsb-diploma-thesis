@@ -268,44 +268,65 @@ namespace tless {
         cv::addWeighted(gradX, 0.5, gradY, 0.5, 0, dst);
     }
 
-    // TODO define param for min magnitude, try compute edgels in 8-bit to avoid convesion to 32f image
-    void quantizedOrientationGradients(const cv::Mat &srcGray, cv::Mat &quantizedOrientations, cv::Mat &magnitude) {
-        // Checks
-        assert(!srcGray.empty());
-        assert(srcGray.type() == CV_8UC1);
+    void quantizedGradients(const cv::Mat &src, cv::Mat &dst, float minMag) {
+        assert(src.type() == CV_8UC3);
 
-        // Convert to 32FC1
-        cv::Mat srcNorm;
-        srcGray.convertTo(srcNorm, CV_32FC1, 1.0f / 255.0f);
+        // Split rgb to planes
+        cv::Mat gradX, gradY, srcNorm;
+        cv::Mat bgr[3], angles[3], mags[3];
+        cv::split(src, bgr);
 
-        // Calc sobel
-        cv::Mat sobelX, sobelY, angles;
-        cv::Sobel(srcNorm, sobelX, CV_32F, 1, 0, 3, 1, 0);
-        cv::Sobel(srcNorm, sobelY, CV_32F, 0, 1, 3, 1, 0);
+        for (int i = 0; i < 3; ++i) {
+            bgr[i].convertTo(srcNorm, CV_32FC1, 1.0f / 255.0f);
 
-        // Calc orientationGradients
-        cv::cartToPolar(sobelX, sobelY, magnitude, angles, true);
+            // Compute sobel
+            cv::Sobel(bgr[i], gradX, CV_32F, 1, 0, 3, 1, 0);
+            cv::Sobel(bgr[i], gradY, CV_32F, 0, 1, 3, 1, 0);
+
+            // Compute angles and magnitudes
+            cv::cartToPolar(gradX, gradY, mags[i], angles[i], true);
+        }
 
         // Quantize orientations
-        quantizedOrientations = cv::Mat(angles.size(), CV_8UC1);
+        dst = cv::Mat::zeros(src.size(), CV_8UC1);
 
-        #pragma omp parallel for default(none) shared(quantizedOrientations, angles)
-        for (int y = 0; y < angles.rows; y++) {
-            for (int x = 0; x < angles.cols; x++) {
-                quantizedOrientations.at<uchar>(y, x) = quantizeOrientationGradient(angles.at<float>(y, x));
+        #pragma omp parallel for default(none) shared(dst, angles, mags) firstprivate(minMag)
+        for (int y = 0; y < dst.rows; y++) {
+            for (int x = 0; x < dst.cols; x++) {
+                float mag1 = mags[0].at<float>(y, x);
+                float mag2 = mags[1].at<float>(y, x);
+                float mag3 = mags[2].at<float>(y, x);
+
+                // Get max
+                int maxIndex = 0;
+                float magMax = mag1;
+
+                if (mag2 > magMax) {
+                    maxIndex = 1;
+                    magMax = mag2;
+                }
+
+                if (mag3 > magMax) {
+                    maxIndex = 2;
+                    magMax = mag3;
+                }
+
+                // Check for min
+                if (magMax < minMag) { continue; }
+
+                // Quantize orientations
+                dst.at<uchar>(y, x) = quantizeGradientOrientation(angles[maxIndex].at<float>(y, x));
             }
         }
     }
 
-    uchar quantizeOrientationGradient(float deg) {
-        // Checks
-        assert(deg >= 0);
-        assert(deg <= 360);
+    uchar quantizeGradientOrientation(float deg) {
+        assert(deg >= 0 && deg <= 360);
 
         // We only work in first 2 quadrants (PI)
         int degPI = static_cast<int>(deg) % 180;
 
-        // Quantize
+        // Quantize orientations
         if (degPI >= 0 && degPI < 36) {
             return 1;
         } else if (degPI >= 36 && degPI < 72) {

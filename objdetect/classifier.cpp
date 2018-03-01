@@ -137,7 +137,7 @@ namespace tless {
         const int finalScaleLevel = 9;
         float scale = initialScale;
 
-        for (int i = 5; i < 503; ++i) {
+        for (int i = 0; i < 503; ++i) {
             Timer tTotal;
 
             for (int pyramidLevel = 0; pyramidLevel < finalScaleLevel; ++pyramidLevel) {
@@ -178,14 +178,14 @@ namespace tless {
 
             // Vizualize results
             Scene scene = parser.parseScene(scenePath, i, 1.0f);
-            viz.preNonMaxima(scene, matches);
+//            viz.preNonMaxima(scene, matches);
 
             // Apply non-maxima suppression
             nonMaximaSuppression(matches, criteria->overlapFactor);
             std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
 
             // Visualize results after non-maxima
-            viz.matches(scene, matches);
+            viz.matches(scene, matches, 1);
 
             // Set scale to initial for next scene
             scale = initialScale;

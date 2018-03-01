@@ -17,7 +17,7 @@ namespace tless {
         int elev = 0, mode = 0;
 
         cv::Mat srcRGB, srcGray, srcHue, srcDepth; //!< Source scene in different
-        cv::Mat srcGradients, srcNormals, srcMagnitudes; //!< Matrix of quantized features
+        cv::Mat srcGradients, srcNormals; //!< Matrix of quantized features
 
         Scene() = default;
 

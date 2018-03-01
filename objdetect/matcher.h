@@ -32,7 +32,7 @@ namespace tless {
         // Tests
         int testObjectSize(ushort depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test I
         int testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormalsQuantized, cv::Point &stable); // Test II
-        int testGradients(uchar gradient, Window &window, cv::Mat &sceneAnglesQuantized, cv::Mat &sceneMagnitudes, cv::Point &edge); // Test III
+        int testGradients(uchar gradient, Window &window, cv::Mat &sceneAnglesQuantized, cv::Point &edge); // Test III
         int testDepth(float diameter, ushort depthMedian, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test IV
         int testColor(uchar hue, Window &window, cv::Mat &sceneHSV, cv::Point &stable); // Test V
 

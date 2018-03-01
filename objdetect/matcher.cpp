@@ -65,10 +65,11 @@ namespace tless {
             for (int y = 0; y < grad.rows; y++) {
                 for (int x = 0; x < grad.cols; x++) {
                     uchar sobelValue = grad.at<uchar>(y, x);
+                    uchar gradientValue = t.srcGradients.at<uchar>(y, x);
                     uchar stableValue = t.srcGray.at<uchar>(y, x);
 
                     // Save only points that have valid depth and are in defined thresholds
-                    if (sobelValue > minEdgeMag) {
+                    if (sobelValue > minEdgeMag && gradientValue != 0) {
                         edgeVPoints.emplace_back(cv::Point(x, y), sobelValue);
                     } else if (stableValue > minStableVal && t.srcDepth.at<ushort>(y, x) >= t.minDepth) { // skip wrong depth values
                         stableVPoints.emplace_back(cv::Point(x, y), stableValue);
@@ -142,7 +143,6 @@ namespace tless {
         return 0;
     }
 
-    // TODO Use bitwise operations using response maps
     int Matcher::testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormalsQuantized, cv::Point &stable) {
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
@@ -163,9 +163,7 @@ namespace tless {
         return 0;
     }
 
-    // TODO Use bitwise operations using response maps
-    int Matcher::testGradients(uchar gradient, Window &window, cv::Mat &sceneAnglesQuantized, cv::Mat &sceneMagnitudes,
-                               cv::Point &edge) {
+    int Matcher::testGradients(uchar gradient, Window &window, cv::Mat &sceneAnglesQuantized, cv::Point &edge) {
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
@@ -176,9 +174,7 @@ namespace tless {
                     continue;
                 }
 
-                // TODO - make member threshold (detect automatically based on training values)
-                if (sceneAnglesQuantized.at<uchar>(offsetP) == gradient &&
-                    sceneMagnitudes.at<float>(offsetP) > criteria->minMagnitude) {
+                if (sceneAnglesQuantized.at<uchar>(offsetP) != 0 && sceneAnglesQuantized.at<uchar>(offsetP) == gradient) {
                     return 1;
                 }
             }
@@ -232,7 +228,6 @@ namespace tless {
         assert(!scene.srcDepth.empty());
         assert(!scene.srcNormals.empty());
         assert(!scene.srcHue.empty());
-        assert(!scene.srcMagnitudes.empty());
         assert(scene.srcHue.type() == CV_8UC1);
         assert(scene.srcDepth.type() == CV_16U);
         assert(scene.srcNormals.type() == CV_8UC1);
@@ -262,7 +257,7 @@ namespace tless {
 //                for (uint i = 0; i < N; i++) {
 //                    vsI.emplace_back(candidate->stablePoints[i], testObjectSize(candidate->features.depths[i], windows[l], scene.srcDepth, candidate->stablePoints[i]));
 //                    vsII.emplace_back(candidate->stablePoints[i], testSurfaceNormal(candidate->features.normals[i], windows[l], scene.srcNormals, candidate->stablePoints[i]));
-//                    vsIII.emplace_back(candidate->edgePoints[i], testGradients(candidate->features.gradients[i], windows[l], scene.srcGradients, scene.srcMagnitudes, candidate->edgePoints[i]));
+//                    vsIII.emplace_back(candidate->edgePoints[i], testGradients(candidate->features.gradients[i], windows[l], scene.srcGradients, candidate->edgePoints[i]));
 //                    vsIV.emplace_back(candidate->stablePoints[i], testDepth(candidate->diameter, candidate->features.depthMedian, windows[l], scene.srcDepth, candidate->stablePoints[i]));
 //                    vsV.emplace_back(candidate->stablePoints[i], testColor(candidate->features.hue[i], windows[l], scene.srcHue, candidate->stablePoints[i]));
 //                }
@@ -298,7 +293,7 @@ namespace tless {
                 // Test III
                 #pragma omp parallel for reduction(+:sIII)
                 for (uint i = 0; i < N; i++) {
-                    sIII += testGradients(candidate->features.gradients[i], windows[l], scene.srcGradients, scene.srcMagnitudes, candidate->edgePoints[i]);
+                    sIII += testGradients(candidate->features.gradients[i], windows[l], scene.srcGradients, candidate->edgePoints[i]);
                 }
 
                 if (sIII < minThreshold) continue;

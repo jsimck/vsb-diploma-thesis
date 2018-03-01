@@ -95,7 +95,6 @@ namespace tless {
      */
     void nonMaximaSuppression(std::vector<Match> &matches, float maxOverlap);
 
-    // TODO filter edges in all 3 rgb planes and take gradient with largest magnitude
     /**
      * @brief Finds edges in gray image using sobel operator (applies erosion and gaussian blur in pre-processing).
      *
@@ -105,11 +104,22 @@ namespace tless {
      */
     void filterEdges(const cv::Mat &src, cv::Mat &dst, int kSize = 5);
 
-    // Computation
-    void quantizedOrientationGradients(const cv::Mat &srcGray, cv::Mat &quantizedOrientations, cv::Mat &magnitude);
+    /**
+     * @brief Computes and quantizes gradient orientations over RGB scene
+     *
+     * @param[in]  src    8-bit 3-channel RGB image to compute gradients on
+     * @param[out] dst    8-bit image map of quantized gradient orientations
+     * @param[in]  minMag Minimum edge magnitude to consider as valid and compute orientation for
+     */
+    void quantizedGradients(const cv::Mat &src, cv::Mat &dst, float minMag);
 
-    // Quantization & discretization functions
-    uchar quantizeOrientationGradient(float deg);
+    /**
+     * @brief Quantizes orientation gradients into 5 bins (0-180deg) based on their angle
+     *
+     * @param[in] deg Degree of the gradient orientation
+     * @return        One of quantized orientations 1, 2, 4, 8, 16
+     */
+    uchar quantizeGradientOrientation(float deg);
 }
 
 #endif

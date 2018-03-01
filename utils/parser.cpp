@@ -42,8 +42,8 @@ namespace tless {
         normalizeHSV(srcHSV, srcHue);
 
         // Generate quantized orientations
-        cv::Mat gradients, magnitudes;
-        quantizedOrientationGradients(srcGray, gradients, magnitudes);
+        cv::Mat gradients;
+        quantizedGradients(srcRGB, gradients, criteria->minMagnitude);
 
         // Save images to template object
         t.srcRGB = std::move(srcRGB);
@@ -91,8 +91,7 @@ namespace tless {
         }
 
         // Compute normals
-        quantizedNormals(t.srcDepth, t.srcNormals, t.camera.fx(), t.camera.fy(), localMax,
-                         static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
+        quantizedNormals(t.srcDepth, t.srcNormals, t.camera.fx(), t.camera.fy(), localMax, static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
     }
 
     Scene Parser::parseScene(const std::string &basePath, int index, float scale) {
@@ -151,7 +150,7 @@ namespace tless {
 
         // Generate quantized normals and orientations
         float ratio = depthNormalizationFactor(criteria->info.maxDepth, criteria->depthDeviationFun);
-        quantizedOrientationGradients(scene.srcGray, scene.srcGradients, scene.srcMagnitudes);
+        quantizedGradients(scene.srcRGB, scene.srcGradients, criteria->minMagnitude);
         quantizedNormals(scene.srcDepth, scene.srcNormals, scene.camera.fx(), scene.camera.fy(),
                          static_cast<int>(criteria->info.maxDepth / ratio), static_cast<int>(criteria->maxDepthDiff / scale));
 

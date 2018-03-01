@@ -18,7 +18,7 @@ namespace tless {
         uint tablesCount = 100;  //!< Amount of tables to generate for hashing verification
         uint tablesTrainingMultiplier = 10;  //!< tablesTrainingMultiplier * tablesCount = yields amount of tables that are generated before only tablesCount containing most templates are picked
         uint featurePointsCount = 100; //!< Amount of points to generate for feature points matching
-        float minMagnitude = 0.1f; //!< Minimal magnitude of edge gradient to classify it as valid
+        float minMagnitude = 100; //!< Minimal magnitude of edge gradient to classify it as valid
         ushort maxDepthDiff = 100; //!< When computing surface normals, contribution of pixel is ignored if the depth difference with central pixel is above this threshold
         float objectnessDiameterThreshold = 0.3f; //!< Minimal threshold of sobel operator when computing depth edgels. (objectnessDiameterThreshold * objectDiameter * info.depthScaleFactor)
         // TODO fix deviation function based on the other paper
