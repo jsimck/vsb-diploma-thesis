@@ -52,6 +52,9 @@ namespace tless {
         t.srcDepth = std::move(srcDepth);
         t.srcGradients = std::move(gradients);
 
+        // Smooth out depth image
+        cv::medianBlur(t.srcDepth, t.srcDepth, 5);
+
         // Parse criteria from template and extract normals and gradient images
         parseCriteriaAndNormals(t);
     }
@@ -114,6 +117,9 @@ namespace tless {
             // Recalculate depth values
             scene.srcDepth = scene.srcDepth / scale;
         }
+
+        // Smooth out depth image
+        cv::medianBlur(scene.srcDepth, scene.srcDepth, 5);
 
         // Convert to gray and hsv
         cv::Mat hsv;

@@ -46,12 +46,9 @@ namespace tless {
         assert(resizedDepth.cols == outputSize);
         assert(resizedDepth.rows == outputSize);
 
-        // TODO - fix local build of opencv
-#ifndef GCC
         // Write results
-        cv::imwrite(outputPath + "rgb/" + tpl.fileName + ".png", resizedRGB);
-        cv::imwrite(outputPath + "depth/" + tpl.fileName + ".png", resizedDepth);
-#endif
+        cv::imwrite(outputPath + "rgb/" + t.fileName + ".png", resizedRGB);
+        cv::imwrite(outputPath + "depth/" + t.fileName + ".png", resizedDepth);
 
         // Extract object area
         cv::Mat resizedGray;
