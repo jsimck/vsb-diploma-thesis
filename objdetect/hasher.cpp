@@ -62,6 +62,11 @@ namespace tless {
             d2 = quantizeDepth(p2D - cD, binRanges);
         }
 
+        // Skip wrong depths
+        if (d1 == 0 || d2 == 0) {
+            return {};
+        }
+
         return {d1, d2, n1, n2, n3};
     }
 
@@ -108,9 +113,9 @@ namespace tless {
                     int max = rDepths[(j + 1) * binSize];
 
                     if (j == 0) {
-                        min = -IMG_16BIT_MAX;
+                        min += min / 5;
                     } else if (j + 1 == binCount) {
-                        max = IMG_16BIT_MAX;
+                        max += max * 0.2;
                     }
 
                     ranges.emplace_back(min, max);

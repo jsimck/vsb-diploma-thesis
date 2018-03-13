@@ -171,8 +171,8 @@ namespace tless {
             }
         }
 
-        // If value is IMG_16BIT_MAX it belongs to last bin
-        return DEPTH_LUT[ranges.size() - 1];
+        // If value doesn't belong to any of those bins, it's invalid
+        return 0;
     }
 
     void normalizeHSV(const cv::Mat &src, cv::Mat &dst, uchar value, uchar saturation) {

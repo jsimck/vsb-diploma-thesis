@@ -30,7 +30,7 @@ namespace tless {
         int patchOffset = 2; //!< +-offset, defining neighbourhood to look for a feature point match
         float objectnessFactor = 0.3f; //!< Amount of edgels window must contain (30% of minimum) to classify as containing object in objectness detection
         float matchFactor = 0.6f; //!< Amount of feature points that needs to match to classify candidate as a match (at least 60%)
-        float overlapFactor = 0.3f; //!< Permitted factor of which two templates can overlap
+        float overlapFactor = 0.5f; //!< Permitted factor of which two templates can overlap
         float depthK = 0.7f; //!< Constant used in depth test in template matching phase
 
         struct {
