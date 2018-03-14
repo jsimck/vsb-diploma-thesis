@@ -63,7 +63,7 @@ namespace tless {
      * @param[in] errorFunction Normalization function (vector of 2 values, first is upperBound, second is normalization factor)
      * @return                  Normalization factor defined in error function for given depth range
      */
-    float depthNormalizationFactor(float depth, std::vector<cv::Vec2f> errorFunction);
+    float depthNormalizationFactor(float depth, const std::vector<cv::Vec2f>& errorFunction);
 
     /**
      * @brief Returns quantized depth into one of 5 bins defined in ranges.
