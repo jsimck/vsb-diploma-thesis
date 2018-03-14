@@ -62,6 +62,9 @@ namespace tless {
             }
         }
 
+        // Normalize object area
+        t.objArea /= resizeSize.area();
+
         // Adjust intristic camera parameters based on resize ratio
         t.camera.K.at<float>(0, 0) *= t.resizeRatio;
         t.camera.K.at<float>(0, 2) *= t.resizeRatio;

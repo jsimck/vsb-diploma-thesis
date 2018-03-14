@@ -43,7 +43,7 @@ namespace tless {
         // Other params
         cv::Rect objBB; //!< Object bounding box
         Camera camera; //!< Camera parameters
-        int objArea = 0;
+        float objArea = 0; //!< Area object covers relative to it's window
         int votes = 0;
         ushort minDepth = std::numeric_limits<unsigned short>::max(), maxDepth = 0; //!< Minimum and maximum depth of the object in this template
 

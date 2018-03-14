@@ -780,17 +780,17 @@ namespace tless {
                         label(result, oss.str(), textTl);
 
                         oss.str("");
-                        oss << "Area score: " << match.areaScore;
+                        oss << "Area score: " << std::fixed << std::setprecision(2) << match.areaScore;
                         textTl.y += 18;
                         label(result, oss.str(), textTl);
 
                         oss.str("");
-                        oss << "Score: " << match.score;
+                        oss << "Score: " << std::fixed << std::setprecision(2) << match.score;
                         textTl.y += 18;
                         label(result, oss.str(), textTl);
 
                         oss.str("");
-                        oss << "Scale: " << match.scale;
+                        oss << "Scale: " << std::fixed << std::setprecision(2) << match.scale;
                         textTl.y += 18;
                         label(result, oss.str(), textTl);
                     }
