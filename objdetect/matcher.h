@@ -27,7 +27,8 @@ namespace tless {
          * @param[in]  count     Final number of points we want to extract from the points array
          * @param[out] scattered Output array containing extracted scattered points
          */
-        void selectScatteredFeaturePoints(std::vector<std::pair<cv::Point, uchar>> &points, uint count, std::vector<cv::Point> &scattered);
+        void selectScatteredFeaturePoints(const std::vector<std::pair<cv::Point, uchar>> &points,
+                                          uint count, std::vector<cv::Point> &scattered);
 
         // Tests
         int testObjectSize(ushort depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test I

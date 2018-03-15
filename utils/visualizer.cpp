@@ -361,7 +361,7 @@ namespace tless {
         cv::waitKey(wait);
     }
 
-    void Visualizer::tplMatch(Template &t, std::vector<std::pair<cv::Point, int>> features,
+    void Visualizer::tplMatch(Template &t, const std::vector<std::pair<cv::Point, int>> &features,
                               int highlight, int patchOffset, int wait, const char *title) {
         const int offset = 15;
         cv::Mat result = cv::Mat::zeros(5 * offset + 4 * t.objBB.height, offset * 3 + t.objBB.width * 2, CV_8UC3);
@@ -487,7 +487,7 @@ namespace tless {
     }
 
     bool Visualizer::matching(const Scene &scene, Template &candidate, std::vector<Window> &windows, int &currentIndex,
-                              int &candidateIndex, std::vector<std::vector<std::pair<cv::Point, int>>> scores, int patchOffset,
+                              int &candidateIndex, const std::vector<std::vector<std::pair<cv::Point, int>>> &scores, int patchOffset,
                               int pointsCount, int minThreshold, int wait, const char *title) {
         std::ostringstream oss;
         Window &window = windows[currentIndex];

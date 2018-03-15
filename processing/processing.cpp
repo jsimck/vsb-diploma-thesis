@@ -160,7 +160,7 @@ namespace tless {
         return ratio;
     }
 
-    uchar quantizeDepth(int depth, std::vector<cv::Range> &ranges) {
+    uchar quantizeDepth(int depth, const std::vector<cv::Range> &ranges) {
         // Depth should have max value of <-65536, +65536>
         assert(depth >= -Hasher::IMG_16BIT_MAX && depth <= Hasher::IMG_16BIT_MAX);
         assert(!ranges.empty());

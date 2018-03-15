@@ -33,7 +33,7 @@ namespace tless {
          * @param[in] minGray   Minimum value of gray image to be considered as containing object
          * @return              Returns valid HashKey if all points and quantized values were valid, otherwise returns empty HashKey
          */
-        HashKey validateTripletAndComputeHashKey(const Triplet &triplet, std::vector<cv::Range> binRanges, const cv::Mat &depth, const cv::Mat &normals,
+        HashKey validateTripletAndComputeHashKey(const Triplet &triplet, const std::vector<cv::Range> &binRanges, const cv::Mat &depth, const cv::Mat &normals,
                                               const cv::Mat &gray, cv::Rect window, uchar minGray = 40);
 
         /**

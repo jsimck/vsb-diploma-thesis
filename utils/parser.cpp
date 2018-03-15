@@ -5,7 +5,7 @@
 #include "../core/classifier_criteria.h"
 
 namespace tless {
-    void Parser::parseObject(const std::string &basePath, std::vector<Template> &templates, std::vector<uint> indices) {
+    void Parser::parseObject(const std::string &basePath, std::vector<Template> &templates, const std::vector<uint> &indices) {
         // Load object info.yml.gz at the root of each object folder
         cv::FileStorage fsInfo(basePath + "info.yml.gz", cv::FileStorage::READ);
         cv::FileNode tplNodes = fsInfo["templates"];

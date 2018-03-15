@@ -102,7 +102,7 @@ namespace tless {
          * @param[in] wait         Optional wait time in waitKey() function
          * @param[in] title        Optional image window title
          */
-        void tplMatch(Template &t, std::vector<std::pair<cv::Point, int>> features,
+        void tplMatch(Template &t, const std::vector<std::pair<cv::Point, int>> &features,
                       int highlight, int patchOffset, int wait = 0, const char *title = nullptr);
 
         /**
@@ -123,7 +123,7 @@ namespace tless {
          * @return true/false used for navigation
          */
         bool matching(const Scene &scene, Template &candidate, std::vector<Window> &windows, int &currentIndex,
-                      int &candidateIndex, std::vector<std::vector<std::pair<cv::Point, int>>> scores, int patchOffset,
+                      int &candidateIndex, const std::vector<std::vector<std::pair<cv::Point, int>>> &scores, int patchOffset,
                       int pointsCount, int minThreshold, int wait = 0, const char *title = nullptr);
 
         /**

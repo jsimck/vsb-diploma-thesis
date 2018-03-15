@@ -132,19 +132,26 @@ namespace tless {
         // Load trained template data
         load(trainedTemplatesListPath, trainedPath);
 
+        // Image pyramid settings
         const float initialScale = .4f;
         const float scaleFactor = 1.25f;
         const int finalScaleLevel = 9;
         float scale = initialScale;
 
+        // Timing
+        Timer tTotal;
+        double ttSceneLoading, ttObjectness, ttVerification, ttMatching, ttNMS;
+        std::cout << "Matching started..." << std::endl << std::endl;
+
         for (int i = 0; i < 503; ++i) {
-            Timer tTotal;
+            ttSceneLoading = ttObjectness = ttVerification = ttMatching = ttNMS = 0;
+            tTotal.reset();
 
             for (int pyramidLevel = 0; pyramidLevel < finalScaleLevel; ++pyramidLevel) {
                 // Load scene
                 Timer tSceneLoading;
                 Scene scene = parser.parseScene(scenePath, i, scale);
-                std::cout << "  |_ Scene loaded in: " << tSceneLoading.elapsed() << "s" << std::endl;
+                ttSceneLoading += tSceneLoading.elapsed();
 
                 /// Objectness detection
                 assert(criteria->info.smallestTemplate.area() > 0);
@@ -152,7 +159,7 @@ namespace tless {
 
                 Timer tObjectness;
                 objectness.objectness(scene.srcDepth, windows);
-                std::cout << "  |_ Objectness detection took: " << tObjectness.elapsed() << "s" << std::endl;
+                ttObjectness += tObjectness.elapsed();
 //                viz.objectness(scene, windows);
 
                 /// Verification and filtering of template candidates
@@ -162,13 +169,13 @@ namespace tless {
 
                 Timer tVerification;
                 hasher.verifyCandidates(scene.srcDepth, scene.srcNormals, tables, windows); // TODO refactor to use Scene as input
-                std::cout << "  |_ Hashing verification took: " << tVerification.elapsed() << "s" << std::endl;
+                ttVerification += tVerification.elapsed();
 //                viz.windowsCandidates(scene, windows);
 
                 /// Match templates
                 Timer tMatching;
                 matcher.match(scale, scene, windows, matches);
-                std::cout << "  |_ Template matching took: " << tMatching.elapsed() << "s" << std::endl;
+                ttMatching += tMatching.elapsed();
 
                 scale *= scaleFactor;
                 windows.clear();
@@ -176,15 +183,22 @@ namespace tless {
 
             std::cout << "Matches size: " << matches.size() << std::endl;
 
-            // Vizualize results
-            Scene scene = parser.parseScene(scenePath, i, 1.0f);
 //            viz.preNonMaxima(scene, matches);
 
             // Apply non-maxima suppression
+            Timer tNMS;
             nonMaximaSuppression(matches, criteria->overlapFactor);
-            std::cout << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
+            ttNMS = tNMS.elapsed();
 
-            // Visualize results after non-maxima
+            std::cout << std::endl << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
+            std::cout << "  |_ Scene loading took: " << ttSceneLoading << "s" << std::endl;
+            std::cout << "  |_ Objectness detection took: " << ttObjectness << "s" << std::endl;
+            std::cout << "  |_ Hashing verification took: " << ttVerification << "s" << std::endl;
+            std::cout << "  |_ Template matching took: " << ttMatching << "s" << std::endl;
+            std::cout << "  |_ NMS took: " << ttNMS << "s" << std::endl;
+
+            // Vizualize results
+            Scene scene = parser.parseScene(scenePath, i, 1.0f);
             viz.matches(scene, matches, 1);
 
             // Set scale to initial for next scene

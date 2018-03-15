@@ -43,7 +43,7 @@ namespace tless {
          * @param[out]    templates Output vector containing all parsed templates
          * @param[in]     indices   Optional parameter to parse only templates with defined indices
          */
-        void parseObject(const std::string &basePath, std::vector<Template> &templates, std::vector<uint> indices);
+        void parseObject(const std::string &basePath, std::vector<Template> &templates, const std::vector<uint> &indices);
 
         /**
          * @brief Parses scene info, images, computes quantized normals and gradients.

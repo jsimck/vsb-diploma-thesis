@@ -72,7 +72,7 @@ namespace tless {
      * @param[in] ranges Vector of ranges defining bounds for each quantization bin
      * @return           Quantized depth (1 | 2 | 4 | 8 | 16)
      */
-    uchar quantizeDepth(int depth, std::vector<cv::Range> &ranges);
+    uchar quantizeDepth(int depth, const std::vector<cv::Range> &ranges);
 
     /**
      * @brief Remaps white and black colors of HSV image to yellow and blue for HSV recognition

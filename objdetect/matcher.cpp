@@ -13,7 +13,7 @@
 #include "../processing/computation.h"
 
 namespace tless {
-    void Matcher::selectScatteredFeaturePoints(std::vector<std::pair<cv::Point, uchar>> &points, uint count, std::vector<cv::Point> &scattered) {
+    void Matcher::selectScatteredFeaturePoints(const std::vector<std::pair<cv::Point, uchar>> &points, uint count, std::vector<cv::Point> &scattered) {
         // Define initial distance
         float minDst = points.size() / criteria->featurePointsCount;
 

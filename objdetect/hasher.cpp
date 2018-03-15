@@ -5,7 +5,7 @@
 #include "../processing/computation.h"
 
 namespace tless {
-    HashKey Hasher::validateTripletAndComputeHashKey(const Triplet &triplet, std::vector<cv::Range> binRanges, const cv::Mat &depth,
+    HashKey Hasher::validateTripletAndComputeHashKey(const Triplet &triplet, const std::vector<cv::Range> &binRanges, const cv::Mat &depth,
                                                      const cv::Mat &normals, const cv::Mat &gray, cv::Rect window, uchar minGray) {
         // Checks
         assert(depth.type() == CV_16UC1);
@@ -182,11 +182,6 @@ namespace tless {
 
         for (size_t i = 0; i < windows.size(); ++i) {
             for (auto &table : tables) {
-                // Skip tables with no no defined ranges
-                if (table.binRanges.empty()) {
-                    continue;
-                }
-
                 // Validate and generate hash key at given triplet point
                 HashKey key = validateTripletAndComputeHashKey(table.triplet, table.binRanges, depth, normals, cv::Mat(), windows[i].rect());
 
