@@ -114,10 +114,12 @@ namespace tless {
     }
 
     int Matcher::testObjectSize(ushort depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
+        auto tl = window.tl() + stable;
+
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
-                cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
+                cv::Point offsetP(tl.x + x, tl.y + y);
 
                 // Template points in larger templates can go beyond scene boundaries (don't count)
                 if (offsetP.x >= sceneDepth.cols || offsetP.y >= sceneDepth.rows ||
@@ -144,10 +146,12 @@ namespace tless {
     }
 
     int Matcher::testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormalsQuantized, cv::Point &stable) {
+        auto tl = window.tl() + stable;
+
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
-                cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
+                cv::Point offsetP(tl.x + x, tl.y + y);
 
                 // Template points in larger templates can go beyond scene boundaries (don't count)
                 if (offsetP.x >= sceneSurfaceNormalsQuantized.cols || offsetP.y >= sceneSurfaceNormalsQuantized.rows || offsetP.x < 0 || offsetP.y < 0) {
@@ -164,10 +168,12 @@ namespace tless {
     }
 
     int Matcher::testGradients(uchar gradient, Window &window, cv::Mat &sceneAnglesQuantized, cv::Point &edge) {
+        auto tl = window.tl() + edge;
+
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
-                cv::Point offsetP(edge.x + window.tl().x + x, edge.y + window.tl().y + y);
+                cv::Point offsetP(tl.x + x, tl.y + y);
 
                 // Template points in larger templates can go beyond scene boundaries (don't count)
                 if (offsetP.x >= sceneAnglesQuantized.cols || offsetP.y >= sceneAnglesQuantized.rows || offsetP.x < 0 || offsetP.y < 0) {
@@ -184,10 +190,12 @@ namespace tless {
     }
 
     int Matcher::testDepth(float diameter, ushort depthMedian, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
+        auto tl = window.tl() + stable;
+
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
-                cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
+                cv::Point offsetP(tl.x + x, tl.y + y);
 
                 // Template points in larger templates can go beyond scene boundaries (don't count)
                 if (offsetP.x >= sceneDepth.cols || offsetP.y >= sceneDepth.rows || offsetP.x < 0 || offsetP.y < 0) {
@@ -204,10 +212,12 @@ namespace tless {
     }
 
     int Matcher::testColor(uchar hue, Window &window, cv::Mat &sceneHSV, cv::Point &stable) {
+        auto tl = window.tl() + stable;
+
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
-                cv::Point offsetP(stable.x + window.tl().x + x, stable.y + window.tl().y + y);
+                cv::Point offsetP(tl.x + x, tl.y + y);
 
                 // Template points in larger templates can go beyond scene boundaries (don't count)
                 if (offsetP.x >= sceneHSV.cols || offsetP.y >= sceneHSV.rows ||
@@ -270,9 +280,11 @@ namespace tless {
 //                    break;
 //                }
 #endif
-
                 // Scores for each test
                 float sI = 0, sII = 0, sIII = 0, sIV = 0, sV = 0;
+
+                // try switching the order - do all the tests around one point, so that it stays in cache
+                // one test on all locations -> all tests on one location
 
                 // Test I
                 #pragma omp parallel for reduction(+:sI)
@@ -318,6 +330,8 @@ namespace tless {
                 float score = (sI / N) + (sII / N) + (sIII / N) + (sIV / N) + (sV / N);
                 cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
 
+                // needless critical section
+                // each thread can have its own vector and after the loop the subvectors can be aggregated together
                 #pragma omp critical
                 matches.emplace_back(candidate, matchBB, scale, score, score * (candidate->objArea / scale), sI, sII, sIII, sIV, sV);
             }
