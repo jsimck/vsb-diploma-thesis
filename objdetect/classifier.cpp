@@ -122,21 +122,24 @@ namespace tless {
     }
 
     void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath) {
+        // Checks
+        assert(criteria->info.smallestTemplate.area() > 0);
+        assert(criteria->info.minEdgels > 0);
+
         // Init classifiers
         Parser parser(criteria);
         Objectness objectness(criteria);
         Hasher hasher(criteria);
         Matcher matcher(criteria);
         Visualizer viz(criteria);
+        Scene scene;
 
         // Load trained template data
         load(trainedTemplatesListPath, trainedPath);
 
         // Image pyramid settings
-        const float initialScale = .4f;
         const float scaleFactor = 1.25f;
-        const int finalScaleLevel = 9;
-        float scale = initialScale;
+        const int levelsDown = 4, levelsUp = 4;
 
         // Timing
         Timer tTotal;
@@ -144,21 +147,20 @@ namespace tless {
         std::cout << "Matching started..." << std::endl << std::endl;
 
         for (int i = 0; i < 503; ++i) {
-            ttSceneLoading = ttObjectness = ttVerification = ttMatching = ttNMS = 0;
+            // Reset timers
+            ttObjectness = ttVerification = ttMatching = 0;
             tTotal.reset();
 
-            for (int pyramidLevel = 0; pyramidLevel < finalScaleLevel; ++pyramidLevel) {
-                // Load scene
-                Timer tSceneLoading;
-                Scene scene = parser.parseScene(scenePath, i, scale);
-                ttSceneLoading += tSceneLoading.elapsed();
+            // Load scene
+            Timer tSceneLoading;
+            scene = parser.parseScene(scenePath, i, scaleFactor, 4, 4);
+            ttSceneLoading = tSceneLoading.elapsed();
 
-                /// Objectness detection
-                assert(criteria->info.smallestTemplate.area() > 0);
-                assert(criteria->info.minEdgels > 0);
-
+            // Verification for a pyramid
+            for (int pyrLvl = 0; pyrLvl <= (levelsDown + levelsUp); ++pyrLvl) {
+                // Objectness detection
                 Timer tObjectness;
-                objectness.objectness(scene.srcDepth, windows);
+                objectness.objectness(scene.pyramid[pyrLvl].srcDepth, windows);
                 ttObjectness += tObjectness.elapsed();
 //                viz.objectness(scene, windows);
 
@@ -168,28 +170,24 @@ namespace tless {
                 }
 
                 Timer tVerification;
-                hasher.verifyCandidates(scene.srcDepth, scene.srcNormals, tables, windows); // TODO refactor to use Scene as input
+                hasher.verifyCandidates(scene.pyramid[pyrLvl].srcDepth, scene.pyramid[pyrLvl].srcNormals, tables, windows); // TODO refactor to use Scene as input
                 ttVerification += tVerification.elapsed();
 //                viz.windowsCandidates(scene, windows);
 
                 /// Match templates
                 Timer tMatching;
-                matcher.match(scale, scene, windows, matches);
+                matcher.match(scene.pyramid[pyrLvl], windows, matches);
                 ttMatching += tMatching.elapsed();
-
-                scale *= scaleFactor;
                 windows.clear();
             }
 
-            std::cout << "Matches size: " << matches.size() << std::endl;
-
-//            viz.preNonMaxima(scene, matches);
-
             // Apply non-maxima suppression
+//            viz.preNonMaxima(scene, matches);
             Timer tNMS;
             nonMaximaSuppression(matches, criteria->overlapFactor);
             ttNMS = tNMS.elapsed();
 
+            // Print results
             std::cout << std::endl << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
             std::cout << "  |_ Scene loading took: " << ttSceneLoading << "s" << std::endl;
             std::cout << "  |_ Objectness detection took: " << ttObjectness << "s" << std::endl;
@@ -197,12 +195,8 @@ namespace tless {
             std::cout << "  |_ Template matching took: " << ttMatching << "s" << std::endl;
             std::cout << "  |_ NMS took: " << ttNMS << "s" << std::endl;
 
-            // Vizualize results
-            Scene scene = parser.parseScene(scenePath, i, 1.0f);
-            viz.matches(scene, matches, 1);
-
-            // Set scale to initial for next scene
-            scale = initialScale;
+            // Vizualize results and clear current matches
+            viz.matches(scene.pyramid[levelsDown], matches, 1);
             matches.clear();
         }
     }

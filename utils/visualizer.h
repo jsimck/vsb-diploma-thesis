@@ -71,7 +71,8 @@ namespace tless {
          * @param[in] wait    Optional wait time in waitKey() function
          * @param[in] title   Optional image window title
          */
-        void windowsCandidates(const Scene &scene, std::vector<Window> &windows, int wait = 0, const char *title = nullptr);
+        void windowsCandidates(const ScenePyramid &scene, std::vector<Window> &windows, int wait = 0,
+                               const char *title = nullptr);
 
         /**
          * @brief Vizualizes window locations after objectness detection has been performed.
@@ -81,7 +82,7 @@ namespace tless {
          * @param[in] wait    Optional wait time in waitKey() function
          * @param[in] title   Optional image window title
          */
-        void objectness(const Scene &scene, std::vector<Window> &windows, int wait = 0, const char *title = nullptr);
+        void objectness(const ScenePyramid &scene, std::vector<Window> &windows, int wait = 0, const char *title = nullptr);
 
         /**
          * @brief Vizualizes template feature points after template training.
@@ -122,8 +123,9 @@ namespace tless {
          *
          * @return true/false used for navigation
          */
-        bool matching(const Scene &scene, Template &candidate, std::vector<Window> &windows, int &currentIndex,
-                      int &candidateIndex, const std::vector<std::vector<std::pair<cv::Point, int>>> &scores, int patchOffset,
+        bool matching(const ScenePyramid &scene, Template &candidate, std::vector<Window> &windows, int &currentIndex,
+                      int &candidateIndex, const std::vector<std::vector<std::pair<cv::Point, int>>> &scores,
+                      int patchOffset,
                       int pointsCount, int minThreshold, int wait = 0, const char *title = nullptr);
 
         /**
@@ -134,7 +136,7 @@ namespace tless {
          * @param[in] wait    Optional wait time in waitKey() function
          * @param[in] title   Optional image window title
          */
-        void matches(const Scene &scene, std::vector<Match> &matches, int wait = 0, const char *title = nullptr);
+        void matches(const ScenePyramid &scene, std::vector<Match> &matches, int wait = 0, const char *title = nullptr);
 
         /**
          * @brief Vizualizes final matches pre non-maxima-suppression applied
@@ -144,7 +146,8 @@ namespace tless {
          * @param[in] wait    Optional wait time in waitKey() function
          * @param[in] title   Optional image window title
          */
-        void preNonMaxima(const Scene &scene, std::vector<Match> &matches, int wait = 0, const char *title = nullptr);
+        void preNonMaxima(const ScenePyramid &scene, std::vector<Match> &matches, int wait = 0,
+                          const char *title = nullptr);
     };
 }
 

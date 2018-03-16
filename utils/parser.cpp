@@ -97,69 +97,106 @@ namespace tless {
         quantizedNormals(t.srcDepth, t.srcNormals, t.camera.fx(), t.camera.fy(), localMax, static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
     }
 
-    Scene Parser::parseScene(const std::string &basePath, int index, float scale) {
+    Scene Parser::parseScene(const std::string &basePath, int index, float scaleFactor, int levelsUp, int levelsDown) {
         Scene scene;
         std::ostringstream oss;
         oss << std::setw(4) << std::setfill('0') << index;
         oss << ".png";
 
-        // Load depth, hue, gray images
+        // Load Scene images
         scene.id = static_cast<uint>(index);
-        scene.scale = scale;
-        scene.srcRGB = cv::imread(basePath + "rgb/" + oss.str(), CV_LOAD_IMAGE_COLOR);
-        scene.srcDepth = cv::imread(basePath + "depth/" + oss.str(), CV_LOAD_IMAGE_UNCHANGED);
+        cv::Mat srcRGB = cv::imread(basePath + "rgb/" + oss.str(), CV_LOAD_IMAGE_COLOR);
+        cv::Mat srcDepth = cv::imread(basePath + "depth/" + oss.str(), CV_LOAD_IMAGE_UNCHANGED);
 
-        // Resize based on scale
-        if (scale != 1.0f) {
-            cv::resize(scene.srcRGB, scene.srcRGB, cv::Size(), scale, scale);
-            cv::resize(scene.srcDepth, scene.srcDepth, cv::Size(), scale, scale);
-
-            // Recalculate depth values
-            scene.srcDepth = scene.srcDepth / scale;
-        }
-
-        // Smooth out depth image
-        cv::medianBlur(scene.srcDepth, scene.srcDepth, 5);
-
-        // Convert to gray and hsv
-        cv::Mat hsv;
-        cv::cvtColor(scene.srcRGB, scene.srcGray, CV_BGR2GRAY);
-        cv::cvtColor(scene.srcRGB, hsv, CV_BGR2HSV);
-
-        // Normalize HSV
-        normalizeHSV(hsv, scene.srcHue);
-
-        // Load camera
+        // Load scene info
         std::string infoIndex = "scene_" + std::to_string(index);
         cv::FileStorage fs(basePath + "info.yml", cv::FileStorage::READ);
         cv::FileNode infoNode = fs[infoIndex];
 
-        Camera camera;
+        // Parse yml file
+        int mode, elev;
         std::vector<float> vCamK, vCamRw2c, vCamTw2c;
 
         infoNode["cam_K"] >> vCamK;
         infoNode["cam_R_w2c"] >> vCamRw2c;
         infoNode["cam_t_w2c"] >> vCamTw2c;
-        infoNode["elev"] >> camera.elev;
-        infoNode["mode"] >> camera.mode;
+        infoNode["elev"] >> elev;
+        infoNode["mode"] >> mode;
 
-        camera.K = cv::Mat(3, 3, CV_32FC1, vCamK.data());
-        camera.R = cv::Mat(3, 3, CV_32FC1, vCamRw2c.data());
-        camera.t = cv::Mat(3, 1, CV_32FC1, vCamTw2c.data());
+        cv::Mat K = cv::Mat(3, 3, CV_32FC1, vCamK.data());
+        cv::Mat R = cv::Mat(3, 3, CV_32FC1, vCamRw2c.data());
+        cv::Mat t = cv::Mat(3, 1, CV_32FC1, vCamTw2c.data());
+        fs.release();
 
-        // Update intristic camera params based on current scale
+        // Reserve size for scene pyramid
+        scene.pyramid.resize(levelsDown + levelsUp + 1);
+
+        // Create down levels of pyramid
+        float scale = 1.0f;
+        for (int i = levelsDown - 1; i >= 0; --i) {
+            scale /= scaleFactor;
+            scene.pyramid[i] = createPyramid(scale, srcRGB, srcDepth, K, R, t);
+        }
+
+        // Create current level of pyramid
+        scene.pyramid[levelsDown] = createPyramid(1.0f, srcRGB, srcDepth, K, R, t);
+
+        // Create up levels of pyramid
+        scale = 1.0f;
+        for (int i = levelsDown + 1; i <= (levelsDown + levelsUp); ++i) {
+            scale *= scaleFactor;
+            scene.pyramid[i] = createPyramid(scale, srcRGB, srcDepth, K, R, t);
+        }
+
+        return scene;
+    }
+
+    ScenePyramid Parser::createPyramid(float scale, const cv::Mat &rgb, const cv::Mat &depth,
+                                       const cv::Mat &K, const cv::Mat &R, const cv::Mat &t) {
+        // Create camera
+        Camera camera;
+        camera.K = K.clone();
+        camera.R = R.clone();
+        camera.t = t.clone();
+
+        // Recalculate K matrix based on scale
         camera.K.at<float>(0, 0) *= scale;
         camera.K.at<float>(0, 2) *= scale;
         camera.K.at<float>(1, 1) *= scale;
         camera.K.at<float>(1, 2) *= scale;
-        scene.camera = std::move(camera);
+
+        // Create scene pyramid
+        ScenePyramid pyramid(scale);
+        pyramid.camera = std::move(camera);
+
+        if (scale != 1.0f) {
+            cv::resize(rgb, pyramid.srcRGB, cv::Size(), scale, scale);
+            cv::resize(depth, pyramid.srcDepth, cv::Size(), scale, scale);
+
+            // Recalculate depth values
+            pyramid.srcDepth = pyramid.srcDepth / scale;
+        } else {
+            pyramid.srcRGB = rgb.clone();
+            pyramid.srcDepth = depth.clone();
+        }
+
+        // Smooth out depth image
+        cv::medianBlur(pyramid.srcDepth, pyramid.srcDepth, 5);
+
+        // Convert to gray and hsv
+        cv::Mat hsv;
+        cv::cvtColor(pyramid.srcRGB, pyramid.srcGray, CV_BGR2GRAY);
+        cv::cvtColor(pyramid.srcRGB, hsv, CV_BGR2HSV);
+
+        // Normalize HSV
+        normalizeHSV(hsv, pyramid.srcHue);
 
         // Generate quantized normals and orientations
         float ratio = depthNormalizationFactor(criteria->info.maxDepth, criteria->depthDeviationFun);
-        quantizedGradients(scene.srcRGB, scene.srcGradients, criteria->minMagnitude);
-        quantizedNormals(scene.srcDepth, scene.srcNormals, scene.camera.fx(), scene.camera.fy(),
+        quantizedGradients(pyramid.srcRGB, pyramid.srcGradients, criteria->minMagnitude);
+        quantizedNormals(pyramid.srcDepth, pyramid.srcNormals, pyramid.camera.fx(), pyramid.camera.fy(),
                          static_cast<int>(criteria->info.maxDepth / ratio), static_cast<int>(criteria->maxDepthDiff / scale));
 
-        return scene;
+        return pyramid;
     }
 }

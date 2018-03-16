@@ -51,12 +51,11 @@ namespace tless {
          * sum of matched points. After all windows have been tested, non-maxima suppression is applied to all matches to filter out the
          * best candidates which are than retained in the final matches vector.
          *
-         * @param[in]  scale   Current style of image scale pyramid
-         * @param[in]  scene   Scene in which we're trying to find trained objects
+         * @param[in]  scene   Current scene in image scale pyramid
          * @param[in]  windows Windows array that passed objectness detection test with candidates filtered in hasher verification
          * @param[out] matches Final array foound matches
          */
-        void match(float scale, Scene &scene, std::vector<Window> &windows, std::vector<Match> &matches);
+        void match(ScenePyramid &scene, std::vector<Window> &windows, std::vector<Match> &matches);
 
         /**
          * @brief Generates feature points and extract features for each template.

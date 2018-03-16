@@ -97,7 +97,8 @@ namespace tless {
         }
     }
 
-    void Visualizer::windowsCandidates(const Scene &scene, std::vector<Window> &windows, int wait, const char *title) {
+    void Visualizer::windowsCandidates(const ScenePyramid &scene, std::vector<Window> &windows, int wait,
+                                       const char *title) {
         const auto winSize = static_cast<const int>(windows.size());
         std::ostringstream oss;
         cv::Mat result;
@@ -122,10 +123,6 @@ namespace tless {
                 oss << " Locations: " << winSize;
                 label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
                 textTl.y += 17;
-
-                oss.str("");
-                oss << " Scene: " << scene.id;
-                label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
             }
 
             // Show results
@@ -162,7 +159,7 @@ namespace tless {
         }
     }
 
-    void Visualizer::objectness(const Scene &scene, std::vector<Window> &windows, int wait, const char *title) {
+    void Visualizer::objectness(const ScenePyramid &scene, std::vector<Window> &windows, int wait, const char *title) {
         const auto winSize = static_cast<const int>(windows.size());
         auto minMag = static_cast<int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
         cv::Mat result, depth, edgels, resultDepth, resultEdgels;
@@ -225,12 +222,6 @@ namespace tless {
                 label(resultDepth, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
                 label(resultEdgels, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
                 textTl.y += 17;
-
-                oss.str("");
-                oss << " Scene: " << scene.id;
-                label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
-                label(resultDepth, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
-                label(resultEdgels, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
             }
 
             // Show results
@@ -486,8 +477,10 @@ namespace tless {
         cv::waitKey(wait);
     }
 
-    bool Visualizer::matching(const Scene &scene, Template &candidate, std::vector<Window> &windows, int &currentIndex,
-                              int &candidateIndex, const std::vector<std::vector<std::pair<cv::Point, int>>> &scores, int patchOffset,
+    bool Visualizer::matching(const ScenePyramid &scene, Template &candidate, std::vector<Window> &windows,
+                              int &currentIndex,
+                              int &candidateIndex, const std::vector<std::vector<std::pair<cv::Point, int>>> &scores,
+                              int patchOffset,
                               int pointsCount, int minThreshold, int wait, const char *title) {
         std::ostringstream oss;
         Window &window = windows[currentIndex];
@@ -627,11 +620,6 @@ namespace tless {
                 label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
 
                 oss.str("");
-                oss << "Scene: " << scene.id;
-                textTl.y += 18;
-                label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
-
-                oss.str("");
                 oss << "Scale: " << scene.scale;
                 textTl.y += 18;
                 label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
@@ -693,7 +681,7 @@ namespace tless {
         return false;
     }
 
-    void Visualizer::matches(const Scene &scene, std::vector<Match> &matches, int wait, const char *title) {
+    void Visualizer::matches(const ScenePyramid &scene, std::vector<Match> &matches, int wait, const char *title) {
         std::ostringstream oss;
         const int offset = 15, textWidth = 160;
         const auto matchSize = static_cast<const int>(matches.size());
@@ -805,11 +793,6 @@ namespace tless {
                 oss.str("");
                 oss << " Matches: " << matchSize;
                 label(result, oss.str(), sceneTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
-                sceneTl.y += 17;
-
-                oss.str("");
-                oss << " Scene: " << scene.id;
-                label(result, oss.str(), sceneTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
             }
 
             cv::imshow(title == nullptr ? "Matched results" : title, result);
@@ -828,7 +811,7 @@ namespace tless {
         }
     }
 
-    void Visualizer::preNonMaxima(const Scene &scene, std::vector<Match> &matches, int wait, const char *title) {
+    void Visualizer::preNonMaxima(const ScenePyramid &scene, std::vector<Match> &matches, int wait, const char *title) {
 
         std::ostringstream oss;
         const auto matchSize = static_cast<const int>(matches.size());
@@ -863,10 +846,6 @@ namespace tless {
                 oss << " Matches: " << matchSize;
                 label(result, oss.str(), sceneTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
                 sceneTl.y += 17;
-
-                oss.str("");
-                oss << " Scene: " << scene.id;
-                label(result, oss.str(), sceneTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
             }
 
             // Text info on the scene
@@ -903,11 +882,6 @@ namespace tless {
                 cv::Point sceneTl(-4, 12);
                 oss.str("");
                 oss << " Matches: " << matchSize;
-                label(result, oss.str(), sceneTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
-                sceneTl.y += 17;
-
-                oss.str("");
-                oss << " Scene: " << scene.id;
                 label(result, oss.str(), sceneTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
             }
 

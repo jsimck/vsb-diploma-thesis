@@ -233,7 +233,7 @@ namespace tless {
         return 0;
     }
 
-    void Matcher::match(float scale, Scene &scene, std::vector<Window> &windows, std::vector<Match> &matches) {
+    void Matcher::match(ScenePyramid &scene, std::vector<Window> &windows, std::vector<Match> &matches) {
         // Checks
         assert(!scene.srcDepth.empty());
         assert(!scene.srcNormals.empty());
@@ -251,7 +251,7 @@ namespace tless {
         const auto minThreshold = static_cast<int>(criteria->featurePointsCount * criteria->matchFactor);
         const long lSize = windows.size();
 
-        #pragma omp parallel for shared(scene, windows, matches) firstprivate(N, minThreshold, scale)
+        #pragma omp parallel for shared(scene, windows, matches) firstprivate(N, minThreshold)
         for (int l = 0; l < lSize; l++) {
             const long canSize =  windows[l].candidates.size();
 
@@ -333,7 +333,7 @@ namespace tless {
                 // needless critical section
                 // each thread can have its own vector and after the loop the subvectors can be aggregated together
                 #pragma omp critical
-                matches.emplace_back(candidate, matchBB, scale, score, score * (candidate->objArea / scale), sI, sII, sIII, sIV, sV);
+                matches.emplace_back(candidate, matchBB, scene.scale, score, score * (candidate->objArea / scene.scale), sI, sII, sIII, sIV, sV);
             }
         }
     }

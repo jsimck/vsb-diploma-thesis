@@ -31,6 +31,8 @@ namespace tless {
          */
         void parseCriteriaAndNormals(Template &t);
 
+        ScenePyramid createPyramid(float scale, const cv::Mat &rgb, const cv::Mat &depth, const cv::Mat &K, const cv::Mat &R, const cv::Mat &t);
+
     public:
         Parser(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {};
 
@@ -50,10 +52,10 @@ namespace tless {
          *
          * @param[in]     basePath Base path to scene folder with info.yml and rgb, depth folders
          * @param[in]     index    Current index of a scene image
-         * @param[in]     scale    Current scale of image scale pyramid
+         * @param[in]     scaleFactor    Current scale of image scale pyramid
          * @return                 Parsed scene object
          */
-        Scene parseScene(const std::string &basePath, int index, float scale);
+        Scene parseScene(const std::string &basePath, int index, float scaleFactor, int levelsUp, int levelsDown);
     };
 }
 

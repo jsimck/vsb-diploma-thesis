@@ -6,18 +6,22 @@
 #include "camera.h"
 
 namespace tless {
+    struct ScenePyramid {
+        float scale;  //!< Current scale of scale pyramid
+        Camera camera; //!< Camera params for current matrix
+        cv::Mat srcRGB, srcGray, srcHue, srcDepth; //!< Source scene in different
+        cv::Mat srcGradients, srcNormals; //!< Matrix of quantized features
+
+        ScenePyramid(float scale = 1.0f) : scale(scale) {}
+    };
+
     /**
      * @brief Scene wrapper, holds all scene images/normals etc. throughout classification.
      */
     struct Scene {
     public:
         uint id = 0;
-        Camera camera;
-        float scale = 1.0f;  //!< Current scale of scale pyramid
-        int elev = 0, mode = 0;
-
-        cv::Mat srcRGB, srcGray, srcHue, srcDepth; //!< Source scene in different
-        cv::Mat srcGradients, srcNormals; //!< Matrix of quantized features
+        std::vector<ScenePyramid> pyramid; //!< Scene image pyramid
 
         Scene() = default;
 

@@ -2,10 +2,8 @@
 
 namespace tless {
     std::ostream &operator<<(std::ostream &os, const Scene &scene) {
-        os << "camera: " << scene.camera
-           << " scale: " << scene.scale
-           << " elev: " << scene.elev
-           << " mode: " << scene.mode;
+        os << "Scene id: " << scene.id
+           << "Pyramid levels: " << scene.pyramid.size() << std::endl;
 
         return os;
     }
