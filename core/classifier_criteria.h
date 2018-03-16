@@ -25,6 +25,9 @@ namespace tless {
         std::vector<cv::Vec2f> depthDeviationFun{{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {70000, 0.08f}}; //!< Depth error function, allowing depth values to be match within given interval
 
         // Detect Params
+        float pyrScaleFactor = 1.25f; //!< Scale factor for building scene image pyramid
+        int pyrLvlsUp = 4; //!< Number of pyramid levels that are larger than input image
+        int pyrLvlsDown = 4; //!< Number of pyramid levels that are smaller than input image
         int minVotes = 3; //!< Minimum amount of votes to classify template as a valid candidate for given window
         int windowStep = 5; //!< Objectness sliding window step
         int patchOffset = 2; //!< +-offset, defining neighbourhood to look for a feature point match

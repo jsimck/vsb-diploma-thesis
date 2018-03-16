@@ -137,9 +137,8 @@ namespace tless {
         // Load trained template data
         load(trainedTemplatesListPath, trainedPath);
 
-        // Image pyramid settings
-        const float scaleFactor = 1.25f;
-        const int levelsDown = 4, levelsUp = 4;
+        // Image pyramid
+        const int pyrLevels = criteria->pyrLvlsDown + criteria->pyrLvlsUp;
 
         // Timing
         Timer tTotal;
@@ -153,16 +152,16 @@ namespace tless {
 
             // Load scene
             Timer tSceneLoading;
-            scene = parser.parseScene(scenePath, i, scaleFactor, 4, 4);
+            scene = parser.parseScene(scenePath, i, criteria->pyrScaleFactor, criteria->pyrLvlsDown, criteria->pyrLvlsUp);
             ttSceneLoading = tSceneLoading.elapsed();
 
             // Verification for a pyramid
-            for (int pyrLvl = 0; pyrLvl <= (levelsDown + levelsUp); ++pyrLvl) {
+            for (int l = 0; l <= pyrLevels; ++l) {
                 // Objectness detection
                 Timer tObjectness;
-                objectness.objectness(scene.pyramid[pyrLvl].srcDepth, windows);
+                objectness.objectness(scene.pyramid[l].srcDepth, windows);
                 ttObjectness += tObjectness.elapsed();
-//                viz.objectness(scene, windows);
+//                viz.objectness(scene.pyramid[l], windows);
 
                 /// Verification and filtering of template candidates
                 if (windows.empty()) {
@@ -170,19 +169,19 @@ namespace tless {
                 }
 
                 Timer tVerification;
-                hasher.verifyCandidates(scene.pyramid[pyrLvl].srcDepth, scene.pyramid[pyrLvl].srcNormals, tables, windows); // TODO refactor to use Scene as input
+                hasher.verifyCandidates(scene.pyramid[l].srcDepth, scene.pyramid[l].srcNormals, tables, windows);
                 ttVerification += tVerification.elapsed();
-//                viz.windowsCandidates(scene, windows);
+//                viz.windowsCandidates(scene.pyramid[l], windows);
 
                 /// Match templates
                 Timer tMatching;
-                matcher.match(scene.pyramid[pyrLvl], windows, matches);
+                matcher.match(scene.pyramid[l], windows, matches);
                 ttMatching += tMatching.elapsed();
                 windows.clear();
             }
 
             // Apply non-maxima suppression
-//            viz.preNonMaxima(scene, matches);
+//            viz.preNonMaxima(scene.pyramid[criteria->pyrLvlsDown], matches);
             Timer tNMS;
             nonMaximaSuppression(matches, criteria->overlapFactor);
             ttNMS = tNMS.elapsed();
@@ -196,7 +195,7 @@ namespace tless {
             std::cout << "  |_ NMS took: " << ttNMS << "s" << std::endl;
 
             // Vizualize results and clear current matches
-            viz.matches(scene.pyramid[levelsDown], matches, 1);
+            viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);
             matches.clear();
         }
     }
