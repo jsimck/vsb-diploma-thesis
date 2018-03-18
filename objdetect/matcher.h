@@ -31,11 +31,11 @@ namespace tless {
                                           uint count, std::vector<cv::Point> &scattered);
 
         // Tests
-        int testObjectSize(ushort depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test I
-        int testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormalsQuantized, cv::Point &stable); // Test II
-        int testGradients(uchar gradient, Window &window, cv::Mat &sceneAnglesQuantized, cv::Point &edge); // Test III
-        int testDepth(float diameter, ushort depthMedian, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test IV
-        int testColor(uchar hue, Window &window, cv::Mat &sceneHSV, cv::Point &stable); // Test V
+        inline int testObjectSize(ushort depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test I
+        inline int testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormalsQuantized, cv::Point &stable); // Test II
+        inline int testGradients(uchar gradient, Window &window, cv::Mat &sceneAnglesQuantized, cv::Point &edge); // Test III
+        inline int testDepth(float diameter, ushort depthMedian, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test IV
+        inline int testColor(uchar hue, Window &window, cv::Mat &sceneHSV, cv::Point &stable); // Test V
 
     public:
         Matcher(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}

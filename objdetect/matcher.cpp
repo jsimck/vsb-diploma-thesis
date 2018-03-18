@@ -283,11 +283,7 @@ namespace tless {
                 // Scores for each test
                 float sI = 0, sII = 0, sIII = 0, sIV = 0, sV = 0;
 
-                // try switching the order - do all the tests around one point, so that it stays in cache
-                // one test on all locations -> all tests on one location
-
                 // Test I
-                #pragma omp parallel for reduction(+:sI)
                 for (uint i = 0; i < N; i++) {
                     sI += testObjectSize(candidate->features.depths[i], windows[l], scene.srcDepth, candidate->stablePoints[i]);
                 }
@@ -295,7 +291,6 @@ namespace tless {
                 if (sI < minThreshold) continue;
 
                 // Test II
-                #pragma omp parallel for reduction(+:sII)
                 for (uint i = 0; i < N; i++) {
                     sII += testSurfaceNormal(candidate->features.normals[i], windows[l], scene.srcNormals, candidate->stablePoints[i]);
                 }
@@ -303,7 +298,6 @@ namespace tless {
                 if (sII < minThreshold) continue;
 
                 // Test III
-                #pragma omp parallel for reduction(+:sIII)
                 for (uint i = 0; i < N; i++) {
                     sIII += testGradients(candidate->features.gradients[i], windows[l], scene.srcGradients, candidate->edgePoints[i]);
                 }
@@ -311,7 +305,6 @@ namespace tless {
                 if (sIII < minThreshold) continue;
 
                 // Test IV
-                #pragma omp parallel for reduction(+:sIV)
                 for (uint i = 0; i < N; i++) {
                     sIV += testDepth(candidate->diameter, candidate->features.depthMedian, windows[l], scene.srcDepth, candidate->stablePoints[i]);
                 }
@@ -319,7 +312,6 @@ namespace tless {
                 if (sIV < minThreshold) continue;
 
                 // Test V
-                #pragma omp parallel for reduction(+:sV)
                 for (uint i = 0; i < N; i++) {
                     sV += testColor(candidate->features.hue[i], windows[l], scene.srcHue, candidate->stablePoints[i]);
                 }
@@ -330,8 +322,7 @@ namespace tless {
                 float score = (sI / N) + (sII / N) + (sIII / N) + (sIV / N) + (sV / N);
                 cv::Rect matchBB = cv::Rect(windows[l].tl().x, windows[l].tl().y, candidate->objBB.width, candidate->objBB.height);
 
-                // needless critical section
-                // each thread can have its own vector and after the loop the subvectors can be aggregated together
+                // This section is almost never executed at the same time, as the tests do have non-uniform results, also most of the windows never passes the fifth test
                 #pragma omp critical
                 matches.emplace_back(candidate, matchBB, scene.scale, score, score * (candidate->objArea / scene.scale), sI, sII, sIII, sIV, sV);
             }
