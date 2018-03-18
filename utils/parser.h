@@ -31,6 +31,17 @@ namespace tless {
          */
         void parseCriteriaAndNormals(Template &t);
 
+        /**
+         * @brief Creates one level of scene pyramid, by scaling src images and updating camera intristics
+         *
+         * @param[in] scale Current scale of the image pyramid
+         * @param[in] rgb   Input RGB image
+         * @param[in] depth Input Depth Image (16-bit)
+         * @param[in] K     Camera intristic params
+         * @param[in] R     Camera rotation matrix
+         * @param[in] t     Camera translation vector
+         * @return          New level of Scene pyramid at given scale
+         */
         ScenePyramid createPyramid(float scale, const cv::Mat &rgb, const cv::Mat &depth, const cv::Mat &K, const cv::Mat &R, const cv::Mat &t);
 
     public:

@@ -2,6 +2,7 @@
 #include "parser.h"
 #include <cassert>
 #include <fstream>
+#include <boost/filesystem.hpp>
 
 namespace tless {
     void Converter::resizeAndSave(Template &t, const std::string &outputPath, int outputSize) {
@@ -204,13 +205,20 @@ namespace tless {
 
             // Resize templates and save obj info
             oss << outputPath << std::setw(2) << std::setfill('0') << (templates[0].id / 2000) << "/";
-            std::string modelOutputPath = oss.str();
-            cv::FileStorage fsObjInfo(modelOutputPath + "info.yml.gz", cv::FileStorage::WRITE);
+            std::string objectOutputPath = oss.str();
+
+            // Create directories
+            boost::filesystem::create_directories(objectOutputPath);
+            boost::filesystem::create_directories(objectOutputPath + "rgb");
+            boost::filesystem::create_directories(objectOutputPath + "depth");
+
+            // Save info and template files
+            cv::FileStorage fsObjInfo(objectOutputPath + "info.yml.gz", cv::FileStorage::WRITE);
 
             // Resize source images and save object info
             fsObjInfo << "templates" << "[";
             for (auto &t : templates) {
-                resizeAndSave(t, modelOutputPath, outputSize);
+                resizeAndSave(t, objectOutputPath, outputSize);
                 fsObjInfo << t;
             }
             fsObjInfo << "]";
@@ -219,7 +227,7 @@ namespace tless {
             fsObjInfo.release();
             templates.clear();
 
-            std::cout << "  |_ model ID:" << (templates[0].id / 2000) << " converted, results saved to -> " << modelOutputPath << std::endl;
+            std::cout << "  |_ model ID:" << (templates[0].id / 2000) << " converted, results saved to -> " << objectOutputPath << std::endl;
         }
 
         ifs.close();

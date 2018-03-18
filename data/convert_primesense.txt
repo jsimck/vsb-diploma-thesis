@@ -1,0 +1,7 @@
+data/400x400/primesense/02/
+data/400x400/primesense/05/
+data/400x400/primesense/06/
+data/400x400/primesense/07/
+data/400x400/primesense/25/
+data/400x400/primesense/29/
+data/400x400/primesense/30/

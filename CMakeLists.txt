@@ -8,5 +8,8 @@ set(SOURCE_FILES main.cpp utils/visualizer.h utils/visualizer.cpp core/template.
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
+find_package(Boost REQUIRED filesystem)
+include_directories(${Boost_INCLUDE_DIRS})
+
 add_executable(vsb-semestral-project ${SOURCE_FILES})
-target_link_libraries(vsb-semestral-project ${OpenCV_LIBS})
+target_link_libraries(vsb-semestral-project ${OpenCV_LIBRARIES} ${Boost_LIBRARIES})

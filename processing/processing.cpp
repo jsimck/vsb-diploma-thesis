@@ -185,7 +185,7 @@ namespace tless {
                 cv::Vec3b hsv = src.at<cv::Vec3b>(y, x);
 
                 // Normalize hue value
-                if (hsv[2] <= value) {
+                if (hsv[2] < value) {
                     hsv[0] = 120; // Set from black to blue
                 } else if (hsv[1] < saturation) {
                     hsv[0] = 30; // Set from white to yellow

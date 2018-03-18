@@ -1,0 +1,3 @@
+data/trained/primesense/05.yml.gz
+data/trained/primesense/06.yml.gz
+data/trained/primesense/07.yml.gz

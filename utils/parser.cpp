@@ -73,8 +73,8 @@ namespace tless {
         if (t.diameter < criteria->info.smallestDiameter) { criteria->info.smallestDiameter = t.diameter; }
 
         // Normalize local max and min depths to define error corrected range
-        int localMax = static_cast<int>(t.maxDepth / depthNormalizationFactor(t.maxDepth, criteria->depthDeviationFun));
-        int localMin = static_cast<int>(t.minDepth * depthNormalizationFactor(t.minDepth, criteria->depthDeviationFun));
+        auto localMax = static_cast<int>(t.maxDepth / depthNormalizationFactor(t.maxDepth, criteria->depthDeviationFun));
+        auto localMin = static_cast<int>(t.minDepth * depthNormalizationFactor(t.minDepth, criteria->depthDeviationFun));
 
         // Extract min edgels
         cv::Mat integral, edgels;
@@ -89,7 +89,7 @@ namespace tless {
 
         // Get edgel count inside obj bounding box
         int edgelsCount = integral.at<int>(D) - integral.at<int>(B) - integral.at<int>(C) + integral.at<int>(A);
-        if (edgelsCount < criteria->info.minEdgels) {
+        if (edgelsCount < criteria->info.minEdgels && edgelsCount > 0) {
             criteria->info.minEdgels = edgelsCount;
         }
 

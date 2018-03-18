@@ -1,0 +1,7 @@
+data/400x400/kinectv2/02/
+data/400x400/kinectv2/05/
+data/400x400/kinectv2/06/
+data/400x400/kinectv2/07/
+data/400x400/kinectv2/25/
+data/400x400/kinectv2/29/
+data/400x400/kinectv2/30/
