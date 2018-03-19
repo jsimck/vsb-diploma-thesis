@@ -108,7 +108,8 @@ namespace tless {
 
         // Create template
         Template t;
-        t.id = index + (2000 * id);
+        t.objId = static_cast<uint>(id);
+        t.id = index + (10000 * id);
         t.fileName = std::move(fileName);
         t.diameter = diameters[id];
         t.srcRGB = std::move(srcRGB);
@@ -204,7 +205,7 @@ namespace tless {
             fsGt.release();
 
             // Resize templates and save obj info
-            oss << outputPath << std::setw(2) << std::setfill('0') << (templates[0].id / 2000) << "/";
+            oss << outputPath << std::setw(2) << std::setfill('0') << templates[0].objId << "/";
             std::string objectOutputPath = oss.str();
 
             // Create directories
@@ -227,7 +228,7 @@ namespace tless {
             fsObjInfo.release();
             templates.clear();
 
-            std::cout << "  |_ model ID:" << (templates[0].id / 2000) << " converted, results saved to -> " << objectOutputPath << std::endl;
+            std::cout << "  |_ model ID:" << templates[0].objId << " converted, results saved to -> " << objectOutputPath << std::endl;
         }
 
         ifs.close();

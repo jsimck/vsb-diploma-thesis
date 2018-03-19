@@ -21,7 +21,7 @@ namespace tless {
     cv::Mat Visualizer::loadTemplateSrc(const Template &tpl, int flags) {
         std::ostringstream oss;
         oss << templatesPath;
-        oss << std::setw(2) << std::setfill('0') << static_cast<int>(std::floor(tpl.id / 2000));
+        oss << std::setw(2) << std::setfill('0') << tpl.objId;
 
         if (flags == CV_LOAD_IMAGE_UNCHANGED) {
             oss << "/depth/" << tpl.fileName << ".png";
@@ -314,7 +314,7 @@ namespace tless {
         cv::Point textTl(offset, rgbROI.height + offset + 4);
 
         oss.str("");
-        oss << "Template: " << t.fileName << " (" << (t.id / 2000) << ")";
+        oss << "Template: " << t.fileName << " (" << (t.objId) << ")";
         textTl.y += 18;
         label(result, oss.str(), textTl);
 
@@ -438,7 +438,7 @@ namespace tless {
         cv::Point textTl(depthROI.width + offset * 2, depthROI.height + offset + 4);
 
         oss.str("");
-        oss << "Tpl: " << t.fileName << " (" << (t.id / 2000) << ")";
+        oss << "Tpl: " << t.fileName << " (" << t.objId << ")";
         textTl.y += 18;
         label(result, oss.str(), textTl);
 
@@ -740,7 +740,7 @@ namespace tless {
                     // Show text info next to each template
                     cv::Point mosaicTextTl(rect.x + rect.width + 5, rect.y - 8);
                     oss.str("");
-                    oss << "Template: " << match.t->fileName << " (" << (match.t->id / 2000) << ")";
+                    oss << "Template: " << match.t->fileName << " (" << (match.t->objId) << ")";
                     mosaicTextTl.y += 18;
                     label(tplMosaic, oss.str(), mosaicTextTl);
 
@@ -763,7 +763,7 @@ namespace tless {
                     if (settings[SETTINGS_INFO]) {
                         cv::Point textTl(scaledBB.br().x + 5, scaledBB.tl().y - 8);
                         oss.str("");
-                        oss << "Template: " << match.t->fileName << " (" << (match.t->id / 2000) << ")";
+                        oss << "Template: " << match.t->fileName << " (" << match.t->objId << ")";
                         textTl.y += 18;
                         label(result, oss.str(), textTl);
 
@@ -852,7 +852,7 @@ namespace tless {
             if (settings[SETTINGS_INFO]) {
                 cv::Point textTl(currentBB.br().x + 5, currentBB.tl().y - 8);
                 oss.str("");
-                oss << "Template: " << currentMatch.t->fileName << " (" << (currentMatch.t->id / 2000) << ")";
+                oss << "Template: " << currentMatch.t->fileName << " (" << currentMatch.t->objId << ")";
                 textTl.y += 18;
                 label(result, oss.str(), textTl);
 

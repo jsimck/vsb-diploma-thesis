@@ -11,6 +11,7 @@ namespace tless {
 
     std::ostream &operator<<(std::ostream &os, const Template &t) {
         os << "Template ID: " << t.id << std::endl
+           << "objId: " << t.objId << std::endl
            << "fileName: " << t.fileName << std::endl
            << "diameter: " << t.diameter << std::endl
            << "srcGray (size): " << t.srcGray.size() << std::endl
@@ -33,8 +34,10 @@ namespace tless {
     }
 
     void operator>>(const cv::FileNode &node, Template &t) {
-        int id;
+        int id, objId;
+        node["objId"] >> objId;
         node["id"] >> id;
+        t.objId = static_cast<uint>(objId);
         t.id = static_cast<uint>(id);
         t.fileName = (std::string) node["fileName"];
         node["diameter"] >> t.diameter;
@@ -55,6 +58,7 @@ namespace tless {
 
     cv::FileStorage &operator<<(cv::FileStorage &fs, const Template &t) {
         fs << "{";
+        fs << "objId" << static_cast<int>(t.objId);
         fs << "id" << static_cast<int>(t.id);
         fs << "fileName" << t.fileName;
         fs << "diameter" << t.diameter;

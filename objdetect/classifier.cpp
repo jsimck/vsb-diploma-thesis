@@ -2,7 +2,6 @@
 #include <boost/filesystem.hpp>
 #include "../utils/timer.h"
 #include "../utils/visualizer.h"
-#include "../core/classifier_criteria.h"
 #include "../processing/processing.h"
 
 namespace tless {
@@ -20,7 +19,7 @@ namespace tless {
         std::vector<Template> templates, allTemplates;
         std::string path;
 
-        // Create directories if doesnt exist
+        // Create directories if they don't exist
         boost::filesystem::create_directories(resultPath);
 
         Timer tTraining;
@@ -39,7 +38,7 @@ namespace tless {
             allTemplates.insert(allTemplates.end(), templates.begin(), templates.end());
 
             // Persist trained data
-            oss << resultPath << std::setw(2) << std::setfill('0') << templates[0].id / 2000 << ".yml.gz";
+            oss << resultPath << std::setw(2) << std::setfill('0') << templates[0].objId << ".yml.gz";
             std::string trainedPath = oss.str();
             cv::FileStorage fsw(trainedPath, cv::FileStorage::WRITE);
 
