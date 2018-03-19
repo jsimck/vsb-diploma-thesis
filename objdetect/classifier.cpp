@@ -187,7 +187,7 @@ namespace tless {
             // Apply non-maxima suppression
 //            viz.preNonMaxima(scene.pyramid[criteria->pyrLvlsDown], matches);
             Timer tNMS;
-            nonMaximaSuppression(matches, criteria->overlapFactor);
+            nms(matches, criteria->overlapFactor);
             ttNMS = tNMS.elapsed();
 
             // Print results

@@ -1,6 +1,21 @@
 #include "match.h"
 
 namespace tless {
+    cv::Rect Match::scaledBB(const cv::Rect &rect, float scale, float newScale) {
+        float multiplier = newScale / scale;
+
+        return cv::Rect(
+            static_cast<int>(rect.x * multiplier),
+            static_cast<int>(rect.y * multiplier),
+            static_cast<int>(rect.width * multiplier),
+            static_cast<int>(rect.height * multiplier)
+        );
+    }
+
+    float Match::overlap(const Match &m) {
+        return (this->normObjBB & m.normObjBB).area() / static_cast<float>(std::min(this->normObjBB.area(), m.normObjBB.area()));
+    }
+
     bool Match::operator<(const Match &rhs) const {
         return areaScore < rhs.areaScore;
     }
@@ -31,16 +46,5 @@ namespace tless {
            << " sV: " << match.sV;
 
         return os;
-    }
-
-    cv::Rect Match::scaledBB(float scale) {
-        float multiplier = scale / this->scale;
-
-        return cv::Rect(
-            static_cast<int>(this->objBB.x * multiplier),
-            static_cast<int>(this->objBB.y * multiplier),
-            static_cast<int>(this->objBB.width * multiplier),
-            static_cast<int>(this->objBB.height * multiplier)
-        );
     }
 }

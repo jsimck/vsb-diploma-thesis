@@ -704,7 +704,7 @@ namespace tless {
                 // Go through each match and draw it on scene + tpl mosaic
                 for (int i = 0; i < matchSize; ++i) {
                     Match &match = matches[i];
-                    cv::Rect scaledBB = match.scaledBB(scene.scale);
+                    cv::Rect scaledBB = match.normObjBB;
 
                     // Calculate col, row and rect inside defined mosaic grid
                     int col = (i / perRow);
@@ -823,7 +823,7 @@ namespace tless {
         for (int i = 0; i < matchSize; ++i) {
             cv::Mat result = scene.srcRGB.clone();
             Match &currentMatch = sortedMatches[i];
-            cv::Rect currentBB = currentMatch.scaledBB(1.0f);
+            cv::Rect currentBB = currentMatch.normObjBB;
 
             // Vizualize matched template
             tplMatch(*currentMatch.t, {}, -1, 0, 1, "Matched template");
@@ -831,7 +831,7 @@ namespace tless {
             if (!sortedMatches.empty()) {
                 // Draw rectangles for other matches
                 for (auto &match : sortedMatches) {
-                    cv::Rect scaledBB = match.scaledBB(1.0f);
+                    cv::Rect scaledBB = match.normObjBB;
                     cv::rectangle(result, scaledBB, cv::Scalar(90, 90, 90));
                 }
             }

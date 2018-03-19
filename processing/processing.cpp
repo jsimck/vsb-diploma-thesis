@@ -197,7 +197,7 @@ namespace tless {
         }
     }
 
-    void nonMaximaSuppression(std::vector<Match> &matches, float maxOverlap) {
+    void nms(std::vector<Match> &matches, float maxOverlap) {
         if (matches.empty()) return;
 
         // Sort all matches by their highest score
@@ -211,30 +211,15 @@ namespace tless {
         while (!idx.empty()) {
             // Pick first element with highest score
             Match &firstMatch = matches[idx[0]];
-            cv::Rect firstMatchBB = firstMatch.scaledBB(1.0f);
 
             // Store this index into suppress array and push to final matches, we won't check against this match again
             suppress.push_back(idx[0]);
             pick.push_back(firstMatch);
 
             // Check overlaps with all other bounding boxes, skipping first one (since it is the one we're checking with)
-            #pragma omp parallel for default(none) shared(firstMatch, matches, idx, suppress) firstprivate(maxOverlap, firstMatchBB)
             for (size_t i = 1; i < idx.size(); i++) {
-                // Get overlap BB coordinates of each other bounding box and compare with the first one
-                cv::Rect bb = matches[idx[i]].scaledBB(1.0f);
-                int x1 = std::min<int>(bb.br().x, firstMatchBB.br().x);
-                int x2 = std::max<int>(bb.tl().x, firstMatchBB.tl().x);
-                int y1 = std::min<int>(bb.br().y, firstMatchBB.br().y);
-                int y2 = std::max<int>(bb.tl().y, firstMatchBB.tl().y);
-
-                // Calculate overlap area
-                int h = std::max<int>(0, y1 - y2);
-                int w = std::max<int>(0, x1 - x2);
-                float overlap = static_cast<float>(h * w) / static_cast<float>(firstMatchBB.area());
-
-                // If overlap is bigger than min threshold, remove the match
-                if (overlap > maxOverlap) {
-                    #pragma omp critical
+                // If overlap is bigger than min threshold or smaller windows are in bigger ones, retain the one with larger score
+                if (matches[idx[i]].overlap(firstMatch) > maxOverlap || matches[idx[i]].overlap(firstMatch) == 1.0f) {
                     suppress.push_back(idx[i]);
                 }
             }

@@ -93,7 +93,7 @@ namespace tless {
      * @param[in,out] matches    Input/output array of matches to apply non-maxima suppression on
      * @param[in]     maxOverlap Max allowed overlap between two matched bounding boxes
      */
-    void nonMaximaSuppression(std::vector<Match> &matches, float maxOverlap);
+    void nms(std::vector<Match> &matches, float maxOverlap);
 
     /**
      * @brief Finds edges in gray image using sobel operator (applies erosion and gaussian blur in pre-processing).
