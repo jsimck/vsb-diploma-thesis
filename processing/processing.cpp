@@ -219,7 +219,7 @@ namespace tless {
             // Check overlaps with all other bounding boxes, skipping first one (since it is the one we're checking with)
             for (size_t i = 1; i < idx.size(); i++) {
                 // If overlap is bigger than min threshold or smaller windows are in bigger ones, retain the one with larger score
-                if (matches[idx[i]].overlap(firstMatch) > maxOverlap || matches[idx[i]].overlap(firstMatch) == 1.0f) {
+                if (matches[idx[i]].overlap(firstMatch) > maxOverlap || matches[idx[i]].overlap(firstMatch) >= 1.0f) {
                     suppress.push_back(idx[i]);
                 }
             }
