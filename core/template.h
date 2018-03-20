@@ -14,8 +14,8 @@ namespace tless {
      */
     struct Template {
     public:
-        uint id = 0;
-        uint objId = 0;
+        int id = 0;
+        int objId = 0;
         std::string fileName;
         float diameter = 0;
         float resizeRatio = 1.0f;

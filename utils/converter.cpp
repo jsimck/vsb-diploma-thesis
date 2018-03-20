@@ -108,7 +108,7 @@ namespace tless {
 
         // Create template
         Template t;
-        t.objId = static_cast<uint>(id);
+        t.objId = id;
         t.id = index + (10000 * id);
         t.fileName = std::move(fileName);
         t.diameter = diameters[id];

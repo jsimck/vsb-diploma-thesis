@@ -34,11 +34,8 @@ namespace tless {
     }
 
     void operator>>(const cv::FileNode &node, Template &t) {
-        int id, objId;
-        node["objId"] >> objId;
-        node["id"] >> id;
-        t.objId = static_cast<uint>(objId);
-        t.id = static_cast<uint>(id);
+        node["objId"] >> t.objId;
+        node["id"] >> t.id;
         t.fileName = (std::string) node["fileName"];
         node["diameter"] >> t.diameter;
         node["edgePoints"] >> t.edgePoints;
@@ -58,8 +55,8 @@ namespace tless {
 
     cv::FileStorage &operator<<(cv::FileStorage &fs, const Template &t) {
         fs << "{";
-        fs << "objId" << static_cast<int>(t.objId);
-        fs << "id" << static_cast<int>(t.id);
+        fs << "objId" << t.objId;
+        fs << "id" << t.id;
         fs << "fileName" << t.fileName;
         fs << "diameter" << t.diameter;
 

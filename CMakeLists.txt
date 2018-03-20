@@ -8,7 +8,7 @@ set(SOURCE_FILES main.cpp utils/visualizer.h utils/visualizer.cpp core/template.
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-find_package(Boost REQUIRED filesystem)
+find_package(Boost REQUIRED COMPONENTS filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
 
 add_executable(vsb-semestral-project ${SOURCE_FILES})

@@ -1,26 +1,18 @@
 #include "hash_table.h"
 
 namespace tless {
-    void HashTable::pushUnique(const HashKey &key, Template &t) {
-        // Check if key exists, if not initialize it
-        if (templates.find(key) == templates.end()) {
-            std::vector<Template *> hashTemplates;
-            templates[key] = hashTemplates;
+    bool HashTable::pushUnique(const HashKey &key, Template &t) {
+        // Check for duplicates and push unique
+        auto found = std::find_if(templates[key].begin(), templates[key].end(), [&t](const Template *tt) { return t == *tt; });
 
-            // Push new template
+        // If duplicate not found, push new template
+        if (found == templates[key].end()) {
             templates[key].emplace_back(&t);
             size++;
-        } else {
-            // Check for duplicates and push unique
-            auto found = std::find_if(templates[key].begin(), templates[key].end(),
-                                      [&t](const Template *tt) { return t == *tt; });
-
-            // If duplicate not found, push new template
-            if (found == templates[key].end()) {
-                templates[key].emplace_back(&t);
-                size++;
-            }
+            return true;
         }
+
+        return false;
     }
 
     std::ostream &operator<<(std::ostream &os, const HashTable &table) {
@@ -51,6 +43,7 @@ namespace tless {
         int size;
         node["size"] >> size;
         table.size = static_cast<size_t>(size);
+        table.templates.rehash(table.size + 1);
         node["binRanges"] >> table.binRanges;
 
         cv::FileNode tripletNode = node["triplet"];
@@ -70,7 +63,7 @@ namespace tless {
             keyNode["n2"] >> key.n2;
             keyNode["n3"] >> key.n3;
 
-            uint id = 0;
+            uint id = 0, counter = 0;
             cv::FileNode templatesNode = row["templates"];
 
             for (auto &&tplId : templatesNode) {
@@ -81,10 +74,14 @@ namespace tless {
                 // Loop through existing templates and save pointers to matching ids
                 for (auto &t : templates) {
                     if (id == t.id) {
-                        table.pushUnique(key, t);
+                        bool result = table.pushUnique(key, t);
+                        counter += result ? 1 : 0;
                     }
                 }
             }
+
+            // Resize
+            table.templates.reserve(counter + 1);
         }
 
         return table;

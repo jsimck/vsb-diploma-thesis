@@ -30,8 +30,8 @@ int main() {
 //    classifier.detect("data/trained_primesense.txt", "data/trained/primesense/", "data/scenes/primesense/02/");
 
     // Kinect
-    classifier.train("data/templates_kinectv2.txt", "data/trained/kinectv2/");
-//    classifier.detect("data/trained_kinectv2.txt", "data/trained/kinectv2/", "data/scenes/kinectv2/02/");
+//    classifier.train("data/templates_kinectv2.txt", "data/trained/kinectv2/");
+    classifier.detect("data/trained_kinectv2.txt", "data/trained/kinectv2/", "data/scenes/kinectv2/02/");
 
     return 0;
 }

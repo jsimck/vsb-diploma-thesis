@@ -8,6 +8,7 @@
 #include <memory>
 #include <ostream>
 #include <utility>
+#include "../libs/hopscotch_map.h"
 
 namespace tless {
     /**
@@ -21,7 +22,7 @@ namespace tless {
         size_t size = 0;  //!< Size of hash table (in terms of number of templates)
         Triplet triplet;
         std::vector<cv::Range> binRanges;
-        std::unordered_map<HashKey, std::vector<Template *>, HashKeyHasher> templates;
+        tsl::hopscotch_map<HashKey, std::vector<Template *>, HashKeyHasher> templates;
 
         HashTable() = default;
         HashTable(Triplet triplet) : triplet(triplet) {}
@@ -47,8 +48,9 @@ namespace tless {
          *
          * @param[in] key  HashKey identifying place where to push new template t
          * @param[in] t    Template to push to hash table at specified key
+         * @return         True/false whether template was pushed to the table or not
          */
-        void pushUnique(const HashKey &key, Template &t);
+        bool pushUnique(const HashKey &key, Template &t);
 
         bool operator<(const HashTable &rhs) const;
         bool operator>(const HashTable &rhs) const;
