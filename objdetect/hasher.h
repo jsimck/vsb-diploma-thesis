@@ -45,8 +45,6 @@ namespace tless {
         void initializeBinRanges(std::vector<Template> &templates, std::vector<HashTable> &tables);
 
     public:
-        static const int IMG_16BIT_MAX = 65535;
-
         Hasher(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
 
         /**

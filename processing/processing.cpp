@@ -160,10 +160,6 @@ namespace tless {
     }
 
     uchar quantizeDepth(int depth, const std::vector<cv::Range> &ranges) {
-        // Depth should have max value of <-65536, +65536>
-        assert(depth >= -Hasher::IMG_16BIT_MAX && depth <= Hasher::IMG_16BIT_MAX);
-        assert(!ranges.empty());
-
         // Loop through histogram ranges and return quantized index
         for (size_t i = 0; i < ranges.size(); i++) {
             if (depth >= ranges[i].start && depth < ranges[i].end) {
