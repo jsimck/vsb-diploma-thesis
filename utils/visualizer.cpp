@@ -40,6 +40,7 @@ namespace tless {
         putText(dst, label, origin, fontFace, scale, fColor, thickness, CV_AA);
     }
 
+#ifdef VIZ_HASHING
     void Visualizer::windowCandidates(const cv::Mat &src, cv::Mat &dst, Window &window) {
         std::ostringstream oss;
         dst = src.clone();
@@ -158,6 +159,7 @@ namespace tless {
             }
         }
     }
+#endif
 
     void Visualizer::objectness(const ScenePyramid &scene, std::vector<Window> &windows, int wait, const char *title) {
         const auto winSize = static_cast<const int>(windows.size());

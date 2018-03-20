@@ -37,7 +37,9 @@ namespace tless {
          * @param[out] dst    Destination image annotated with current window
          * @param[in]  window Sliding window that passed hashing verification
          */
+#ifdef VIZ_HASHING
         void windowCandidates(const cv::Mat &src, cv::Mat &dst, Window &window);
+#endif
 
     public:
         static const int KEY_UP = 0, KEY_DOWN = 1, KEY_LEFT = 2, KEY_RIGHT = 3, KEY_SPACEBAR = 32,
@@ -71,8 +73,13 @@ namespace tless {
          * @param[in] wait    Optional wait time in waitKey() function
          * @param[in] title   Optional image window title
          */
+#ifdef VIZ_HASHING
         void windowsCandidates(const ScenePyramid &scene, std::vector<Window> &windows, int wait = 0,
                                const char *title = nullptr);
+#else
+        void windowsCandidates(const ScenePyramid &scene, std::vector<Window> &windows, int wait = 0,
+                               const char *title = nullptr) { void(); }
+#endif
 
         /**
          * @brief Vizualizes window locations after objectness detection has been performed.

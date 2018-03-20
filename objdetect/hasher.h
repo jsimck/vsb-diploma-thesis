@@ -63,7 +63,6 @@ namespace tless {
          */
         void train(std::vector<Template> &templates, std::vector<HashTable> &tables);
 
-        // TODO - Refactor function to perform better in parallel
         /**
          * @brief Picks first 100 best candidates for each window from included hashing tables.
          *

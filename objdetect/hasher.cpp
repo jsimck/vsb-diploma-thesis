@@ -193,7 +193,9 @@ namespace tless {
                 // Vote for each template in hash table at specific key and push unique to window candidates
                 for (auto &entry : table.templates[key]) {
                     entry->votes++;
-                    entry->triplets.push_back(table.triplet); // TODO remove, mostly for debugging
+#ifdef VIZ_HASHING
+                    entry->triplets.push_back(table.triplet);
+#endif
 
                     // pushes only unique templates with minimum of votes (minVotes) building vector of size up to N
                     windows[i].pushUnique(entry, criteria->tablesCount, criteria->minVotes);
@@ -201,19 +203,23 @@ namespace tless {
                 }
             }
 
+#ifdef VIZ_HASHING
             // Sort candidates based on the votes
-            std::stable_sort(windows[i].candidates.begin(), windows[i].candidates.end(), [](Template *t1, Template *t2) { return t1->votes > t2->votes; }); // TODO remove, mostly for debugging
+            std::stable_sort(windows[i].candidates.begin(), windows[i].candidates.end(), [](Template *t1, Template *t2) { return t1->votes > t2->votes; });
 
             // Save votes for current window in separate array
             for (auto &candidate : windows[i].candidates) {
                 windows[i].votes.push_back(candidate->votes);
-                windows[i].triplets.push_back(candidate->triplets); // TODO remove, mostly for debugging
+                windows[i].triplets.push_back(candidate->triplets);
             }
+#endif
 
             // Reset votes for all used templates
             for (auto &t : usedTemplates) {
                 t->votes = 0;
-                t->triplets.clear(); // TODO remove, mostly for debugging
+#ifdef VIZ_HASHING
+                t->triplets.clear();
+#endif
             }
 
             usedTemplates.clear();

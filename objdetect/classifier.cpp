@@ -174,7 +174,7 @@ namespace tless {
                 Timer tVerification;
                 hasher.verifyCandidates(scene.pyramid[l].srcDepth, scene.pyramid[l].srcNormals, tables, windows);
                 ttVerification += tVerification.elapsed();
-//                viz.windowsCandidates(scene.pyramid[l], windows);
+                viz.windowsCandidates(scene.pyramid[l], windows);
 
                 /// Match templates
                 Timer tMatching;
