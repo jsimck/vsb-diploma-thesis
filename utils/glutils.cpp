@@ -1,7 +1,8 @@
+#include <c++/v1/iostream>
 #include "glutils.h"
 
 namespace tless {
-    glm::mat4 pMat(const glm::mat3 &K, int x0, int y0, int w, int h, float nc, float fc, WindowCoords coords = Y_UP) {
+    glm::mat4 pMat(const glm::mat3 &K, int x0, int y0, int w, int h, float nc, float fc, WindowCoords coords) {
         float depth = fc - nc;
         float q = -(fc + nc) / depth;
         float qn = -2 * (fc * nc) / depth;
@@ -41,11 +42,11 @@ namespace tless {
     }
 
     glm::mat4 mvMat(const glm::mat4 &model, const glm::mat4 &view) {
-        return model * view;
+        return view * model;
     }
 
     glm::mat4 mvpMat(const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection) {
-        return model * view * projection;
+        return projection * view * model;
     }
 
     glm::mat4 nMat(const glm::mat4 &model, const glm::mat4 &view) {
