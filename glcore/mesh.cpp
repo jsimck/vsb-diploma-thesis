@@ -1,7 +1,7 @@
 #include "mesh.h"
 
 namespace tless {
-    void Mesh::loadFromPly(const std::string &plyFile) {
+    void Mesh::load(const std::string &plyFile) {
         try {
             // Read the file and create a std::istringstream suitable
             // for the lib -- tinyply does not perform any file i/o.
@@ -56,12 +56,12 @@ namespace tless {
 
     void Mesh::init()  {
         // Create buffers/arrays
-        glGenVertexArrays(1, &VAO);
+        glGenVertexArrays(1, &id);
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO);
 
         // Load data into vertex buffers
-        glBindVertexArray(VAO);
+        glBindVertexArray(id);
         // Bind vertex positions and normals
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
@@ -78,17 +78,17 @@ namespace tless {
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, normal));
 
-        // Unbind current VAO
+        // Unbind current id
         glBindVertexArray(0);
     }
 
     Mesh::Mesh(const std::string &plyFile) {
-        loadFromPly(plyFile);
+        load(plyFile);
         init();
     }
 
     void Mesh::draw() {
-        glBindVertexArray(VAO);
+        glBindVertexArray(id);
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, (void*) 0);
         glBindVertexArray(0);
     }
@@ -96,7 +96,7 @@ namespace tless {
     std::ostream &tless::operator<<(std::ostream &os, const Mesh &mesh) {
         os << "VBO: " << mesh.VBO
            << " EBO: " << mesh.EBO
-           << " VAO: " << mesh.VAO << std::endl;
+           << " id: " << mesh.id << std::endl;
 
         for (int i = 0; i < mesh.vertices.size(); ++i) {
             os << "V: " << mesh.vertices[i] <<std::endl;

@@ -38,7 +38,7 @@ namespace tless {
          *
          * @param[in] plyFile Path to the .ply file to parse mesh from
          */
-        void loadFromPly(const std::string &plyFile);
+        void load(const std::string &plyFile);
 
         /**
          * @brief Initializes all the VAOs, VBOs for OpenGL.
@@ -46,7 +46,7 @@ namespace tless {
         void init();
 
     public:
-        GLuint VAO;
+        GLuint id;
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
 

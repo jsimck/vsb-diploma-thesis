@@ -45,6 +45,8 @@ set(SOURCE_FILES
     utils/converter.h
     glcore/mesh.h
     glcore/mesh.cpp
+    glcore/shader.h
+    glcore/shader.cpp
     libs/tinyply.h
     libs/tinyply.cpp
 )
