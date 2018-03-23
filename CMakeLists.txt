@@ -43,6 +43,8 @@ set(SOURCE_FILES
     core/scene.h
     utils/converter.cpp
     utils/converter.h
+    utils/glutils.cpp
+    utils/glutils.cpp
     glcore/mesh.h
     glcore/mesh.cpp
     glcore/shader.h
