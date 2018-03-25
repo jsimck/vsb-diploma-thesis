@@ -113,9 +113,9 @@ namespace tless {
                     int max = rDepths[(j + 1) * binSize];
 
                     if (j == 0) {
-                        min += min / 5;
+                        min -= rDepths[rDepths.size()] * 0.2f;
                     } else if (j + 1 == binCount) {
-                        max += max * 0.2;
+                        max += rDepths[rDepths.size()] * 0.2f;
                     }
 
                     ranges.emplace_back(min, max);
