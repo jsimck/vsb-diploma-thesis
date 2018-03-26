@@ -1,8 +1,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "objdetect/classifier.h"
-#include "processing/processing.h"
-#include "utils/converter.h"
+#include "utils/timer.h"
 
 int main() {
     // Convert templates from t-less to custom format

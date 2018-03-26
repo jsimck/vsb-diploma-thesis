@@ -1,18 +1,14 @@
 #include "hash_table.h"
 
 namespace tless {
-    bool HashTable::pushUnique(const HashKey &key, Template &t) {
-        // Check for duplicates and push unique
-        auto found = std::find_if(templates[key].begin(), templates[key].end(), [&t](const Template *tt) { return t == *tt; });
+    void HashTable::pushUnique(const HashKey &key, Template &t) {
+        // Check if key exists, if not initialize it
+        auto& vec = templates[key.hash()];
 
-        // If duplicate not found, push new template
-        if (found == templates[key].end()) {
-            templates[key].emplace_back(&t);
+        if (std::find_if(vec.begin(), vec.end(), [&t](const Template *tt) { return t == *tt; }) == vec.end()) {
+            vec.push_back(&t);
             size++;
-            return true;
         }
-
-        return false;
     }
 
     std::ostream &operator<<(std::ostream &os, const HashTable &table) {
@@ -26,9 +22,13 @@ namespace tless {
         }
 
         os << "Table contents: (d1, d2, n1, n2, n3)" << std::endl;
-        for (const auto &entry : table.templates) {
-            os << "  |_ " << entry.first << " : (";
-            for (const auto &item : entry.second) {
+        for (int j = 0; j < table.templates.size(); ++j) {
+            if (table.templates[j].empty()) {
+                continue;
+            }
+
+            os << "  |_ " << HashKey::unhash(j) << " : (";
+            for (const auto &item : table.templates[j]) {
                 os << item->id << ", ";
             }
             os << ")" << std::endl;
@@ -43,7 +43,6 @@ namespace tless {
         int size;
         node["size"] >> size;
         table.size = static_cast<size_t>(size);
-        table.templates.rehash(table.size + 1);
         node["binRanges"] >> table.binRanges;
 
         cv::FileNode tripletNode = node["triplet"];
@@ -63,25 +62,19 @@ namespace tless {
             keyNode["n2"] >> key.n2;
             keyNode["n3"] >> key.n3;
 
-            uint id = 0, counter = 0;
+            int id = 0;
             cv::FileNode templatesNode = row["templates"];
 
             for (auto &&tplId : templatesNode) {
-                int tmp;
-                tplId >> tmp;
-                id = static_cast<uint>(tmp);
+                tplId >> id;
 
                 // Loop through existing templates and save pointers to matching ids
                 for (auto &t : templates) {
                     if (id == t.id) {
-                        bool result = table.pushUnique(key, t);
-                        counter += result ? 1 : 0;
+                        table.templates[key.hash()].push_back(&t);
                     }
                 }
             }
-
-            // Resize
-            table.templates.reserve(counter + 1);
         }
 
         return table;
@@ -116,21 +109,23 @@ namespace tless {
 
         // Save Templates
         fs << "data" << "[";
-        for (auto &tableRow : table.templates) {
+        for (int i = 0; i < table.templates.size(); ++i) {
+            HashKey key = HashKey::unhash(i);
+
             // Save key
             fs << "{";
             fs << "key" << "{";
-            fs << "d1" << tableRow.first.d1;
-            fs << "d2" << tableRow.first.d2;
-            fs << "n1" << tableRow.first.n1;
-            fs << "n2" << tableRow.first.n2;
-            fs << "n3" << tableRow.first.n3;
+            fs << "d1" << key.d1;
+            fs << "d2" << key.d2;
+            fs << "n1" << key.n1;
+            fs << "n2" << key.n2;
+            fs << "n3" << key.n3;
             fs << "}";
 
             // Save template IDS
             fs << "templates" << "[";
-            for (auto &t : tableRow.second) {
-                fs << static_cast<int>(t->id);
+            for (auto &t : table.templates[i]) {
+                fs << t->id;
             }
             fs << "]";
             fs << "}";

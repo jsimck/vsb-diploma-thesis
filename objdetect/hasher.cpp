@@ -191,7 +191,7 @@ namespace tless {
                 }
 
                 // Vote for each template in hash table at specific key and push unique to window candidates
-                for (auto &entry : table.templates[key]) {
+                for (auto &entry : table.templates[key.hash()]) {
                     entry->votes++;
 #ifdef VIZ_HASHING
                     entry->triplets.push_back(table.triplet);

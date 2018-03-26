@@ -4,8 +4,10 @@
 #include <ostream>
 #include <opencv2/core/hal/interface.h>
 #include <boost/functional/hash.hpp>
+#include <c++/v1/iostream>
 
 namespace tless {
+
     /**
      * @brief Custom hash key used in hash tables to quickly identify set of valid candidates for each Window.
      *
@@ -16,6 +18,15 @@ namespace tless {
      * this gives 5 * 5 * 8 * 8 * 8 = 12800 possible different keys.
      */
     struct HashKey {
+    private:
+        /**
+         * @brief Converts key values from 8bit to 3bit representation in order to reduce hash key length
+         *
+         * @param  value uchar value to convert to 3bit decimal number (2^1 - 2^7 -> 0-7)
+         * @return       returns value between 0-7 depending on the power of the on the input
+         */
+        inline size_t hashValue(uchar value) const;
+
     public:
         uchar d1 = 0, d2 = 0; //!< d1, d2 relative depths, quantization into 5 bins
         uchar n1 = 0, n2 = 0, n3 = 0; //!< n1, n2, n3 surface normals, quantized into 8 discrete values
@@ -30,23 +41,23 @@ namespace tless {
          */
         bool empty();
 
+        /**
+         * @brief Hashes this key and returns index to which it belongs in tables array
+         *
+         * @return Index of hash table templates array to which this key belongs
+         */
+        size_t hash() const;
+
+        /**
+         * @brief Returns original key from a already hashed one
+         *
+         * @return HashKey retrieved from already hashed value
+         */
+        static HashKey unhash(size_t key);
+
         bool operator==(const HashKey &rhs) const;
         bool operator!=(const HashKey &rhs) const;
         friend std::ostream &operator<<(std::ostream &os, const HashKey &key);
-    };
-
-    struct HashKeyHasher {
-        std::size_t operator()(const HashKey &k) const {
-            std::size_t seed = 0;
-
-            boost::hash_combine(seed, boost::hash_value(k.d1));
-            boost::hash_combine(seed, boost::hash_value(k.d2));
-            boost::hash_combine(seed, boost::hash_value(k.n1));
-            boost::hash_combine(seed, boost::hash_value(k.n2));
-            boost::hash_combine(seed, boost::hash_value(k.n3));
-
-            return seed;
-        }
     };
 }
 
