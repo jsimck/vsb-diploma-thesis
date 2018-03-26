@@ -66,6 +66,7 @@ namespace tless {
             cv::FileNode templatesNode = row["templates"];
 
             for (auto &&tplId : templatesNode) {
+                table.templates[key.hash()].reserve(templatesNode.size());
                 tplId >> id;
 
                 // Loop through existing templates and save pointers to matching ids
