@@ -11,7 +11,7 @@ namespace tless {
         os << "  |_ featurePointsCount: " << crit.featurePointsCount << std::endl;
         os << "  |_ minMagnitude: " << crit.minMagnitude << std::endl;
         os << "  |_ maxDepthDiff: " << crit.maxDepthDiff << std::endl;
-        os << "  |_ depthDeviationFun (size): " << crit.depthDeviationFun.size() << std::endl;
+        os << "  |_ depthDeviation: " << crit.depthDeviation << std::endl;
         os << "  |_ minVotes: " << crit.minVotes << std::endl;
         os << "  |_ windowStep: " << crit.windowStep << std::endl;
         os << "  |_ patchOffset: " << crit.patchOffset << std::endl;
@@ -38,7 +38,7 @@ namespace tless {
         node["tripletGrid"] >> crit->tripletGrid;
         node["minMagnitude"] >> crit->minMagnitude;
         node["maxDepthDiff"] >> crit->maxDepthDiff;
-        node["depthDeviationFun"] >> crit->depthDeviationFun;
+        node["depthDeviation"] >> crit->depthDeviation;
         node["objectnessDiameterThreshold"] >> crit->objectnessDiameterThreshold;
 
         // Load unsigned int params
@@ -71,7 +71,7 @@ namespace tless {
         fs << "featurePointsCount" << static_cast<int>(crit.featurePointsCount);
         fs << "minMagnitude" << crit.minMagnitude;
         fs << "maxDepthDiff" << crit.maxDepthDiff;
-        fs << "depthDeviationFun" << crit.depthDeviationFun;
+        fs << "depthDeviation" << crit.depthDeviation;
         fs << "objectnessDiameterThreshold" << crit.objectnessDiameterThreshold;
         fs << "info" << "{";
         fs << "depthScaleFactor" << crit.info.depthScaleFactor;

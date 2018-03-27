@@ -122,9 +122,9 @@ namespace tless {
                 cv::Point offsetP(tl.x + x, tl.y + y);
 
                 // Template points in larger templates can go beyond scene boundaries (don't count)
-                if (offsetP.x >= sceneDepth.cols || offsetP.y >= sceneDepth.rows ||
-                    offsetP.x < 0 || offsetP.y < 0)
+                if (offsetP.x >= sceneDepth.cols || offsetP.y >= sceneDepth.rows || offsetP.x < 0 || offsetP.y < 0) {
                     continue;
+                }
 
                 // Get depth value at point
                 float sDepth = sceneDepth.at<ushort>(offsetP);
@@ -132,11 +132,8 @@ namespace tless {
                 // Validate depth
                 if (sDepth == 0) continue;
 
-                // Get correct deviation ratio
-                float ratio = depthNormalizationFactor(sDepth, criteria->depthDeviationFun);
-
                 // Check if template depth is in defined bounds  of scene depth
-                if (sDepth >= (depth * ratio) && sDepth <= (depth / ratio)) {
+                if (sDepth >= (depth * criteria->depthDeviation) && sDepth <= (depth / criteria->depthDeviation)) {
                     return 1;
                 }
             }

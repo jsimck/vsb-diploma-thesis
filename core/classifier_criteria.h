@@ -21,8 +21,7 @@ namespace tless {
         float minMagnitude = 100; //!< Minimal magnitude of edge gradient to classify it as valid
         ushort maxDepthDiff = 100; //!< When computing surface normals, contribution of pixel is ignored if the depth difference with central pixel is above this threshold
         float objectnessDiameterThreshold = 0.3f; //!< Minimal threshold of sobel operator when computing depth edgels. (objectnessDiameterThreshold * objectDiameter * info.depthScaleFactor)
-        // TODO fix deviation function based on the other paper
-        std::vector<cv::Vec2f> depthDeviationFun{{10000, 0.14f}, {15000, 0.12f}, {20000, 0.1f}, {70000, 0.08f}}; //!< Depth error function, allowing depth values to be match within given interval
+        float depthDeviation = .316227766f; //!< sqrt(depthScaleFactor)
 
         // Detect Params
         float pyrScaleFactor = 1.25f; //!< Scale factor for building scene image pyramid

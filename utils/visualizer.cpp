@@ -167,16 +167,12 @@ namespace tless {
         cv::Mat result, depth, edgels, resultDepth, resultEdgels;
         std::ostringstream oss;
 
-        // Normalize min and max depths to look for objectness in
-        auto minDepth = static_cast<int>(criteria->info.minDepth * depthNormalizationFactor(criteria->info.minDepth, criteria->depthDeviationFun));
-        auto maxDepth = static_cast<int>(criteria->info.maxDepth / depthNormalizationFactor(criteria->info.maxDepth, criteria->depthDeviationFun));
-
         // Convert depth
         scene.srcDepth.convertTo(depth, CV_8UC1, 255.0f / 65535.0f);
         cv::cvtColor(depth, depth, CV_GRAY2BGR);
 
         // Edgels computation
-        depthEdgels(scene.srcDepth, edgels, minDepth, maxDepth, minMag);
+        depthEdgels(scene.srcDepth, edgels, criteria->info.minDepth, criteria->info.maxDepth, minMag);
         cv::normalize(edgels, edgels, 0, 255, CV_MINMAX);
         cv::cvtColor(edgels, edgels, CV_GRAY2BGR);
 
@@ -371,8 +367,7 @@ namespace tless {
 
         // Load normals
         cv::Mat normals;
-        int localMax = static_cast<int>(t.maxDepth / depthNormalizationFactor(t.maxDepth, criteria->depthDeviationFun));
-        quantizedNormals(depth, normals, t.camera.fx(), t.camera.fy(), localMax, static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
+        quantizedNormals(depth, normals, t.camera.fx(), t.camera.fy(), t.maxDepth, static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
 
         // Load hue
         cv::Mat hue, hsv;

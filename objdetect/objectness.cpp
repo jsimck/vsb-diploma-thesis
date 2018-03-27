@@ -10,14 +10,10 @@ namespace tless {
         assert(!src.empty());
         assert(src.type() == CV_16U);
 
-        // Normalize min and max depths to look for objectness in
-        auto minDepth = static_cast<int>(criteria->info.minDepth * depthNormalizationFactor(criteria->info.minDepth, criteria->depthDeviationFun));
-        auto maxDepth = static_cast<int>(criteria->info.maxDepth / depthNormalizationFactor(criteria->info.maxDepth, criteria->depthDeviationFun));
-
         // Generate integral image of detected edgels
         cv::Mat edgels, integral;
         auto minMag = static_cast<int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
-        depthEdgels(src, edgels, minDepth, maxDepth, minMag);
+        depthEdgels(src, edgels, criteria->info.minDepth, criteria->info.maxDepth, minMag);
         cv::integral(edgels, integral, CV_32S);
 
         const auto minEdgels = static_cast<const int>(criteria->info.minEdgels * criteria->objectnessFactor);

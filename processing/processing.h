@@ -57,15 +57,6 @@ namespace tless {
     void depthEdgels(const cv::Mat &src, cv::Mat &dst, int minDepth, int maxDepth, int minMag);
 
     /**
-     * @brief Finds normalization (error) factor, to help define range in which the given depth value can be.
-     *
-     * @param[in] depth         Depth value to get normalization factor for
-     * @param[in] errorFunction Normalization function (vector of 2 values, first is upperBound, second is normalization factor)
-     * @return                  Normalization factor defined in error function for given depth range
-     */
-    float depthNormalizationFactor(float depth, const std::vector<cv::Vec2f>& errorFunction);
-
-    /**
      * @brief Returns quantized depth into one of 5 bins defined in ranges.
      *
      * @param[in] depth  Depth value (32-bit signed int)

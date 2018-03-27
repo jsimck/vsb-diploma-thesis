@@ -145,20 +145,6 @@ namespace tless {
         }
     }
 
-    float depthNormalizationFactor(float depth, const std::vector<cv::Vec2f>& errorFunction) {
-        float ratio = 0;
-
-        // why from 0 and j + 1?
-        for (size_t j = 0; j < errorFunction.size() - 1; j++) {
-            if (depth < errorFunction[j + 1][0]) {
-                ratio = (1 - errorFunction[j + 1][1]);
-                break;
-            }
-        }
-
-        return ratio;
-    }
-
     uchar quantizeDepth(int depth, const std::vector<cv::Range> &ranges) {
         // Loop through histogram ranges and return quantized index
         for (size_t i = 0; i < ranges.size(); i++) {

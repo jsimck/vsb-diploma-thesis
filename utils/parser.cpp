@@ -65,20 +65,16 @@ namespace tless {
         if (t.objBB.width > criteria->info.largestArea.width) { criteria->info.largestArea.width = t.objBB.width; }
         if (t.objBB.height > criteria->info.largestArea.height) { criteria->info.largestArea.height = t.objBB.height; }
 
-        // Extract criteria depth extremes from local extremes
-        if (t.maxDepth > criteria->info.maxDepth) { criteria->info.maxDepth = t.maxDepth; }
-        if (t.minDepth < criteria->info.minDepth) { criteria->info.minDepth = t.minDepth; }
+        // Extract criteria depth extremes from local extremes + slightly increase min and max depth intervals
+        if (t.maxDepth > criteria->info.maxDepth) { criteria->info.maxDepth = static_cast<ushort>(t.maxDepth + (t.maxDepth * 0.1f)); }
+        if (t.minDepth < criteria->info.minDepth) { criteria->info.minDepth = static_cast<ushort>(t.minDepth - (t.minDepth * 0.1f)); }
 
         // Extract smallest diameter
         if (t.diameter < criteria->info.smallestDiameter) { criteria->info.smallestDiameter = t.diameter; }
 
-        // Normalize local max and min depths to define error corrected range
-        auto localMax = static_cast<int>(t.maxDepth / depthNormalizationFactor(t.maxDepth, criteria->depthDeviationFun));
-        auto localMin = static_cast<int>(t.minDepth * depthNormalizationFactor(t.minDepth, criteria->depthDeviationFun));
-
         // Extract min edgels
         cv::Mat integral, edgels;
-        depthEdgels(t.srcDepth, edgels, localMin, localMax, static_cast<int>(criteria->objectnessDiameterThreshold * t.diameter * criteria->info.depthScaleFactor));
+        depthEdgels(t.srcDepth, edgels, t.minDepth, t.maxDepth, static_cast<int>(criteria->objectnessDiameterThreshold * t.diameter * criteria->info.depthScaleFactor));
         cv::integral(edgels, integral, CV_32S);
 
         // Get objBB corners for sum area table calculation
@@ -94,7 +90,7 @@ namespace tless {
         }
 
         // Compute normals
-        quantizedNormals(t.srcDepth, t.srcNormals, t.camera.fx(), t.camera.fy(), localMax, static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
+        quantizedNormals(t.srcDepth, t.srcNormals, t.camera.fx(), t.camera.fy(), t.maxDepth, static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
     }
 
     Scene Parser::parseScene(const std::string &basePath, int index, float scaleFactor, int levelsUp, int levelsDown) {
@@ -192,10 +188,9 @@ namespace tless {
         normalizeHSV(hsv, pyramid.srcHue);
 
         // Generate quantized normals and orientations
-        float ratio = depthNormalizationFactor(criteria->info.maxDepth, criteria->depthDeviationFun);
         quantizedGradients(pyramid.srcRGB, pyramid.srcGradients, criteria->minMagnitude);
         quantizedNormals(pyramid.srcDepth, pyramid.srcNormals, pyramid.camera.fx(), pyramid.camera.fy(),
-                         static_cast<int>(criteria->info.maxDepth / ratio), static_cast<int>(criteria->maxDepthDiff / scale));
+                         static_cast<int>(criteria->info.maxDepth), static_cast<int>(criteria->maxDepthDiff / scale));
 
         return pyramid;
     }
