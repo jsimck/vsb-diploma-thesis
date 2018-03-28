@@ -40,7 +40,7 @@ namespace tless {
         assert(src.type() == CV_16UC1);
 
         int PS = 5; // patch size
-        dst = cv::Mat::zeros(src.size(), CV_8UC1);
+        dst.create(src.size(), CV_8UC1);
         auto offsetX = static_cast<int>(NORMAL_LUT_SIZE * 0.5f);
         auto offsetY = static_cast<int>(NORMAL_LUT_SIZE * 0.5f);
 
@@ -158,7 +158,7 @@ namespace tless {
     }
 
     void normalizeHSV(const cv::Mat &src, cv::Mat &dst, uchar value, uchar saturation) {
-        dst = cv::Mat(src.size(), CV_8UC1);
+        dst.create(src.size(), CV_8UC1);
 
         for (int y = 0; y < src.rows; y++) {
             for (int x = 0; x < src.cols; x++) {
@@ -254,7 +254,7 @@ namespace tless {
         }
 
         // Quantize orientations
-        dst = cv::Mat::zeros(src.size(), CV_8UC1);
+        dst.create(src.size(), CV_8UC1);
 
         #pragma omp parallel for default(none) shared(dst, angles, mags) firstprivate(minMag)
         for (int y = 0; y < dst.rows; y++) {
