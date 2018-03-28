@@ -98,7 +98,7 @@ namespace tless {
     /**
      * @brief Computes and quantizes gradient orientations over RGB scene
      *
-     * @param[in]  src    8-bit 3-channel RGB image to compute gradients on
+     * @param[in]  src    8-bit grayscale image to compute gradients on
      * @param[out] dst    8-bit image map of quantized gradient orientations
      * @param[in]  minMag Minimum edge magnitude to consider as valid and compute orientation for
      */

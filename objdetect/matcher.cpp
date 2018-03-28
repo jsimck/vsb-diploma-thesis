@@ -186,6 +186,7 @@ namespace tless {
         return 0;
     }
 
+    // TODO check if it works correctly
     int Matcher::testDepth(float diameter, ushort depthMedian, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
         auto tl = window.tl() + stable;
 
@@ -221,7 +222,8 @@ namespace tless {
                     offsetP.x < 0 || offsetP.y < 0)
                     continue;
 
-                if (std::abs(hue - sceneHSV.at<uchar>(offsetP)) < 3) {
+                // TODO - criteria min value
+                if (std::abs(hue - sceneHSV.at<uchar>(offsetP)) < 5) {
                     return 1;
                 }
             }
