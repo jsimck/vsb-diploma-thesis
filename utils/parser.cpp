@@ -43,7 +43,7 @@ namespace tless {
 
         // Generate quantized orientations
         cv::Mat gradients;
-        quantizedGradients(srcRGB, gradients, criteria->minMagnitude);
+        quantizedGradients(srcGray, gradients, criteria->minMagnitude);
 
         // Save images to template object
         t.srcRGB = std::move(srcRGB);
@@ -188,7 +188,7 @@ namespace tless {
         normalizeHSV(hsv, pyramid.srcHue);
 
         // Generate quantized normals and orientations
-        quantizedGradients(pyramid.srcRGB, pyramid.srcGradients, criteria->minMagnitude);
+        quantizedGradients(pyramid.srcGray, pyramid.srcGradients, criteria->minMagnitude);
         quantizedNormals(pyramid.srcDepth, pyramid.srcNormals, pyramid.camera.fx(), pyramid.camera.fy(),
                          static_cast<int>(criteria->info.maxDepth), static_cast<int>(criteria->maxDepthDiff / scale));
 

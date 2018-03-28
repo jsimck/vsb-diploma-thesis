@@ -358,8 +358,10 @@ namespace tless {
         cv::Point offsetStart(-patchOffset, -patchOffset), offsetEnd(patchOffset, patchOffset);
 
         // Dynamically load template images
+        cv::Mat gray;
         cv::Mat rgb = loadTemplateSrc(t, CV_LOAD_IMAGE_COLOR);
         cv::Mat depth = loadTemplateSrc(t, CV_LOAD_IMAGE_UNCHANGED);
+        cv::cvtColor(rgb, gray, CV_BGR2GRAY);
 
         // Load orientation gradients
         cv::Mat gradients;

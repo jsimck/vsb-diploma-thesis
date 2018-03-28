@@ -1,6 +1,7 @@
 #include "processing.h"
 #include "../objdetect/hasher.h"
 #include "computation.h"
+#include "../utils/timer.h"
 #include <cassert>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
@@ -235,53 +236,28 @@ namespace tless {
     }
 
     void quantizedGradients(const cv::Mat &src, cv::Mat &dst, float minMag) {
-        assert(src.type() == CV_8UC3);
+        assert(src.type() == CV_8UC1);
 
-        // Split rgb to planes
-        cv::Mat gradX, gradY, srcNorm;
-        cv::Mat bgr[3], angles[3], mags[3];
-        cv::split(src, bgr);
+        // Compute sobel
+        cv::Mat gradX, gradY, mags, angles;
+        cv::Sobel(src, gradX, CV_32F, 1, 0, 3, 1, 0);
+        cv::Sobel(src, gradY, CV_32F, 0, 1, 3, 1, 0);
 
-        for (int i = 0; i < 3; ++i) {
-            bgr[i].convertTo(srcNorm, CV_32FC1, 1.0f / 255.0f);
-
-            // Compute sobel
-            cv::Sobel(bgr[i], gradX, CV_32F, 1, 0, 3, 1, 0);
-            cv::Sobel(bgr[i], gradY, CV_32F, 0, 1, 3, 1, 0);
-
-            // Compute angles and magnitudes
-            cv::cartToPolar(gradX, gradY, mags[i], angles[i], true);
-        }
+        // Compute angles and magnitudes
+        cv::cartToPolar(gradX, gradY, mags, angles, true);
 
         // Quantize orientations
-        dst.create(src.size(), CV_8UC1);
+        dst = cv::Mat::zeros(src.size(), CV_8UC1);
+        cv::Mat grad = cv::Mat(src.size(), CV_32FC1);
 
         #pragma omp parallel for default(none) shared(dst, angles, mags) firstprivate(minMag)
         for (int y = 0; y < dst.rows; y++) {
             for (int x = 0; x < dst.cols; x++) {
-                float mag1 = mags[0].at<float>(y, x);
-                float mag2 = mags[1].at<float>(y, x);
-                float mag3 = mags[2].at<float>(y, x);
-
-                // Get max
-                int maxIndex = 0;
-                float magMax = mag1;
-
-                if (mag2 > magMax) {
-                    maxIndex = 1;
-                    magMax = mag2;
-                }
-
-                if (mag3 > magMax) {
-                    maxIndex = 2;
-                    magMax = mag3;
-                }
-
                 // Check for min
-                if (magMax < minMag) { continue; }
+                if (mags.at<float>(y, x) < minMag) { continue; }
 
                 // Quantize orientations
-                dst.at<uchar>(y, x) = quantizeGradientOrientation(angles[maxIndex].at<float>(y, x));
+                dst.at<uchar>(y, x) = quantizeGradientOrientation(angles.at<float>(y, x));
             }
         }
     }
