@@ -220,15 +220,14 @@ namespace tless {
         assert(!src.empty());
         assert(src.type() == CV_8UC1);
 
-        // First erode image and blur to minimize noise
-        cv::Mat eroded, gradX, gradY;
-        cv::erode(src, eroded, cv::Mat(), cv::Point(-1, -1), 1, cv::BORDER_REPLICATE);
-        cv::GaussianBlur(eroded, eroded, cv::Size(kSize, kSize), 0, 0, cv::BORDER_REPLICATE);
+        // Blur image to minimize noise
+        cv::Mat blurred, gradX, gradY;
+        cv::GaussianBlur(src, blurred, cv::Size(kSize, kSize), 0, 0, cv::BORDER_REPLICATE);
 
         // Compute sobel
-        cv::Sobel(eroded, gradX, CV_16S, 1, 0, 3, 1, 0, cv::BORDER_REPLICATE);
+        cv::Sobel(blurred, gradX, CV_16S, 1, 0, 3, 1, 0, cv::BORDER_REPLICATE);
         cv::convertScaleAbs(gradX, gradX);
-        cv::Sobel(eroded, gradY, CV_16S, 0, 1, 3, 1, 0, cv::BORDER_REPLICATE);
+        cv::Sobel(blurred, gradY, CV_16S, 0, 1, 3, 1, 0, cv::BORDER_REPLICATE);
         cv::convertScaleAbs(gradY, gradY);
 
         // Total Gradient (approximate)
