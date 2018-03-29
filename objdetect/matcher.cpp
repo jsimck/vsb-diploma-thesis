@@ -25,10 +25,9 @@ namespace tless {
             // Calculate euqlidian distance between each point
             for (size_t k = 0; k < points.size(); ++k) {
                 bool skip = false;
-                const size_t edgePointsSize = scattered.size();
 
                 // Skip calculation for point[k] if there exists distance lower then minDist
-                for (size_t j = 0; j < edgePointsSize; ++j) {
+                for (size_t j = 0; j < scattered.size(); ++j) {
                     if (cv::norm(points[k].first - scattered[j]) < minDst) {
                         skip = true;
                         break;

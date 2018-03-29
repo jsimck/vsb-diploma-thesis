@@ -25,17 +25,15 @@ namespace tless {
         return !candidates.empty();
     }
 
-    // TODO - verify that it works correctly, e.g. doen't override better candidates
     void Window::pushUnique(Template *t, int N, int minVotes) {
         if (t->votes < minVotes) return;
 
         // Check if candidate list is not full
-        const size_t cSize = candidates.size();
-        if (cSize >= N) {
+        if (candidates.size() >= N) {
             size_t minI = 0;
             int minVotes = N + 1;
 
-            for (size_t i = 0; i < cSize; i++) {
+            for (size_t i = 0; i < candidates.size(); i++) {
                 if (candidates[i] == t) return; // Check for duplicates
                 if (candidates[i]->votes < minVotes) {
                     minVotes = candidates[i]->votes;
