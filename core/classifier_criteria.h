@@ -33,7 +33,8 @@ namespace tless {
         float objectnessFactor = 0.3f; //!< Amount of edgels window must contain (30% of minimum) to classify as containing object in objectness detection
         float matchFactor = 0.6f; //!< Amount of feature points that needs to match to classify candidate as a match (at least 60%)
         float overlapFactor = 0.5f; //!< Permitted factor of which two templates can overlap
-        float depthK = 0.7f; //!< Constant used in depth test in template matching phase
+        float depthK = 0.5f; //!< Constant used in depth test in template matching phase
+        int maxHueDiff = 5; //!< Constant used in hue color matching, abs difference of 2 hue values should be lower than this for the test to pass
 
         struct {
             ushort minDepth = std::numeric_limits<unsigned short>::max(); //!< Minimum depth found across all templates withing their bounding box

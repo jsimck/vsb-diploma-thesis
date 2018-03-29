@@ -103,14 +103,30 @@ namespace tless {
                 t.features.normals.emplace_back(t.srcNormals.at<uchar>(stable));
                 t.features.hue.push_back(t.srcHue.at<uchar>(stable));
             }
-            // Calculate median of depths
-            t.features.depthMedian = median<ushort>(t.features.depths);
 
 #ifndef NDEBUG
 //            Visualizer viz(criteria);
 //            viz.tplFeaturePoints(t, 0, "Template feature points");
 #endif
         }
+    }
+
+    int Matcher::depthDiffMedian(const cv::Mat &sceneDepth, const cv::Point &windowTl, const std::vector<cv::Point> &stablePoints, const std::vector<ushort> &tplDepths) {
+        std::vector<int> diffs(stablePoints.size());
+
+        // Accumulate depth differences
+        for (uint i = 0; i < stablePoints.size(); i++) {
+            ushort d = sceneDepth.at<ushort>(windowTl + stablePoints[i]);
+
+            // Skip invalid depth pixels
+            if (d == 0) {
+                continue;
+            }
+
+            diffs[i] = tplDepths[i] - d;
+        }
+
+        return median<int>(diffs);
     }
 
     int Matcher::testObjectSize(ushort depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
@@ -186,9 +202,8 @@ namespace tless {
         return 0;
     }
 
-    // TODO check if it works correctly
-    int Matcher::testDepth(float diameter, ushort depthMedian, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
-        auto tl = window.tl() + stable;
+    int Matcher::testDepth(cv::Mat &sceneDepth, const cv::Point &windowTl, float diameter, int depthMedian, ushort depth, const cv::Point &stable) {
+        auto tl = windowTl + stable;
 
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
@@ -200,7 +215,7 @@ namespace tless {
                     continue;
                 }
 
-                if ((sceneDepth.at<ushort>(offsetP) - depthMedian) < (criteria->depthK * diameter * criteria->info.depthScaleFactor)) {
+                if (std::abs((depth - sceneDepth.at<ushort>(offsetP)) - depthMedian) < diameter) {
                     return 1;
                 }
             }
@@ -222,8 +237,7 @@ namespace tless {
                     offsetP.x < 0 || offsetP.y < 0)
                     continue;
 
-                // TODO - criteria min value
-                if (std::abs(hue - sceneHSV.at<uchar>(offsetP)) < 5) {
+                if (std::abs(hue - sceneHSV.at<uchar>(offsetP)) < criteria->maxHueDiff) {
                     return 1;
                 }
             }
@@ -248,17 +262,22 @@ namespace tless {
         // Min threshold of matched feature points
         const auto N = criteria->featurePointsCount;
         const auto minThreshold = static_cast<int>(criteria->featurePointsCount * criteria->matchFactor);
-        const long lSize = windows.size();
 
         #pragma omp parallel for shared(scene, windows, matches) firstprivate(N, minThreshold)
-        for (int l = 0; l < lSize; l++) {
-            const long canSize =  windows[l].candidates.size();
+        for (int l = 0; l < windows.size(); l++) {
+            const cv::Point windowTl = windows[l].tl();
+            int depthMedian;
+            float diameter;
 
-            for (int c = 0; c < canSize; ++c) {
+            for (int c = 0; c < windows[l].candidates.size(); ++c) {
                 Template *candidate = windows[l].candidates[c];
                 assert(candidate != nullptr);
 
 #ifndef NDEBUG
+//                // Accumulate depth differences
+//                depthMedian = depthDiffMedian(scene.srcDepth, windows[l].tl(), candidate->stablePoints, candidate->features.depths);
+//                diameter = candidate->diameter * criteria->info.depthScaleFactor * criteria->depthK;
+//
 //                // Vizualization
 //                std::vector<std::pair<cv::Point, int>> vsI, vsII, vsIII, vsIV, vsV;
 //
@@ -267,7 +286,7 @@ namespace tless {
 //                    vsI.emplace_back(candidate->stablePoints[i], testObjectSize(candidate->features.depths[i], windows[l], scene.srcDepth, candidate->stablePoints[i]));
 //                    vsII.emplace_back(candidate->stablePoints[i], testSurfaceNormal(candidate->features.normals[i], windows[l], scene.srcNormals, candidate->stablePoints[i]));
 //                    vsIII.emplace_back(candidate->edgePoints[i], testGradients(candidate->features.gradients[i], windows[l], scene.srcGradients, candidate->edgePoints[i]));
-//                    vsIV.emplace_back(candidate->stablePoints[i], testDepth(candidate->diameter, candidate->features.depthMedian, windows[l], scene.srcDepth, candidate->stablePoints[i]));
+//                    vsIV.emplace_back(candidate->stablePoints[i], testDepth(testDepth(scene.srcDepth, windowTl, diameter, depthMedian, candidate->features.depths[i], candidate->stablePoints[i]));
 //                    vsV.emplace_back(candidate->stablePoints[i], testColor(candidate->features.hue[i], windows[l], scene.srcHue, candidate->stablePoints[i]));
 //                }
 //
@@ -304,8 +323,13 @@ namespace tless {
                 if (sIII < minThreshold) continue;
 
                 // Test IV
+                // Calculate depth median accross differences
+                depthMedian = depthDiffMedian(scene.srcDepth, windows[l].tl(), candidate->stablePoints, candidate->features.depths);
+                diameter = candidate->diameter * criteria->info.depthScaleFactor * criteria->depthK;
+
+                // Perform depth test over stable points
                 for (uint i = 0; i < N; i++) {
-                    sIV += testDepth(candidate->diameter, candidate->features.depthMedian, windows[l], scene.srcDepth, candidate->stablePoints[i]);
+                    sIV += testDepth(scene.srcDepth, windowTl, diameter, depthMedian, candidate->features.depths[i], candidate->stablePoints[i]);
                 }
 
                 if (sIV < minThreshold) continue;

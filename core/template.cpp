@@ -40,7 +40,6 @@ namespace tless {
         node["diameter"] >> t.diameter;
         node["edgePoints"] >> t.edgePoints;
         node["stablePoints"] >> t.stablePoints;
-        node["depthMedian"] >> t.features.depthMedian;
         node["srcGradients"] >> t.features.gradients;
         node["srcNormals"] >> t.features.normals;
         node["depths"] >> t.features.depths;
@@ -63,7 +62,6 @@ namespace tless {
         if (t.edgePoints.size() > 0 && t.stablePoints.size() > 0) {
             fs << "edgePoints" << t.edgePoints;
             fs << "stablePoints" << t.stablePoints;
-            fs << "depthMedian" << t.features.depthMedian;
             fs << "srcGradients" << t.features.gradients;
             fs << "srcNormals" << t.features.normals;
             fs << "depths" << t.features.depths;

@@ -30,11 +30,37 @@ namespace tless {
         void selectScatteredFeaturePoints(const std::vector<std::pair<cv::Point, uchar>> &points,
                                           uint count, std::vector<cv::Point> &scattered);
 
+        /**
+         * @brief Accumulates list of depth difference between scene and template across all stable points and computes median of depth differences.
+         *
+         * @param[in] sceneDepth   Input scene 16-bit depth image
+         * @param[in] windowTl     Top left corner of currently processed window (used for offsets)
+         * @param[in] stablePoints List of precomputed points on stable places of the object
+         * @param[in] tplDepths    Precomputed template depths at stable points
+         * @return                 Median value of depth differences across all stable points
+         */
+        int depthDiffMedian(const cv::Mat &sceneDepth, const cv::Point &windowTl, const std::vector<cv::Point> &stablePoints,
+                            const std::vector<ushort> &tplDepths);
+
+
+        /**
+         * @brief Test IV in matching, it performs a depth test to se whether object depth differences are lower than median.
+         *
+         * @param sceneDepth  Input scene 16-bit depth image
+         * @param windowTl    Top left corner of currently processed window (used for offsets)
+         * @param diameter    Pre-calculated object diameter (candidate->diameter * criteria->info.depthScaleFactor * criteria->depthK)
+         * @param depthMedian Depth median computed from depth differences using depthDiffMedian() function
+         * @param depth       Currently processed template depth, sampled at given stable feature point
+         * @param stable      Currently processed stable feature point
+         * @return            1 whether there was a match within defined boundaries around stable point (-patchOffset <-> patchOffset)
+         */
+        inline int testDepth(cv::Mat &sceneDepth, const cv::Point &windowTl, float diameter, int depthMedian,
+                             ushort depth, const cv::Point &stable);
+
         // Tests
         inline int testObjectSize(ushort depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test I
         inline int testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormalsQuantized, cv::Point &stable); // Test II
         inline int testGradients(uchar gradient, Window &window, cv::Mat &sceneAnglesQuantized, cv::Point &edge); // Test III
-        inline int testDepth(float diameter, ushort depthMedian, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test IV
         inline int testColor(uchar hue, Window &window, cv::Mat &sceneHSV, cv::Point &stable); // Test V
 
     public:

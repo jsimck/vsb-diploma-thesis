@@ -34,7 +34,6 @@ namespace tless {
 
         // Matching Features
         struct {
-            ushort depthMedian = 0; //!< median value over all feature points
             std::vector<uchar> gradients; //!< quantized oriented gradients
             std::vector<uchar> normals; //!< quantized surface normals
             std::vector<ushort> depths; //!< depth value

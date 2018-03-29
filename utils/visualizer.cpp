@@ -341,11 +341,6 @@ namespace tless {
         textTl.y += 18;
         label(result, oss.str(), textTl);
 
-        oss.str("");
-        oss << "median: " << t.features.depthMedian;
-        textTl.y += 18;
-        label(result, oss.str(), textTl);
-
         cv::imshow(title == nullptr ? "Template features" : title, result);
         cv::waitKey(wait);
     }
@@ -365,7 +360,7 @@ namespace tless {
 
         // Load orientation gradients
         cv::Mat gradients;
-        quantizedGradients(rgb, gradients, criteria->minMagnitude);
+        quantizedGradients(gray, gradients, criteria->minMagnitude);
 
         // Load normals
         cv::Mat normals;
@@ -463,11 +458,6 @@ namespace tless {
 
         oss.str("");
         oss << "objArea: " << t.objArea;
-        textTl.y += 18;
-        label(result, oss.str(), textTl);
-
-        oss.str("");
-        oss << "median: " << t.features.depthMedian;
         textTl.y += 18;
         label(result, oss.str(), textTl);
 
@@ -620,6 +610,11 @@ namespace tless {
 
                 oss.str("");
                 oss << "Scale: " << scene.scale;
+                textTl.y += 18;
+                label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+
+                oss.str("");
+                oss << "Index: " << currentIndex << "/" << winSize;
                 textTl.y += 18;
                 label(result, oss.str(), textTl, 0.4, 2, 1, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
             }

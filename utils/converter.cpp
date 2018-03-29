@@ -33,6 +33,13 @@ namespace tless {
         int interpolation = (t.resizeRatio > 1.0f) ? CV_INTER_LANCZOS4 : CV_INTER_AREA;
         cv::resize(resizedRGB, resizedRGB, resizeSize, interpolation);
         cv::resize(resizedDepth, resizedDepth, resizeSize, interpolation);
+
+        // Update depth value and normalize difference
+        for (int y = 0; y < resizedDepth.rows; y++) {
+            for (int x = 0; x < resizedDepth.cols; x++) {
+
+            }
+        }
         resizedDepth = resizedDepth / t.resizeRatio;
 
         // Adjust local depth extremes based on ratio

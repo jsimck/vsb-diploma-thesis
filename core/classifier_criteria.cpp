@@ -20,6 +20,10 @@ namespace tless {
         os << "  |_ overlapFactor: " << crit.overlapFactor << std::endl;
         os << "  |_ depthK: " << crit.depthK << std::endl;
         os << "  |_ objectnessDiameterThreshold: " << crit.objectnessDiameterThreshold << std::endl;
+        os << "  |_ pyrScaleFactor: " << crit.pyrScaleFactor << std::endl;
+        os << "  |_ pyrLvlsUp: " << crit.pyrLvlsUp << std::endl;
+        os << "  |_ pyrLvlsDown: " << crit.pyrLvlsDown << std::endl;
+        os << "  |_ maxHueDiff: " << crit.maxHueDiff << std::endl;
         os << "Info: " << std::endl;
         os << "  |_ minDepth: " << crit.info.minDepth << std::endl;
         os << "  |_ maxDepth: " << crit.info.maxDepth << std::endl;

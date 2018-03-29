@@ -2,12 +2,13 @@
 #include <opencv2/opencv.hpp>
 #include "objdetect/classifier.h"
 #include "utils/timer.h"
+#include "utils/converter.h"
 
 int main() {
     // Convert templates from t-less to custom format
-//    tless::Converter converter;
-//    converter.convert("data/convert_primesense.txt", "data/models/", "data/108x108/primesense/", 108);
+    tless::Converter converter;
 //    converter.convert("data/convert_kinectv2.txt", "data/models/", "data/108x108/kinectv2/", 108);
+//    converter.convert("data/convert_primesense.txt", "data/models/", "data/108x108/primesense/", 108);
 
     // Custom criteria
     cv::Ptr<tless::ClassifierCriteria> criteria(new tless::ClassifierCriteria());
