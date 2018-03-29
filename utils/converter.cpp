@@ -71,6 +71,8 @@ namespace tless {
         t.camera.K.at<float>(0, 2) *= t.resizeRatio;
         t.camera.K.at<float>(1, 1) *= t.resizeRatio;
         t.camera.K.at<float>(1, 2) *= t.resizeRatio;
+        t.camera.K.at<float>(0, 2) += (t.objBB.x - offsetBB.x) * t.resizeRatio;
+        t.camera.K.at<float>(1, 2) += (t.objBB.y - offsetBB.y) * t.resizeRatio;
     }
 
     Template Converter::parseTemplate(uint index, const std::string &basePath, cv::FileNode &gtNode, cv::FileNode &infoNode) {

@@ -3,6 +3,9 @@
 
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#include <opencv2/core/mat.hpp>
+#include "../glcore/mesh.h"
+#include "../core/template.h"
 
 namespace tless {
     enum WindowCoords { Y_DOWN, Y_UP };
@@ -10,7 +13,7 @@ namespace tless {
     /**
      * @brief Calculates projection matrix out of camera intristic parameters.
      *
-     * @param[in] K      Camera K matrix
+     * @param[in] K      Camera K matrix 3x3 32-bit float
      * @param[in] x0     x-Camera image origin, usually 0
      * @param[in] y0     y-Camera image origin, usually 0
      * @param[in] w      Image width
@@ -20,7 +23,7 @@ namespace tless {
      * @param[in] coords Direction of Y Y_DOWN or Y_UP
      * @return
      */
-    glm::mat4 pMat(const glm::mat3 &K, int x0, int y0, int w, int h, float nc, float fc, WindowCoords coords = Y_DOWN);
+    glm::mat4 pMat(const cv::Mat &K, int x0, int y0, int w, int h, float nc, float fc, WindowCoords coords = Y_DOWN);
 
     /**
      * @brief Calculates view matrix out of R and t.
@@ -30,7 +33,7 @@ namespace tless {
      * @param[in] t Translation vector
      * @return
      */
-    glm::mat4 vMat(const glm::mat3 &R, const glm::vec3 &t);
+    glm::mat4 vMat(const cv::Mat &R, const cv::Mat &t);
 
     /**
      * @brief Calculates ModelView matrix.
@@ -59,6 +62,8 @@ namespace tless {
      * @return          Normal matrix
      */
     glm::mat4 nMat(const glm::mat4 &model, const glm::mat4 &view);
+
+    void drawDepth(const Template &tpl, cv::Mat &dst, float clipNear = 100, float clipFar = 2000);
 }
 
 #endif
