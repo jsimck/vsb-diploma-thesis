@@ -34,34 +34,64 @@ namespace tless {
          * @brief Accumulates list of depth difference between scene and template across all stable points and computes median of depth differences.
          *
          * @param[in] sceneDepth   Input scene 16-bit depth image
-         * @param[in] windowTl     Top left corner of currently processed window (used for offsets)
-         * @param[in] stablePoints List of precomputed points on stable places of the object
+         * @param[in] stablePoints List of precomputed feature stable points shifted to current window
          * @param[in] tplDepths    Precomputed template depths at stable points
          * @return                 Median value of depth differences across all stable points
          */
-        int depthDiffMedian(const cv::Mat &sceneDepth, const cv::Point &windowTl, const std::vector<cv::Point> &stablePoints,
-                            const std::vector<ushort> &tplDepths);
+        int depthDiffMedian(const cv::Mat &sceneDepth, const std::vector<cv::Point> &stablePoints, const std::vector<ushort> &tplDepths);
 
 
         /**
-         * @brief Test IV in matching, it performs a depth test to se whether object depth differences are lower than median.
+         * @brief Test I, performs check whether object depth values lies within defined boundary (e.g. corresponds to current scale pyramid).
          *
-         * @param sceneDepth  Input scene 16-bit depth image
-         * @param windowTl    Top left corner of currently processed window (used for offsets)
-         * @param diameter    Pre-calculated object diameter (candidate->diameter * criteria->info.depthScaleFactor * criteria->depthK)
-         * @param depthMedian Depth median computed from depth differences using depthDiffMedian() function
-         * @param depth       Currently processed template depth, sampled at given stable feature point
-         * @param stable      Currently processed stable feature point
-         * @return            1 whether there was a match within defined boundaries around stable point (-patchOffset <-> patchOffset)
+         * @param[in] sceneDepth Input scene 16-bit depth image
+         * @param[in] stable     Currently processed stable feature point shifted to current window
+         * @param[in] depth      Currently processed template depth, sampled at given stable feature point
+         * @return           1 whether object lies within defined boundaries, otherwise 0
          */
-        inline int testDepth(cv::Mat &sceneDepth, const cv::Point &windowTl, float diameter, int depthMedian,
-                             ushort depth, const cv::Point &stable);
+        inline int testObjectSize(const cv::Mat &sceneDepth, const cv::Point &stable, ushort depth);
 
-        // Tests
-        inline int testObjectSize(ushort depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable); // Test I
-        inline int testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormalsQuantized, cv::Point &stable); // Test II
-        inline int testGradients(uchar gradient, Window &window, cv::Mat &sceneAnglesQuantized, cv::Point &edge); // Test III
-        inline int testColor(uchar hue, Window &window, cv::Mat &sceneHSV, cv::Point &stable); // Test V
+        /**
+         * @brief Test II, performs check whether object quantized normals correspond to scene quantized normals.
+         *
+         * @param[in] sceneNormals Input 8-bit image of quantized scene normals
+         * @param[in] stable       Currently processed stable feature point shifted to current window
+         * @param[in] normal       Currently processed template normal (quantized), sampled at given stable feature point
+         * @return                 1 whether both normals match, otherwise 0
+         */
+        inline int testNormals(const cv::Mat &sceneNormals, const cv::Point &stable, uchar normal);
+
+        /**
+         * @brief Test III, performs check whether object quantized gradients correspond to scene quantized gradients.
+         *
+         * @param[in] sceneGradients Input 8-bit image of quantized gradients
+         * @param[in] edge           Currently processed edge feature point shifted to current window
+         * @param[in] gradient       Currently processed template gradient (quantized), sampled at given edge feature point
+         * @return                   1 whether both gradients match, otherwise 0
+         */
+        inline int testGradients(const cv::Mat &sceneGradients, const cv::Point &edge, uchar gradient);
+
+        /**
+         * @brief Test IV, performs a depth test to se whether object depth differences are lower than median.
+         *
+         * @param[in] sceneDepth  Input scene 16-bit depth image
+         * @param[in] diameter    Pre-calculated object diameter (candidate->diameter * criteria->info.depthScaleFactor * criteria->depthK)
+         * @param[in] depthMedian Depth median computed from depth differences using depthDiffMedian() function
+         * @param[in] depth       Currently processed template depth, sampled at given stable feature point
+         * @param[in] stable      Currently processed stable feature point shifted to current window
+         * @return                1 whether there was a match within small patch around stable point (-patchOffset <-> patchOffset), otherwise 0
+         */
+        inline int testDepth(const cv::Mat &sceneDepth, const cv::Point &stable, ushort depth, int depthMedian, float diameter);
+
+        /**
+         * @brief Test V, performs check whether object hue of HSV color space correspond to scene hue value (both are normalized).
+         *
+         * @param[in] sceneHSV Input 8-bit normalized scene hue values
+         * @param[in] stable   Currently processed stable feature point shifted to current window
+         * @param[in] hue      Currently processed hue, sampled at given stable feature point
+         * @return             1 whether absolute differece of hue values is < criteria->maxHueDiff, otherwise 0
+         */
+        inline int testColor(const cv::Mat &sceneHue, const cv::Point &stable, uchar hue);
 
     public:
         Matcher(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}

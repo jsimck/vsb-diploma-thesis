@@ -110,12 +110,12 @@ namespace tless {
         }
     }
 
-    int Matcher::depthDiffMedian(const cv::Mat &sceneDepth, const cv::Point &windowTl, const std::vector<cv::Point> &stablePoints, const std::vector<ushort> &tplDepths) {
+    int Matcher::depthDiffMedian(const cv::Mat &sceneDepth, const std::vector<cv::Point> &stablePoints, const std::vector<ushort> &tplDepths) {
         std::vector<int> diffs(stablePoints.size());
 
         // Accumulate depth differences
         for (uint i = 0; i < stablePoints.size(); i++) {
-            ushort d = sceneDepth.at<ushort>(windowTl + stablePoints[i]);
+            ushort d = sceneDepth.at<ushort>(stablePoints[i]);
 
             // Skip invalid depth pixels
             if (d == 0) {
@@ -128,13 +128,11 @@ namespace tless {
         return median<int>(diffs);
     }
 
-    int Matcher::testObjectSize(ushort depth, Window &window, cv::Mat &sceneDepth, cv::Point &stable) {
-        auto tl = window.tl() + stable;
-
+    int Matcher::testObjectSize(const cv::Mat &sceneDepth, const cv::Point &stable, ushort depth) {
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
-                cv::Point offsetP(tl.x + x, tl.y + y);
+                cv::Point offsetP(stable.x + x, stable.y + y);
 
                 // Template points in larger templates can go beyond scene boundaries (don't count)
                 if (offsetP.x >= sceneDepth.cols || offsetP.y >= sceneDepth.rows || offsetP.x < 0 || offsetP.y < 0) {
@@ -145,7 +143,9 @@ namespace tless {
                 float sDepth = sceneDepth.at<ushort>(offsetP);
 
                 // Validate depth
-                if (sDepth == 0) continue;
+                if (sDepth == 0) {
+                    continue;
+                }
 
                 // Check if template depth is in defined bounds  of scene depth
                 if (sDepth >= (depth * criteria->depthDeviation) && sDepth <= (depth / criteria->depthDeviation)) {
@@ -157,20 +157,18 @@ namespace tless {
         return 0;
     }
 
-    int Matcher::testSurfaceNormal(uchar normal, Window &window, cv::Mat &sceneSurfaceNormalsQuantized, cv::Point &stable) {
-        auto tl = window.tl() + stable;
-
+    int Matcher::testNormals(const cv::Mat &sceneNormals, const cv::Point &stable, uchar normal) {
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
-                cv::Point offsetP(tl.x + x, tl.y + y);
+                cv::Point offsetP(stable.x + x, stable.y + y);
 
                 // Template points in larger templates can go beyond scene boundaries (don't count)
-                if (offsetP.x >= sceneSurfaceNormalsQuantized.cols || offsetP.y >= sceneSurfaceNormalsQuantized.rows || offsetP.x < 0 || offsetP.y < 0) {
+                if (offsetP.x >= sceneNormals.cols || offsetP.y >= sceneNormals.rows || offsetP.x < 0 || offsetP.y < 0) {
                     continue;
                 }
 
-                if (sceneSurfaceNormalsQuantized.at<uchar>(offsetP) == normal) {
+                if (sceneNormals.at<uchar>(offsetP) == normal) {
                     return 1;
                 }
             }
@@ -179,20 +177,18 @@ namespace tless {
         return 0;
     }
 
-    int Matcher::testGradients(uchar gradient, Window &window, cv::Mat &sceneAnglesQuantized, cv::Point &edge) {
-        auto tl = window.tl() + edge;
-
+    int Matcher::testGradients(const cv::Mat &sceneGradients, const cv::Point &edge, uchar gradient) {
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
-                cv::Point offsetP(tl.x + x, tl.y + y);
+                cv::Point offsetP(edge.x + x, edge.y + y);
 
                 // Template points in larger templates can go beyond scene boundaries (don't count)
-                if (offsetP.x >= sceneAnglesQuantized.cols || offsetP.y >= sceneAnglesQuantized.rows || offsetP.x < 0 || offsetP.y < 0) {
+                if (offsetP.x >= sceneGradients.cols || offsetP.y >= sceneGradients.rows || offsetP.x < 0 || offsetP.y < 0) {
                     continue;
                 }
 
-                if (sceneAnglesQuantized.at<uchar>(offsetP) != 0 && sceneAnglesQuantized.at<uchar>(offsetP) == gradient) {
+                if (sceneGradients.at<uchar>(offsetP) != 0 && sceneGradients.at<uchar>(offsetP) == gradient) {
                     return 1;
                 }
             }
@@ -201,13 +197,12 @@ namespace tless {
         return 0;
     }
 
-    int Matcher::testDepth(cv::Mat &sceneDepth, const cv::Point &windowTl, float diameter, int depthMedian, ushort depth, const cv::Point &stable) {
-        auto tl = windowTl + stable;
-
+    int Matcher::testDepth(const cv::Mat &sceneDepth, const cv::Point &stable, ushort depth, int depthMedian,
+                           float diameter) {
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
-                cv::Point offsetP(tl.x + x, tl.y + y);
+                cv::Point offsetP(stable.x + x, stable.y + y);
 
                 // Template points in larger templates can go beyond scene boundaries (don't count)
                 if (offsetP.x >= sceneDepth.cols || offsetP.y >= sceneDepth.rows || offsetP.x < 0 || offsetP.y < 0) {
@@ -223,20 +218,18 @@ namespace tless {
         return 0;
     }
 
-    int Matcher::testColor(uchar hue, Window &window, cv::Mat &sceneHSV, cv::Point &stable) {
-        auto tl = window.tl() + stable;
-
+    int Matcher::testColor(const cv::Mat &sceneHue, const cv::Point &stable, uchar hue) {
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
                 // Apply needed offsets to feature point
-                cv::Point offsetP(tl.x + x, tl.y + y);
+                cv::Point offsetP(stable.x + x, stable.y + y);
 
                 // Template points in larger templates can go beyond scene boundaries (don't count)
-                if (offsetP.x >= sceneHSV.cols || offsetP.y >= sceneHSV.rows ||
-                    offsetP.x < 0 || offsetP.y < 0)
+                if (offsetP.x >= sceneHue.cols || offsetP.y >= sceneHue.rows || offsetP.x < 0 || offsetP.y < 0) {
                     continue;
+                }
 
-                if (std::abs(hue - sceneHSV.at<uchar>(offsetP)) < criteria->maxHueDiff) {
+                if (std::abs(hue - sceneHue.at<uchar>(offsetP)) < criteria->maxHueDiff) {
                     return 1;
                 }
             }
@@ -264,6 +257,7 @@ namespace tless {
 
         #pragma omp parallel for shared(scene, windows, matches) firstprivate(N, minThreshold)
         for (int l = 0; l < windows.size(); l++) {
+            std::vector<cv::Point> offsetStable(N), offsetEdge(N); // Array of feature points shifted to currently processed window
             const cv::Point windowTl = windows[l].tl();
             int depthMedian;
             float diameter;
@@ -272,9 +266,15 @@ namespace tless {
                 Template *candidate = windows[l].candidates[c];
                 assert(candidate != nullptr);
 
+                // Offset all feature points to coordinates of current window
+                for (int i = 0; i < N; ++i) {
+                    offsetStable[i] = candidate->stablePoints[i] + windowTl;
+                    offsetEdge[i] = candidate->edgePoints[i] + windowTl;
+                }
+
 #ifndef NDEBUG
 //                // Accumulate depth differences
-//                depthMedian = depthDiffMedian(scene.srcDepth, windows[l].tl(), candidate->stablePoints, candidate->features.depths);
+//                depthMedian = depthDiffMedian(scene.srcDepth, offsetStable, candidate->features.depths);
 //                diameter = candidate->diameter * criteria->info.depthScaleFactor * criteria->depthK;
 //
 //                // Vizualization
@@ -282,11 +282,11 @@ namespace tless {
 //
 //                // Save validation for all points
 //                for (uint i = 0; i < N; i++) {
-//                    vsI.emplace_back(candidate->stablePoints[i], testObjectSize(candidate->features.depths[i], windows[l], scene.srcDepth, candidate->stablePoints[i]));
-//                    vsII.emplace_back(candidate->stablePoints[i], testSurfaceNormal(candidate->features.normals[i], windows[l], scene.srcNormals, candidate->stablePoints[i]));
-//                    vsIII.emplace_back(candidate->edgePoints[i], testGradients(candidate->features.gradients[i], windows[l], scene.srcGradients, candidate->edgePoints[i]));
-//                    vsIV.emplace_back(candidate->stablePoints[i], testDepth(testDepth(scene.srcDepth, windowTl, diameter, depthMedian, candidate->features.depths[i], candidate->stablePoints[i]));
-//                    vsV.emplace_back(candidate->stablePoints[i], testColor(candidate->features.hue[i], windows[l], scene.srcHue, candidate->stablePoints[i]));
+//                    vsI.emplace_back(candidate->stablePoints[i], testObjectSize(scene.srcDepth, offsetStable[i], candidate->features.depths[i]));
+//                    vsII.emplace_back(candidate->stablePoints[i], testNormals(scene.srcNormals, offsetStable[i], candidate->features.normals[i]));
+//                    vsIII.emplace_back(candidate->edgePoints[i], testGradients(scene.srcGradients, offsetEdge[i], candidate->features.gradients[i]));
+//                    vsIV.emplace_back(candidate->stablePoints[i], testDepth(scene.srcDepth, offsetStable[i], candidate->features.depths[i], depthMedian, diameter));
+//                    vsV.emplace_back(candidate->stablePoints[i], testColor(scene.srcHue, offsetStable[i], candidate->features.hue[i]));
 //                }
 //
 //                // Push each score to scores vector
@@ -302,40 +302,40 @@ namespace tless {
 
                 // Test I
                 for (uint i = 0; i < N; i++) {
-                    sI += testObjectSize(candidate->features.depths[i], windows[l], scene.srcDepth, candidate->stablePoints[i]);
+                    sI += testObjectSize(scene.srcDepth, offsetStable[i], candidate->features.depths[i]);
                 }
 
                 if (sI < minThreshold) continue;
 
                 // Test II
                 for (uint i = 0; i < N; i++) {
-                    sII += testSurfaceNormal(candidate->features.normals[i], windows[l], scene.srcNormals, candidate->stablePoints[i]);
+                    sII += testNormals(scene.srcNormals, offsetStable[i], candidate->features.normals[i]);
                 }
 
                 if (sII < minThreshold) continue;
 
                 // Test III
                 for (uint i = 0; i < N; i++) {
-                    sIII += testGradients(candidate->features.gradients[i], windows[l], scene.srcGradients, candidate->edgePoints[i]);
+                    sIII += testGradients(scene.srcGradients, offsetEdge[i], candidate->features.gradients[i]);
                 }
 
                 if (sIII < minThreshold) continue;
 
                 // Test IV
                 // Calculate depth median accross differences
-                depthMedian = depthDiffMedian(scene.srcDepth, windows[l].tl(), candidate->stablePoints, candidate->features.depths);
+                depthMedian = depthDiffMedian(scene.srcDepth, offsetStable, candidate->features.depths);
                 diameter = candidate->diameter * criteria->info.depthScaleFactor * criteria->depthK;
 
                 // Perform depth test over stable points
                 for (uint i = 0; i < N; i++) {
-                    sIV += testDepth(scene.srcDepth, windowTl, diameter, depthMedian, candidate->features.depths[i], candidate->stablePoints[i]);
+                    sIV += testDepth(scene.srcDepth, offsetStable[i], candidate->features.depths[i], depthMedian, diameter);
                 }
 
                 if (sIV < minThreshold) continue;
 
                 // Test V
                 for (uint i = 0; i < N; i++) {
-                    sV += testColor(candidate->features.hue[i], windows[l], scene.srcHue, candidate->stablePoints[i]);
+                    sV += testColor(scene.srcHue, offsetStable[i], candidate->features.hue[i]);
                 }
 
                 if (sV < minThreshold) continue;
