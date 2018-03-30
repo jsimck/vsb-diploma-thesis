@@ -148,7 +148,7 @@ namespace tless {
         double ttSceneLoading, ttObjectness, ttVerification, ttMatching, ttNMS;
         std::cout << "Matching started..." << std::endl << std::endl;
 
-        for (int i = 0; i < 503; ++i) {
+        for (int i = 400; i < 503; ++i) {
             // Reset timers
             ttObjectness = ttVerification = ttMatching = 0;
             tTotal.reset();

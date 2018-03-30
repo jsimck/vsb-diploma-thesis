@@ -192,6 +192,10 @@ namespace tless {
         quantizedNormals(pyramid.srcDepth, pyramid.srcNormals, pyramid.camera.fx(), pyramid.camera.fy(),
                          static_cast<int>(criteria->info.maxDepth), static_cast<int>(criteria->maxDepthDiff / scale));
 
+        // Spread features
+        spread(pyramid.srcNormals, pyramid.spreadNormals, criteria->patchOffset * 2 + 1);
+        spread(pyramid.srcGradients, pyramid.spreadGradients, criteria->patchOffset * 2 + 1);
+
         return pyramid;
     }
 }

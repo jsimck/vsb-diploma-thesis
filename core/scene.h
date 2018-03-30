@@ -11,6 +11,7 @@ namespace tless {
         Camera camera; //!< Camera params for current matrix
         cv::Mat srcRGB, srcGray, srcHue, srcDepth; //!< Source scene in different
         cv::Mat srcGradients, srcNormals; //!< Matrix of quantized features
+        cv::Mat spreadGradients, spreadNormals; //!< Matrix of quantized features
 
         ScenePyramid(float scale = 1.0f) : scale(scale) {}
     };

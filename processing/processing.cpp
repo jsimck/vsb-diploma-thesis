@@ -280,4 +280,24 @@ namespace tless {
             return 16;
         }
     }
+
+    void spread(const cv::Mat &src, cv::Mat &dst, int T) {
+        dst = cv::Mat::zeros(src.size(), CV_8U);
+        const int offset = T / 2;
+
+        // Loop through image and spread quantized features
+        for (int y = offset; y < src.rows - offset; y++) {
+            for (int x = offset; x < src.cols - offset; x++) {
+                auto px = src.at<uchar>(y, x);
+
+                for (int yy = y - offset; yy < y + offset; yy++) {
+                    for (int xx = x - offset; xx < x + offset; xx++) {
+                        px |= src.at<uchar>(yy, xx);
+                    }
+                }
+
+                dst.at<uchar>(y, x) = px;
+            }
+        }
+    }
 }

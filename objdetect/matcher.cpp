@@ -301,14 +301,16 @@ namespace tless {
 
                 // Test II
                 for (uint i = 0; i < N; i++) {
-                    sII += testNormals(scene.srcNormals, offsetStable[i], candidate->features.normals[i]);
+//                    sII += testNormals(scene.srcNormals, offsetStable[i], candidate->features.normals[i]);
+                    sII += (scene.spreadNormals.at<uchar>(offsetStable[i]) & candidate->features.normals[i]) > 0;
                 }
 
                 if (sII < minThreshold) continue;
 
                 // Test III
                 for (uint i = 0; i < N; i++) {
-                    sIII += testGradients(scene.srcGradients, offsetEdge[i], candidate->features.gradients[i]);
+//                    sIII += testGradients(scene.srcGradients, offsetEdge[i], candidate->features.gradients[i]);
+                    sIII += (scene.spreadGradients.at<uchar>(offsetEdge[i]) & candidate->features.gradients[i]) > 0;
                 }
 
                 if (sIII < minThreshold) continue;

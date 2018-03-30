@@ -111,6 +111,15 @@ namespace tless {
      * @return        One of quantized orientations 1, 2, 4, 8, 16
      */
     uchar quantizeGradientOrientation(float deg);
+
+    /**
+     * @brief Spread quantized features in src image in TxT patch around every pixel
+     *
+     * @param src 8-bit input image of quantized features
+     * @param dst 8-bit spread feature version of input image
+     * @param T   Size of the patch TxT
+     */
+    void spread(const cv::Mat& src, cv::Mat& dst, int T);
 }
 
 #endif
