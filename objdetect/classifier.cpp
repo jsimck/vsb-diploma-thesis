@@ -196,6 +196,7 @@ namespace tless {
             std::cout << "  |_ Hashing verification took: " << ttVerification << "s" << std::endl;
             std::cout << "  |_ Template matching took: " << ttMatching << "s" << std::endl;
             std::cout << "  |_ NMS took: " << ttNMS << "s" << std::endl;
+            std::cout << "  |_ Matches: " << matches.size() << std::endl;
 
             // Vizualize results and clear current matches
             viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);

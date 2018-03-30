@@ -40,16 +40,15 @@ namespace tless {
          */
         int depthDiffMedian(const cv::Mat &sceneDepth, const std::vector<cv::Point> &stablePoints, const std::vector<ushort> &tplDepths);
 
-
         /**
-         * @brief Test I, performs check whether object depth values lies within defined boundary (e.g. corresponds to current scale pyramid).
+         * @brief Test I, perfmors check whether scene center depth lies within interval defined using avg template depth.
          *
-         * @param[in] sceneDepth Input scene 16-bit depth image
-         * @param[in] stable     Currently processed stable feature point shifted to current window
-         * @param[in] depth      Currently processed template depth, sampled at given stable feature point
-         * @return           1 whether object lies within defined boundaries, otherwise 0
+         * @param sceneDepth Input 16-bit scene depth image
+         * @param winCenter  Center point of currently processed window
+         * @param avgDepth   Average depth across object in current tempate
+         * @return           True whether depth is within defined interval, otherwise 0
          */
-        inline int testObjectSize(const cv::Mat &sceneDepth, const cv::Point &stable, ushort depth);
+        inline bool testObjectSize(const cv::Mat &sceneDepth, const cv::Point winCenter, ushort avgDepth);
 
         /**
          * @brief Test II, performs check whether object quantized normals correspond to scene quantized normals.

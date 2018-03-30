@@ -461,16 +461,19 @@ namespace tless {
         textTl.y += 18;
         label(result, oss.str(), textTl);
 
+        oss.str("");
+        oss << "avgDepth: " << t.features.avgDepth;
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+
         // Show results
         cv::imshow(title == nullptr ? "Template features" : title, result);
         cv::waitKey(wait);
     }
 
     bool Visualizer::matching(const ScenePyramid &scene, Template &candidate, std::vector<Window> &windows,
-                              int &currentIndex,
-                              int &candidateIndex, const std::vector<std::vector<std::pair<cv::Point, int>>> &scores,
-                              int patchOffset,
-                              int pointsCount, int minThreshold, int wait, const char *title) {
+                              int &currentIndex, int &candidateIndex, const std::vector<std::vector<std::pair<cv::Point, int>>> &scores,
+                              int patchOffset, int minThreshold, int wait, const char *title) {
         std::ostringstream oss;
         Window &window = windows[currentIndex];
         cv::Scalar cGreen(0, 255, 0), cRed(0, 0, 255), cBlue(255, 0, 0), cWhite(255, 255, 255), cGray(90, 90, 90);
@@ -582,8 +585,16 @@ namespace tless {
                     cv::Scalar sRed = (l == i) ? cRed : cv::Scalar(0, 0, 170);
 
                     oss.str("");
-                    oss << "s" << (l + 1) << ": " << score << "/" << pointsCount;
-                    label(result, oss.str(), textTl, 0.4, 1, 1, cv::Scalar(0, 0, 0), (score < minThreshold) ? sRed : sGreen);
+                    oss << "s" << (l + 1) << ": " << score << "/" << scores[l].size();
+
+                    if (l == 0) {
+                        auto sDepth = scene.srcDepth.at<ushort>(windows[currentIndex].tl() + scores[0][0].first);
+                        oss << " (" << sDepth << ")";
+                        label(result, oss.str(), textTl, 0.4, 1, 1, cv::Scalar(0, 0, 0), (score == 1) ? sGreen : sRed);
+                    } else {
+                        label(result, oss.str(), textTl, 0.4, 1, 1, cv::Scalar(0, 0, 0), (score < minThreshold) ? sRed : sGreen);
+                    }
+
                     textTl.y += 18;
                 }
             }
@@ -687,7 +698,7 @@ namespace tless {
             if (!matches.empty()) {
                 // Define final mosaic image size
                 cv::Size cellSize = matches[0].objBB.size();
-                auto cols = static_cast<int>(std::ceil(matchSize / perRow));
+                auto cols = static_cast<int>(std::ceil(matchSize / static_cast<float>(perRow)));
                 cv::Mat tplMosaic = cv::Mat::zeros(matches[0].objBB.height * perRow + (perRow * 2) * offset,
                                                    matches[0].objBB.width * cols + textWidth * cols + (cols * 2 + 1) * offset, CV_8UC3);
 
@@ -739,11 +750,6 @@ namespace tless {
                     label(tplMosaic, oss.str(), mosaicTextTl);
 
                     oss.str("");
-                    oss << "Area score: " << match.areaScore;
-                    mosaicTextTl.y += 18;
-                    label(tplMosaic, oss.str(), mosaicTextTl);
-
-                    oss.str("");
                     oss << "Score: " << match.score;
                     mosaicTextTl.y += 18;
                     label(tplMosaic, oss.str(), mosaicTextTl);
@@ -758,11 +764,6 @@ namespace tless {
                         cv::Point textTl(scaledBB.br().x + 5, scaledBB.tl().y - 8);
                         oss.str("");
                         oss << "Template: " << match.t->fileName << " (" << match.t->objId << ")";
-                        textTl.y += 18;
-                        label(result, oss.str(), textTl);
-
-                        oss.str("");
-                        oss << "Area score: " << std::fixed << std::setprecision(2) << match.areaScore;
                         textTl.y += 18;
                         label(result, oss.str(), textTl);
 
@@ -847,11 +848,6 @@ namespace tless {
                 cv::Point textTl(currentBB.br().x + 5, currentBB.tl().y - 8);
                 oss.str("");
                 oss << "Template: " << currentMatch.t->fileName << " (" << currentMatch.t->objId << ")";
-                textTl.y += 18;
-                label(result, oss.str(), textTl);
-
-                oss.str("");
-                oss << "Area score: " << currentMatch.areaScore;
                 textTl.y += 18;
                 label(result, oss.str(), textTl);
 

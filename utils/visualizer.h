@@ -123,7 +123,6 @@ namespace tless {
          * @param[in] candidateIndex Index of a currently processed candidate
          * @param[in] scores         Array of matched scores and feature points
          * @param[in] patchOffset    Patch offset, e.g. area around feature point to look for match
-         * @param[in] pointsCount    Final count of all feature points
          * @param[in] minThreshold   Minimum number of points that should match, to continue with other tests
          * @param[in] wait           Optional wait time in waitKey() function
          * @param[in] title          Optional image window title
@@ -132,8 +131,7 @@ namespace tless {
          */
         bool matching(const ScenePyramid &scene, Template &candidate, std::vector<Window> &windows, int &currentIndex,
                       int &candidateIndex, const std::vector<std::vector<std::pair<cv::Point, int>>> &scores,
-                      int patchOffset,
-                      int pointsCount, int minThreshold, int wait = 0, const char *title = nullptr);
+                      int patchOffset, int minThreshold, int wait = 0, const char *title = nullptr);
 
         /**
          * @brief Vizualizes final matches after they all passed through the cascade.

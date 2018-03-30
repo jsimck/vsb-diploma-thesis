@@ -41,7 +41,7 @@ namespace tless {
         assert(src.type() == CV_16UC1);
 
         int PS = 5; // patch size
-        dst.create(src.size(), CV_8UC1);
+        dst = cv::Mat::zeros(src.size(), CV_8UC1);
         auto offsetX = static_cast<int>(NORMAL_LUT_SIZE * 0.5f);
         auto offsetY = static_cast<int>(NORMAL_LUT_SIZE * 0.5f);
 

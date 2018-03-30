@@ -17,7 +17,7 @@ namespace tless {
     }
 
     bool Match::operator<(const Match &rhs) const {
-        return areaScore < rhs.areaScore;
+        return score < rhs.score;
     }
 
     bool Match::operator>(const Match &rhs) const {
@@ -37,13 +37,7 @@ namespace tless {
            << " objBB: " << match.objBB
            << " scale: " << match.scale
            << " t: " << match.t
-           << " score: " << match.score
-           << " areaScore: " << match.areaScore
-           << " sI: " << match.sI
-           << " sII: " << match.sII
-           << " sIII: " << match.sIII
-           << " sIV: " << match.sIV
-           << " sV: " << match.sV;
+           << " score: " << match.score;
 
         return os;
     }

@@ -38,6 +38,7 @@ namespace tless {
             std::vector<uchar> normals; //!< quantized surface normals
             std::vector<ushort> depths; //!< depth value
             std::vector<uchar> hue; //!< hue value from HSV color space
+            ushort avgDepth; //!< average depth across all feature points
         } features;
 
         // Other params

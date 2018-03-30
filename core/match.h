@@ -15,13 +15,11 @@ namespace tless {
         Template *t;
         cv::Rect objBB, normObjBB; //!< Bounding box normalized into 1.0f scale
         float scale = 1.0f;
-        float score = 0;
-        float areaScore = 0; //!< score * object.area()
-        int sI = 0, sII = 0, sIII = 0, sIV = 0, sV = 0;
+        float score = 0; //!< score * object.area()
 
         Match() = default;
-        Match(Template *t, cv::Rect bb, float scale, float score, float areaScore, int sI, int sII, int sIII, int sIV, int sV)
-                : t(t), objBB(bb), normObjBB(scaledBB(bb, scale)), scale(scale), score(score), areaScore(areaScore), sI(sI), sII(sII), sIII(sIII), sIV(sIV), sV(sV) {}
+        Match(Template *t, cv::Rect bb, float scale, float score)
+                : t(t), objBB(bb), normObjBB(scaledBB(bb, scale)), scale(scale), score(score) {}
 
         /**
          * @brief Scales the object bounding box at matched scale to the required new scale provided in the param.

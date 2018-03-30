@@ -6,7 +6,7 @@
 
 int main() {
     // Convert templates from t-less to custom format
-    tless::Converter converter;
+//    tless::Converter converter;
 //    converter.convert("data/convert_kinectv2.txt", "data/models/", "data/108x108/kinectv2/", 108);
 //    converter.convert("data/convert_primesense.txt", "data/models/", "data/108x108/primesense/", 108);
 
