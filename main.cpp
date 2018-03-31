@@ -24,7 +24,7 @@ int main() {
     // Init classifier
     tless::Classifier classifier(criteria);
 
-//     Run classifier
+    // Run classifier
     // Primesense
 //    classifier.train("data/templates_primesense.txt", "data/trained/primesense/");
 //    classifier.detect("data/trained_primesense.txt", "data/trained/primesense/", "data/scenes/primesense/02/");

@@ -93,7 +93,7 @@ namespace tless {
      * @param[out] dst   8-bit image with detected edges
      * @param[in]  kSize Size of a kernel used in Gaussian blur in pre-processing
      */
-    void filterEdges(const cv::Mat &src, cv::Mat &dst, int kSize = 5);
+    void filterEdges(const cv::Mat &src, cv::Mat &dst, int kSize = 3);
 
     /**
      * @brief Computes and quantizes gradient orientations over RGB scene

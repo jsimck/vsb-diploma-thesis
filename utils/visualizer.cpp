@@ -8,7 +8,7 @@
 
 namespace tless {
     Visualizer::Visualizer(cv::Ptr<ClassifierCriteria> criteria, const std::string &templatesPath)
-            : criteria(criteria), templatesPath(templatesPath){
+            : criteria(criteria), templatesPath(templatesPath) {
         // Initialize settings
         settings[SETTINGS_GRID] = true;
         settings[SETTINGS_TITLE] = true;

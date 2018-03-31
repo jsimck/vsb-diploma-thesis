@@ -51,7 +51,9 @@ namespace tless {
         assert(minStableVal > 0);
         assert(minEdgeMag > 0);
 
+#ifndef VIZ_TPL_FEATURES
         #pragma omp parallel for shared(templates) firstprivate(criteria, minStableVal, minEdgeMag)
+#endif
         for (size_t i = 0; i < templates.size(); i++) {
             Template &t = templates[i];
             std::vector<std::pair<cv::Point, uchar>> edgeVPoints;
@@ -108,9 +110,9 @@ namespace tless {
             // Calculate avg depth
             t.features.avgDepth = static_cast<ushort>(depthSum / criteria->featurePointsCount);
 
-#ifndef NDEBUG
-//            Visualizer viz(criteria);
-//            viz.tplFeaturePoints(t, 0, "Template feature points");
+#ifdef VIZ_TPL_FEATURES
+            Visualizer viz(criteria);
+            viz.tplFeaturePoints(t, 1, "Template feature points");
 #endif
         }
     }
