@@ -51,26 +51,6 @@ namespace tless {
         inline bool testObjectSize(const cv::Mat &sceneDepth, const cv::Point winCenter, ushort avgDepth);
 
         /**
-         * @brief Test II, performs check whether object quantized normals correspond to scene quantized normals.
-         *
-         * @param[in] sceneNormals Input 8-bit image of quantized scene normals
-         * @param[in] stable       Currently processed stable feature point shifted to current window
-         * @param[in] normal       Currently processed template normal (quantized), sampled at given stable feature point
-         * @return                 1 whether both normals match, otherwise 0
-         */
-        inline int testNormals(const cv::Mat &sceneNormals, const cv::Point &stable, uchar normal);
-
-        /**
-         * @brief Test III, performs check whether object quantized gradients correspond to scene quantized gradients.
-         *
-         * @param[in] sceneGradients Input 8-bit image of quantized gradients
-         * @param[in] edge           Currently processed edge feature point shifted to current window
-         * @param[in] gradient       Currently processed template gradient (quantized), sampled at given edge feature point
-         * @return                   1 whether both gradients match, otherwise 0
-         */
-        inline int testGradients(const cv::Mat &sceneGradients, const cv::Point &edge, uchar gradient);
-
-        /**
          * @brief Test IV, performs a depth test to se whether object depth differences are lower than median.
          *
          * @param[in] sceneDepth  Input scene 16-bit depth image

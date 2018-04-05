@@ -151,46 +151,6 @@ namespace tless {
         return false;
     }
 
-    int Matcher::testNormals(const cv::Mat &sceneNormals, const cv::Point &stable, uchar normal) {
-        for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
-            for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
-                // Apply needed offsets to feature point
-                cv::Point offsetP(stable.x + x, stable.y + y);
-
-                // Template points in larger templates can go beyond scene boundaries (don't count)
-                if (offsetP.x >= sceneNormals.cols || offsetP.y >= sceneNormals.rows || offsetP.x < 0 || offsetP.y < 0) {
-                    continue;
-                }
-
-                if (sceneNormals.at<uchar>(offsetP) == normal) {
-                    return 1;
-                }
-            }
-        }
-
-        return 0;
-    }
-
-    int Matcher::testGradients(const cv::Mat &sceneGradients, const cv::Point &edge, uchar gradient) {
-        for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
-            for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
-                // Apply needed offsets to feature point
-                cv::Point offsetP(edge.x + x, edge.y + y);
-
-                // Template points in larger templates can go beyond scene boundaries (don't count)
-                if (offsetP.x >= sceneGradients.cols || offsetP.y >= sceneGradients.rows || offsetP.x < 0 || offsetP.y < 0) {
-                    continue;
-                }
-
-                if (sceneGradients.at<uchar>(offsetP) != 0 && sceneGradients.at<uchar>(offsetP) == gradient) {
-                    return 1;
-                }
-            }
-        }
-
-        return 0;
-    }
-
     int Matcher::testDepth(const cv::Mat &sceneDepth, const cv::Point &stable, ushort depth, int depthMedian, float diameter) {
         for (int y = -criteria->patchOffset; y <= criteria->patchOffset; ++y) {
             for (int x = -criteria->patchOffset; x <= criteria->patchOffset; ++x) {
@@ -303,7 +263,6 @@ namespace tless {
 
                 // Test II
                 for (uint i = 0; i < N; i++) {
-//                    sII += testNormals(scene.srcNormals, offsetStable[i], candidate->features.normals[i]);
                     sII += (scene.spreadNormals.at<uchar>(offsetStable[i]) & candidate->features.normals[i]) > 0;
                 }
 
@@ -311,7 +270,6 @@ namespace tless {
 
                 // Test III
                 for (uint i = 0; i < N; i++) {
-//                    sIII += testGradients(scene.srcGradients, offsetEdge[i], candidate->features.gradients[i]);
                     sIII += (scene.spreadGradients.at<uchar>(offsetEdge[i]) & candidate->features.gradients[i]) > 0;
                 }
 

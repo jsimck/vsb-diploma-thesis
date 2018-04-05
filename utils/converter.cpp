@@ -33,13 +33,6 @@ namespace tless {
         int interpolation = (t.resizeRatio > 1.0f) ? CV_INTER_LANCZOS4 : CV_INTER_AREA;
         cv::resize(resizedRGB, resizedRGB, resizeSize, interpolation);
         cv::resize(resizedDepth, resizedDepth, resizeSize, interpolation);
-
-        // Update depth value and normalize difference
-        for (int y = 0; y < resizedDepth.rows; y++) {
-            for (int x = 0; x < resizedDepth.cols; x++) {
-
-            }
-        }
         resizedDepth = resizedDepth / t.resizeRatio;
 
         // Adjust local depth extremes based on ratio
@@ -78,6 +71,8 @@ namespace tless {
         t.camera.K.at<float>(0, 2) *= t.resizeRatio;
         t.camera.K.at<float>(1, 1) *= t.resizeRatio;
         t.camera.K.at<float>(1, 2) *= t.resizeRatio;
+        t.camera.K.at<float>(0, 2) += (t.objBB.x - offsetBB.x) * t.resizeRatio;
+        t.camera.K.at<float>(1, 2) += (t.objBB.y - offsetBB.y) * t.resizeRatio;
     }
 
     Template Converter::parseTemplate(uint index, const std::string &basePath, cv::FileNode &gtNode, cv::FileNode &infoNode) {
