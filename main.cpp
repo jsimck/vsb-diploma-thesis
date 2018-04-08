@@ -97,7 +97,7 @@ int main() {
             cv::imshow("pose 1", pose);
 
             // Compute velocity
-            p.v1 = computeVelocity(W, p.v1, p.rx, p.pBest.rx, gBest.rx, C1, C2, dRand(gen), dRand(gen));
+            p.v1 = computeVelocity(W, p.v1, p.tx, p.pBest.tx, gBest.tx, C1, C2, dRand(gen), dRand(gen));
             p.v2 = computeVelocity(W, p.v2, p.ty, p.pBest.ty, gBest.ty, C1, C2, dRand(gen), dRand(gen));
             p.v3 = computeVelocity(W, p.v3, p.tz, p.pBest.tz, gBest.tz, C1, C2, dRand(gen), dRand(gen));
             p.v4 = computeVelocity(W, p.v4, p.rx, p.pBest.rx, gBest.rx, C1, C2, dRand(gen), dRand(gen));
