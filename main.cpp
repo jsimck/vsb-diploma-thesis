@@ -6,7 +6,20 @@
 #include "utils/converter.h"
 #include "core/particle.h"
 
+#define SQR(x) ((x) * (x))
 using namespace tless;
+
+float fitness(const cv::Mat &gt, cv::Mat &pose) {
+    float sum = 0;
+
+    for (int y = 0; y < gt.rows; y++) {
+        for (int x = 0; x < gt.cols; x++) {
+            sum += SQR(gt.at<float>(y, x) - pose.at<float>(y, x));
+        }
+    }
+
+    return sum;
+}
 
 int main() {
     // Convert templates from t-less to custom format
@@ -21,6 +34,10 @@ int main() {
     Parser parser(criteria);
     parser.parseObject("data/398x398/kinectv2/07/", templates, {28});
 
+    // Init GT depth
+    cv::Mat gt;
+    drawDepth(templates[0], gt);
+
     // Random
     static std::random_device rd;
     static std::mt19937 gen(rd());
@@ -34,14 +51,18 @@ int main() {
     }
 
     // Test draw each pose
-    cv::Mat depth;
+    cv::Mat pose;
     for (auto &particle : particles) {
         // Draw depth
-        drawDepth(templates[0], depth, particle.model());
+        drawDepth(templates[0], pose, particle.model());
 
-        cv::imshow("depth", depth);
-        cv::waitKey(0);
+        // Print fitness
+        std::cout << fitness(gt, pose) << std::endl;
     }
+
+    // Ground truth
+    cv::imshow("GT", gt);
+    cv::waitKey(0);
 
     return 0;
 }
