@@ -63,7 +63,7 @@ namespace tless {
      */
     glm::mat4 nMat(const glm::mat4 &model, const glm::mat4 &view);
 
-    void drawDepth(const Template &tpl, cv::Mat &dst, float clipNear = 100, float clipFar = 2000);
+    void drawDepth(const Template &tpl, cv::Mat &dst, const glm::mat4 &model = glm::mat4(), float clipNear = 100, float clipFar = 2000);
 }
 
 #endif

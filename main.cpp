@@ -4,6 +4,7 @@
 #include "glcore/mesh.h"
 #include "utils/glutils.h"
 #include "utils/converter.h"
+#include "core/particle.h"
 
 using namespace tless;
 
@@ -20,12 +21,27 @@ int main() {
     Parser parser(criteria);
     parser.parseObject("data/398x398/kinectv2/07/", templates, {28});
 
-    // Draw depth
-    cv::Mat depth;
-    drawDepth(templates[0], depth);
+    // Random
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_real_distribution<float> dR(-0.5f, 0.5f);
+    static std::uniform_real_distribution<float> dT(-50, 50);
 
-    cv::imshow("depth", depth);
-    cv::waitKey(0);
+    // Init particles
+    std::vector<Particle> particles;
+    for (int i = 0; i < 10; ++i) {
+        particles.emplace_back(dT(gen), dT(gen), dT(gen), dR(gen), dR(gen), dR(gen));
+    }
+
+    // Test draw each pose
+    cv::Mat depth;
+    for (auto &particle : particles) {
+        // Draw depth
+        drawDepth(templates[0], depth, particle.model());
+
+        cv::imshow("depth", depth);
+        cv::waitKey(0);
+    }
 
     return 0;
 }
