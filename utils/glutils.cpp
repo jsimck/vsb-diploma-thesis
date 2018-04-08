@@ -74,16 +74,6 @@ namespace tless {
     }
 
     void drawDepth(const Template &tpl, cv::Mat &dst, const glm::mat4 &model, float clipNear, float clipFar) {
-        // GLFW init and config
-        glfwInit();
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-#ifdef __APPLE__
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
-#endif
-
         // GLFW window creation
         cv::Size winSize = tpl.objBB.size();
         GLFWwindow *window = glfwCreateWindow(winSize.width, winSize.height, "DrawDepth", NULL, NULL);
@@ -185,7 +175,6 @@ namespace tless {
 
         // Cleanup
         glfwDestroyWindow(window);
-        glfwTerminate();
 
         // Convert to 1-channel
         cv::cvtColor(dst, dst, CV_BGR2GRAY);

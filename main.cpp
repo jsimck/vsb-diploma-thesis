@@ -6,6 +6,8 @@
 #include "utils/converter.h"
 #include "core/particle.h"
 #include "processing/processing.h"
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 #define SQR(x) ((x) * (x))
 using namespace tless;
@@ -15,8 +17,8 @@ static std::random_device rd;
 static std::mt19937 gen(rd());
 static std::uniform_real_distribution<float> dR(-0.2f, 0.2f);
 static std::uniform_real_distribution<float> dT(-15, 15);
-static std::uniform_real_distribution<float> dVT(0, 3);
-static std::uniform_real_distribution<float> dVR(0, 0.1f);
+static std::uniform_real_distribution<float> dVT(0, 5);
+static std::uniform_real_distribution<float> dVR(0, 0.3f);
 static std::uniform_real_distribution<float> dRand(0, 1.0f);
 
 float fitness(const cv::Mat &gt, cv::Mat &pose) {
@@ -40,6 +42,16 @@ float computeVelocity(float w, float vi, float xi, float pBest, float gBest, flo
 }
 
 int main() {
+    // GLFW init and config
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
+#endif
+
     // Convert templates from t-less to custom format
 //    tless::Converter converter;
 //    converter.convert("data/convert_kinectv2.txt", "data/models/", "data/108x108/kinectv2/", 398);
@@ -149,6 +161,7 @@ int main() {
     cv::imshow("imGBest", imGBest);
     cv::imshow("GT", gt);
     cv::waitKey(0);
+    glfwTerminate();
 
     return 0;
 }
