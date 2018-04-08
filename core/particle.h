@@ -14,8 +14,19 @@ public:
         float data[6];
     };
 
+    // Personal best
+    union {
+        struct {
+            float tx, ty, tz;
+            float rx, ry, rz;
+        };
+        float data[6];
+    } pBest;
+
+    float fitness = 0;
+
     Particle() = default;
-    Particle(float tx, float ty, float tz, float rx, float ry, float rz) : tx(tx), ty(ty), tz(tz), rx(rx), ry(ry), rz(rz) {}
+    Particle(float tx, float ty, float tz, float rx, float ry, float rz);
 
     glm::mat4 model();
 

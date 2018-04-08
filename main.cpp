@@ -45,19 +45,34 @@ int main() {
     static std::uniform_real_distribution<float> dT(-50, 50);
 
     // Init particles
+    cv::Mat pose;
     std::vector<Particle> particles;
+    Particle gBest;
+    gBest.fitness = std::numeric_limits<float>::max();
+
     for (int i = 0; i < 10; ++i) {
         particles.emplace_back(dT(gen), dT(gen), dT(gen), dR(gen), dR(gen), dR(gen));
+        drawDepth(templates[0], pose, particles[i].model());
+        particles[i].fitness = fitness(gt, pose);
+
+        if (particles[i].fitness < gBest.fitness) {
+            gBest = particles[i];
+        }
     }
 
-    // Test draw each pose
-    cv::Mat pose;
-    for (auto &particle : particles) {
-        // Draw depth
-        drawDepth(templates[0], pose, particle.model());
 
-        // Print fitness
-        std::cout << fitness(gt, pose) << std::endl;
+
+    // PSO
+    const float C1 = 0.1f, C2 = 0.1f, V_MAX = 1.0f;
+
+
+
+
+
+    // Test draw each pose
+    std::cout << "gBest: " << gBest << std::endl;
+    for (auto &particle : particles) {
+        std::cout << particle << std::endl;
     }
 
     // Ground truth
