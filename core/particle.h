@@ -8,27 +8,30 @@ struct Particle {
 public:
     union {
         struct {
+            float v1, v2, v3, v4, v5, v6;
             float tx, ty, tz;
             float rx, ry, rz;
+            float fitness;
         };
-        float data[6];
     };
 
     // Personal best
     union {
         struct {
+            float v1, v2, v3, v4, v5, v6;
             float tx, ty, tz;
             float rx, ry, rz;
+            float fitness;
         };
-        float data[6];
     } pBest;
 
-    float fitness = 0;
-
     Particle() = default;
-    Particle(float tx, float ty, float tz, float rx, float ry, float rz);
+    Particle(float tx, float ty, float tz, float rx, float ry, float rz,
+             float v1, float v2, float v3, float v4, float v5, float v6);
 
     glm::mat4 model();
+    void update();
+    void updatePBest();
 
     friend std::ostream &operator<<(std::ostream &os, const Particle &particle);
 };
