@@ -18,7 +18,7 @@ int main() {
     // Load templates
     std::vector<Template> templates;
     Parser parser(criteria);
-    parser.parseObject("data/108x108/kinectv2/07/", templates, {400});
+    parser.parseObject("data/398x398/kinectv2/07/", templates, {28});
 
     // Draw depth
     cv::Mat depth;

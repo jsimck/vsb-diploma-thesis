@@ -129,12 +129,21 @@ namespace tless {
                 -0.19815880f, 0.52592294f, -0.82712632f,
                 0.29649935f, -0.77216270f, -0.56200858f
         );
+        glm::mat4 Model;
+        Model = glm::mat4(
+
+        0.9995354844300639f, -0.01688384781014621f, 0.02537224957076902f, -0.02319064114524444f,
+        0.02040765897149304f, 0.9891098183854488f, -0.1457576571875679f, 0.1084800211632654f,
+        -0.02263499106385527f, 0.1462077387029465f, 0.9889949212826671f, 0.02965420771128631f,
+        0,0,0,1
+                );
+        Model = glm::transpose(Model);
 
         // PVM initialization
         glm::mat4 VMatrix = vMat(tpl.camera.R, tpl.camera.t);
         glm::mat4 PMatrix = pMat(tpl.camera.K, 0, 0, winSize.width, winSize.height, clipNear, clipFar, WindowCoords::Y_UP);
-        glm::mat4 MVMatrix = mvMat(glm::mat4(), VMatrix);
-        glm::mat4 MVPMatrix = mvpMat(glm::mat4(), VMatrix, PMatrix);
+        glm::mat4 MVMatrix = mvMat(Model, VMatrix);
+        glm::mat4 MVPMatrix = mvpMat(Model, VMatrix, PMatrix);
 
         // OpenGL settings
         glEnable(GL_CULL_FACE);
