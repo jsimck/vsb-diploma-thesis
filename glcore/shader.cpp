@@ -91,7 +91,7 @@ namespace tless {
         load(vertexPath, fragmentPath);
     }
 
-    void Shader::use() {
+    void Shader::use() const {
         glUseProgram(id);
     }
 

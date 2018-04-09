@@ -6,6 +6,8 @@
 #include <opencv2/core/mat.hpp>
 #include "../glcore/mesh.h"
 #include "../core/template.h"
+#include "../glcore/frame_buffer.h"
+#include "../glcore/shader.h"
 
 namespace tless {
     enum WindowCoords { Y_DOWN, Y_UP };
@@ -23,7 +25,7 @@ namespace tless {
      * @param[in] coords Direction of Y Y_DOWN or Y_UP
      * @return
      */
-    glm::mat4 pMat(const cv::Mat &K, int x0, int y0, int w, int h, float nc, float fc, WindowCoords coords = Y_DOWN);
+    glm::mat4 pMat(const cv::Mat &K, int x0, int y0, int w, int h, float nc = 100, float fc = 2000, WindowCoords coords = Y_UP);
 
     /**
      * @brief Calculates view matrix out of R and t.
@@ -63,7 +65,7 @@ namespace tless {
      */
     glm::mat4 nMat(const glm::mat4 &model, const glm::mat4 &view);
 
-    void drawDepth(const Template &tpl, cv::Mat &dst, const glm::mat4 &model = glm::mat4(), float clipNear = 100, float clipFar = 2000);
+    void drawDepth(const Template &tpl, const FrameBuffer &fbo, const Shader &shader, const Mesh &mesh, cv::Mat &dst, const glm::mat4 &modelView, const glm::mat4 &modelViewProjection, float clipNear = 100, float clipFar = 2000);
 }
 
 #endif

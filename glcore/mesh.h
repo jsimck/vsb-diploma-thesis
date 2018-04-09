@@ -34,13 +34,6 @@ namespace tless {
         GLuint VBO, EBO;
 
         /**
-         * @brief Parses mesh from .ply file using tinyply library.
-         *
-         * @param[in] plyFile Path to the .ply file to parse mesh from
-         */
-        void load(const std::string &plyFile);
-
-        /**
          * @brief Initializes all the VAOs, VBOs for OpenGL.
          */
         void init();
@@ -50,12 +43,20 @@ namespace tless {
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
 
-        explicit Mesh(const std::string &plyFile);
+        Mesh() = default;
+        Mesh(const std::string &plyFile);
+
+        /**
+         * @brief Parses mesh from .ply file using tinyply library and calls init.
+         *
+         * @param[in] plyFile Path to the .ply file to parse mesh from
+         */
+        void load(const std::string &plyFile);
 
         /**
          * @brief Binds initialized VAOs and draws mesh using glDrawElements.
          */
-        void draw();
+        void draw() const;
 
         friend std::ostream &operator<<(std::ostream &os, const Mesh &mesh);
     };

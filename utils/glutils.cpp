@@ -73,85 +73,9 @@ namespace tless {
         return glm::inverseTranspose(view * model);
     }
 
-    void drawDepth(const Template &tpl, cv::Mat &dst, const glm::mat4 &model, float clipNear, float clipFar) {
-        // GLFW window creation
-        cv::Size winSize = tpl.objBB.size();
-        GLFWwindow *window = glfwCreateWindow(winSize.width, winSize.height, "DrawDepth", NULL, NULL);
-
-        if (window == NULL) {
-            std::cout << "Failed to create GLFW window" << std::endl;
-            glfwTerminate();
-            return;
-        }
-
-        glfwMakeContextCurrent(window);
-        glfwHideWindow(window);
-        glViewport(0, 0, winSize.width, winSize.height);
-
-        // Init Glew after GLFW init
-        if (glewInit()) {
-            std::cerr << "Failed to initialize GLXW" << std::endl;
-            return;
-        }
-
-        // Load shader and mesh
-        Shader shader("data/shaders/depth.vert", "data/shaders/depth.frag");
-        Mesh mesh("data/models/obj_07.ply");
-
-        // PMV data
-        glm::mat3 K(
-                1076.74064739f, 0, 203.98264967f,
-                0, 1075.17825536f, 239.59181836f,
-                0, 0, 1
-        );
-        glm::vec3 t(-4.06668495f, -18.75499854f, 634.87406861f);
-        glm::mat3 R(
-                -0.93424870f, -0.35660872f, -0.00292517f,
-                -0.19815880f, 0.52592294f, -0.82712632f,
-                0.29649935f, -0.77216270f, -0.56200858f
-        );
-
-        // PVM initialization
-        glm::mat4 VMatrix = vMat(tpl.camera.R, tpl.camera.t);
-        glm::mat4 PMatrix = pMat(tpl.camera.K, 0, 0, winSize.width, winSize.height, clipNear, clipFar, WindowCoords::Y_UP);
-        glm::mat4 MVMatrix = mvMat(model, VMatrix);
-        glm::mat4 MVPMatrix = mvpMat(model, VMatrix, PMatrix);
-
-        // OpenGL settings
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
-
-        /// Init frame buffer
-        GLuint frameBuffer;
-        glGenFramebuffers(1, &frameBuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-
-        // FB texture
-        GLuint texture;
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, winSize.width, winSize.height, 0, GL_RGB, GL_FLOAT, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0); // Bind to frame buffer
-
-        // The depth buffer
-        GLuint rbo;
-        glGenRenderbuffers(1, &rbo);
-        glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, winSize.width, winSize.height);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-        // Always check that our framebuffer is ok€
-        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            std::cout << glCheckFramebufferStatus(GL_FRAMEBUFFER) << std::endl;
-            return;
-        }
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0); /// unbind
-
+    void drawDepth(const Template &tpl, const FrameBuffer &fbo, const Shader &shader, const Mesh &mesh, cv::Mat &dst, const glm::mat4 &modelView, const glm::mat4 &modelViewProjection, float clipNear, float clipFar) {
         // Render
-        glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+        fbo.bind();
         glEnable(GL_DEPTH_TEST);
 
         glClearColor(0, 0, 0, 0);
@@ -159,22 +83,21 @@ namespace tless {
 
         // Activate shader and set uniforms
         shader.use();
-        shader.setMat4("MVPMatrix", MVPMatrix);
-        shader.setMat4("MVMatrix", MVMatrix);
+        shader.setMat4("MVMatrix", modelView);
+        shader.setMat4("MVPMatrix", modelViewProjection);
 
         // Draw mesh
         mesh.draw();
 
         // Read data from frame buffer
+        // TODO define winSize
+        cv::Size winSize(108, 108);
         dst = cv::Mat::zeros(winSize.height, winSize.width, CV_32FC3);
         glReadPixels(0, 0, winSize.width, winSize.height, GL_BGR, GL_FLOAT, dst.data);
 
         // Unbind frame buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        fbo.unbind();
         glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-
-        // Cleanup
-        glfwDestroyWindow(window);
 
         // Convert to 1-channel
         cv::cvtColor(dst, dst, CV_BGR2GRAY);

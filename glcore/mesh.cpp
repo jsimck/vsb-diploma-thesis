@@ -52,6 +52,9 @@ namespace tless {
         } catch (const std::exception &e) {
             std::cerr << "Caught tinyply exception: " << e.what() << std::endl;
         }
+
+        // Init Mesh
+        init();
     }
 
     void Mesh::init()  {
@@ -84,10 +87,9 @@ namespace tless {
 
     Mesh::Mesh(const std::string &plyFile) {
         load(plyFile);
-        init();
     }
 
-    void Mesh::draw() {
+    void Mesh::draw() const {
         glBindVertexArray(id);
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, (void*) 0);
         glBindVertexArray(0);

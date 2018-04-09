@@ -24,6 +24,13 @@ namespace tless {
          */
         void init(const char *vertexShader, const char *fragmentShader);
 
+    public:
+        GLuint id;
+        static const int TYPE_VERTEX = 0, TYPE_FRAGMENT = 1, TYPE_PROGRAM = 2;
+
+        Shader() = default;
+        Shader(const char *vertexPath, const char *fragmentPath);
+
         /**
          * @brief Utility function which loads and compiles vertex and fragment shaders from given path
          *
@@ -32,16 +39,10 @@ namespace tless {
          */
         void load(const char *vertexPath, const char *fragmentPath);
 
-    public:
-        GLuint id;
-        static const int TYPE_VERTEX = 0, TYPE_FRAGMENT = 1, TYPE_PROGRAM = 2;
-
-        Shader(const char *vertexPath, const char *fragmentPath);
-
         /**
          * @brief Call when you want to use this shader for rendering
          */
-        void use();
+        void use() const;
 
         /**
          * @brief Utility function to quickly set mat4 uniform on this shader

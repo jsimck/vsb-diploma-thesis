@@ -3,8 +3,72 @@
 #include "../utils/timer.h"
 #include "../utils/visualizer.h"
 #include "../processing/processing.h"
+#include "../utils/glutils.h"
 
 namespace tless {
+    Classifier::Classifier(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {
+        // Init opengl
+        initGL();
+    }
+
+    void Classifier::initGL() {
+        // GLFW init and config
+        glfwInit();
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
+#endif
+
+        // GLFW window creation
+        cv::Size winSize(108, 108); // TODO do something with this
+        GLFWwindow *window = glfwCreateWindow(winSize.width, winSize.height, "DrawDepth", NULL, NULL);
+
+        if (window == NULL) {
+            std::cout << "Failed to create GLFW window" << std::endl;
+            glfwTerminate();
+            return;
+        }
+
+        glfwMakeContextCurrent(window);
+        glfwHideWindow(window);
+        glViewport(0, 0, winSize.width, winSize.height);
+
+        // Init Glew after GLFW init
+        if (glewInit()) {
+            std::cerr << "Failed to initialize GLXW" << std::endl;
+            return;
+        }
+
+        // Init Opengl global settings
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
+
+        // Init shaders, meshes and FBO
+        initShaders();
+        initMeshes("data/meshes.txt"); // TODO add into classifier param
+        fbo.init();
+    }
+
+    void Classifier::initShaders() {
+        shaders[SHADER_DEPTH] = Shader("data/shaders/depth.vert", "data/shaders/depth.frag");
+    }
+
+    void Classifier::initMeshes(const std::string &meshesListPath) {
+        std::ifstream ifs(meshesListPath);
+        std::string path;
+        int id;
+
+        while (ifs >> id) {
+            ifs >> path;
+            meshes[id] = Mesh(path);
+        }
+
+        ifs.close();
+    }
+
     void Classifier::train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices) {
         std::ifstream ifs(templatesListPath);
         assert(ifs.is_open());
@@ -201,5 +265,126 @@ namespace tless {
             viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);
             matches.clear();
         }
+    }
+
+    void Classifier::testPSO() {
+        // Load templates
+        std::vector<Template> templates;
+        Parser parser(criteria);
+        parser.parseObject("data/108x108/kinectv2/07/", templates, {28, 60});
+
+        // References to templates
+        Template &tGt = templates[0], &tSrc = templates[1];
+
+        // Precompute matrices
+        cv::Size winSize(108, 108);
+        glm::mat4 VMatrix = vMat(tGt.camera.R, tGt.camera.t);
+        glm::mat4 PMatrix = pMat(tGt.camera.K, 0, 0, winSize.width, winSize.height);
+        glm::mat4 MVPMatrix = mvpMat(glm::mat4(), VMatrix, PMatrix);
+
+        // Init GT depth
+        cv::Mat gt, gtEdge, org;
+        drawDepth(tGt, fbo, shaders[SHADER_DEPTH], meshes[tGt.objId], gt, VMatrix, MVPMatrix);
+
+        cv::imshow("gt", gt);
+        cv::waitKey(0);
+
+        // Do laplace
+//        cv::Laplacian(gt, gtEdge, CV_32FC1);
+//        cv::threshold(gtEdge, gtEdge, 0.01f, 1, CV_THRESH_BINARY);
+//
+//        // Init particles
+//        cv::Mat pose;
+//        std::vector<Particle> particles;
+//        Particle gBest;
+//        gBest.fitness = 0;
+//
+//        for (int i = 0; i < 50; ++i) {
+//            particles.emplace_back(dT(gen), dT(gen), dT(gen), dR(gen), dR(gen), dR(gen),
+//                                   dVT(gen), dVT(gen), dVT(gen), dVR(gen), dVR(gen), dVR(gen));
+//            drawDepth(templates[1], pose, particles[i].model());
+//            particles[i].fitness = fitness(gtEdge, pose);
+//
+//            if (particles[i].fitness > gBest.fitness) {
+//                gBest = particles[i];
+//            }
+//        }
+//
+//        // Gbest before PSO
+//        std::cout << "pre-PSO - gBest: " << gBest.fitness << std::endl;
+//        Particle preGBest = gBest;
+//        cv::Mat imGBest;
+//        drawDepth(templates[1], imGBest, gBest.model());
+//
+//        // PSO
+//        const float C1 = 0.25f, C2 = 0.25f, W = 0.95f;
+//
+//        // Generations
+//        for (int i = 0; i < 50; i++) {
+//            std::cout << "Iteration: " << i << std::endl;
+//
+//            for (auto &p : particles) {
+//                drawDepth(templates[1], pose, p.model());
+//
+//                cv::imshow("pose 1", pose);
+//
+//                // Compute velocity
+//                p.v1 = computeVelocity(W, p.v1, p.tx, p.pBest.tx, gBest.tx, C1, C2, dRand(gen), dRand(gen));
+//                p.v2 = computeVelocity(W, p.v2, p.ty, p.pBest.ty, gBest.ty, C1, C2, dRand(gen), dRand(gen));
+//                p.v3 = computeVelocity(W, p.v3, p.tz, p.pBest.tz, gBest.tz, C1, C2, dRand(gen), dRand(gen));
+//                p.v4 = computeVelocity(W, p.v4, p.rx, p.pBest.rx, gBest.rx, C1, C2, dRand(gen), dRand(gen));
+//                p.v5 = computeVelocity(W, p.v5, p.ry, p.pBest.ry, gBest.ry, C1, C2, dRand(gen), dRand(gen));
+//                p.v6 = computeVelocity(W, p.v6, p.rz, p.pBest.rz, gBest.rz, C1, C2, dRand(gen), dRand(gen));
+//
+//                // Update
+//                p.update();
+//
+//                // Fitness
+//                drawDepth(templates[1], pose, p.model());
+//                p.fitness = fitness(gtEdge, pose);
+//
+//                // Check for pBest
+//                if (p.fitness > p.pBest.fitness) {
+//                    p.updatePBest();
+//                    drawDepth(templates[1], imGBest, gBest.model());
+//                }
+//
+//                // Check for gBest
+//                if (p.fitness > gBest.fitness) {
+//                    std::cout << gBest.fitness << " - ";
+//                    gBest = p;
+//                    std::cout << gBest.fitness << std::endl;
+//                    drawDepth(templates[1], imGBest, gBest.model());
+//                }
+//
+//                cv::imshow("org", org);
+//                cv::imshow("GT", gt);
+//                cv::imshow("gBest", imGBest);
+//                cv::imshow("pose 2", pose);
+//                cv::waitKey(1);
+//            }
+//        }
+//
+//
+//
+//        // Test draw each pose
+//        std::cout << "gBest: " << gBest << std::endl;
+//        for (auto &particle : particles) {
+//            std::cout << particle << std::endl;
+//        }
+//
+//        cv::Mat imPreGBest;
+//        drawDepth(templates[1], imPreGBest, preGBest.model());
+//
+//        // Ground truth
+//        cv::imshow("imPreGBest", imPreGBest);
+//        cv::imshow("imGBest", imGBest);
+//        cv::imshow("GT", gt);
+//        cv::waitKey(0);
+    }
+
+    Classifier::~Classifier() {
+        glfwDestroyWindow(window);
+        glfwTerminate();
     }
 }

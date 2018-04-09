@@ -2,6 +2,9 @@
 #define VSB_SEMESTRAL_PROJECT_CLASSIFIER_H
 
 #include <memory>
+#include <unordered_map>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include "../core/match.h"
 #include "../core/hash_table.h"
 #include "../utils/parser.h"
@@ -10,6 +13,9 @@
 #include "../core/window.h"
 #include "matcher.h"
 #include "../core/classifier_criteria.h"
+#include "../glcore/shader.h"
+#include "../glcore/mesh.h"
+#include "../glcore/frame_buffer.h"
 
 namespace tless {
     /**
@@ -28,16 +34,31 @@ namespace tless {
         std::vector<Window> windows;
         std::vector<Match> matches;
 
+        // GL Related stuff
+        FrameBuffer fbo;
+        std::unordered_map<int, Mesh> meshes;
+        std::unordered_map<int, Shader> shaders;
+        GLFWwindow *window;
+
         // Methods
         void load(const std::string &trainedTemplatesListPath, const std::string &trainedPath);
 
+        void initGL();
+        void initShaders();
+        void initMeshes(const std::string &meshesListPath);
+        void initFBO();
+
     public:
+        const int SHADER_DEPTH = 0;
+
         // Constructors
-        Classifier(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
+        explicit Classifier(cv::Ptr<ClassifierCriteria> criteria);
+        ~Classifier();
 
         // Methods
         void train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices = {});
         void detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath);
+        void testPSO();
     };
 }
 
