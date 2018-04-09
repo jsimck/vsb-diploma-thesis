@@ -55,6 +55,7 @@ namespace tless {
 
     void Classifier::initShaders() {
         shaders[SHADER_DEPTH] = Shader("data/shaders/depth.vert", "data/shaders/depth.frag");
+        shaders[SHADER_NORMAL] = Shader("data/shaders/normal.vert", "data/shaders/normal.frag");
     }
 
     void Classifier::initMeshes(const std::string &meshesListPath) {
@@ -285,7 +286,7 @@ namespace tless {
 
         // References to templates
         Template &tGt = templates[0], &tOrg = templates[1];
-        const int IT = 100, N = 100;
+        const int IT = 50, N = 50;
 
         // Precompute matrices
         cv::Size winSize(108, 108);
@@ -300,7 +301,7 @@ namespace tless {
 
         // Init GT depth
         cv::Mat gt, gtEdge, org, orgEdge;
-        drawDepth(tGt, fbo, shaders[SHADER_DEPTH], meshes[tGt.objId], gt, VMatrix, MVPMatrix);
+        drawNormals(tGt, fbo, shaders[SHADER_NORMAL], meshes[tGt.objId], gt, VMatrix, MVPMatrix);
         drawDepth(tOrg, fbo, shaders[SHADER_DEPTH], meshes[tOrg.objId], org, orgVMatrix, orgMVPMatrix);
 
         // Show org and ground truth
@@ -404,8 +405,7 @@ namespace tless {
         glfwTerminate();
     }
 
-    float
-    Classifier::computeVelocity(float w, float vi, float xi, float pBest, float gBest, float c1, float c2, float r1, float r2) {
+    float Classifier::computeVelocity(float w, float vi, float xi, float pBest, float gBest, float c1, float c2, float r1, float r2) {
         return w * vi + (c1 * r1) * (pBest - xi) + (c2 * r2) * (gBest - xi);
     }
 

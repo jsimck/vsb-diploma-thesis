@@ -46,10 +46,9 @@ namespace tless {
         void initGL();
         void initShaders();
         void initMeshes(const std::string &meshesListPath);
-        void initFBO();
 
     public:
-        const int SHADER_DEPTH = 0;
+        const int SHADER_DEPTH = 0, SHADER_NORMAL = 1;
 
         // Constructors
         explicit Classifier(cv::Ptr<ClassifierCriteria> criteria);

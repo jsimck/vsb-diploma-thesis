@@ -73,7 +73,7 @@ namespace tless {
         return glm::inverseTranspose(view * model);
     }
 
-    void drawDepth(const Template &tpl, const FrameBuffer &fbo, const Shader &shader, const Mesh &mesh, cv::Mat &dst, const glm::mat4 &modelView, const glm::mat4 &modelViewProjection, float clipNear, float clipFar) {
+    void drawDepth(const Template &tpl, const FrameBuffer &fbo, const Shader &shader, const Mesh &mesh, cv::Mat &dst, const glm::mat4 &modelView, const glm::mat4 &modelViewProjection) {
         // Render
         fbo.bind();
         glEnable(GL_DEPTH_TEST);
@@ -98,6 +98,41 @@ namespace tless {
         // Unbind frame buffer
         fbo.unbind();
         glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+
+        // Convert to 1-channel
+        cv::cvtColor(dst, dst, CV_BGR2GRAY);
+        cv::normalize(dst, dst, 0, 1, CV_MINMAX);
+    }
+
+    void drawNormals(const Template &tpl, const FrameBuffer &fbo, const Shader &shader, const Mesh &mesh, cv::Mat &dst, const glm::mat4 &modelView, const glm::mat4 &modelViewProjection) {
+        // Render
+        fbo.bind();
+        glEnable(GL_DEPTH_TEST);
+
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Activate shader and set uniforms
+        shader.use();
+        shader.setMat4("MVMatrix", modelView);
+        shader.setMat4("NMatrix", glm::inverseTranspose(modelView));
+        shader.setMat4("MVPMatrix", modelViewProjection);
+
+        // Draw mesh
+        mesh.draw();
+
+        // Read data from frame buffer
+        // TODO define winSize
+        cv::Size winSize(108, 108);
+        dst = cv::Mat::zeros(winSize.height, winSize.width, CV_32FC3);
+        glReadPixels(0, 0, winSize.width, winSize.height, GL_BGR, GL_FLOAT, dst.data);
+
+        // Unbind frame buffer
+        fbo.unbind();
+        glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+
+        cv::imshow("dst", dst);
+        cv::waitKey(0);
 
         // Convert to 1-channel
         cv::cvtColor(dst, dst, CV_BGR2GRAY);

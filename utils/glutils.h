@@ -65,7 +65,8 @@ namespace tless {
      */
     glm::mat4 nMat(const glm::mat4 &model, const glm::mat4 &view);
 
-    void drawDepth(const Template &tpl, const FrameBuffer &fbo, const Shader &shader, const Mesh &mesh, cv::Mat &dst, const glm::mat4 &modelView, const glm::mat4 &modelViewProjection, float clipNear = 100, float clipFar = 2000);
+    void drawDepth(const Template &tpl, const FrameBuffer &fbo, const Shader &shader, const Mesh &mesh, cv::Mat &dst, const glm::mat4 &modelView, const glm::mat4 &modelViewProjection);
+    void drawNormals(const Template &tpl, const FrameBuffer &fbo, const Shader &shader, const Mesh &mesh, cv::Mat &dst, const glm::mat4 &modelView, const glm::mat4 &modelViewProjection);
 }
 
 #endif
