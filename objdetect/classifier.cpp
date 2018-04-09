@@ -272,7 +272,7 @@ namespace tless {
         // Load templates
         std::vector<Template> templates;
         Parser parser(criteria);
-        parser.parseObject("data/108x108/kinectv2/07/", templates, {28, 120});
+        parser.parseObject("data/108x108/kinectv2/07/", templates, {28, 60});
 
         // Generators
         static std::random_device rd;
@@ -285,6 +285,7 @@ namespace tless {
 
         // References to templates
         Template &tGt = templates[0], &tOrg = templates[1];
+        const int IT = 100, N = 100;
 
         // Precompute matrices
         cv::Size winSize(108, 108);
@@ -313,12 +314,13 @@ namespace tless {
         cv::threshold(orgEdge, orgEdge, 0.01f, 1, CV_THRESH_BINARY);
 
         // Init particles
+        glm::mat4 m;
         cv::Mat pose;
         std::vector<Particle> particles;
         Particle gBest;
         gBest.fitness = 0;
 
-        for (int i = 0; i < 50; ++i) {
+        for (int i = 0; i < N; ++i) {
             // Generate new particle
             particles.emplace_back(dT(gen), dT(gen), dT(gen), dR(gen), dR(gen), dR(gen), dVT(gen), dVT(gen), dVT(gen), dVR(gen), dVR(gen), dVR(gen));
 
@@ -335,24 +337,20 @@ namespace tless {
             }
         }
 
-        // Gbest before PSO
-        std::cout << "pre-PSO - gBest: " << gBest.fitness << std::endl;
-        cv::Mat imGBest;
-        Particle preGBest = gBest;
-        glm::mat4 m = preGBest.model();
-        drawDepth(tOrg, fbo, shaders[SHADER_DEPTH], meshes[tOrg.objId], imGBest, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-
         // PSO
-        const float C1 = 0.3f, C2 = 0.3f, W = 0.95f;
+        cv::Mat imGBest;
+        m = gBest.model();
+        drawDepth(tOrg, fbo, shaders[SHADER_DEPTH], meshes[tOrg.objId], imGBest, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
+        const float C1 = 0.3f, C2 = 0.3f, W = 0.90f;
 
         // Generations
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < IT; i++) {
             std::cout << "Iteration: " << i << std::endl;
 
             for (auto &p : particles) {
-                m = p.model();
-                drawDepth(tOrg, fbo, shaders[SHADER_DEPTH], meshes[tOrg.objId], pose, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-                cv::imshow("pose 1", pose);
+//                m = p.model();
+//                drawDepth(tOrg, fbo, shaders[SHADER_DEPTH], meshes[tOrg.objId], pose, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
+//                cv::imshow("pose 1", pose);
 
                 // Compute velocity
                 p.v1 = computeVelocity(W, p.v1, p.tx, p.pBest.tx, gBest.tx, C1, C2, dRand(gen), dRand(gen));
@@ -377,20 +375,18 @@ namespace tless {
 
                 // Check for gBest
                 if (p.fitness > gBest.fitness) {
-                    std::cout << gBest.fitness << " - ";
                     gBest = p;
-                    std::cout << gBest.fitness << std::endl;
+
+                    // Vizualization
                     m = gBest.model();
                     drawDepth(tOrg, fbo, shaders[SHADER_DEPTH], meshes[tOrg.objId], imGBest, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
                 }
 
-                cv::imshow("gBest", imGBest);
-                cv::imshow("pose 2", pose);
-                cv::waitKey(1);
+//                cv::imshow("gBest", imGBest);
+//                cv::imshow("pose 2", pose);
+//                cv::waitKey(1);
             }
         }
-
-
 
         // Test draw each pose
         std::cout << "gBest: " << gBest << std::endl;
@@ -398,14 +394,8 @@ namespace tless {
             std::cout << particle << std::endl;
         }
 
-        cv::Mat imPreGBest;
-        m = preGBest.model();
-        drawDepth(tOrg, fbo, shaders[SHADER_DEPTH], meshes[tOrg.objId], imPreGBest, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-
         // Ground truth
-        cv::imshow("imPreGBest", imPreGBest);
         cv::imshow("imGBest", imGBest);
-        cv::imshow("GT", gt);
         cv::waitKey(0);
     }
 
