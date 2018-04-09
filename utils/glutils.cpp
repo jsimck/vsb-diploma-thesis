@@ -150,6 +150,5 @@ namespace tless {
 
         // Convert to 1-channel and normalize depth
         cv::cvtColor(depth, depth, CV_BGR2GRAY);
-        cv::normalize(depth, depth, 0, 1, CV_MINMAX);
     }
 }

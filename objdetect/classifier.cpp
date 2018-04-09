@@ -274,20 +274,22 @@ namespace tless {
         // Load templates
         std::vector<Template> templates;
         Parser parser(criteria);
-        parser.parseObject("data/108x108/kinectv2/07/", templates, {28, 60});
+        parser.parseObject("data/108x108/kinectv2/07/", templates, {28, 107});
 
         // Generators
         static std::random_device rd;
         static std::mt19937 gen(rd());
-        static std::uniform_real_distribution<float> dR(-0.2f, 0.2f);
-        static std::uniform_real_distribution<float> dT(-15, 15);
+        static std::uniform_real_distribution<float> dR(-0.3f, 0.3f);
+        static std::uniform_real_distribution<float> dT(-30, 30);
+        static std::uniform_real_distribution<float> dTz(-50, 100);
         static std::uniform_real_distribution<float> dVT(0, 5);
-        static std::uniform_real_distribution<float> dVR(0, 0.3f);
+        static std::uniform_real_distribution<float> dVTz(0, 10);
+        static std::uniform_real_distribution<float> dVR(0, 0.4f);
         static std::uniform_real_distribution<float> dRand(0, 1.0f);
 
         // References to templates
         Template &tGt = templates[0], &tOrg = templates[1];
-        const int IT = 50, N = 50;
+        const int IT = 100, N = 100;
 
         // Precompute matrices
         cv::Size winSize(108, 108);
@@ -301,107 +303,89 @@ namespace tless {
         glm::mat4 orgMVPMatrix = mvpMat(glm::mat4(), orgVMatrix, orgPMatrix);
 
         // Init GT depth
-        cv::Mat gt, gtEdge, org, orgEdge, gtNormals, orgNormals;
+        cv::Mat gt, org, gtNormals, orgNormals;
         render(tGt, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tGt.objId], gt, gtNormals, VMatrix, MVPMatrix);
         render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], org, orgNormals, orgVMatrix, orgMVPMatrix);
 
         // Show org and ground truth
-        cv::imshow("Ground truth", gt);
         cv::imshow("Ground truth - Normals", gtNormals);
-        cv::imshow("Found match", org);
         cv::imshow("Found match - Normals", orgNormals);
-        cv::waitKey(0);
 
-        // Do laplace
-//        cv::Laplacian(gt, gtEdge, CV_32FC1);
-//        cv::threshold(gtEdge, gtEdge, 0.01f, 1, CV_THRESH_BINARY);
-//        cv::Laplacian(org, orgEdge, CV_32FC1);
-//        cv::threshold(orgEdge, orgEdge, 0.01f, 1, CV_THRESH_BINARY);
-//
-//        // Init particles
-//        glm::mat4 m;
-//        cv::Mat pose;
-//        std::vector<Particle> particles;
-//        Particle gBest;
-//        gBest.fitness = 0;
-//
-//        for (int i = 0; i < N; ++i) {
-//            // Generate new particle
-//            particles.emplace_back(dT(gen), dT(gen), dT(gen), dR(gen), dR(gen), dR(gen), dVT(gen), dVT(gen), dVT(gen), dVR(gen), dVR(gen), dVR(gen));
-//
-//            // Render depth image
-//            glm::mat4 m = particles[i].model();
-//            drawDepth(tOrg, fbo, shaders[SHADER_DEPTH], meshes[tOrg.objId], pose, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-//
-//            // Compute fitness for new particle
-//            particles[i].fitness = fitness(gtEdge, pose);
-//
-//            // Save gBest
-//            if (particles[i].fitness > gBest.fitness) {
-//                gBest = particles[i];
-//            }
-//        }
-//
-//        // PSO
-//        cv::Mat imGBest;
-//        m = gBest.model();
-//        drawDepth(tOrg, fbo, shaders[SHADER_DEPTH], meshes[tOrg.objId], imGBest, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-//        const float C1 = 0.3f, C2 = 0.3f, W = 0.90f;
-//
-//        // Generations
-//        for (int i = 0; i < IT; i++) {
-//            std::cout << "Iteration: " << i << std::endl;
-//
-//            for (auto &p : particles) {
-////                m = p.model();
-////                drawDepth(tOrg, fbo, shaders[SHADER_DEPTH], meshes[tOrg.objId], pose, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-////                cv::imshow("pose 1", pose);
-//
-//                // Compute velocity
-//                p.v1 = computeVelocity(W, p.v1, p.tx, p.pBest.tx, gBest.tx, C1, C2, dRand(gen), dRand(gen));
-//                p.v2 = computeVelocity(W, p.v2, p.ty, p.pBest.ty, gBest.ty, C1, C2, dRand(gen), dRand(gen));
-//                p.v3 = computeVelocity(W, p.v3, p.tz, p.pBest.tz, gBest.tz, C1, C2, dRand(gen), dRand(gen));
-//                p.v4 = computeVelocity(W, p.v4, p.rx, p.pBest.rx, gBest.rx, C1, C2, dRand(gen), dRand(gen));
-//                p.v5 = computeVelocity(W, p.v5, p.ry, p.pBest.ry, gBest.ry, C1, C2, dRand(gen), dRand(gen));
-//                p.v6 = computeVelocity(W, p.v6, p.rz, p.pBest.rz, gBest.rz, C1, C2, dRand(gen), dRand(gen));
-//
-//                // Update
-//                p.update();
-//
-//                // Fitness
-//                m = p.model();
-//                drawDepth(tOrg, fbo, shaders[SHADER_DEPTH], meshes[tOrg.objId], pose, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-//                p.fitness = fitness(gtEdge, pose);
-//
-//                // Check for pBest
-//                if (p.fitness > p.pBest.fitness) {
-//                    p.updatePBest();
-//                }
-//
-//                // Check for gBest
-//                if (p.fitness > gBest.fitness) {
-//                    gBest = p;
-//
-//                    // Vizualization
+        // Init particles
+        glm::mat4 m;
+        cv::Mat pose, poseNormals;
+        std::vector<Particle> particles;
+        Particle gBest;
+        gBest.fitness = 0;
+
+        for (int i = 0; i < N; ++i) {
+            // Generate new particle
+            particles.emplace_back(dT(gen), dT(gen), dTz(gen), dR(gen), dR(gen), dR(gen), dVT(gen), dVT(gen), dVTz(gen), dVR(gen), dVR(gen), dVR(gen));
+
+            // Render depth image
+            glm::mat4 m = particles[i].model();
+            render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], pose, poseNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
+
+            // Compute fitness for new particle
+            particles[i].fitness = fitness(gt, gtNormals, pose, poseNormals);
+
+            // Save gBest
+            if (particles[i].fitness < gBest.fitness) {
+                gBest = particles[i];
+            }
+        }
+
+        // PSO
+        cv::Mat imGBest, imGBestNormals;
+        m = gBest.model();
+        render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
+        const float C1 = 0.3f, C2 = 0.3f, W = 0.95f;
+
+        // Generations
+        for (int i = 0; i < IT; i++) {
+            std::cout << "Iteration: " << i << std::endl;
+
+            for (auto &p : particles) {
+                // Compute velocity
+                p.v1 = computeVelocity(W, p.v1, p.tx, p.pBest.tx, gBest.tx, C1, C2, dRand(gen), dRand(gen));
+                p.v2 = computeVelocity(W, p.v2, p.ty, p.pBest.ty, gBest.ty, C1, C2, dRand(gen), dRand(gen));
+                p.v3 = computeVelocity(W, p.v3, p.tz, p.pBest.tz, gBest.tz, C1, C2, dRand(gen), dRand(gen));
+                p.v4 = computeVelocity(W, p.v4, p.rx, p.pBest.rx, gBest.rx, C1, C2, dRand(gen), dRand(gen));
+                p.v5 = computeVelocity(W, p.v5, p.ry, p.pBest.ry, gBest.ry, C1, C2, dRand(gen), dRand(gen));
+                p.v6 = computeVelocity(W, p.v6, p.rz, p.pBest.rz, gBest.rz, C1, C2, dRand(gen), dRand(gen));
+
+                // Update
+                p.update();
+
+                // Fitness
+                m = p.model();
+                render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], pose, poseNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
+                p.fitness = fitness(gt, gtNormals, pose, poseNormals);
+
+                // Check for pBest
+                if (p.fitness < p.pBest.fitness) {
+                    p.updatePBest();
+                }
+
+                // Check for gBest
+                if (p.fitness < gBest.fitness) {
+                    gBest = p;
+
+//                      // Vizualization
 //                    m = gBest.model();
-//                    drawDepth(tOrg, fbo, shaders[SHADER_DEPTH], meshes[tOrg.objId], imGBest, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-//                }
-//
-////                cv::imshow("gBest", imGBest);
-////                cv::imshow("pose 2", pose);
-////                cv::waitKey(1);
-//            }
-//        }
-//
-//        // Test draw each pose
-//        std::cout << "gBest: " << gBest << std::endl;
-//        for (auto &particle : particles) {
-//            std::cout << particle << std::endl;
-//        }
-//
-//        // Ground truth
-//        cv::imshow("imGBest", imGBest);
-//        cv::waitKey(0);
+//                    render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
+                }
+
+//                cv::imshow("imGBestNormals", imGBestNormals);
+//                cv::imshow("pose 2", poseNormals);
+//                cv::waitKey(1);
+            }
+        }
+
+        // Show results
+        render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
+        cv::imshow("imGBestNormals", imGBestNormals);
+        cv::waitKey(0);
     }
 
     Classifier::~Classifier() {
@@ -413,19 +397,32 @@ namespace tless {
         return w * vi + (c1 * r1) * (pBest - xi) + (c2 * r2) * (gBest - xi);
     }
 
-    float Classifier::fitness(const cv::Mat &gt, cv::Mat &pose) {
-        float sum = 0;
-
-        cv::Mat edges;
-        cv::Laplacian(pose, edges, CV_32FC1);
-        cv::threshold(edges, edges, 0.01f, 1, CV_THRESH_BINARY);
+    float Classifier::fitness(const cv::Mat &gt, const cv::Mat &gtNormals, const cv::Mat &pose, const cv::Mat &poseNormals) {
+        float sumD = 0, sumU = 0;
+        const float tD = 20;
+        const float inf = std::numeric_limits<float>::max();
 
         for (int y = 0; y < gt.rows; y++) {
             for (int x = 0; x < gt.cols; x++) {
-                sum += gt.at<float>(y, x) > 0 && edges.at<float>(y, x) > 0;
+                // Skip invalid pixels
+                if (pose.at<float>(y, x) <= 0) {
+                    continue;
+                }
+
+                // Compute depth diff
+                float dDiff = std::abs(gt.at<float>(y, x) - pose.at<float>(y, x));
+                if (dDiff > tD) {
+                    sumD += 1 / inf;
+                } else {
+                    sumD += 1 / (dDiff + 1);
+                }
+
+                // Compare normals
+                float dot = std::abs(gtNormals.at<cv::Vec3f>(y, x).dot(poseNormals.at<cv::Vec3f>(y, x)));
+                sumU += 1 / (dot + 1);
             }
         }
 
-        return sum;
+        return -sumD * sumU;
     }
 }
