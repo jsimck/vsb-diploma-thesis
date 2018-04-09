@@ -274,7 +274,7 @@ namespace tless {
         // Load templates
         std::vector<Template> templates;
         Parser parser(criteria);
-        parser.parseObject("data/108x108/kinectv2/07/", templates, {28, 107});
+        parser.parseObject("data/108x108/kinectv2/07/", templates, {28, 30});
 
         // Generators
         static std::random_device rd;
@@ -289,7 +289,7 @@ namespace tless {
 
         // References to templates
         Template &tGt = templates[0], &tOrg = templates[1];
-        const int IT = 100, N = 100;
+        const int IT = 50, N = 50;
 
         // Precompute matrices
         cv::Size winSize(108, 108);
@@ -303,9 +303,13 @@ namespace tless {
         glm::mat4 orgMVPMatrix = mvpMat(glm::mat4(), orgVMatrix, orgPMatrix);
 
         // Init GT depth
-        cv::Mat gt, org, gtNormals, orgNormals;
+        cv::Mat gt, org, gtNormals, orgNormals, gtEdges, gtT;
         render(tGt, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tGt.objId], gt, gtNormals, VMatrix, MVPMatrix);
         render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], org, orgNormals, orgVMatrix, orgMVPMatrix);
+
+        // Compute edges
+        cv::Laplacian(gt, gtEdges, -1);
+        cv::threshold(gtEdges, gtEdges, 0.5f, 1, CV_THRESH_BINARY);
 
         // Show org and ground truth
         cv::imshow("Ground truth - Normals", gtNormals);
@@ -327,7 +331,7 @@ namespace tless {
             render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], pose, poseNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
 
             // Compute fitness for new particle
-            particles[i].fitness = fitness(gt, gtNormals, pose, poseNormals);
+            particles[i].fitness = fitness(gt, gtNormals, gtEdges, pose, poseNormals);
 
             // Save gBest
             if (particles[i].fitness < gBest.fitness) {
@@ -339,7 +343,7 @@ namespace tless {
         cv::Mat imGBest, imGBestNormals;
         m = gBest.model();
         render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-        const float C1 = 0.3f, C2 = 0.3f, W = 0.95f;
+        const float C1 = 0.3f, C2 = 0.3f, W = 0.90f;
 
         // Generations
         for (int i = 0; i < IT; i++) {
@@ -360,7 +364,7 @@ namespace tless {
                 // Fitness
                 m = p.model();
                 render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], pose, poseNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-                p.fitness = fitness(gt, gtNormals, pose, poseNormals);
+                p.fitness = fitness(gt, gtNormals, gtEdges, pose, poseNormals);
 
                 // Check for pBest
                 if (p.fitness < p.pBest.fitness) {
@@ -370,7 +374,7 @@ namespace tless {
                 // Check for gBest
                 if (p.fitness < gBest.fitness) {
                     gBest = p;
-
+//
 //                      // Vizualization
 //                    m = gBest.model();
 //                    render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
@@ -397,14 +401,26 @@ namespace tless {
         return w * vi + (c1 * r1) * (pBest - xi) + (c2 * r2) * (gBest - xi);
     }
 
-    float Classifier::fitness(const cv::Mat &gt, const cv::Mat &gtNormals, const cv::Mat &pose, const cv::Mat &poseNormals) {
-        float sumD = 0, sumU = 0;
+    float Classifier::fitness(const cv::Mat &gt, const cv::Mat &gtNormals, const cv::Mat &gtEdges, const cv::Mat &pose, const cv::Mat &poseNormals) {
+        float sumD = 0, sumU = 0, sumE = 0;
         const float tD = 20;
         const float inf = std::numeric_limits<float>::max();
 
+        // Compute edges
+        cv::Mat poseT, poseEdges;
+        cv::Laplacian(pose, poseEdges, -1);
+        cv::threshold(poseEdges, poseEdges, 0.5f, 255, CV_THRESH_BINARY_INV);
+        poseEdges.convertTo(poseEdges, CV_8U);
+        cv::distanceTransform(poseEdges, poseT, CV_DIST_L2, 3);
+
         for (int y = 0; y < gt.rows; y++) {
             for (int x = 0; x < gt.cols; x++) {
-                // Skip invalid pixels
+                // Compute distance transform
+                if (gtEdges.at<float>(y, x) > 0) {
+                    sumE += 1 / (poseT.at<float>(y, x) + 1);
+                }
+
+                // Skip invalid depth pixels for other tests pixels
                 if (pose.at<float>(y, x) <= 0) {
                     continue;
                 }
@@ -423,6 +439,6 @@ namespace tless {
             }
         }
 
-        return -sumD * sumU;
+        return -sumD * sumU * sumE;
     }
 }

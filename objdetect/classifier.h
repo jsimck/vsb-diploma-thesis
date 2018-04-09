@@ -59,7 +59,7 @@ namespace tless {
         void detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath);
         void testPSO();
 
-        float fitness(const cv::Mat &gt, const cv::Mat &gtNormals, const cv::Mat &pose, const cv::Mat &poseNormals);
+        float fitness(const cv::Mat &gt, const cv::Mat &gtNormals, const cv::Mat &gtEdges, const cv::Mat &pose, const cv::Mat &poseNormals);
         float computeVelocity(float w, float vi, float xi, float pBest, float gBest, float c1, float c2, float r1, float r2);
     };
 }
