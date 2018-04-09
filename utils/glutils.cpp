@@ -104,38 +104,52 @@ namespace tless {
         cv::normalize(dst, dst, 0, 1, CV_MINMAX);
     }
 
-    void drawNormals(const Template &tpl, const FrameBuffer &fbo, const Shader &shader, const Mesh &mesh, cv::Mat &dst, const glm::mat4 &modelView, const glm::mat4 &modelViewProjection) {
+    void render(const Template &tpl, const FrameBuffer &fbo, const Shader &depthShader, const Shader &normalShader, const Mesh &mesh, cv::Mat &depth, cv::Mat &normals, const glm::mat4 &modelView, const glm::mat4 &modelViewProjection) {
+        // TODO define winSize
+        cv::Size winSize(108, 108);
+
         // Render
         fbo.bind();
-        glEnable(GL_DEPTH_TEST);
 
+        /// NORMALS
+        // Clear buffer
         glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Activate shader and set uniforms
-        shader.use();
-        shader.setMat4("MVMatrix", modelView);
-        shader.setMat4("NMatrix", glm::inverseTranspose(modelView));
-        shader.setMat4("MVPMatrix", modelViewProjection);
+        normalShader.use();
+        normalShader.setMat4("NMatrix", glm::inverseTranspose(modelView));
+        normalShader.setMat4("MVPMatrix", modelViewProjection);
 
         // Draw mesh
         mesh.draw();
 
         // Read data from frame buffer
-        // TODO define winSize
-        cv::Size winSize(108, 108);
-        dst = cv::Mat::zeros(winSize.height, winSize.width, CV_32FC3);
-        glReadPixels(0, 0, winSize.width, winSize.height, GL_BGR, GL_FLOAT, dst.data);
+        normals = cv::Mat::zeros(winSize.height, winSize.width, CV_32FC3);
+        glReadPixels(0, 0, winSize.width, winSize.height, GL_BGR, GL_FLOAT, normals.data);
+
+        /// DEPTH
+        // Clear buffer
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Activate shader and set uniforms
+        depthShader.use();
+        depthShader.setMat4("MVMatrix", modelView);
+        depthShader.setMat4("MVPMatrix", modelViewProjection);
+
+        // Draw mesh
+        mesh.draw();
+
+        // Read data from frame buffer
+        depth = cv::Mat::zeros(winSize.height, winSize.width, CV_32FC3);
+        glReadPixels(0, 0, winSize.width, winSize.height, GL_BGR, GL_FLOAT, depth.data);
 
         // Unbind frame buffer
         fbo.unbind();
-        glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 
-        cv::imshow("dst", dst);
-        cv::waitKey(0);
-
-        // Convert to 1-channel
-        cv::cvtColor(dst, dst, CV_BGR2GRAY);
-        cv::normalize(dst, dst, 0, 1, CV_MINMAX);
+        // Convert to 1-channel and normalize depth
+        cv::cvtColor(depth, depth, CV_BGR2GRAY);
+        cv::normalize(depth, depth, 0, 1, CV_MINMAX);
     }
 }
