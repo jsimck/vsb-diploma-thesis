@@ -274,7 +274,7 @@ namespace tless {
         // Load templates
         std::vector<Template> templates;
         Parser parser(criteria);
-        parser.parseObject("data/108x108/kinectv2/07/", templates, {28, 30});
+        parser.parseObject("data/108x108/kinectv2/07/", templates, {28, 106});
 
         // Generators
         static std::random_device rd;
@@ -289,7 +289,7 @@ namespace tless {
 
         // References to templates
         Template &tGt = templates[0], &tOrg = templates[1];
-        const int IT = 50, N = 50;
+        const int IT = 100, N = 100;
 
         // Precompute matrices
         cv::Size winSize(108, 108);
@@ -314,6 +314,7 @@ namespace tless {
         // Show org and ground truth
         cv::imshow("Ground truth - Normals", gtNormals);
         cv::imshow("Found match - Normals", orgNormals);
+        cv::waitKey(0);
 
         // Init particles
         glm::mat4 m;
@@ -374,8 +375,8 @@ namespace tless {
                 // Check for gBest
                 if (p.fitness < gBest.fitness) {
                     gBest = p;
-//
-//                      // Vizualization
+
+//                    // Vizualization
 //                    m = gBest.model();
 //                    render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
                 }
@@ -387,6 +388,7 @@ namespace tless {
         }
 
         // Show results
+        m = gBest.model();
         render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
         cv::imshow("imGBestNormals", imGBestNormals);
         cv::waitKey(0);
