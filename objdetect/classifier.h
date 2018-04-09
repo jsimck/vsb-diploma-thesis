@@ -59,6 +59,9 @@ namespace tless {
         void train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices = {});
         void detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath);
         void testPSO();
+
+        float fitness(const cv::Mat &gt, cv::Mat &pose);
+        float computeVelocity(float w, float vi, float xi, float pBest, float gBest, float c1, float c2, float r1, float r2);
     };
 }
 
