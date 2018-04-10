@@ -289,7 +289,7 @@ namespace tless {
 
         // References to templates
         Template &tGt = templates[0], &tOrg = templates[1];
-        const int IT = 100, N = 100;
+        const int IT = 50, N = 50;
 
         // Precompute matrices
         cv::Size winSize(108, 108);
@@ -308,6 +308,7 @@ namespace tless {
         render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], org, orgNormals, orgVMatrix, orgMVPMatrix);
 
         // Compute edges
+
         cv::Laplacian(gt, gtEdges, -1);
         cv::threshold(gtEdges, gtEdges, 0.5f, 1, CV_THRESH_BINARY);
 
@@ -376,14 +377,14 @@ namespace tless {
                 if (p.fitness < gBest.fitness) {
                     gBest = p;
 
-//                    // Vizualization
-//                    m = gBest.model();
-//                    render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
+                    // Vizualization
+                    m = gBest.model();
+                    render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
                 }
 
-//                cv::imshow("imGBestNormals", imGBestNormals);
-//                cv::imshow("pose 2", poseNormals);
-//                cv::waitKey(1);
+                cv::imshow("imGBestNormals", imGBestNormals);
+                cv::imshow("pose 2", poseNormals);
+                cv::waitKey(1);
             }
         }
 
