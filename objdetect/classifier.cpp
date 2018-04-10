@@ -1,5 +1,6 @@
 #include "classifier.h"
 #include <boost/filesystem.hpp>
+#include <opencv2/rgbd.hpp>
 #include "../utils/timer.h"
 #include "../utils/visualizer.h"
 #include "../processing/processing.h"
@@ -274,14 +275,56 @@ namespace tless {
         // Load templates
         std::vector<Template> templates;
         Parser parser(criteria);
-        parser.parseObject("data/108x108/kinectv2/07/", templates, {28, 106});
+        parser.parseObject("data/108x108/kinectv2/07/", templates, {34, 34});
+
+        // Load scene
+        cv::Rect rectGT(278, 220, 270, 270);
+        Scene scene = parser.parseScene("data/scenes/kinectv2/02/", 1, 1, 0, 0);
+        cv::Mat sRGB = std::move(scene.pyramid[0].srcRGB);
+        cv::Mat sGray = std::move(scene.pyramid[0].srcGray);
+        cv::Mat sDepth = std::move(scene.pyramid[0].srcDepth);
+        cv::rectangle(sRGB, rectGT, cv::Scalar(0, 255, 0));
+
+        // Compute normals, edges, depth
+        cv::Mat sNormals, sEdge, snDepth;
+        cv::rgbd::RgbdNormals rgbdNormals(sDepth.rows, sDepth.cols, CV_32F, scene.pyramid[0].camera.K, 5, cv::rgbd::RgbdNormals::RGBD_NORMALS_METHOD_LINEMOD);
+        rgbdNormals(sDepth, sNormals);
+
+        // Edges
+        sDepth.convertTo(snDepth, CV_32F, 1.0f / 65365.0f);
+        cv::Laplacian(snDepth, sEdge, CV_32F, 5);
+        cv::threshold(sEdge, sEdge, 0.3f, 0, CV_THRESH_TRUNC);
+        cv::threshold(sEdge, sEdge, 0.02f, 1, CV_THRESH_BINARY);
+
+        // Crop
+        sNormals = sNormals(rectGT);
+        sEdge = sEdge(rectGT);
+        snDepth = snDepth(rectGT);
+
+        // Resize to 108
+        cv::resize(sNormals, sNormals, cv::Size(108, 108));
+        cv::resize(sEdge, sEdge, cv::Size(108, 108));
+        cv::resize(snDepth, snDepth, cv::Size(108, 108));
+        snDepth *= 1700;
+        
+        for (int y = 0; y < sNormals.rows; y++) {
+            for (int x = 0; x < sNormals.cols; x++) {
+                auto px = sNormals.at<cv::Vec3f>(y, x);
+                sNormals.at<cv::Vec3f>(y, x) = cv::Vec3f(-px[2], -px[1], px[0]);
+            }
+        }
+
+        cv::imshow("sNormals", sNormals);
+        cv::imshow("sEdge", sEdge);
+        cv::imshow("snDepth", snDepth);
+        cv::waitKey(0);
 
         // Generators
         static std::random_device rd;
         static std::mt19937 gen(rd());
         static std::uniform_real_distribution<float> dR(-0.3f, 0.3f);
-        static std::uniform_real_distribution<float> dT(-30, 30);
-        static std::uniform_real_distribution<float> dTz(-50, 100);
+        static std::uniform_real_distribution<float> dT(-15, 15);
+        static std::uniform_real_distribution<float> dTz(-50, -50);
         static std::uniform_real_distribution<float> dVT(0, 5);
         static std::uniform_real_distribution<float> dVTz(0, 10);
         static std::uniform_real_distribution<float> dVR(0, 0.4f);
@@ -312,9 +355,8 @@ namespace tless {
         cv::threshold(gtEdges, gtEdges, 0.5f, 1, CV_THRESH_BINARY);
 
         // Show org and ground truth
-        cv::imshow("Ground truth - Normals", gtNormals);
+//        cv::imshow("Ground truth - Normals", gtNormals);
         cv::imshow("Found match - Normals", orgNormals);
-        cv::waitKey(0);
 
         // Init particles
         glm::mat4 m;
@@ -328,11 +370,11 @@ namespace tless {
             particles.emplace_back(dT(gen), dT(gen), dTz(gen), dR(gen), dR(gen), dR(gen), dVT(gen), dVT(gen), dVTz(gen), dVR(gen), dVR(gen), dVR(gen));
 
             // Render depth image
-            glm::mat4 m = particles[i].model();
+            m = particles[i].model();
             render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], pose, poseNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
 
             // Compute fitness for new particle
-            particles[i].fitness = fitness(gt, gtNormals, gtEdges, pose, poseNormals);
+            particles[i].fitness = fitness(snDepth, sNormals, sEdge, pose, poseNormals);
 
             // Save gBest
             if (particles[i].fitness < gBest.fitness) {
@@ -365,7 +407,7 @@ namespace tless {
                 // Fitness
                 m = p.model();
                 render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], pose, poseNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-                p.fitness = fitness(gt, gtNormals, gtEdges, pose, poseNormals);
+                p.fitness = fitness(snDepth, sNormals, sEdge, pose, poseNormals);
 
                 // Check for pBest
                 if (p.fitness < p.pBest.fitness) {
@@ -374,16 +416,17 @@ namespace tless {
 
                 // Check for gBest
                 if (p.fitness < gBest.fitness) {
+                    std::cout << p.fitness << std::endl;
                     gBest = p;
 
-//                    // Vizualization
-//                    m = gBest.model();
-//                    render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
+                    // Vizualization
+                    m = gBest.model();
+                    render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
                 }
 
-//                cv::imshow("imGBestNormals", imGBestNormals);
-//                cv::imshow("pose 2", poseNormals);
-//                cv::waitKey(1);
+                cv::imshow("imGBestNormals", imGBestNormals);
+                cv::imshow("pose 2", poseNormals);
+                cv::waitKey(1);
             }
         }
 
@@ -437,8 +480,14 @@ namespace tless {
 
                 // Compare normals
                 float dot = std::abs(gtNormals.at<cv::Vec3f>(y, x).dot(poseNormals.at<cv::Vec3f>(y, x)));
-                sumU += 1 / (dot + 1);
+                sumU += std::isnan(dot) ? (1 / (inf + 1)) : (1 / (dot + 1));
             }
+        }
+
+        if (std::isnan(sumD) || std::isnan(sumE) || std::isnan(sumU)) {
+            std::cout << sumD << " ";
+            std::cout << sumU << " ";
+            std::cout << sumE << std::endl;
         }
 
         return -sumD * sumU * sumE;
