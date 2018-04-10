@@ -117,7 +117,7 @@ namespace tless {
     }
 
     void FinePose::estimate(std::vector<Match> &matches, const Scene &scene) {
-        const int IT = 50, N = 50;
+        const int IT = 100, N = 100;
         const float C1 = 0.1f, C2 = 0.1f, W = 0.80f;
 
         // TODO better handling for current pyramid
@@ -126,7 +126,7 @@ namespace tless {
         // Load templates
         std::vector<Template> templates;
         Parser parser(criteria);
-        parser.parseObject("data/108x108/kinectv2/07/", templates, {34, 34});
+        parser.parseObject("data/108x108/kinectv2/05/", templates, {44, 44});
 
         // Normalize min and max depths to look for objectness in
         auto minDepth = static_cast<int>(criteria->info.minDepth * depthNormalizationFactor(criteria->info.minDepth, criteria->depthDeviationFun));
@@ -134,7 +134,8 @@ namespace tless {
         auto minMag = static_cast<int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
 
         // Load scene
-        cv::Rect rectGT(283, 220, 400, 252);
+//        cv::Rect rectGT(283, 220, 274, 252);
+        cv::Rect rectGT(294, 93, 129, 142);
         cv::Mat sRGB = std::move(pyr.srcRGB);
         cv::Mat sGray = std::move(pyr.srcGray);
         cv::Mat sDepth = std::move(pyr.srcDepth);
@@ -166,13 +167,13 @@ namespace tless {
         // Generators
         static std::random_device rd;
         static std::mt19937 gen(rd());
-        static std::uniform_real_distribution<float> dR(-0.5f, 0.5f);
-        static std::uniform_real_distribution<float> dRZ(-1.0f, 0.5f);
-        static std::uniform_real_distribution<float> dT(-50, 50);
-        static std::uniform_real_distribution<float> dTZ(-50, 150);
+        static std::uniform_real_distribution<float> dR(-0.3f, 0.3f);
+        static std::uniform_real_distribution<float> dRZ(-0.3f, 0.3f);
+        static std::uniform_real_distribution<float> dT(-30, 30);
+        static std::uniform_real_distribution<float> dTZ(-30, 30);
         static std::uniform_real_distribution<float> dVT(0, 10);
         static std::uniform_real_distribution<float> dVTz(0, 10);
-        static std::uniform_real_distribution<float> dVR(0, 0.4f);
+        static std::uniform_real_distribution<float> dVR(0, 0.2f);
         static std::uniform_real_distribution<float> dRand(0, 1.0f);
 
         // References to templates

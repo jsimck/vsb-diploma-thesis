@@ -87,10 +87,10 @@ namespace tless {
         // Check which direction is larger
         if (resY > resX) {
             res = resY;
-            offsetX = (src.width - dst.width) / 2;
+            offsetX = (dst.width - dst.height) / 2;
         } else {
             res = resX;
-            offsetY = (src.height - dst.height) / 2;
+            offsetY = (dst.height - dst.width) / 2;
         }
 
         // Rescale
@@ -102,5 +102,10 @@ namespace tless {
         // Shift cam center
         K.at<float>(0, 2) += offsetX;
         K.at<float>(1, 2) += offsetY;
+
+        // Apply offset
+        const float offset = 50 * res;
+        K.at<float>(0, 0) -= offset;
+        K.at<float>(1, 1) -= offset;
     }
 }
