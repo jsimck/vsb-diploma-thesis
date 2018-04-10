@@ -117,169 +117,136 @@ namespace tless {
     }
 
     void FinePose::estimate(std::vector<Match> &matches, const Scene &scene) {
-        const int IT = 100, N = 100;
-        const float C1 = 0.1f, C2 = 0.1f, W = 0.80f;
-
-        // TODO better handling for current pyramid
-        auto &pyr = scene.pyramid[criteria->pyrLvlsDown];
-
-        // Load templates
-        std::vector<Template> templates;
-        Parser parser(criteria);
-        parser.parseObject("data/108x108/kinectv2/05/", templates, {44, 44});
-
-        // Normalize min and max depths to look for objectness in
-        auto minDepth = static_cast<int>(criteria->info.minDepth * depthNormalizationFactor(criteria->info.minDepth, criteria->depthDeviationFun));
-        auto maxDepth = static_cast<int>(criteria->info.maxDepth / depthNormalizationFactor(criteria->info.maxDepth, criteria->depthDeviationFun));
-        auto minMag = static_cast<int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
-
-        // Load scene
-//        cv::Rect rectGT(283, 220, 274, 252);
-        cv::Rect rectGT(294, 93, 129, 142);
-        cv::Mat sRGB = std::move(pyr.srcRGB);
-        cv::Mat sGray = std::move(pyr.srcGray);
-        cv::Mat sDepth = std::move(pyr.srcDepth);
-        cv::rectangle(sRGB, rectGT, cv::Scalar(0, 255, 0));
-
-        // Compute normals, edges, depth
-        cv::Mat sNormals, sEdge, snDepth;
-        depthEdgels(pyr.srcDepth, sEdge, minDepth, maxDepth, minMag);
-        sDepth.convertTo(snDepth, CV_32F, 1.0f / 65365.0f);
-
-        // Crop
-        sNormals = pyr.srcNormals3D(rectGT);
-        sEdge = sEdge(rectGT);
-        snDepth = snDepth(rectGT);
-
-        // Resize to 108
-//        cv::resize(sNormals, sNormals, cv::Size(SCR_WIDTH, SCR_HEIGHT));
-//        cv::resize(sEdge, sEdge, cv::Size(SCR_WIDTH, SCR_HEIGHT));
-//        cv::resize(snDepth, snDepth, cv::Size(SCR_WIDTH, SCR_HEIGHT));
-        snDepth *= 1550;
-
-        // Create FBO with given size and update viewport size
-        FrameBuffer fbo(rectGT.width, rectGT.height);
-
-        cv::imshow("sNormals", sNormals);
-        cv::imshow("sEdge", sEdge);
-        cv::imshow("snDepth", snDepth);
+        // Constants
+        const int IT = 50, N = 50;
+        const float C1 = 0.2f, C2 = 0.2f, W = 0.85f;
 
         // Generators
         static std::random_device rd;
         static std::mt19937 gen(rd());
-        static std::uniform_real_distribution<float> dR(-0.3f, 0.3f);
-        static std::uniform_real_distribution<float> dRZ(-0.3f, 0.3f);
-        static std::uniform_real_distribution<float> dT(-30, 30);
-        static std::uniform_real_distribution<float> dTZ(-30, 30);
+        static std::uniform_real_distribution<float> dR(-0.3f, 0);
+        static std::uniform_real_distribution<float> dRZ(-0.3f, 0);
+        static std::uniform_real_distribution<float> dT(-50, 50);
+        static std::uniform_real_distribution<float> dTZ(-50, 50);
         static std::uniform_real_distribution<float> dVT(0, 10);
         static std::uniform_real_distribution<float> dVTz(0, 10);
         static std::uniform_real_distribution<float> dVR(0, 0.2f);
         static std::uniform_real_distribution<float> dRand(0, 1.0f);
 
-        // References to templates
-        Template &tGt = templates[0], &tOrg = templates[1];
+        // Init scene
+        auto &pyr = scene.pyramid[criteria->pyrLvlsDown]; // TODO better handling of scene loading
+        cv::Mat sNormals, sEdge, sDepth;
 
-        // Rescale K
-        rescaleK(tGt.camera.K, cv::Size(108, 108), rectGT.size());
-        rescaleK(tOrg.camera.K, cv::Size(108, 108), rectGT.size());
+        // Normalize min and max depths to look for objectness in
+        auto minDepth = static_cast<int>(criteria->info.minDepth * depthNormalizationFactor(criteria->info.minDepth, criteria->depthDeviationFun));
+        auto maxDepth = static_cast<int>(criteria->info.maxDepth / depthNormalizationFactor(criteria->info.maxDepth, criteria->depthDeviationFun));
+        auto minMag = static_cast<int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
+        depthEdgels(pyr.srcDepth, sEdge, minDepth, maxDepth, minMag);
+        pyr.srcDepth.convertTo(sDepth, CV_32F, 1.0f / 65365.0f);
 
-        // Precompute matrices
-        glm::mat4 VMatrix = vMat(tGt.camera.R, tGt.camera.t);
-        glm::mat4 PMatrix = pMat(tGt.camera.K, 0, 0, rectGT.width, rectGT.height);
-        glm::mat4 MVPMatrix = mvpMat(glm::mat4(), VMatrix, PMatrix);
+        // Loop through mateches
+        for (auto &match : matches) {
+            // Enlarge BB
+            cv::Rect bb(match.normObjBB.x - 10, match.normObjBB.y - 10, match.normObjBB.width + 20, match.normObjBB.height + 20);
 
-        // Precompute src matrices
-        glm::mat4 orgVMatrix = vMat(tOrg.camera.R, tOrg.camera.t);
-        glm::mat4 orgPMatrix = pMat(tOrg.camera.K, 0, 0, rectGT.width, rectGT.height);
-        glm::mat4 orgMVPMatrix = mvpMat(glm::mat4(), orgVMatrix, orgPMatrix);
+            // Crop to current bounding box
+            cv::Mat normals, edges, depth;
+            normals = pyr.srcNormals3D(bb);
+            edges = sEdge(bb);
+            depth = sDepth(bb);
 
-        // Init GT depth
-        cv::Mat gt, org, gtNormals, orgNormals, gtEdges, gtT;
-        renderPose(fbo, meshes[tGt.objId], gt, gtNormals, VMatrix, MVPMatrix);
-        renderPose(fbo, meshes[tOrg.objId], org, orgNormals, orgVMatrix, orgMVPMatrix);
+            // Show cropped part of the scene
+            cv::imshow("normals", normals);
 
-        // Compute edges
-        cv::Laplacian(gt, gtEdges, -1);
-        cv::threshold(gtEdges, gtEdges, 0.5f, 1, CV_THRESH_BINARY);
+            // Create FBO with given size and update viewport size
+            FrameBuffer fbo(bb.width, bb.height);
 
-        // Show org and ground truth
-//        cv::imshow("Ground truth - Normals", gtNormals);
-        cv::imshow("Found match - Normals", orgNormals);
-        cv::waitKey(0);
+            // Rescale K
+            cv::Mat K = match.t->camera.K.clone();
+            rescaleK(K, match.t->objBB.size(), bb.size());
 
-        // Init particles
-        glm::mat4 m;
-        cv::Mat pose, poseNormals;
-        std::vector<Particle> particles;
-        Particle gBest;
-        gBest.fitness = 0;
+            // Precompute matrices
+            glm::mat4 VMatrix = vMat(match.t->camera.R, match.t->camera.t);
+            glm::mat4 PMatrix = pMat(K, 0, 0, bb.width, bb.height);
+            glm::mat4 VPMatrix = vpMat(VMatrix, PMatrix);
 
-        for (int i = 0; i < N; ++i) {
-            // Generate new particle
-            particles.emplace_back(dT(gen), dT(gen), dTZ(gen), dRZ(gen), dR(gen), dR(gen), dVT(gen), dVT(gen),
-                                   dVTz(gen), dVR(gen), dVR(gen), dVR(gen));
+            // Init particles
+            glm::mat4 m;
+            cv::Mat pose, poseNormals;
+            std::vector<Particle> particles;
 
-            // Render depth image
-            m = particles[i].model();
-            renderPose(fbo, meshes[tOrg.objId], pose, poseNormals, mvMat(m, orgVMatrix),
-                       mvpMat(m, orgVMatrix, orgPMatrix));
+            // Render match for reference
+            cv::Mat org, orgNormals;
+            renderPose(fbo, meshes[match.t->objId], org, orgNormals, VMatrix, VPMatrix);
+            cv::imshow("Found match", orgNormals);
 
-            // Compute fitness for new particle
-            particles[i].fitness = Particle::objFun(snDepth, sNormals, sEdge, pose, poseNormals);
+            // Init global best
+            Particle gBest;
+            gBest.fitness = 0;
 
-            // Save gBest
-            if (particles[i].fitness < gBest.fitness) {
-                gBest = particles[i];
-            }
-        }
+            // Generate initial particle positions
+            for (int i = 0; i < N; ++i) {
+                // Generate new particle
+                particles.emplace_back(dT(gen), dT(gen), dTZ(gen), dRZ(gen), dR(gen), dR(gen),
+                                       dVT(gen), dVT(gen), dVTz(gen), dVR(gen), dVR(gen), dVR(gen));
 
-        // PSO
-        cv::Mat imGBest, imGBestNormals;
-        m = gBest.model();
-        renderPose(fbo, meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix),
-                   mvpMat(m, orgVMatrix, orgPMatrix));
+                // Render depth image
+                m = particles[i].model();
+                renderPose(fbo, meshes[match.t->objId], pose, poseNormals, mvMat(m, VMatrix), mvpMat(m, VPMatrix));
 
-        // Generations
-        for (int i = 0; i < IT; i++) {
-            std::cout << "Iteration: " << i << std::endl;
+                // Compute fitness for new particle
+                particles[i].fitness = Particle::objFun(depth, normals, edges, pose, poseNormals);
 
-            for (auto &p : particles) {
-                // Progress (updates velocity and moves particle)
-                p.progress(W, C1, C2, gBest);
-
-                // Fitness
-                m = p.model();
-                renderPose(fbo, meshes[tOrg.objId], pose, poseNormals, mvMat(m, orgVMatrix),
-                           mvpMat(m, orgVMatrix, orgPMatrix));
-                p.fitness = Particle::objFun(snDepth, sNormals, sEdge, pose, poseNormals);
-
-                // Check for pBest
-                if (p.fitness < p.pBest.fitness) {
-                    p.updatePBest();
+                // Save gBest
+                if (particles[i].fitness < gBest.fitness) {
+                    gBest = particles[i];
                 }
-
-                // Check for gBest
-                if (p.fitness < gBest.fitness) {
-                    gBest = p;
-
-                    // Vizualization
-                    m = gBest.model();
-                    renderPose(fbo, meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix),
-                               mvpMat(m, orgVMatrix, orgPMatrix));
-                }
-
-                cv::imshow("imGBestNormals", imGBestNormals);
-                cv::imshow("pose 2", poseNormals);
-                cv::waitKey(1);
             }
-        }
 
-        // Show results
-        m = gBest.model();
-        renderPose(fbo, meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix),
-                   mvpMat(m, orgVMatrix, orgPMatrix));
-        cv::imshow("imGBestNormals", imGBestNormals);
-        cv::waitKey(0);
+            // PSO
+            cv::Mat imGBest, imGBestNormals;
+            m = gBest.model();
+            renderPose(fbo, meshes[match.t->objId], imGBest, imGBestNormals, mvMat(m, VMatrix), mvpMat(m, VPMatrix));
+
+            // Generations
+            for (int i = 0; i < IT; i++) {
+                std::cout << "Iteration: " << i << std::endl;
+
+                for (auto &p : particles) {
+                    // Progress (updates velocity and moves particle)
+                    p.progress(W, C1, C2, gBest);
+
+                    // Fitness
+                    m = p.model();
+                    renderPose(fbo, meshes[match.t->objId], pose, poseNormals, mvMat(m, VMatrix), mvpMat(m, VPMatrix));
+                    p.fitness = Particle::objFun(depth, normals, edges, pose, poseNormals);
+
+                    // Check for pBest
+                    if (p.fitness < p.pBest.fitness) {
+                        p.updatePBest();
+                    }
+
+                    // Check for gBest
+                    if (p.fitness < gBest.fitness) {
+                        gBest = p;
+
+                        // Vizualization
+                        m = gBest.model();
+                        renderPose(fbo, meshes[match.t->objId], imGBest, imGBestNormals, mvMat(m, VMatrix), mvpMat(m, VPMatrix));
+                    }
+
+                    cv::imshow("imGBestNormals", imGBestNormals);
+                    cv::imshow("pose 2", poseNormals);
+                    cv::waitKey(1);
+                }
+            }
+
+            // Show results
+            m = gBest.model();
+            renderPose(fbo, meshes[match.t->objId], imGBest, imGBestNormals, mvMat(m, VMatrix), mvpMat(m, VPMatrix));
+            cv::imshow("imGBestNormals", imGBestNormals);
+            cv::waitKey(0);
+        }
     }
 
     FinePose::~FinePose() {

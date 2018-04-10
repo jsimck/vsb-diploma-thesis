@@ -15,7 +15,7 @@ namespace tless {
         settings[SETTINGS_INFO] = true;
         settings[SETTINGS_FEATURE_POINT_STYLE] = true;
         settings[SETTINGS_FEATURE_POINT] = true;
-        settings[SETTINGS_TPL_OVERLAY] = true;
+        settings[SETTINGS_TPL_OVERLAY] = false;
     }
 
     cv::Mat Visualizer::loadTemplateSrc(const Template &tpl, int flags) {

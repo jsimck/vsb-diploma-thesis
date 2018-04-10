@@ -106,13 +106,7 @@ namespace tless {
             }
         }
 
-        if (std::isnan(sumD) || std::isnan(sumE) || std::isnan(sumU)) {
-            std::cout << sumD << " ";
-            std::cout << sumU << " ";
-            std::cout << sumE << std::endl;
-        }
-
-        return -sumD * sumU * sumE;
+        return -1 * sumU * sumE;
     }
 
     std::ostream &operator<<(std::ostream &os, const Particle &particle) {

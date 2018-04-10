@@ -70,6 +70,14 @@ namespace tless {
         return projection * view * model;
     }
 
+    glm::mat4 vpMat(const glm::mat4 &view, const glm::mat4 &projection) {
+        return projection * view;
+    }
+
+    glm::mat4 tless::mvpMat(const glm::mat4 &model, const glm::mat4 &viewProjection) {
+        return viewProjection * model;
+    }
+
     glm::mat4 tless::nMat(const glm::mat4 &modelView) {
         return glm::inverseTranspose(modelView);
     }

@@ -140,78 +140,74 @@ namespace tless {
         Visualizer viz(criteria);
         FinePose finePose(criteria, "data/shaders/", "data/meshes.txt");
 
-        // Test matches
-        matches.emplace_back(nullptr, cv::Rect(294, 93, 129, 142), 1.0f, 50, 600, 1, 1, 1, 1, 1);
-        matches.emplace_back(nullptr, cv::Rect(171, 198, 144, 104), 1.0f, 50, 600, 1, 1, 1, 1, 1);
-        matches.emplace_back(nullptr, cv::Rect(293, 230, 254, 232), 1.0f, 50, 600, 1, 1, 1, 1, 1);
+        // Load trained template data
+        load(trainedTemplatesListPath, trainedPath);
 
-        // Fine pose test
-        Scene scene = parser.parseScene(scenePath, 0, criteria->pyrScaleFactor, criteria->pyrLvlsDown, criteria->pyrLvlsUp);
-        finePose.estimate(matches, scene);
+        // Image pyramid
+        Scene scene;
+        const int pyrLevels = criteria->pyrLvlsDown + criteria->pyrLvlsUp;
 
-//        // Load trained template data
-//        load(trainedTemplatesListPath, trainedPath);
-//
-//        // Image pyramid
-//        const int pyrLevels = criteria->pyrLvlsDown + criteria->pyrLvlsUp;
-//
-//        // Timing
-//        Timer tTotal;
-//        double ttSceneLoading, ttObjectness, ttVerification, ttMatching, ttNMS;
-//        std::cout << "Matching started..." << std::endl << std::endl;
-//
-//        for (int i = 0; i < 503; ++i) {
-//            // Reset timers
-//            ttObjectness = ttVerification = ttMatching = 0;
-//            tTotal.reset();
-//
-//            // Load scene
-//            Timer tSceneLoading;
-//            scene = parser.parseScene(scenePath, i, criteria->pyrScaleFactor, criteria->pyrLvlsDown, criteria->pyrLvlsUp);
-//            ttSceneLoading = tSceneLoading.elapsed();
-//
-//            // Verification for a pyramid
-//            for (int l = 0; l <= pyrLevels; ++l) {
-//                // Objectness detection
-//                Timer tObjectness;
-//                objectness.objectness(scene.pyramid[l].srcDepth, windows);
-//                ttObjectness += tObjectness.elapsed();
-////                viz.objectness(scene.pyramid[l], windows);
-//
-//                /// Verification and filtering of template candidates
-//                if (windows.empty()) {
-//                    continue;
-//                }
-//
-//                Timer tVerification;
-//                hasher.verifyCandidates(scene.pyramid[l].srcDepth, scene.pyramid[l].srcNormals, tables, windows);
-//                ttVerification += tVerification.elapsed();
-//                viz.windowsCandidates(scene.pyramid[l], windows);
-//
-//                /// Match templates
-//                Timer tMatching;
-//                matcher.match(scene.pyramid[l], windows, matches);
-//                ttMatching += tMatching.elapsed();
-//                windows.clear();
-//            }
-//
-//            // Apply non-maxima suppression
-////            viz.preNonMaxima(scene.pyramid[criteria->pyrLvlsDown], matches);
-//            Timer tNMS;
-//            nms(matches, criteria->overlapFactor);
-//            ttNMS = tNMS.elapsed();
-//
-//            // Print results
-//            std::cout << std::endl << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
-//            std::cout << "  |_ Scene loading took: " << ttSceneLoading << "s" << std::endl;
-//            std::cout << "  |_ Objectness detection took: " << ttObjectness << "s" << std::endl;
-//            std::cout << "  |_ Hashing verification took: " << ttVerification << "s" << std::endl;
-//            std::cout << "  |_ Template matching took: " << ttMatching << "s" << std::endl;
-//            std::cout << "  |_ NMS took: " << ttNMS << "s" << std::endl;
-//
-//            // Vizualize results and clear current matches
-//            viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);
-//            matches.clear();
-//        }
+        // Timing
+        Timer tTotal;
+        double ttSceneLoading, ttObjectness, ttVerification, ttMatching, ttNMS;
+        std::cout << "Matching started..." << std::endl << std::endl;
+
+        for (int i = 5; i < 503; ++i) {
+            // Reset timers
+            ttObjectness = ttVerification = ttMatching = 0;
+            tTotal.reset();
+
+            // Load scene
+            Timer tSceneLoading;
+            scene = parser.parseScene(scenePath, i, criteria->pyrScaleFactor, criteria->pyrLvlsDown, criteria->pyrLvlsUp);
+            ttSceneLoading = tSceneLoading.elapsed();
+
+            // Verification for a pyramid
+            for (int l = 0; l <= pyrLevels; ++l) {
+                // Objectness detection
+                Timer tObjectness;
+                objectness.objectness(scene.pyramid[l].srcDepth, windows);
+                ttObjectness += tObjectness.elapsed();
+//                viz.objectness(scene.pyramid[l], windows);
+
+                /// Verification and filtering of template candidates
+                if (windows.empty()) {
+                    continue;
+                }
+
+                Timer tVerification;
+                hasher.verifyCandidates(scene.pyramid[l].srcDepth, scene.pyramid[l].srcNormals, tables, windows);
+                ttVerification += tVerification.elapsed();
+                viz.windowsCandidates(scene.pyramid[l], windows);
+
+                /// Match templates
+                Timer tMatching;
+                matcher.match(scene.pyramid[l], windows, matches);
+                ttMatching += tMatching.elapsed();
+                windows.clear();
+            }
+
+            // Apply non-maxima suppression
+//            viz.preNonMaxima(scene.pyramid[criteria->pyrLvlsDown], matches);
+            Timer tNMS;
+            nms(matches, criteria->overlapFactor);
+            ttNMS = tNMS.elapsed();
+
+            // Print results
+            std::cout << std::endl << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
+            std::cout << "  |_ Scene loading took: " << ttSceneLoading << "s" << std::endl;
+            std::cout << "  |_ Objectness detection took: " << ttObjectness << "s" << std::endl;
+            std::cout << "  |_ Hashing verification took: " << ttVerification << "s" << std::endl;
+            std::cout << "  |_ Template matching took: " << ttMatching << "s" << std::endl;
+            std::cout << "  |_ NMS took: " << ttNMS << "s" << std::endl;
+
+            // Vizualize results and clear current matches
+            viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);
+
+            // Apply fine pose estimation
+            finePose.estimate(matches, scene);
+
+            matches.clear();
+        }
     }
 }

@@ -57,6 +57,24 @@ namespace tless {
     glm::mat4 mvpMat(const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);
 
     /**
+     * @brief Calculates ModelViewProjection matrix.
+     *
+     * @param[in] model          Model matrix
+     * @param[in] viewProjection ViewProjection matrix
+     * @return                   ModelViewProjection matrix
+     */
+    glm::mat4 mvpMat(const glm::mat4 &model, const glm::mat4 &viewProjection);
+
+    /**
+     * @brief Calculates ViewProjection matrix.
+     *
+     * @param[in] view       View matrix
+     * @param[in] projection Projection matrix
+     * @return               ViewProjection matrix
+     */
+    glm::mat4 vpMat(const glm::mat4 &view, const glm::mat4 &projection);
+
+    /**
      * @brief Calculates Normal matrix.
      *
      * @param[in] model Model matrix
