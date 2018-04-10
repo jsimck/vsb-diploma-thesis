@@ -70,81 +70,37 @@ namespace tless {
         return projection * view * model;
     }
 
+    glm::mat4 tless::nMat(const glm::mat4 &modelView) {
+        return glm::inverseTranspose(modelView);
+    }
+
     glm::mat4 nMat(const glm::mat4 &model, const glm::mat4 &view) {
-        return glm::inverseTranspose(view * model);
+        return nMat(view * model);
     }
 
-    void drawDepth(const Template &tpl, const FrameBuffer &fbo, const Shader &shader, const Mesh &mesh, cv::Mat &dst, const glm::mat4 &modelView, const glm::mat4 &modelViewProjection) {
-        // Render
-        fbo.bind();
-        glEnable(GL_DEPTH_TEST);
+    void tless::rescaleK(cv::Mat &K, const cv::Size &src, const cv::Size &dst) {
+        // Compute resize ratio in X and Y
+        float resX = dst.width / static_cast<float>(src.width);
+        float resY = dst.height / static_cast<float>(src.height);
 
-        glClearColor(0, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Activate shader and set uniforms
-        shader.use();
-        shader.setMat4("MVMatrix", modelView);
-        shader.setMat4("MVPMatrix", modelViewProjection);
-
-        // Draw mesh
-        mesh.draw();
-
-        // Read data from frame buffer
-        dst = cv::Mat::zeros(Classifier::SCR_HEIGHT, Classifier::SCR_WIDTH, CV_32FC3);
-        glReadPixels(0, 0, Classifier::SCR_WIDTH, Classifier::SCR_HEIGHT, GL_BGR, GL_FLOAT, dst.data);
-
-        // Unbind frame buffer
-        fbo.unbind();
-        glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-
-        // Convert to 1-channel
-        cv::cvtColor(dst, dst, CV_BGR2GRAY);
-        cv::normalize(dst, dst, 0, 1, CV_MINMAX);
+        // Rescale
+        K.at<float>(0, 0) *= resX;
+        K.at<float>(0, 2) *= resX;
+        K.at<float>(1, 1) *= resY;
+        K.at<float>(1, 2) *= resY;
     }
 
-    void render(const Template &tpl, const FrameBuffer &fbo, const Shader &depthShader, const Shader &normalShader, const Mesh &mesh, cv::Mat &depth, cv::Mat &normals, const glm::mat4 &modelView, const glm::mat4 &modelViewProjection) {
-        // Render
-        fbo.bind();
+    void rescaleK(cv::Mat &K, const cv::Rect &src, const cv::Rect &dst) {
+        // Compute resize ratio in X and Y
+        float resX = dst.width / static_cast<float>(src.width);
+        float resY = dst.height / static_cast<float>(src.height);
 
-        /// NORMALS
-        // Clear buffer
-        glClearColor(0, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Activate shader and set uniforms
-        normalShader.use();
-        normalShader.setMat4("NMatrix", glm::inverseTranspose(modelView));
-        normalShader.setMat4("MVPMatrix", modelViewProjection);
-
-        // Draw mesh
-        mesh.draw();
-
-        // Read data from frame buffer
-        normals = cv::Mat::zeros(Classifier::SCR_HEIGHT, Classifier::SCR_WIDTH, CV_32FC3);
-        glReadPixels(0, 0, Classifier::SCR_WIDTH, Classifier::SCR_HEIGHT, GL_BGR, GL_FLOAT, normals.data);
-
-        /// DEPTH
-        // Clear buffer
-        glClearColor(0, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Activate shader and set uniforms
-        depthShader.use();
-        depthShader.setMat4("MVMatrix", modelView);
-        depthShader.setMat4("MVPMatrix", modelViewProjection);
-
-        // Draw mesh
-        mesh.draw();
-
-        // Read data from frame buffer
-        depth = cv::Mat::zeros(Classifier::SCR_HEIGHT, Classifier::SCR_WIDTH, CV_32FC3);
-        glReadPixels(0, 0, Classifier::SCR_WIDTH, Classifier::SCR_HEIGHT, GL_BGR, GL_FLOAT, depth.data);
-
-        // Unbind frame buffer
-        fbo.unbind();
-
-        // Convert to 1-channel and normalize depth
-        cv::cvtColor(depth, depth, CV_BGR2GRAY);
+        // Rescale
+        K.at<float>(0, 0) *= resX;
+        K.at<float>(0, 2) *= resX;
+        K.at<float>(1, 1) *= resY;
+        K.at<float>(1, 2) *= resY;
+        K.at<float>(0, 2) += (src.x - dst.x) * resX;
+        K.at<float>(1, 2) += (src.y - dst.y) * resY;
     }
 }

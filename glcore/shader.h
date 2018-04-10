@@ -22,14 +22,14 @@ namespace tless {
          * @param[in] vertexShader   Vertex shader code
          * @param[in] fragmentShader Fragment shader code
          */
-        void init(const char *vertexShader, const char *fragmentShader);
+        void init(const std::string &vertexShader, const std::string &fragmentShader);
 
     public:
         GLuint id;
         static const int TYPE_VERTEX = 0, TYPE_FRAGMENT = 1, TYPE_PROGRAM = 2;
 
         Shader() = default;
-        Shader(const char *vertexPath, const char *fragmentPath);
+        Shader(const std::string &vertexPath, const std::string &fragmentPath);
 
         /**
          * @brief Utility function which loads and compiles vertex and fragment shaders from given path
@@ -37,7 +37,7 @@ namespace tless {
          * @param[in] vertexPath   Path to vertex shader file
          * @param[in] fragmentPath Path to fragment shader file
          */
-        void load(const char *vertexPath, const char *fragmentPath);
+        void load(const std::string &vertexPath, const std::string &fragmentPath);
 
         /**
          * @brief Call when you want to use this shader for rendering

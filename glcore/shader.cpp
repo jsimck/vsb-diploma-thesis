@@ -24,19 +24,21 @@ namespace tless {
         }
     }
 
-    void Shader::init(const char *vertexShader, const char *fragmentShader) {
+    void Shader::init(const std::string &vertexShader, const std::string &fragmentShader) {
         // Compile shaders
         GLuint vertex, fragment;
+        const char *vertexSource = vertexShader.c_str();
+        const char *fragmentSource = fragmentShader.c_str();
 
         // Vertex Shader
         vertex = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertex, 1, &vertexShader, nullptr);
+        glShaderSource(vertex, 1, &vertexSource, nullptr);
         glCompileShader(vertex);
         checkCompileErrors(vertex, TYPE_VERTEX);
 
         // Fragment Shader
         fragment = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragment, 1, &fragmentShader, nullptr);
+        glShaderSource(fragment, 1, &fragmentSource, nullptr);
         glCompileShader(fragment);
         checkCompileErrors(fragment, TYPE_FRAGMENT);
 
@@ -52,7 +54,7 @@ namespace tless {
         glDeleteShader(fragment);
     }
 
-    void Shader::load(const char *vertexPath, const char *fragmentPath) {
+    void Shader::load(const std::string &vertexPath, const std::string &fragmentPath) {
         std::string vCode, fCode;
         std::ifstream vifs, fifs;
 
@@ -87,7 +89,7 @@ namespace tless {
         init(c_vCode, c_fCode);
     }
 
-    Shader::Shader(const char *vertexPath, const char *fragmentPath) {
+    Shader::Shader(const std::string &vertexPath, const std::string &fragmentPath) {
         load(vertexPath, fragmentPath);
     }
 

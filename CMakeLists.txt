@@ -51,7 +51,7 @@ set(SOURCE_FILES
     glcore/shader.cpp
     libs/tinyply.h
     libs/tinyply.cpp
-        core/particle.cpp core/particle.h glcore/frame_buffer.cpp glcore/frame_buffer.h)
+        core/particle.cpp core/particle.h glcore/frame_buffer.cpp glcore/frame_buffer.h objdetect/fine_pose.cpp objdetect/fine_pose.h)
 
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})

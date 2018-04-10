@@ -65,7 +65,30 @@ namespace tless {
      */
     glm::mat4 nMat(const glm::mat4 &model, const glm::mat4 &view);
 
-    void render(const Template &tpl, const FrameBuffer &fbo, const Shader &depthShader, const Shader &normalShader, const Mesh &mesh, cv::Mat &depth, cv::Mat &normals, const glm::mat4 &modelView, const glm::mat4 &modelViewProjection);
+    /**
+     * @brief Calculates Normal matrix.
+     *
+     * @param[in] modelView ModelView matrix
+     * @return              Normal matrix
+     */
+    glm::mat4 nMat(const glm::mat4 &modelView);
+
+    /**
+     * @brief Recalculates camera intristic params based on new size.
+     *
+     * @param[in,out] K   Camera K matrix
+     * @param[in]     src Source img size
+     * @param[in]     dst Destination img size
+     */
+    void rescaleK(cv::Mat &K, const cv::Size &src, const cv::Size &dst);
+
+    /**
+     * @brief Recalculates camera intristic params based on the differences between two new windows.
+     * @param[in,out] K   Camera K matrix
+     * @param[in]     src Source img bounding box
+     * @param[in]     dst Destination img bounding box
+     */
+    void rescaleK(cv::Mat &K, const cv::Rect &src, const cv::Rect &dst);
 }
 
 #endif

@@ -1,77 +1,13 @@
 #include "classifier.h"
 #include <boost/filesystem.hpp>
-#include <opencv2/rgbd.hpp>
 #include "../utils/timer.h"
 #include "../utils/visualizer.h"
 #include "../processing/processing.h"
 #include "../utils/glutils.h"
 #include "../core/particle.h"
+#include "fine_pose.h"
 
 namespace tless {
-    Classifier::Classifier(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {
-        // Init opengl
-        initGL();
-    }
-
-    void Classifier::initGL() {
-        // GLFW init and config
-        glfwInit();
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-#ifdef __APPLE__
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
-#endif
-
-        // GLFW window creation
-        GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "DrawDepth", NULL, NULL);
-
-        if (window == NULL) {
-            std::cout << "Failed to create GLFW window" << std::endl;
-            glfwTerminate();
-            return;
-        }
-
-        glfwMakeContextCurrent(window);
-        glfwHideWindow(window);
-        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-
-        // Init Glew after GLFW init
-        if (glewInit()) {
-            std::cerr << "Failed to initialize GLXW" << std::endl;
-            return;
-        }
-
-        // Init Opengl global settings
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
-
-        // Init shaders, meshes and FBO
-        initShaders();
-        initMeshes("data/meshes.txt"); // TODO add into classifier param
-        fbo.init();
-    }
-
-    void Classifier::initShaders() {
-        shaders[SHADER_DEPTH] = Shader("data/shaders/depth.vert", "data/shaders/depth.frag");
-        shaders[SHADER_NORMAL] = Shader("data/shaders/normal.vert", "data/shaders/normal.frag");
-    }
-
-    void Classifier::initMeshes(const std::string &meshesListPath) {
-        std::ifstream ifs(meshesListPath);
-        std::string path;
-        int id;
-
-        while (ifs >> id) {
-            ifs >> path;
-            meshes[id] = Mesh(path);
-        }
-
-        ifs.close();
-    }
-
     void Classifier::train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices) {
         std::ifstream ifs(templatesListPath);
         assert(ifs.is_open());
@@ -202,302 +138,75 @@ namespace tless {
         Hasher hasher(criteria);
         Matcher matcher(criteria);
         Visualizer viz(criteria);
-        Scene scene;
+        FinePose finePose(criteria, "data/shaders/", "data/meshes.txt");
 
-        // Load trained template data
-        load(trainedTemplatesListPath, trainedPath);
+        // Fine pose test
+        Scene scene = parser.parseScene(scenePath, 0, criteria->pyrScaleFactor, criteria->pyrLvlsDown, criteria->pyrLvlsUp);
+        finePose.estimate(matches, scene);
 
-        // Image pyramid
-        const int pyrLevels = criteria->pyrLvlsDown + criteria->pyrLvlsUp;
-
-        // Timing
-        Timer tTotal;
-        double ttSceneLoading, ttObjectness, ttVerification, ttMatching, ttNMS;
-        std::cout << "Matching started..." << std::endl << std::endl;
-
-        for (int i = 0; i < 503; ++i) {
-            // Reset timers
-            ttObjectness = ttVerification = ttMatching = 0;
-            tTotal.reset();
-
-            // Load scene
-            Timer tSceneLoading;
-            scene = parser.parseScene(scenePath, i, criteria->pyrScaleFactor, criteria->pyrLvlsDown, criteria->pyrLvlsUp);
-            ttSceneLoading = tSceneLoading.elapsed();
-
-            // Verification for a pyramid
-            for (int l = 0; l <= pyrLevels; ++l) {
-                // Objectness detection
-                Timer tObjectness;
-                objectness.objectness(scene.pyramid[l].srcDepth, windows);
-                ttObjectness += tObjectness.elapsed();
-//                viz.objectness(scene.pyramid[l], windows);
-
-                /// Verification and filtering of template candidates
-                if (windows.empty()) {
-                    continue;
-                }
-
-                Timer tVerification;
-                hasher.verifyCandidates(scene.pyramid[l].srcDepth, scene.pyramid[l].srcNormals, tables, windows);
-                ttVerification += tVerification.elapsed();
-                viz.windowsCandidates(scene.pyramid[l], windows);
-
-                /// Match templates
-                Timer tMatching;
-                matcher.match(scene.pyramid[l], windows, matches);
-                ttMatching += tMatching.elapsed();
-                windows.clear();
-            }
-
-            // Apply non-maxima suppression
-//            viz.preNonMaxima(scene.pyramid[criteria->pyrLvlsDown], matches);
-            Timer tNMS;
-            nms(matches, criteria->overlapFactor);
-            ttNMS = tNMS.elapsed();
-
-            // Print results
-            std::cout << std::endl << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
-            std::cout << "  |_ Scene loading took: " << ttSceneLoading << "s" << std::endl;
-            std::cout << "  |_ Objectness detection took: " << ttObjectness << "s" << std::endl;
-            std::cout << "  |_ Hashing verification took: " << ttVerification << "s" << std::endl;
-            std::cout << "  |_ Template matching took: " << ttMatching << "s" << std::endl;
-            std::cout << "  |_ NMS took: " << ttNMS << "s" << std::endl;
-
-            // Vizualize results and clear current matches
-            viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);
-            matches.clear();
-        }
-    }
-
-    void Classifier::testPSO() {
-        // Load templates
-        std::vector<Template> templates;
-        Parser parser(criteria);
-        parser.parseObject("data/108x108/kinectv2/07/", templates, {34, 34});
-
-        // Load scene
-        cv::Rect rectGT(278, 220, 270, 270);
-        Scene scene = parser.parseScene("data/scenes/kinectv2/02/", 1, 1, 0, 0);
-        cv::Mat sRGB = std::move(scene.pyramid[0].srcRGB);
-        cv::Mat sGray = std::move(scene.pyramid[0].srcGray);
-        cv::Mat sDepth = std::move(scene.pyramid[0].srcDepth);
-        cv::rectangle(sRGB, rectGT, cv::Scalar(0, 255, 0));
-
-        // Compute normals, edges, depth
-        cv::Mat sNormals, sEdge, snDepth;
-        cv::rgbd::RgbdNormals rgbdNormals(sDepth.rows, sDepth.cols, CV_32F, scene.pyramid[0].camera.K, 5, cv::rgbd::RgbdNormals::RGBD_NORMALS_METHOD_LINEMOD);
-        rgbdNormals(sDepth, sNormals);
-
-        // Edges
-        sDepth.convertTo(snDepth, CV_32F, 1.0f / 65365.0f);
-        cv::Laplacian(snDepth, sEdge, CV_32F, 5);
-        cv::threshold(sEdge, sEdge, 0.3f, 0, CV_THRESH_TRUNC);
-        cv::threshold(sEdge, sEdge, 0.02f, 1, CV_THRESH_BINARY);
-
-        // Crop
-        sNormals = sNormals(rectGT);
-        sEdge = sEdge(rectGT);
-        snDepth = snDepth(rectGT);
-
-        // Resize to 108
-//        cv::resize(sNormals, sNormals, cv::Size(SCR_WIDTH, SCR_HEIGHT));
-//        cv::resize(sEdge, sEdge, cv::Size(SCR_WIDTH, SCR_HEIGHT));
-//        cv::resize(snDepth, snDepth, cv::Size(SCR_WIDTH, SCR_HEIGHT));
-        snDepth *= 1700;
-        
-        for (int y = 0; y < sNormals.rows; y++) {
-            for (int x = 0; x < sNormals.cols; x++) {
-                auto px = sNormals.at<cv::Vec3f>(y, x);
-                sNormals.at<cv::Vec3f>(y, x) = cv::Vec3f(-px[2], -px[1], px[0]);
-            }
-        }
-
-        cv::imshow("sNormals", sNormals);
-        cv::imshow("sEdge", sEdge);
-        cv::imshow("snDepth", snDepth);
-
-        // Generators
-        static std::random_device rd;
-        static std::mt19937 gen(rd());
-        static std::uniform_real_distribution<float> dR(-0.3f, 0.3f);
-        static std::uniform_real_distribution<float> dT(-15, 15);
-        static std::uniform_real_distribution<float> dTz(-50, -50);
-        static std::uniform_real_distribution<float> dVT(0, 5);
-        static std::uniform_real_distribution<float> dVTz(0, 10);
-        static std::uniform_real_distribution<float> dVR(0, 0.4f);
-        static std::uniform_real_distribution<float> dRand(0, 1.0f);
-
-        // References to templates
-        Template &tGt = templates[0], &tOrg = templates[1];
-        const int IT = 100, N = 100;
-
-        // Rescale K
-        rescaleK(tGt.camera.K, 270.0f / 108.0f);
-        rescaleK(tOrg.camera.K, 270.0f / 108.0f);
-
-        // Precompute matrices
-        glm::mat4 VMatrix = vMat(tGt.camera.R, tGt.camera.t);
-        glm::mat4 PMatrix = pMat(tGt.camera.K, 0, 0, SCR_WIDTH, SCR_HEIGHT);
-        glm::mat4 MVPMatrix = mvpMat(glm::mat4(), VMatrix, PMatrix);
-
-        // Precompute src matrices
-        glm::mat4 orgVMatrix = vMat(tOrg.camera.R, tOrg.camera.t);
-        glm::mat4 orgPMatrix = pMat(tOrg.camera.K, 0, 0, SCR_WIDTH, SCR_HEIGHT);
-        glm::mat4 orgMVPMatrix = mvpMat(glm::mat4(), orgVMatrix, orgPMatrix);
-
-        // Init GT depth
-        cv::Mat gt, org, gtNormals, orgNormals, gtEdges, gtT;
-        render(tGt, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tGt.objId], gt, gtNormals, VMatrix, MVPMatrix);
-        render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], org, orgNormals, orgVMatrix, orgMVPMatrix);
-
-        // Compute edges
-        cv::Laplacian(gt, gtEdges, -1);
-        cv::threshold(gtEdges, gtEdges, 0.5f, 1, CV_THRESH_BINARY);
-
-        // Show org and ground truth
-//        cv::imshow("Ground truth - Normals", gtNormals);
-        cv::imshow("Found match - Normals", orgNormals);
-
-        // Init particles
-        glm::mat4 m;
-        cv::Mat pose, poseNormals;
-        std::vector<Particle> particles;
-        Particle gBest;
-        gBest.fitness = 0;
-
-        for (int i = 0; i < N; ++i) {
-            // Generate new particle
-            particles.emplace_back(dT(gen), dT(gen), dTz(gen), dR(gen), dR(gen), dR(gen), dVT(gen), dVT(gen), dVTz(gen), dVR(gen), dVR(gen), dVR(gen));
-
-            // Render depth image
-            m = particles[i].model();
-            render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], pose, poseNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-
-            // Compute fitness for new particle
-            particles[i].fitness = fitness(snDepth, sNormals, sEdge, pose, poseNormals);
-
-            // Save gBest
-            if (particles[i].fitness < gBest.fitness) {
-                gBest = particles[i];
-            }
-        }
-
-        // PSO
-        cv::Mat imGBest, imGBestNormals;
-        m = gBest.model();
-        render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-        const float C1 = 0.3f, C2 = 0.3f, W = 0.90f;
-
-        // Generations
-        for (int i = 0; i < IT; i++) {
-            std::cout << "Iteration: " << i << std::endl;
-
-            for (auto &p : particles) {
-                // Compute velocity
-                p.v1 = computeVelocity(W, p.v1, p.tx, p.pBest.tx, gBest.tx, C1, C2, dRand(gen), dRand(gen));
-                p.v2 = computeVelocity(W, p.v2, p.ty, p.pBest.ty, gBest.ty, C1, C2, dRand(gen), dRand(gen));
-                p.v3 = computeVelocity(W, p.v3, p.tz, p.pBest.tz, gBest.tz, C1, C2, dRand(gen), dRand(gen));
-                p.v4 = computeVelocity(W, p.v4, p.rx, p.pBest.rx, gBest.rx, C1, C2, dRand(gen), dRand(gen));
-                p.v5 = computeVelocity(W, p.v5, p.ry, p.pBest.ry, gBest.ry, C1, C2, dRand(gen), dRand(gen));
-                p.v6 = computeVelocity(W, p.v6, p.rz, p.pBest.rz, gBest.rz, C1, C2, dRand(gen), dRand(gen));
-
-                // Update
-                p.update();
-
-                // Fitness
-                m = p.model();
-                render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], pose, poseNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-                p.fitness = fitness(snDepth, sNormals, sEdge, pose, poseNormals);
-
-                // Check for pBest
-                if (p.fitness < p.pBest.fitness) {
-                    p.updatePBest();
-                }
-
-                // Check for gBest
-                if (p.fitness < gBest.fitness) {
-                    std::cout << p.fitness << std::endl;
-                    gBest = p;
-
-                    // Vizualization
-                    m = gBest.model();
-                    render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-                }
-
-                cv::imshow("imGBestNormals", imGBestNormals);
-                cv::imshow("pose 2", poseNormals);
-                cv::waitKey(1);
-            }
-        }
-
-        // Show results
-        m = gBest.model();
-        render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-        cv::imshow("imGBestNormals", imGBestNormals);
-        cv::waitKey(0);
-    }
-
-    Classifier::~Classifier() {
-        glfwDestroyWindow(window);
-        glfwTerminate();
-    }
-
-    float Classifier::computeVelocity(float w, float vi, float xi, float pBest, float gBest, float c1, float c2, float r1, float r2) {
-        return w * vi + (c1 * r1) * (pBest - xi) + (c2 * r2) * (gBest - xi);
-    }
-
-    float Classifier::fitness(const cv::Mat &gt, const cv::Mat &gtNormals, const cv::Mat &gtEdges, const cv::Mat &pose, const cv::Mat &poseNormals) {
-        float sumD = 0, sumU = 0, sumE = 0;
-        const float tD = 20;
-        const float inf = std::numeric_limits<float>::max();
-
-        // Compute edges
-        cv::Mat poseT, poseEdges;
-        cv::Laplacian(pose, poseEdges, -1);
-        cv::threshold(poseEdges, poseEdges, 0.5f, 255, CV_THRESH_BINARY_INV);
-        poseEdges.convertTo(poseEdges, CV_8U);
-        cv::distanceTransform(poseEdges, poseT, CV_DIST_L2, 3);
-
-        for (int y = 0; y < gt.rows; y++) {
-            for (int x = 0; x < gt.cols; x++) {
-                // Compute distance transform
-                if (gtEdges.at<float>(y, x) > 0) {
-                    sumE += 1 / (poseT.at<float>(y, x) + 1);
-                }
-
-                // Skip invalid depth pixels for other tests pixels
-                if (pose.at<float>(y, x) <= 0) {
-                    continue;
-                }
-
-                // Compute depth diff
-                float dDiff = std::abs(gt.at<float>(y, x) - pose.at<float>(y, x));
-                if (dDiff > tD) {
-                    sumD += 1 / inf;
-                } else {
-                    sumD += 1 / (dDiff + 1);
-                }
-
-                // Compare normals
-                float dot = std::abs(gtNormals.at<cv::Vec3f>(y, x).dot(poseNormals.at<cv::Vec3f>(y, x)));
-                sumU += std::isnan(dot) ? (1 / (inf + 1)) : (1 / (dot + 1));
-            }
-        }
-
-        if (std::isnan(sumD) || std::isnan(sumE) || std::isnan(sumU)) {
-            std::cout << sumD << " ";
-            std::cout << sumU << " ";
-            std::cout << sumE << std::endl;
-        }
-
-        return -sumD * sumU * sumE;
-    }
-
-    void Classifier::rescaleK(cv::Mat &K, float scale) {
-        K.at<float>(0, 0) *= scale;
-        K.at<float>(0, 2) *= scale;
-        K.at<float>(1, 1) *= scale;
-        K.at<float>(1, 2) *= scale;
+//        // Load trained template data
+//        load(trainedTemplatesListPath, trainedPath);
+//
+//        // Image pyramid
+//        const int pyrLevels = criteria->pyrLvlsDown + criteria->pyrLvlsUp;
+//
+//        // Timing
+//        Timer tTotal;
+//        double ttSceneLoading, ttObjectness, ttVerification, ttMatching, ttNMS;
+//        std::cout << "Matching started..." << std::endl << std::endl;
+//
+//        for (int i = 0; i < 503; ++i) {
+//            // Reset timers
+//            ttObjectness = ttVerification = ttMatching = 0;
+//            tTotal.reset();
+//
+//            // Load scene
+//            Timer tSceneLoading;
+//            scene = parser.parseScene(scenePath, i, criteria->pyrScaleFactor, criteria->pyrLvlsDown, criteria->pyrLvlsUp);
+//            ttSceneLoading = tSceneLoading.elapsed();
+//
+//            // Verification for a pyramid
+//            for (int l = 0; l <= pyrLevels; ++l) {
+//                // Objectness detection
+//                Timer tObjectness;
+//                objectness.objectness(scene.pyramid[l].srcDepth, windows);
+//                ttObjectness += tObjectness.elapsed();
+////                viz.objectness(scene.pyramid[l], windows);
+//
+//                /// Verification and filtering of template candidates
+//                if (windows.empty()) {
+//                    continue;
+//                }
+//
+//                Timer tVerification;
+//                hasher.verifyCandidates(scene.pyramid[l].srcDepth, scene.pyramid[l].srcNormals, tables, windows);
+//                ttVerification += tVerification.elapsed();
+//                viz.windowsCandidates(scene.pyramid[l], windows);
+//
+//                /// Match templates
+//                Timer tMatching;
+//                matcher.match(scene.pyramid[l], windows, matches);
+//                ttMatching += tMatching.elapsed();
+//                windows.clear();
+//            }
+//
+//            // Apply non-maxima suppression
+////            viz.preNonMaxima(scene.pyramid[criteria->pyrLvlsDown], matches);
+//            Timer tNMS;
+//            nms(matches, criteria->overlapFactor);
+//            ttNMS = tNMS.elapsed();
+//
+//            // Print results
+//            std::cout << std::endl << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
+//            std::cout << "  |_ Scene loading took: " << ttSceneLoading << "s" << std::endl;
+//            std::cout << "  |_ Objectness detection took: " << ttObjectness << "s" << std::endl;
+//            std::cout << "  |_ Hashing verification took: " << ttVerification << "s" << std::endl;
+//            std::cout << "  |_ Template matching took: " << ttMatching << "s" << std::endl;
+//            std::cout << "  |_ NMS took: " << ttNMS << "s" << std::endl;
+//
+//            // Vizualize results and clear current matches
+//            viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);
+//            matches.clear();
+//        }
     }
 }
