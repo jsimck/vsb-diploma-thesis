@@ -14,21 +14,21 @@
 namespace tless {
     class FinePose {
     private:
-        cv::Ptr<ClassifierCriteria> criteria;
         GLFWwindow *window;
-
-        FrameBuffer fbo;
         std::unordered_map<int, Mesh> meshes;
         std::unordered_map<int, Shader> shaders;
+        cv::Ptr<ClassifierCriteria> criteria;
+
         const int SHADER_DEPTH = 0, SHADER_NORMAL = 1;
 
         void initOpenGL();
         void loadShaders(const std::string &shadersBasePath);
         void loadMeshes(const std::string &meshesListPath);
 
-        void renderPose(const Mesh &mesh, cv::Mat &depth, cv::Mat &normals, const glm::mat4 &modelView, const glm::mat4 &modelViewProjection);
+        void renderPose(const FrameBuffer &fbo, const Mesh &mesh, cv::Mat &depth, cv::Mat &normals,
+                        const glm::mat4 &modelView, const glm::mat4 &modelViewProjection);
     public:
-        static const int SCR_WIDTH = 270, SCR_HEIGHT = 270;
+        static const int SCR_WIDTH = 800, SCR_HEIGHT = 600;
 
         FinePose(cv::Ptr<ClassifierCriteria> criteria, const std::string &shadersBasePath, const std::string &meshesListPath);
         ~FinePose();

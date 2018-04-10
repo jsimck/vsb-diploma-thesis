@@ -4,6 +4,7 @@
 #include "../utils/parser.h"
 #include "../utils/glutils.h"
 #include "../core/particle.h"
+#include "../processing/processing.h"
 
 namespace tless {
     void FinePose::initOpenGL() {
@@ -69,12 +70,10 @@ namespace tless {
         // Load shaders and meshes
         loadShaders(shadersBasePath);
         loadMeshes(meshesListPath);
-
-        // Init frame buffer
-        fbo.init();
     }
 
-    void FinePose::renderPose(const Mesh &mesh, cv::Mat &depth, cv::Mat &normals, const glm::mat4 &modelView, const glm::mat4 &modelViewProjection) {
+    void FinePose::renderPose(const FrameBuffer &fbo, const Mesh &mesh, cv::Mat &depth, cv::Mat &normals,
+                                  const glm::mat4 &modelView, const glm::mat4 &modelViewProjection) {
         // Bind frame buffer
         fbo.bind();
 
@@ -91,8 +90,8 @@ namespace tless {
         mesh.draw();
 
         // Read data from frame buffer
-        normals = cv::Mat::zeros(SCR_HEIGHT, SCR_WIDTH, CV_32FC3);
-        glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_BGR, GL_FLOAT, normals.data);
+        normals = cv::Mat::zeros(fbo.height, fbo.width, CV_32FC3);
+        glReadPixels(0, 0, fbo.width, fbo.height, GL_BGR, GL_FLOAT, normals.data);
 
         /// DEPTH
         glClearColor(0, 0, 0, 0);
@@ -107,8 +106,8 @@ namespace tless {
         mesh.draw();
 
         // Read data from frame buffer
-        depth = cv::Mat::zeros(SCR_HEIGHT, SCR_WIDTH, CV_32FC3);
-        glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_BGR, GL_FLOAT, depth.data);
+        depth = cv::Mat::zeros(fbo.height, fbo.width, CV_32FC3);
+        glReadPixels(0, 0, fbo.width, fbo.height, GL_BGR, GL_FLOAT, depth.data);
 
         // Unbind frame buffer
         fbo.unbind();
@@ -118,6 +117,9 @@ namespace tless {
     }
 
     void FinePose::estimate(std::vector<Match> &matches, const Scene &scene) {
+        const int IT = 50, N = 50;
+        const float C1 = 0.1f, C2 = 0.1f, W = 0.80f;
+
         // TODO better handling for current pyramid
         auto &pyr = scene.pyramid[criteria->pyrLvlsDown];
 
@@ -126,11 +128,13 @@ namespace tless {
         Parser parser(criteria);
         parser.parseObject("data/108x108/kinectv2/07/", templates, {34, 34});
 
-        cv::imshow("Normals", pyr.srcNormals3D);
-        cv::waitKey(0);
+        // Normalize min and max depths to look for objectness in
+        auto minDepth = static_cast<int>(criteria->info.minDepth * depthNormalizationFactor(criteria->info.minDepth, criteria->depthDeviationFun));
+        auto maxDepth = static_cast<int>(criteria->info.maxDepth / depthNormalizationFactor(criteria->info.maxDepth, criteria->depthDeviationFun));
+        auto minMag = static_cast<int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
 
         // Load scene
-        cv::Rect rectGT(278, 220, 270, 270);
+        cv::Rect rectGT(283, 220, 400, 252);
         cv::Mat sRGB = std::move(pyr.srcRGB);
         cv::Mat sGray = std::move(pyr.srcGray);
         cv::Mat sDepth = std::move(pyr.srcDepth);
@@ -138,15 +142,8 @@ namespace tless {
 
         // Compute normals, edges, depth
         cv::Mat sNormals, sEdge, snDepth;
-        cv::rgbd::RgbdNormals rgbdNormals(sDepth.rows, sDepth.cols, CV_32F, pyr.camera.K, 5,
-                                          cv::rgbd::RgbdNormals::RGBD_NORMALS_METHOD_LINEMOD);
-        rgbdNormals(sDepth, sNormals);
-
-        // Edges
+        depthEdgels(pyr.srcDepth, sEdge, minDepth, maxDepth, minMag);
         sDepth.convertTo(snDepth, CV_32F, 1.0f / 65365.0f);
-        cv::Laplacian(snDepth, sEdge, CV_32F, 5);
-        cv::threshold(sEdge, sEdge, 0.3f, 0, CV_THRESH_TRUNC);
-        cv::threshold(sEdge, sEdge, 0.02f, 1, CV_THRESH_BINARY);
 
         // Crop
         sNormals = pyr.srcNormals3D(rectGT);
@@ -159,10 +156,12 @@ namespace tless {
 //        cv::resize(snDepth, snDepth, cv::Size(SCR_WIDTH, SCR_HEIGHT));
         snDepth *= 1550;
 
+        // Create FBO with given size and update viewport size
+        FrameBuffer fbo(rectGT.width, rectGT.height);
+
         cv::imshow("sNormals", sNormals);
         cv::imshow("sEdge", sEdge);
         cv::imshow("snDepth", snDepth);
-        cv::waitKey(0);
 
         // Generators
         static std::random_device rd;
@@ -178,26 +177,25 @@ namespace tless {
 
         // References to templates
         Template &tGt = templates[0], &tOrg = templates[1];
-        const int IT = 100, N = 100;
 
         // Rescale K
-        rescaleK(tGt.camera.K, cv::Size(108, 108), cv::Size(240, 240));
-        rescaleK(tOrg.camera.K, cv::Size(108, 108), cv::Size(240, 240));
+        rescaleK(tGt.camera.K, cv::Size(108, 108), rectGT.size());
+        rescaleK(tOrg.camera.K, cv::Size(108, 108), rectGT.size());
 
         // Precompute matrices
         glm::mat4 VMatrix = vMat(tGt.camera.R, tGt.camera.t);
-        glm::mat4 PMatrix = pMat(tGt.camera.K, 0, 0, SCR_WIDTH, SCR_HEIGHT);
+        glm::mat4 PMatrix = pMat(tGt.camera.K, 0, 0, rectGT.width, rectGT.height);
         glm::mat4 MVPMatrix = mvpMat(glm::mat4(), VMatrix, PMatrix);
 
         // Precompute src matrices
         glm::mat4 orgVMatrix = vMat(tOrg.camera.R, tOrg.camera.t);
-        glm::mat4 orgPMatrix = pMat(tOrg.camera.K, 0, 0, SCR_WIDTH, SCR_HEIGHT);
+        glm::mat4 orgPMatrix = pMat(tOrg.camera.K, 0, 0, rectGT.width, rectGT.height);
         glm::mat4 orgMVPMatrix = mvpMat(glm::mat4(), orgVMatrix, orgPMatrix);
 
         // Init GT depth
         cv::Mat gt, org, gtNormals, orgNormals, gtEdges, gtT;
-        renderPose(meshes[tGt.objId], gt, gtNormals, VMatrix, MVPMatrix);
-        renderPose(meshes[tOrg.objId], org, orgNormals, orgVMatrix, orgMVPMatrix);
+        renderPose(fbo, meshes[tGt.objId], gt, gtNormals, VMatrix, MVPMatrix);
+        renderPose(fbo, meshes[tOrg.objId], org, orgNormals, orgVMatrix, orgMVPMatrix);
 
         // Compute edges
         cv::Laplacian(gt, gtEdges, -1);
@@ -206,6 +204,7 @@ namespace tless {
         // Show org and ground truth
 //        cv::imshow("Ground truth - Normals", gtNormals);
         cv::imshow("Found match - Normals", orgNormals);
+        cv::waitKey(0);
 
         // Init particles
         glm::mat4 m;
@@ -221,7 +220,8 @@ namespace tless {
 
             // Render depth image
             m = particles[i].model();
-            renderPose(meshes[tOrg.objId], pose, poseNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
+            renderPose(fbo, meshes[tOrg.objId], pose, poseNormals, mvMat(m, orgVMatrix),
+                       mvpMat(m, orgVMatrix, orgPMatrix));
 
             // Compute fitness for new particle
             particles[i].fitness = Particle::objFun(snDepth, sNormals, sEdge, pose, poseNormals);
@@ -235,8 +235,8 @@ namespace tless {
         // PSO
         cv::Mat imGBest, imGBestNormals;
         m = gBest.model();
-        renderPose(meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-        const float C1 = 0.3f, C2 = 0.3f, W = 0.90f;
+        renderPose(fbo, meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix),
+                   mvpMat(m, orgVMatrix, orgPMatrix));
 
         // Generations
         for (int i = 0; i < IT; i++) {
@@ -248,7 +248,8 @@ namespace tless {
 
                 // Fitness
                 m = p.model();
-                renderPose(meshes[tOrg.objId], pose, poseNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
+                renderPose(fbo, meshes[tOrg.objId], pose, poseNormals, mvMat(m, orgVMatrix),
+                           mvpMat(m, orgVMatrix, orgPMatrix));
                 p.fitness = Particle::objFun(snDepth, sNormals, sEdge, pose, poseNormals);
 
                 // Check for pBest
@@ -258,12 +259,12 @@ namespace tless {
 
                 // Check for gBest
                 if (p.fitness < gBest.fitness) {
-                    std::cout << p.fitness << std::endl;
                     gBest = p;
 
                     // Vizualization
                     m = gBest.model();
-                    renderPose(meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
+                    renderPose(fbo, meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix),
+                               mvpMat(m, orgVMatrix, orgPMatrix));
                 }
 
                 cv::imshow("imGBestNormals", imGBestNormals);
@@ -274,7 +275,8 @@ namespace tless {
 
         // Show results
         m = gBest.model();
-        renderPose(meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
+        renderPose(fbo, meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix),
+                   mvpMat(m, orgVMatrix, orgPMatrix));
         cv::imshow("imGBestNormals", imGBestNormals);
         cv::waitKey(0);
     }

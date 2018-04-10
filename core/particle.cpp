@@ -83,7 +83,7 @@ namespace tless {
         for (int y = 0; y < gt.rows; y++) {
             for (int x = 0; x < gt.cols; x++) {
                 // Compute distance transform
-                if (gtEdges.at<float>(y, x) > 0) {
+                if (gtEdges.at<uchar>(y, x) > 0) {
                     sumE += 1 / (poseT.at<float>(y, x) + 1);
                 }
 

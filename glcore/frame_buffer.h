@@ -10,10 +10,10 @@ namespace tless {
 
     public:
         GLuint id;
+        int width, height;
 
-        FrameBuffer() = default;
-
-        void init();
+        explicit FrameBuffer(int width, int height);
+        ~FrameBuffer();
 
         void bind() const;
 

@@ -140,6 +140,11 @@ namespace tless {
         Visualizer viz(criteria);
         FinePose finePose(criteria, "data/shaders/", "data/meshes.txt");
 
+        // Test matches
+        matches.emplace_back(nullptr, cv::Rect(294, 93, 129, 142), 1.0f, 50, 600, 1, 1, 1, 1, 1);
+        matches.emplace_back(nullptr, cv::Rect(171, 198, 144, 104), 1.0f, 50, 600, 1, 1, 1, 1, 1);
+        matches.emplace_back(nullptr, cv::Rect(293, 230, 254, 232), 1.0f, 50, 600, 1, 1, 1, 1, 1);
+
         // Fine pose test
         Scene scene = parser.parseScene(scenePath, 0, criteria->pyrScaleFactor, criteria->pyrLvlsDown, criteria->pyrLvlsUp);
         finePose.estimate(matches, scene);

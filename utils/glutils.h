@@ -74,21 +74,15 @@ namespace tless {
     glm::mat4 nMat(const glm::mat4 &modelView);
 
     /**
-     * @brief Recalculates camera intristic params based on new size.
+     * @brief Recalculates camera intristic params based on new size + adds a litle bit of offset on each side.
+     *
+     * Assumes that input matrix is in 1:1 ratio otherwise fails (input dataset should be square anyway).
      *
      * @param[in,out] K   Camera K matrix
      * @param[in]     src Source img size
      * @param[in]     dst Destination img size
      */
     void rescaleK(cv::Mat &K, const cv::Size &src, const cv::Size &dst);
-
-    /**
-     * @brief Recalculates camera intristic params based on the differences between two new windows.
-     * @param[in,out] K   Camera K matrix
-     * @param[in]     src Source img bounding box
-     * @param[in]     dst Destination img bounding box
-     */
-    void rescaleK(cv::Mat &K, const cv::Rect &src, const cv::Rect &dst);
 }
 
 #endif

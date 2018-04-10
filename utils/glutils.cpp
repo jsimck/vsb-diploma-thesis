@@ -82,25 +82,25 @@ namespace tless {
         // Compute resize ratio in X and Y
         float resX = dst.width / static_cast<float>(src.width);
         float resY = dst.height / static_cast<float>(src.height);
+        float res, offsetX = 0, offsetY = 0;
+
+        // Check which direction is larger
+        if (resY > resX) {
+            res = resY;
+            offsetX = (src.width - dst.width) / 2;
+        } else {
+            res = resX;
+            offsetY = (src.height - dst.height) / 2;
+        }
 
         // Rescale
-        K.at<float>(0, 0) *= resX;
-        K.at<float>(0, 2) *= resX;
-        K.at<float>(1, 1) *= resY;
-        K.at<float>(1, 2) *= resY;
-    }
+        K.at<float>(0, 0) *= res;
+        K.at<float>(0, 2) *= res;
+        K.at<float>(1, 1) *= res;
+        K.at<float>(1, 2) *= res;
 
-    void rescaleK(cv::Mat &K, const cv::Rect &src, const cv::Rect &dst) {
-        // Compute resize ratio in X and Y
-        float resX = dst.width / static_cast<float>(src.width);
-        float resY = dst.height / static_cast<float>(src.height);
-
-        // Rescale
-        K.at<float>(0, 0) *= resX;
-        K.at<float>(0, 2) *= resX;
-        K.at<float>(1, 1) *= resY;
-        K.at<float>(1, 2) *= resY;
-        K.at<float>(0, 2) += (src.x - dst.x) * resX;
-        K.at<float>(1, 2) += (src.y - dst.y) * resY;
+        // Shift cam center
+        K.at<float>(0, 2) += offsetX;
+        K.at<float>(1, 2) += offsetY;
     }
 }
