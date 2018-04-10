@@ -301,9 +301,9 @@ namespace tless {
         snDepth = snDepth(rectGT);
 
         // Resize to 108
-        cv::resize(sNormals, sNormals, cv::Size(SCR_WIDTH, SCR_HEIGHT));
-        cv::resize(sEdge, sEdge, cv::Size(SCR_WIDTH, SCR_HEIGHT));
-        cv::resize(snDepth, snDepth, cv::Size(SCR_WIDTH, SCR_HEIGHT));
+//        cv::resize(sNormals, sNormals, cv::Size(SCR_WIDTH, SCR_HEIGHT));
+//        cv::resize(sEdge, sEdge, cv::Size(SCR_WIDTH, SCR_HEIGHT));
+//        cv::resize(snDepth, snDepth, cv::Size(SCR_WIDTH, SCR_HEIGHT));
         snDepth *= 1700;
         
         for (int y = 0; y < sNormals.rows; y++) {
@@ -316,7 +316,6 @@ namespace tless {
         cv::imshow("sNormals", sNormals);
         cv::imshow("sEdge", sEdge);
         cv::imshow("snDepth", snDepth);
-        cv::waitKey(0);
 
         // Generators
         static std::random_device rd;
@@ -332,6 +331,10 @@ namespace tless {
         // References to templates
         Template &tGt = templates[0], &tOrg = templates[1];
         const int IT = 100, N = 100;
+
+        // Rescale K
+        rescaleK(tGt.camera.K, 270.0f / 108.0f);
+        rescaleK(tOrg.camera.K, 270.0f / 108.0f);
 
         // Precompute matrices
         glm::mat4 VMatrix = vMat(tGt.camera.R, tGt.camera.t);
@@ -489,5 +492,12 @@ namespace tless {
         }
 
         return -sumD * sumU * sumE;
+    }
+
+    void Classifier::rescaleK(cv::Mat &K, float scale) {
+        K.at<float>(0, 0) *= scale;
+        K.at<float>(0, 2) *= scale;
+        K.at<float>(1, 1) *= scale;
+        K.at<float>(1, 2) *= scale;
     }
 }

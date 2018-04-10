@@ -48,7 +48,7 @@ namespace tless {
         void initMeshes(const std::string &meshesListPath);
 
     public:
-        static const int SCR_WIDTH = 108, SCR_HEIGHT = 108;
+        static const int SCR_WIDTH = 270, SCR_HEIGHT = 270;
         const int SHADER_DEPTH = 0, SHADER_NORMAL = 1;
 
         // Constructors
@@ -62,6 +62,7 @@ namespace tless {
 
         float fitness(const cv::Mat &gt, const cv::Mat &gtNormals, const cv::Mat &gtEdges, const cv::Mat &pose, const cv::Mat &poseNormals);
         float computeVelocity(float w, float vi, float xi, float pBest, float gBest, float c1, float c2, float r1, float r2);
+        void rescaleK(cv::Mat &K, float scale);
     };
 }
 
