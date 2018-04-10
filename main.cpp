@@ -6,6 +6,7 @@
 #include "utils/converter.h"
 #include "core/particle.h"
 #include "processing/processing.h"
+#include "core/classifier_criteria.h"
 
 int main() {
     // Convert templates from t-less to custom format
@@ -23,6 +24,9 @@ int main() {
 
     // Detect params
     criteria->matchFactor = 0.6f;
+
+    criteria->info.maxDepth = 65500;// TODO delte
+    criteria->info.minDepth = 0;// TODO delte
 
     // Init classifier
     tless::Classifier classifier(criteria);

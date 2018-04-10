@@ -370,9 +370,9 @@ namespace tless {
         quantizedGradients(rgb, gradients, criteria->minMagnitude);
 
         // Load normals
-        cv::Mat normals;
+        cv::Mat normals, normals3D;
         int localMax = static_cast<int>(t.maxDepth / depthNormalizationFactor(t.maxDepth, criteria->depthDeviationFun));
-        quantizedNormals(depth, normals, t.camera.fx(), t.camera.fy(), localMax, static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
+        quantizedNormals(depth, normals, normals3D, t.camera.fx(), t.camera.fy(), localMax, static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
 
         // Load hue
         cv::Mat hue, hsv;

@@ -35,16 +35,17 @@ namespace tless {
         b[1] += fy * delta;
     }
 
-    void quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, float fy, int maxDepth, int maxDifference) {
+    void quantizedNormals(const cv::Mat &src, cv::Mat &dst, cv::Mat &dstNormals, float fx, float fy, int maxDepth, int maxDifference) {
         assert(!src.empty());
         assert(src.type() == CV_16UC1);
 
         int PS = 5; // patch size
         dst = cv::Mat::zeros(src.size(), CV_8UC1);
+        dstNormals = cv::Mat::zeros(src.size(), CV_32FC3);
         auto offsetX = static_cast<int>(NORMAL_LUT_SIZE * 0.5f);
         auto offsetY = static_cast<int>(NORMAL_LUT_SIZE * 0.5f);
 
-        #pragma omp parallel for default(none) shared(src, dst, NORMAL_LUT) firstprivate(fx, fy, maxDepth, maxDifference, PS, offsetX, offsetY)
+        #pragma omp parallel for default(none) shared(src, dst, dstNormals, NORMAL_LUT) firstprivate(fx, fy, maxDepth, maxDifference, PS, offsetX, offsetY)
         for (int y = PS; y < src.rows - PS; y++) {
             for (int x = PS; x < src.cols - PS; x++) {
                 // Get depth value at (x,y)
@@ -84,7 +85,10 @@ namespace tless {
                         // Normalize normal
                         Nx *= normInv;
                         Ny *= normInv;
-                        // Nz *= normInv;
+                        Nz *= normInv;
+
+                        // Save normals
+                        dstNormals.at<cv::Vec3f>(y, x) = cv::Vec3f(-Nz, -Ny, Nx);
 
                         // Get values for pre-generated Normal look up table
                         auto vX = static_cast<int>(Nx * offsetX + offsetX);

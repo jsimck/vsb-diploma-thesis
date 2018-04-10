@@ -70,7 +70,7 @@ namespace tless {
     float Particle::objFun(const cv::Mat &gt, const cv::Mat &gtNormals, const cv::Mat &gtEdges, const cv::Mat &pose,
                             const cv::Mat &poseNormals) {
         float sumD = 0, sumU = 0, sumE = 0;
-        const float tD = 20;
+        const float tD = 10;
         const float inf = std::numeric_limits<float>::max();
 
         // Compute edges
@@ -98,10 +98,6 @@ namespace tless {
                     sumD += 1 / inf;
                 } else {
                     sumD += 1 / (dDiff + 1);
-                }
-
-                if (std::isnan(poseNormals.at<cv::Vec3f>(y, x)[0])) {
-                    continue;
                 }
 
                 // Compare normals

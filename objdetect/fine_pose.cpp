@@ -126,6 +126,9 @@ namespace tless {
         Parser parser(criteria);
         parser.parseObject("data/108x108/kinectv2/07/", templates, {34, 34});
 
+        cv::imshow("Normals", pyr.srcNormals3D);
+        cv::waitKey(0);
+
         // Load scene
         cv::Rect rectGT(278, 220, 270, 270);
         cv::Mat sRGB = std::move(pyr.srcRGB);
@@ -146,7 +149,7 @@ namespace tless {
         cv::threshold(sEdge, sEdge, 0.02f, 1, CV_THRESH_BINARY);
 
         // Crop
-        sNormals = sNormals(rectGT);
+        sNormals = pyr.srcNormals3D(rectGT);
         sEdge = sEdge(rectGT);
         snDepth = snDepth(rectGT);
 
@@ -156,16 +159,10 @@ namespace tless {
 //        cv::resize(snDepth, snDepth, cv::Size(SCR_WIDTH, SCR_HEIGHT));
         snDepth *= 1550;
 
-        for (int y = 0; y < sNormals.rows; y++) {
-            for (int x = 0; x < sNormals.cols; x++) {
-                auto px = sNormals.at<cv::Vec3f>(y, x);
-                sNormals.at<cv::Vec3f>(y, x) = cv::Vec3f(-px[2], -px[1], px[0]);
-            }
-        }
-
         cv::imshow("sNormals", sNormals);
         cv::imshow("sEdge", sEdge);
         cv::imshow("snDepth", snDepth);
+        cv::waitKey(0);
 
         // Generators
         static std::random_device rd;

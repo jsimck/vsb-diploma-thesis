@@ -43,7 +43,7 @@ namespace tless {
      * @param[in]  maxDifference When computing surface normals, ignore contributions of
      *                           pixels whose depth difference with central pixel is above this threshold
      */
-    void quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, float fy, int maxDepth, int maxDifference);
+    void quantizedNormals(const cv::Mat &src, cv::Mat &dst, cv::Mat &dstNormals, float fx, float fy, int maxDepth, int maxDifference);
 
     /**
      * @brief Generates binary image of visible depth edgels, detected in depth image within (min, max) depths.

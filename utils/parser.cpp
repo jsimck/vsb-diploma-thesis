@@ -94,7 +94,8 @@ namespace tless {
         }
 
         // Compute normals
-        quantizedNormals(t.srcDepth, t.srcNormals, t.camera.fx(), t.camera.fy(), localMax, static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
+        cv::Mat normals3D;
+        quantizedNormals(t.srcDepth, t.srcNormals, normals3D, t.camera.fx(), t.camera.fy(), localMax, static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
     }
 
     Scene Parser::parseScene(const std::string &basePath, int index, float scaleFactor, int levelsUp, int levelsDown) {
@@ -194,7 +195,7 @@ namespace tless {
         // Generate quantized normals and orientations
         float ratio = depthNormalizationFactor(criteria->info.maxDepth, criteria->depthDeviationFun);
         quantizedGradients(pyramid.srcRGB, pyramid.srcGradients, criteria->minMagnitude);
-        quantizedNormals(pyramid.srcDepth, pyramid.srcNormals, pyramid.camera.fx(), pyramid.camera.fy(),
+        quantizedNormals(pyramid.srcDepth, pyramid.srcNormals, pyramid.srcNormals3D, pyramid.camera.fx(), pyramid.camera.fy(),
                          static_cast<int>(criteria->info.maxDepth / ratio), static_cast<int>(criteria->maxDepthDiff / scale));
 
         return pyramid;
