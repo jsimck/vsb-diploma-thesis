@@ -3,20 +3,22 @@
 
 #include <GL/glew.h>
 
-class FrameBuffer {
-private:
-    GLuint RBO, Texture;
+namespace tless {
+    class FrameBuffer {
+    private:
+        GLuint RBO, Texture;
 
-public:
-    GLuint id;
+    public:
+        GLuint id;
 
-    FrameBuffer() = default;
+        FrameBuffer() = default;
 
-    void init();
+        void init();
 
-    void bind() const;
+        void bind() const;
 
-    void unbind() const;
-};
+        void unbind() const;
+    };
+}
 
 #endif

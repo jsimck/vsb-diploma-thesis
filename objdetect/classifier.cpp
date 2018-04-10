@@ -25,8 +25,7 @@ namespace tless {
 #endif
 
         // GLFW window creation
-        cv::Size winSize(108, 108); // TODO do something with this
-        GLFWwindow *window = glfwCreateWindow(winSize.width, winSize.height, "DrawDepth", NULL, NULL);
+        GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "DrawDepth", NULL, NULL);
 
         if (window == NULL) {
             std::cout << "Failed to create GLFW window" << std::endl;
@@ -36,7 +35,7 @@ namespace tless {
 
         glfwMakeContextCurrent(window);
         glfwHideWindow(window);
-        glViewport(0, 0, winSize.width, winSize.height);
+        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
         // Init Glew after GLFW init
         if (glewInit()) {
@@ -302,9 +301,9 @@ namespace tless {
         snDepth = snDepth(rectGT);
 
         // Resize to 108
-        cv::resize(sNormals, sNormals, cv::Size(108, 108));
-        cv::resize(sEdge, sEdge, cv::Size(108, 108));
-        cv::resize(snDepth, snDepth, cv::Size(108, 108));
+        cv::resize(sNormals, sNormals, cv::Size(SCR_WIDTH, SCR_HEIGHT));
+        cv::resize(sEdge, sEdge, cv::Size(SCR_WIDTH, SCR_HEIGHT));
+        cv::resize(snDepth, snDepth, cv::Size(SCR_WIDTH, SCR_HEIGHT));
         snDepth *= 1700;
         
         for (int y = 0; y < sNormals.rows; y++) {
@@ -335,14 +334,13 @@ namespace tless {
         const int IT = 100, N = 100;
 
         // Precompute matrices
-        cv::Size winSize(108, 108);
         glm::mat4 VMatrix = vMat(tGt.camera.R, tGt.camera.t);
-        glm::mat4 PMatrix = pMat(tGt.camera.K, 0, 0, winSize.width, winSize.height);
+        glm::mat4 PMatrix = pMat(tGt.camera.K, 0, 0, SCR_WIDTH, SCR_HEIGHT);
         glm::mat4 MVPMatrix = mvpMat(glm::mat4(), VMatrix, PMatrix);
 
         // Precompute src matrices
         glm::mat4 orgVMatrix = vMat(tOrg.camera.R, tOrg.camera.t);
-        glm::mat4 orgPMatrix = pMat(tOrg.camera.K, 0, 0, winSize.width, winSize.height);
+        glm::mat4 orgPMatrix = pMat(tOrg.camera.K, 0, 0, SCR_WIDTH, SCR_HEIGHT);
         glm::mat4 orgMVPMatrix = mvpMat(glm::mat4(), orgVMatrix, orgPMatrix);
 
         // Init GT depth

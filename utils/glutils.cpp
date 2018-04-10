@@ -1,5 +1,6 @@
 #include "glutils.h"
 #include "../glcore/shader.h"
+#include "../objdetect/classifier.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -90,10 +91,8 @@ namespace tless {
         mesh.draw();
 
         // Read data from frame buffer
-        // TODO define winSize
-        cv::Size winSize(108, 108);
-        dst = cv::Mat::zeros(winSize.height, winSize.width, CV_32FC3);
-        glReadPixels(0, 0, winSize.width, winSize.height, GL_BGR, GL_FLOAT, dst.data);
+        dst = cv::Mat::zeros(Classifier::SCR_HEIGHT, Classifier::SCR_WIDTH, CV_32FC3);
+        glReadPixels(0, 0, Classifier::SCR_WIDTH, Classifier::SCR_HEIGHT, GL_BGR, GL_FLOAT, dst.data);
 
         // Unbind frame buffer
         fbo.unbind();
@@ -105,9 +104,6 @@ namespace tless {
     }
 
     void render(const Template &tpl, const FrameBuffer &fbo, const Shader &depthShader, const Shader &normalShader, const Mesh &mesh, cv::Mat &depth, cv::Mat &normals, const glm::mat4 &modelView, const glm::mat4 &modelViewProjection) {
-        // TODO define winSize
-        cv::Size winSize(108, 108);
-
         // Render
         fbo.bind();
 
@@ -125,8 +121,8 @@ namespace tless {
         mesh.draw();
 
         // Read data from frame buffer
-        normals = cv::Mat::zeros(winSize.height, winSize.width, CV_32FC3);
-        glReadPixels(0, 0, winSize.width, winSize.height, GL_BGR, GL_FLOAT, normals.data);
+        normals = cv::Mat::zeros(Classifier::SCR_HEIGHT, Classifier::SCR_WIDTH, CV_32FC3);
+        glReadPixels(0, 0, Classifier::SCR_WIDTH, Classifier::SCR_HEIGHT, GL_BGR, GL_FLOAT, normals.data);
 
         /// DEPTH
         // Clear buffer
@@ -142,8 +138,8 @@ namespace tless {
         mesh.draw();
 
         // Read data from frame buffer
-        depth = cv::Mat::zeros(winSize.height, winSize.width, CV_32FC3);
-        glReadPixels(0, 0, winSize.width, winSize.height, GL_BGR, GL_FLOAT, depth.data);
+        depth = cv::Mat::zeros(Classifier::SCR_HEIGHT, Classifier::SCR_WIDTH, CV_32FC3);
+        glReadPixels(0, 0, Classifier::SCR_WIDTH, Classifier::SCR_HEIGHT, GL_BGR, GL_FLOAT, depth.data);
 
         // Unbind frame buffer
         fbo.unbind();

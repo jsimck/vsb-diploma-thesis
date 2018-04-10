@@ -48,6 +48,7 @@ namespace tless {
         void initMeshes(const std::string &meshesListPath);
 
     public:
+        static const int SCR_WIDTH = 108, SCR_HEIGHT = 108;
         const int SHADER_DEPTH = 0, SHADER_NORMAL = 1;
 
         // Constructors
