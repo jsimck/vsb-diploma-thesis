@@ -1,5 +1,6 @@
 #include "classifier.h"
 #include <boost/filesystem.hpp>
+#include <gsl/gsl_qrng.h>
 #include "../utils/timer.h"
 #include "../utils/visualizer.h"
 #include "../processing/processing.h"
@@ -289,6 +290,7 @@ namespace tless {
 
         // References to templates
         Template &tGt = templates[0], &tOrg = templates[1];
+        const float C1 = 0.2f, C2 = 0.2f, W = 0.90f;
         const int IT = 50, N = 50;
 
         // Precompute matrices
@@ -315,7 +317,6 @@ namespace tless {
         // Show org and ground truth
         cv::imshow("Ground truth - Normals", gtNormals);
         cv::imshow("Found match - Normals", orgNormals);
-        cv::waitKey(0);
 
         // Init particles
         glm::mat4 m;
@@ -324,10 +325,11 @@ namespace tless {
         Particle gBest;
         gBest.fitness = 0;
 
-        for (int i = 0; i < N; ++i) {
-            // Generate new particle
-            particles.emplace_back(dT(gen), dT(gen), dTz(gen), dR(gen), dR(gen), dR(gen), dVT(gen), dVT(gen), dVTz(gen), dVR(gen), dVR(gen), dVR(gen));
+        // Generate population
+        generatePopulation(particles, N);
 
+        // Find best candidate
+        for (int i = 0; i < N; ++i) {
             // Render depth image
             glm::mat4 m = particles[i].model();
             render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], pose, poseNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
@@ -345,7 +347,6 @@ namespace tless {
         cv::Mat imGBest, imGBestNormals;
         m = gBest.model();
         render(tOrg, fbo, shaders[SHADER_DEPTH], shaders[SHADER_NORMAL], meshes[tOrg.objId], imGBest, imGBestNormals, mvMat(m, orgVMatrix), mvpMat(m, orgVMatrix, orgPMatrix));
-        const float C1 = 0.3f, C2 = 0.3f, W = 0.90f;
 
         // Generations
         for (int i = 0; i < IT; i++) {
@@ -443,5 +444,41 @@ namespace tless {
         }
 
         return -sumD * sumU * sumE;
+    }
+
+    void Classifier::generatePopulation(std::vector<Particle> &particles, int N) {
+        // init sobol sequence for 6 dimensions
+        Timer t;
+        gsl_qrng *q = gsl_qrng_alloc(gsl_qrng_sobol, 6);
+        particles.reserve(N);
+
+        // Random for velocity vectors
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        static std::uniform_real_distribution<float> d(0, 1);
+
+        for (int i = 0; i < N; i++) {
+            // Generate sobol sequence
+            double v[6];
+            gsl_qrng_get(q, v);
+
+            // Generate particle
+            particles.emplace_back(
+                (v[0] - 0.5) * 50,
+                (v[1] - 0.5) * 50,
+                (v[2] - 0.5) * 100,
+                (v[3] - 0.5) * 0.75,
+                (v[4] - 0.5) * 0.75,
+                (v[5] - 0.5) * 0.75,
+                d(gen) * 10,
+                d(gen) * 10,
+                d(gen) * 20,
+                d(gen) * 0.25,
+                d(gen) * 0.25,
+                d(gen) * 0.25);
+        }
+
+        gsl_qrng_free(q);
+        std::cout << t.elapsed() << std::endl;
     }
 }

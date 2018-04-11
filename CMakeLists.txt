@@ -71,5 +71,8 @@ include_directories(${GLM_INCLUDE_PATH})
 find_package(glm REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
+find_package(GSL REQUIRED)
+include_directories(${GSL_INCLUDE_DIRS})
+
 add_executable(vsb-semestral-project ${SOURCE_FILES})
-target_link_libraries(vsb-semestral-project ${OpenCV_LIBRARIES} ${Boost_LIBRARIES} ${OPENGL_gl_LIBRARY} ${OpenCV_LIBRARIES} glfw ${GLEW_LIBRARIES})
+target_link_libraries(vsb-semestral-project ${OpenCV_LIBRARIES} ${Boost_LIBRARIES} ${OPENGL_gl_LIBRARY} ${OpenCV_LIBRARIES} glfw ${GLEW_LIBRARIES} ${GSL_LIBRARIES})

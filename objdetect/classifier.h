@@ -16,6 +16,7 @@
 #include "../glcore/shader.h"
 #include "../glcore/mesh.h"
 #include "../glcore/frame_buffer.h"
+#include "../core/particle.h"
 
 namespace tless {
     /**
@@ -61,6 +62,7 @@ namespace tless {
 
         float fitness(const cv::Mat &gt, const cv::Mat &gtNormals, const cv::Mat &gtEdges, const cv::Mat &pose, const cv::Mat &poseNormals);
         float computeVelocity(float w, float vi, float xi, float pBest, float gBest, float c1, float c2, float r1, float r2);
+        void generatePopulation(std::vector<Particle> &particles, int N);
     };
 }
 
