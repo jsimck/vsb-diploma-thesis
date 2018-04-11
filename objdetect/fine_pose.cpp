@@ -75,28 +75,21 @@ namespace tless {
     void FinePose::renderPose(const FrameBuffer &fbo, const Mesh &mesh, cv::Mat &depth, cv::Mat &normals,
                                   const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection) {
         // Bind frame buffer
-        fbo.bind();
+//        fbo.bind();
 
-        /// NORMALS
-        glClearColor(0, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//        // Activate shader and set uniforms
+//        shaders[SHADER_NORMAL].use();
+//        shaders[SHADER_NORMAL].setMat4("MMatrix", model);
+//        shaders[SHADER_NORMAL].setMat4("VMatrix", view);
+//        shaders[SHADER_NORMAL].setMat4("PMatrix", projection);
+//
+//        // Draw mesh
+//        mesh.draw();
+//
+//        // Read data from frame buffer
+//        normals = cv::Mat::zeros(fbo.height, fbo.width, CV_32FC3);
+//        glReadPixels(0, 0, fbo.width, fbo.height, GL_BGR, GL_FLOAT, normals.data);
 
-        // Activate shader and set uniforms
-        shaders[SHADER_NORMAL].use();
-        shaders[SHADER_NORMAL].setMat4("MMatrix", model);
-        shaders[SHADER_NORMAL].setMat4("VMatrix", view);
-        shaders[SHADER_NORMAL].setMat4("PMatrix", projection);
-
-        // Draw mesh
-        mesh.draw();
-
-        // Read data from frame buffer
-        normals = cv::Mat::zeros(fbo.height, fbo.width, CV_32FC3);
-        glReadPixels(0, 0, fbo.width, fbo.height, GL_BGR, GL_FLOAT, normals.data);
-
-        /// DEPTH
-        glClearColor(0, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Activate shader and set uniforms
         shaders[SHADER_DEPTH].use();
@@ -113,7 +106,7 @@ namespace tless {
         glReadPixels(0, 0, fbo.width, fbo.height, GL_BGR, GL_FLOAT, depth.data);
 
         // Unbind frame buffer
-        fbo.unbind();
+//        fbo.unbind();
 
         // Convert to 1-channel and normalize depth
         cv::cvtColor(depth, depth, CV_BGR2GRAY);
@@ -123,6 +116,42 @@ namespace tless {
         // Constants
         const int IT = 50, N = 50;
         const float C1 = 0.2f, C2 = 0.2f, W = 0.85f;
+
+        // Parse data
+        Parser parser(criteria);
+        std::vector<std::vector<SceneGt>> sceneGts;
+        cv::FileStorage fs("data/scenes/kinectv2/01/gt.yml", cv::FileStorage::READ);
+
+        for (int i = 0; i < 504; i++) {
+            // Load scene info
+            std::string infoIndex = "scene_" + std::to_string(i);
+            cv::FileNode infoNode = fs[infoIndex];
+
+            std::vector<SceneGt> currentGts;
+
+            const int ids[4] = {2, 25, 29, 30};
+            for (int j = 0; j < 4; j++) {
+                // Parse yml file
+                SceneGt gt;
+                std::vector<float> vCamRw2c, vCamTw2c;
+
+                std::string key1 = "cam_R_m2c_" + std::to_string(ids[j]);
+                std::string key2 = "cam_t_m2c_" + std::to_string(ids[j]);
+                std::string key3 = "obj_id_" + std::to_string(ids[j]);
+
+                infoNode[key1] >> vCamRw2c;
+                infoNode[key2] >> vCamTw2c;
+                infoNode[key3] >> gt.objID;
+
+                gt.R = cv::Mat(3, 3, CV_32FC1, vCamRw2c.data()).clone();
+                gt.t = cv::Mat(3, 1, CV_32FC1, vCamTw2c.data()).clone();
+                currentGts.push_back(gt);
+            }
+
+            sceneGts.push_back(currentGts);
+        }
+
+        fs.release();
 
         // Generators
         static std::random_device rd;
@@ -137,106 +166,50 @@ namespace tless {
         static std::uniform_real_distribution<float> dRand(0, 1.0f);
 
         // Init scene
-        auto &pyr = scene.pyramid[criteria->pyrLvlsDown]; // TODO better handling of scene loading
         cv::Mat sNormals, sEdge, sDepth;
-
-        // Normalize min and max depths to look for objectness in
-        auto minDepth = static_cast<int>(criteria->info.minDepth * depthNormalizationFactor(criteria->info.minDepth, criteria->depthDeviationFun));
-        auto maxDepth = static_cast<int>(criteria->info.maxDepth / depthNormalizationFactor(criteria->info.maxDepth, criteria->depthDeviationFun));
-        auto minMag = static_cast<int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
-        depthEdgels(pyr.srcDepth, sEdge, minDepth, maxDepth, minMag);
-        pyr.srcDepth.convertTo(sDepth, CV_32F, 1.0f / 65365.0f);
+        float totalSum = 0;
+        int totalCount = 0;
 
         // Loop through mateches
 //        for (auto &match : matches) {
             // Enlarge BB
 //            cv::Rect bb(match.normObjBB.x - 10, match.normObjBB.y - 10, match.normObjBB.width + 20, match.normObjBB.height + 20);
-            cv::Rect bb(0, 0, 720, 540);
 
-            // Crop to current bounding box
-            cv::Mat normals, edges, depth;
-            normals = pyr.srcNormals3D(bb);
-            edges = sEdge(bb);
-            depth = sDepth(bb);
-
-            // Show cropped part of the scene
-            cv::imshow("normals", normals);
-
+        cv::Rect bb(0, 0, 720, 540);
+        for (int i = 0; i < 504; i++) {
             // Create FBO with given size and update viewport size
             FrameBuffer fbo(bb.width, bb.height);
+            fbo.bind();
+            Scene sc = parser.parseScene("data/scenes/kinectv2/01/", i, 1, 0, 0);
+            auto &pyr = sc.pyramid[0];
+            pyr.srcDepth.convertTo(sDepth, CV_32FC1);
 
-            // Rescale K
-//            cv::Mat K = match.t->camera.K.clone();
-//            rescaleK(K, match.t->objBB.size(), bb.size());
+            // Projection matrix
             cv::Mat K = pyr.camera.K;
-
-            // Precompute matrices
             glm::mat4 PMatrix = pMat(K, 0, 0, bb.width, bb.height);
-            glm::mat4 VMatrix = vMat(pyr.camera.R, pyr.camera.t);
+            cv::Mat depth = cv::Mat::zeros(bb.height, bb.width, CV_32FC1);
 
-            // Flip
-            glm::mat4 yzFlip; // Create flip matrix for coordinate system conversion
-            yzFlip[1][1] = -1;
-            yzFlip[2][2] = -1;
+            /// DEPTH
+            glClearColor(0, 0, 0, 0);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            // Models
-            glm::mat4 M1(
-                -0.68972806, -0.72367949, -0.02371620, -10.81859741,
-                -0.69608070, 0.67173079, -0.25347300, -55.70707684,
-                0.19936383, -0.15831875, -0.96705200, 775.27790335,
-                0, 0, 0, 1
-            );
-            glm::mat4 M2(
-                0.97418945, 0.22448097, -0.02371620, -91.84631003,
-                0.21134731, -0.94397188, -0.25347300, 6.71096716,
-                -0.07928722, 0.24191796, -0.96705200, 762.45618784,
-                0, 0, 0, 1
-            );
-            glm::mat4 M3(
-                -0.83341958f, 0.55213096f, -0.02371620f, 31.20749784f,
-                0.53925248f, 0.80309237f, -0.25347300f, 72.54666330f,
-                -0.12090375f, -0.22403805f, -0.96705200f, 739.05868741f,
-                0, 0, 0, 1
-            );
+            for (auto &sceneGt : sceneGts[i]) {
+                cv::Mat gtD, gtN;
+                glm::mat4 VMatrix = vMat(sceneGt.R, sceneGt.t);
+                renderPose(fbo, meshes[sceneGt.objID], depth, gtN, glm::mat4(), VMatrix, PMatrix);
+            }
 
-            // Flip
-            M1 *= yzFlip;
-            M2 *= yzFlip;
-            M3 *= yzFlip;
-
-            // Transpose
-            M1 = glm::transpose(M1);
-            M2 = glm::transpose(M2);
-            M3 = glm::transpose(M3);
-
-            // Init particles
-            glm::mat4 m;
-            cv::Mat pose, poseNormals;
-            std::vector<Particle> particles;
-
-            cv::Mat d1, d2, d3, n1, n2, n3;
-            renderPose(fbo, meshes[5], d1, n1, glm::mat4(), M1, PMatrix);
-            renderPose(fbo, meshes[6], d2, n2, glm::mat4(), M2, PMatrix);
-            renderPose(fbo, meshes[7], d3, n3, glm::mat4(), M3, PMatrix);
-
-            // Render match for reference
-            cv::Mat org;
-            org = d1 + d2 + d3;
-
-            cv::Mat snDepth;
-            pyr.srcDepth.convertTo(snDepth, CV_32F);
-
-            // Div zeros
-            for (int y = 0; y < snDepth.rows; y++) {
-                for (int x = 0; x < snDepth.cols; x++) {
-                    if (org.at<float>(y, x) <= 0) {
-                        snDepth.at<float>(y, x) = 0;
+            // Delete background
+            for (int y = 0; y < depth.rows; y++) {
+                for (int x = 0; x < depth.cols; x++) {
+                    if (depth.at<float>(y, x) <= 0) {
+                        sDepth.at<float>(y, x) = 0;
                     }
                 }
             }
 
-//            std::cout << org << std::endl;
-            cv::Mat div = (snDepth / org);
+            // Compute average
+            cv::Mat div = (sDepth / depth);
             float sum = 0;
             int count = 0;
 
@@ -251,12 +224,74 @@ namespace tless {
             }
 
             std::cout << (sum / static_cast<float>(count)) << std::endl;
+            cv::imshow("Depth", depth);
+            cv::waitKey(1);
 
-            cv::normalize(org, org, 0, 1, CV_MINMAX);
-            cv::normalize(snDepth, snDepth, 0, 1, CV_MINMAX);
-            cv::imshow("snDepth", org);
-            cv::imshow("org", org);
-            cv::waitKey(0);
+            totalSum += (sum / static_cast<float>(count));
+            totalCount++;
+
+            // Precompute matrices
+//            glm::mat4 VMatrix = vMat(pyr.camera.R, pyr.camera.t);
+//
+//            // Flip
+//            glm::mat4 yzFlip; // Create flip matrix for coordinate system conversion
+//            yzFlip[1][1] = -1;
+//            yzFlip[2][2] = -1;
+//
+//            // Flip
+//            M1 *= yzFlip;
+//            M2 *= yzFlip;
+//            M3 *= yzFlip;
+//
+//            // Transpose
+//            M1 = glm::transpose(M1);
+//            M2 = glm::transpose(M2);
+//            M3 = glm::transpose(M3);
+//
+//            // Init particles
+//            glm::mat4 m;
+//            cv::Mat pose, poseNormals;
+//            std::vector<Particle> particles;
+//
+//            cv::Mat d1, d2, d3, n1, n2, n3;
+//            renderPose(fbo, meshes[5], d1, n1, glm::mat4(), M1, PMatrix);
+//            renderPose(fbo, meshes[6], d2, n2, glm::mat4(), M2, PMatrix);
+//            renderPose(fbo, meshes[7], d3, n3, glm::mat4(), M3, PMatrix);
+//
+//            // Render match for reference
+//            cv::Mat org;
+//            org = d1;
+//
+//            cv::Mat snDepth;
+//            pyr.srcDepth.convertTo(snDepth, CV_32F);
+//
+//
+////            std::cout << org << std::endl;
+//            cv::Mat div = (snDepth / org);
+//            float sum = 0;
+//            int count = 0;
+//
+//            for (int y = 0; y < div.rows; y++) {
+//                for (int x = 0; x < div.cols; x++) {
+//                    float px = div.at<float>(y, x);
+//                    if (px > 0) {
+//                        sum += px;
+//                        count++;
+//                    }
+//                }
+//            }
+//
+//            std::cout << (sum / static_cast<float>(count)) << std::endl;
+//
+//            cv::normalize(org, org, 0, 1, CV_MINMAX);
+//            cv::normalize(snDepth, snDepth, 0, 1, CV_MINMAX);
+//            cv::imshow("snDepth", org);
+//            cv::imshow("org", org);
+//            cv::waitKey(0);
+            fbo.unbind();
+        }
+
+        std::cout << "FINAL: " << (totalSum / static_cast<float>(totalCount)) << std::endl;
 
             // Init global best
 //            Particle gBest;

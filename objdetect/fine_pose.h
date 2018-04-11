@@ -12,6 +12,13 @@
 #include "../core/classifier_criteria.h"
 
 namespace tless {
+    struct SceneGt {
+    public:
+        cv::Mat R;
+        cv::Mat t;
+        int objID;
+    };
+
     class FinePose {
     private:
         GLFWwindow *window;

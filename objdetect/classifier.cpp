@@ -144,7 +144,7 @@ namespace tless {
 //        load(trainedTemplatesListPath, trainedPath);
 
         // Image pyramid
-        Scene scene = parser.parseScene(scenePath, 0, criteria->pyrScaleFactor, criteria->pyrLvlsDown, criteria->pyrLvlsUp);
+        Scene scene = parser.parseScene(scenePath, 400, criteria->pyrScaleFactor, criteria->pyrLvlsDown, criteria->pyrLvlsUp);
         const int pyrLevels = criteria->pyrLvlsDown + criteria->pyrLvlsUp;
         finePose.estimate(matches, scene);
 

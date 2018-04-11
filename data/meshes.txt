@@ -27,3 +27,4 @@
 27 data/models/obj_27.ply
 28 data/models/obj_28.ply
 29 data/models/obj_29.ply
+30 data/models/obj_30.ply
