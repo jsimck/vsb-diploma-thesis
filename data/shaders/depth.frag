@@ -4,5 +4,6 @@ in float eyeDepth;
 out vec4 fragColor;
 
 void main() {
-    fragColor = vec4(eyeDepth, 0.0, 0.0, 1.0);
+    // 33.57835 -> scale factor to aproximately match scene depth
+    fragColor = vec4(eyeDepth * 33.57835, 0.0, 0.0, 1.0);
 }

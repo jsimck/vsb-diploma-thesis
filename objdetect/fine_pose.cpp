@@ -1,10 +1,12 @@
 #include <glm/ext.hpp>
 #include <opencv2/rgbd.hpp>
+#include <gsl/gsl_qrng.h>
 #include "fine_pose.h"
 #include "../utils/parser.h"
 #include "../utils/glutils.h"
 #include "../core/particle.h"
 #include "../processing/processing.h"
+#include "../utils/timer.h"
 
 namespace tless {
     void FinePose::initOpenGL() {
@@ -72,6 +74,11 @@ namespace tless {
         loadMeshes(meshesListPath);
     }
 
+    FinePose::~FinePose() {
+        glfwDestroyWindow(window);
+        glfwTerminate();
+    }
+
     void FinePose::renderPose(const FrameBuffer &fbo, const Mesh &mesh, cv::Mat &depth, cv::Mat &normals,
                                   const glm::mat4 &modelView, const glm::mat4 &modelViewProjection) {
         // Bind frame buffer
@@ -121,18 +128,6 @@ namespace tless {
         const int IT = 50, N = 50;
         const float C1 = 0.2f, C2 = 0.2f, W = 0.85f;
 
-        // Generators
-        static std::random_device rd;
-        static std::mt19937 gen(rd());
-        static std::uniform_real_distribution<float> dR(-0.3f, 0);
-        static std::uniform_real_distribution<float> dRZ(-0.3f, 0);
-        static std::uniform_real_distribution<float> dT(-50, 50);
-        static std::uniform_real_distribution<float> dTZ(-50, 50);
-        static std::uniform_real_distribution<float> dVT(0, 10);
-        static std::uniform_real_distribution<float> dVTz(0, 10);
-        static std::uniform_real_distribution<float> dVR(0, 0.2f);
-        static std::uniform_real_distribution<float> dRand(0, 1.0f);
-
         // Init scene
         auto &pyr = scene.pyramid[criteria->pyrLvlsDown]; // TODO better handling of scene loading
         cv::Mat sNormals, sEdge, sDepth;
@@ -142,7 +137,7 @@ namespace tless {
         auto maxDepth = static_cast<int>(criteria->info.maxDepth / depthNormalizationFactor(criteria->info.maxDepth, criteria->depthDeviationFun));
         auto minMag = static_cast<int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
         depthEdgels(pyr.srcDepth, sEdge, minDepth, maxDepth, minMag);
-        pyr.srcDepth.convertTo(sDepth, CV_32F, 1.0f / 65365.0f);
+        pyr.srcDepth.convertTo(sDepth, CV_32F);
 
         // Loop through mateches
         for (auto &match : matches) {
@@ -174,6 +169,7 @@ namespace tless {
             glm::mat4 m;
             cv::Mat pose, poseNormals;
             std::vector<Particle> particles;
+            generatePopulation(particles, N);
 
             // Render match for reference
             cv::Mat org, orgNormals;
@@ -186,10 +182,6 @@ namespace tless {
 
             // Generate initial particle positions
             for (int i = 0; i < N; ++i) {
-                // Generate new particle
-                particles.emplace_back(dT(gen), dT(gen), dTZ(gen), dRZ(gen), dR(gen), dR(gen),
-                                       dVT(gen), dVT(gen), dVTz(gen), dVR(gen), dVR(gen), dVR(gen));
-
                 // Render depth image
                 m = particles[i].model();
                 renderPose(fbo, meshes[match.t->objId], pose, poseNormals, mvMat(m, VMatrix), mvpMat(m, VPMatrix));
@@ -201,6 +193,9 @@ namespace tless {
                 if (particles[i].fitness < gBest.fitness) {
                     gBest = particles[i];
                 }
+
+//                cv::imshow("Pose", poseNormals);
+//                cv::waitKey(0);
             }
 
             // PSO
@@ -249,8 +244,37 @@ namespace tless {
         }
     }
 
-    FinePose::~FinePose() {
-        glfwDestroyWindow(window);
-        glfwTerminate();
+    void FinePose::generatePopulation(std::vector<Particle> &particles, int N) {
+        // init sobol sequence for 6 dimensions
+        gsl_qrng *q = gsl_qrng_alloc(gsl_qrng_sobol, 6);
+        particles.reserve(N);
+
+        // Random for velocity vectors
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        static std::uniform_real_distribution<float> d(0, 1);
+
+        for (int i = 0; i < N; i++) {
+            // Generate sobol sequence
+            double v[6];
+            gsl_qrng_get(q, v);
+
+            // Generate particle
+            particles.emplace_back(
+                    (v[0] - 0.5) * 50,
+                    (v[1] - 0.5) * 50,
+                    (v[2] - 0.5) * 100,
+                    (v[3] - 0.5) * 0.2,
+                    (v[4] - 0.5) * 0.2,
+                    (v[5] - 0.5) * 0.2,
+                    d(gen) * 20,
+                    d(gen) * 20,
+                    d(gen) * 40,
+                    d(gen) * 0.1,
+                    d(gen) * 0.1,
+                    d(gen) * 0.1);
+        }
+
+        gsl_qrng_free(q);
     }
 }

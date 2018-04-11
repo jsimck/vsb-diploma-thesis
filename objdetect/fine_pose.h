@@ -10,6 +10,7 @@
 #include "../core/match.h"
 #include "../core/scene.h"
 #include "../core/classifier_criteria.h"
+#include "../core/particle.h"
 
 namespace tless {
     class FinePose {
@@ -25,6 +26,7 @@ namespace tless {
         void loadShaders(const std::string &shadersBasePath);
         void loadMeshes(const std::string &meshesListPath);
 
+        void generatePopulation(std::vector<Particle> &particles, int N);
         void renderPose(const FrameBuffer &fbo, const Mesh &mesh, cv::Mat &depth, cv::Mat &normals,
                         const glm::mat4 &modelView, const glm::mat4 &modelViewProjection);
     public:

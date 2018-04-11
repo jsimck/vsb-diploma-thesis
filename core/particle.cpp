@@ -70,7 +70,7 @@ namespace tless {
     float Particle::objFun(const cv::Mat &gt, const cv::Mat &gtNormals, const cv::Mat &gtEdges, const cv::Mat &pose,
                             const cv::Mat &poseNormals) {
         float sumD = 0, sumU = 0, sumE = 0;
-        const float tD = 10;
+        const float tD = 100;
         const float inf = std::numeric_limits<float>::max();
 
         // Compute edges
@@ -94,11 +94,7 @@ namespace tless {
 
                 // Compute depth diff
                 float dDiff = std::abs(gt.at<float>(y, x) - pose.at<float>(y, x));
-                if (dDiff > tD) {
-                    sumD += 1 / inf;
-                } else {
-                    sumD += 1 / (dDiff + 1);
-                }
+                sumD += (dDiff > tD) ? (1 / (inf + 1)) : (1 / (dDiff + 1));
 
                 // Compare normals
                 float dot = std::abs(gtNormals.at<cv::Vec3f>(y, x).dot(poseNormals.at<cv::Vec3f>(y, x)));
@@ -106,12 +102,14 @@ namespace tless {
             }
         }
 
-        return -1 * sumU * sumE;
+        return -sumD * sumU * sumE;
     }
 
-    std::ostream &operator<<(std::ostream &os, const Particle &particle) {
-        os << "fitness: " << particle.fitness << " tx: " << particle.tx << " ty: " << particle.ty << " tz: " << particle.tz << " rx: " << particle.rx << " ry: "
-           << particle.ry << " rz: " << particle.rz;
+    std::ostream &tless::operator<<(std::ostream &os, const Particle &particle) {
+        os << "fitness: " << particle.fitness << " v1: " << particle.v1 << " v2: " << particle.v2 << " v3: "
+           << particle.v3 << " v4: " << particle.v4 << " v5: " << particle.v5 << " v6: " << particle.v6 << " v: "
+           << particle.v << " tx: " << particle.tx << " ty: " << particle.ty << " tz: " << particle.tz << " rx: "
+           << particle.rx << " ry: " << particle.ry << " rz: " << particle.rz;
         return os;
     }
 }

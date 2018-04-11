@@ -110,10 +110,5 @@ namespace tless {
         // Shift cam center
         K.at<float>(0, 2) += offsetX;
         K.at<float>(1, 2) += offsetY;
-
-        // Apply offset
-        const float offset = 50 * res;
-        K.at<float>(0, 0) -= offset;
-        K.at<float>(1, 1) -= offset;
     }
 }
