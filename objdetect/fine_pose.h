@@ -26,7 +26,7 @@ namespace tless {
         void loadMeshes(const std::string &meshesListPath);
 
         void renderPose(const FrameBuffer &fbo, const Mesh &mesh, cv::Mat &depth, cv::Mat &normals,
-                        const glm::mat4 &modelView, const glm::mat4 &modelViewProjection);
+                        const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);
     public:
         static const int SCR_WIDTH = 800, SCR_HEIGHT = 600;
 
