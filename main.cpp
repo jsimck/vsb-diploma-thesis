@@ -19,7 +19,7 @@ int main() {
     criteria->depthBinCount = 5;
 
     // Detect params
-    criteria->matchFactor = 0.6f;
+    criteria->matchFactor = 0.55f;
 
     // Init classifier
     tless::Classifier classifier(criteria);

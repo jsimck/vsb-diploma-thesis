@@ -142,8 +142,8 @@ namespace tless {
 
         // Define contsants
         const int pyrLevels = criteria->pyrLvlsDown + criteria->pyrLvlsUp;
-        const int minEdgels = static_cast<const int>(criteria->info.minEdgels * criteria->objectnessFactor);
-        const int minDepthMag = static_cast<const int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
+        const auto minEdgels = static_cast<const int>(criteria->info.minEdgels * criteria->objectnessFactor);
+        const auto minDepthMag = static_cast<const int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
 
         // Timing
         Timer tTotal;
