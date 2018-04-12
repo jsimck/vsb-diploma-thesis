@@ -76,9 +76,14 @@ namespace tless {
         // Compute edges
         cv::Mat poseT, poseEdges;
         cv::Laplacian(pose, poseEdges, -1);
-        cv::threshold(poseEdges, poseEdges, 0.5f, 255, CV_THRESH_BINARY_INV);
+        cv::threshold(poseEdges, poseEdges, 20, 255, CV_THRESH_BINARY_INV);
         poseEdges.convertTo(poseEdges, CV_8U);
         cv::distanceTransform(poseEdges, poseT, CV_DIST_L2, 3);
+
+//        cv::normalize(poseT, poseT, 0, 1, CV_MINMAX);
+//        cv::imshow("poseEdges", poseEdges);
+//        cv::imshow("distance", poseT);
+//        cv::waitKey(1);
 
         for (int y = 0; y < gt.rows; y++) {
             for (int x = 0; x < gt.cols; x++) {

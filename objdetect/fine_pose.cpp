@@ -142,16 +142,20 @@ namespace tless {
         // Loop through mateches
         for (auto &match : matches) {
             // Enlarge BB
-            cv::Rect bb(match.normObjBB.x - 10, match.normObjBB.y - 10, match.normObjBB.width + 20, match.normObjBB.height + 20);
+            cv::Rect bb(match.normObjBB.x - 20, match.normObjBB.y - 20, match.normObjBB.width + 40, match.normObjBB.height + 40);
+            cv::Mat edgeCLone = sEdge.clone();
 
             // Crop to current bounding box
             cv::Mat normals, edges, depth;
             normals = pyr.srcNormals3D(bb);
-            edges = sEdge(bb);
+            edges = edgeCLone(bb);
             depth = sDepth(bb);
 
             // Show cropped part of the scene
+            cv::normalize(edges, edges, 0, 255, CV_MINMAX);
             cv::imshow("normals", normals);
+            cv::imshow("sEdge", edges);
+            cv::waitKey(1);
 
             // Create FBO with given size and update viewport size
             FrameBuffer fbo(bb.width, bb.height);
@@ -228,11 +232,13 @@ namespace tless {
                         // Vizualization
                         m = gBest.model();
                         renderPose(fbo, meshes[match.t->objId], imGBest, imGBestNormals, mvMat(m, VMatrix), mvpMat(m, VPMatrix));
+                        cv::imshow("imGBestNormals", imGBestNormals);
+                        cv::waitKey(1);
                     }
 
-                    cv::imshow("imGBestNormals", imGBestNormals);
-                    cv::imshow("pose 2", poseNormals);
-                    cv::waitKey(1);
+//                    cv::imshow("imGBestNormals", imGBestNormals);
+//                    cv::imshow("pose 2", poseNormals);
+//                    cv::waitKey(1);
                 }
             }
 
@@ -263,16 +269,16 @@ namespace tless {
             particles.emplace_back(
                     (v[0] - 0.5) * 50,
                     (v[1] - 0.5) * 50,
-                    (v[2] - 0.5) * 100,
-                    (v[3] - 0.5) * 0.2,
-                    (v[4] - 0.5) * 0.2,
-                    (v[5] - 0.5) * 0.2,
+                    (v[2] - 0.8) * 200,
+                    (v[3] - 0.5) * 0.3,
+                    (v[4] - 0.5) * 0.3,
+                    (v[5] - 0.5) * 0.3,
                     d(gen) * 20,
                     d(gen) * 20,
                     d(gen) * 40,
-                    d(gen) * 0.1,
-                    d(gen) * 0.1,
-                    d(gen) * 0.1);
+                    d(gen) * 0.15,
+                    d(gen) * 0.15,
+                    d(gen) * 0.15);
         }
 
         gsl_qrng_free(q);
