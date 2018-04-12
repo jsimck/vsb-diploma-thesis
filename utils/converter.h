@@ -5,6 +5,7 @@
 #include <opencv2/core/hal/interface.h>
 #include <vector>
 #include <opencv2/core/types.hpp>
+#include <MacTypes.h>
 #include "../core/template.h"
 
 namespace tless {
@@ -18,6 +19,20 @@ namespace tless {
         const uchar minGray = 20; //!< Minimal gray color value of image to consider containing object
         const int offset = 2; //!< Offset for object bounding boxes, when cropping we enlarge the objBB by this value in both directions to not cut any edges
         std::vector<float> diameters;
+
+        /**
+         * @brief Validates depth by looking in the pixel neighbourhood and invalidating all pixels that have larger difference than maxDiff.
+         *
+         * This function helps to eliminate invalid pixel that were likely caused by a sensor issue, e.g. very small or very large values.
+         *
+         * @param[in] depth   Depth value to validate
+         * @param[in] src     Input 16-bit depth image
+         * @param[in] p       Location of the suspicious pixel
+         * @param[in] maxDiff Maximum allowed difference between pixel and it's neighbours (usually obj diameter)
+         * @param[in] ksize   Kernel size (odd number, area around pixel to search in)
+         * @return            True/false whether the pixel is valid or invalid
+         */
+        bool validateDepth(ushort depth, const cv::Mat &src, const cv::Point &p, int maxDiff, int ksize);
 
         /**
          * @brief Resizes rgb and depth images of given template + recalculates depth values based on resize ratio.

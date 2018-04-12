@@ -5,6 +5,22 @@
 #include <boost/filesystem.hpp>
 
 namespace tless {
+    bool Converter::validateDepth(ushort depth, const cv::Mat &src, const cv::Point &p, int maxDiff, int ksize) {
+        assert(src.type() == CV_16UC1);
+        const int offset = ksize / 2;
+
+        for (int y = p.x - offset; y < p.x + offset; y++) {
+            for (int x = p.x - offset; x < p.x + offset; x++) {
+                ushort px = src.at<ushort>(y, x);
+                if (std::abs(px - depth) > maxDiff) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     void Converter::resizeAndSave(Template &t, const std::string &outputPath, int outputSize) {
         const cv::Size resizeSize(outputSize, outputSize);
 
@@ -113,7 +129,7 @@ namespace tless {
         t.objId = id;
         t.id = index + (10000 * id);
         t.fileName = std::move(fileName);
-        t.diameter = diameters[id];
+        t.diameter = diameters[id - 1];
         t.srcRGB = std::move(srcRGB);
         t.srcGray = std::move(srcGray);
         t.srcDepth = std::move(srcDepth);
@@ -126,13 +142,15 @@ namespace tless {
         t.camera.mode = mode;
 
         // Extract local depth extremes, search in object bounding box
+        auto depthDiameter = static_cast<int>(t.diameter * 10);
+
         for (int y = t.objBB.tl().y - this->offset; y < t.objBB.br().y + this->offset; y++) {
             for (int x = t.objBB.tl().x - this->offset; x < t.objBB.br().x + this->offset; x++) {
                 if (t.srcGray.at<uchar>(y, x) > this->minGray) {
                     ushort depth = t.srcDepth.at<ushort>(y, x);
 
                     // Extract local max
-                    if (depth > t.maxDepth) {
+                    if (depth > t.maxDepth && validateDepth(depth, t.srcDepth, cv::Point(x, y), depthDiameter, 5)) {
                         t.maxDepth = depth;
                     }
 
