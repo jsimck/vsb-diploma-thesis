@@ -3,6 +3,7 @@
 #include "../utils/timer.h"
 #include "../utils/visualizer.h"
 #include "../processing/processing.h"
+#include "../core/classifier_criteria.h"
 
 namespace tless {
     void Classifier::train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices) {
@@ -131,7 +132,6 @@ namespace tless {
 
         // Init classifiers
         Parser parser(criteria);
-        Objectness objectness(criteria);
         Hasher hasher(criteria);
         Matcher matcher(criteria);
         Visualizer viz(criteria);
@@ -140,8 +140,10 @@ namespace tless {
         // Load trained template data
         load(trainedTemplatesListPath, trainedPath);
 
-        // Image pyramid
+        // Define contsants
         const int pyrLevels = criteria->pyrLvlsDown + criteria->pyrLvlsUp;
+        const int minEdgels = static_cast<const int>(criteria->info.minEdgels * criteria->objectnessFactor);
+        const int minDepthMag = static_cast<const int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
 
         // Timing
         Timer tTotal;
@@ -162,7 +164,8 @@ namespace tless {
             for (int l = 0; l <= pyrLevels; ++l) {
                 // Objectness detection
                 Timer tObjectness;
-                objectness.objectness(scene.pyramid[l].srcDepth, windows);
+                objectness(scene.pyramid[l].srcDepth, windows, criteria->info.smallestTemplate,
+                           criteria->windowStep, criteria->info.minDepth, criteria->info.maxDepth, minDepthMag, minEdgels);
                 ttObjectness += tObjectness.elapsed();
 //                viz.objectness(scene.pyramid[l], windows);
 

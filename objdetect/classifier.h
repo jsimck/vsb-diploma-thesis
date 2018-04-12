@@ -6,7 +6,6 @@
 #include "../core/hash_table.h"
 #include "../utils/parser.h"
 #include "hasher.h"
-#include "objectness.h"
 #include "../core/window.h"
 #include "matcher.h"
 #include "../core/classifier_criteria.h"

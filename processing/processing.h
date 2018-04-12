@@ -4,6 +4,7 @@
 #include <opencv2/core/mat.hpp>
 #include "../core/template.h"
 #include "../core/match.h"
+#include "../core/window.h"
 
 namespace tless {
     // Lookup tables
@@ -120,6 +121,25 @@ namespace tless {
      * @param T   Size of the patch TxT
      */
     void spread(const cv::Mat& src, cv::Mat& dst, int T);
+
+    /**
+     * @brief Applies simple objectness detection on input depth image based on depth discontinuities.
+     *
+     * Depth discontinuities are areas where pixel arise on the edges of objects. Sliding window
+     * is used to slide through the scene and calculating amount of depth pixels in the scene.
+     * Window is classified as containing object if it contains at least [minEdgels] of edgels.
+     *
+     * @param[in]     src       Input 16-bit depth image
+     * @param[in,out] windows   Contains all window positions, that were classified as containing object
+     * @param[in]     winSize   Sliding window size
+     * @param[in]     winStep   Sliding window step
+     * @param[in]     minDepth  Ignore pixels with depth lower then this threshold (used for edgel detection)
+     * @param[in]     maxDepth  Ignore pixels with depth higher then this threshold (used for edgel detection)
+     * @param[in]     minMag    Ignore pixels with edge magnitude lower than this (used for edgel detection)
+     * @param[in]     minEdgels Minimum number of edgels window can contain to be classified as containing object
+     */
+    void objectness(const cv::Mat &src, std::vector<Window> &windows, const cv::Size &winSize,
+                    int winStep, int minDepth, int maxDepth, int minMag, int minEdgels);
 }
 
 #endif

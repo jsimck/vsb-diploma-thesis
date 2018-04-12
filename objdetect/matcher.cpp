@@ -5,7 +5,6 @@
 #include "../core/triplet.h"
 #include "hasher.h"
 #include "../utils/timer.h"
-#include "objectness.h"
 #include "../utils/visualizer.h"
 #include "../processing/processing.h"
 #include "../core/template.h"
