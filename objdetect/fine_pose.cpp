@@ -1,5 +1,6 @@
 #include <glm/ext.hpp>
 #include <opencv2/rgbd.hpp>
+#include <opencv2/ximgproc.hpp>
 #include <gsl/gsl_qrng.h>
 #include "fine_pose.h"
 #include "../utils/parser.h"
@@ -125,7 +126,7 @@ namespace tless {
 
     void FinePose::estimate(std::vector<Match> &matches, const Scene &scene) {
         // Constants
-        const int IT = 50, N = 50;
+        const int IT = 100, N = 100;
         const float C1 = 0.2f, C2 = 0.2f, W = 0.85f;
 
         // Init scene
@@ -139,11 +140,19 @@ namespace tless {
         depthEdgels(pyr.srcDepth, sEdge, minDepth, maxDepth, minMag);
         pyr.srcDepth.convertTo(sDepth, CV_32F);
 
+        // Canny test
+        cv::Mat canny;
+        cv::Canny(pyr.srcGray, canny, 80, 120);
+
+        // Thin edges
+//        cv::normalize(sEdge, sEdge, 0, 255, CV_MINMAX);
+//        cv::ximgproc::thinning(sEdge, sEdge, cv::ximgproc::THINNING_GUOHALL);
+
         // Loop through mateches
         for (auto &match : matches) {
             // Enlarge BB
             cv::Rect bb(match.normObjBB.x - 20, match.normObjBB.y - 20, match.normObjBB.width + 40, match.normObjBB.height + 40);
-            cv::Mat edgeCLone = sEdge.clone();
+            cv::Mat edgeCLone = canny.clone();
 
             // Crop to current bounding box
             cv::Mat normals, edges, depth;
@@ -152,7 +161,6 @@ namespace tless {
             depth = sDepth(bb);
 
             // Show cropped part of the scene
-            cv::normalize(edges, edges, 0, 255, CV_MINMAX);
             cv::imshow("normals", normals);
             cv::imshow("sEdge", edges);
             cv::waitKey(1);
@@ -190,6 +198,9 @@ namespace tless {
                 m = particles[i].model();
                 renderPose(fbo, meshes[match.t->objId], pose, poseNormals, mvMat(m, VMatrix), mvpMat(m, VPMatrix));
 
+//                cv::imshow("Pose", poseNormals);
+//                cv::waitKey(0);
+
                 // Compute fitness for new particle
                 particles[i].fitness = Particle::objFun(depth, normals, edges, pose, poseNormals);
 
@@ -197,9 +208,6 @@ namespace tless {
                 if (particles[i].fitness < gBest.fitness) {
                     gBest = particles[i];
                 }
-
-//                cv::imshow("Pose", poseNormals);
-//                cv::waitKey(0);
             }
 
             // PSO
@@ -232,13 +240,13 @@ namespace tless {
                         // Vizualization
                         m = gBest.model();
                         renderPose(fbo, meshes[match.t->objId], imGBest, imGBestNormals, mvMat(m, VMatrix), mvpMat(m, VPMatrix));
+                        Particle::objFun(depth, normals, edges, imGBest, imGBestNormals);
                         cv::imshow("imGBestNormals", imGBestNormals);
                         cv::waitKey(1);
                     }
 
-//                    cv::imshow("imGBestNormals", imGBestNormals);
-//                    cv::imshow("pose 2", poseNormals);
-//                    cv::waitKey(1);
+                    cv::imshow("pose 2", poseNormals);
+                    cv::waitKey(1);
                 }
             }
 
@@ -270,15 +278,15 @@ namespace tless {
                     (v[0] - 0.5) * 50,
                     (v[1] - 0.5) * 50,
                     (v[2] - 0.8) * 200,
-                    (v[3] - 0.5) * 0.3,
-                    (v[4] - 0.5) * 0.3,
-                    (v[5] - 0.5) * 0.3,
+                    (v[3] - 0.5),
+                    (v[4] - 0.5),
+                    (v[5] - 0.5),
                     d(gen) * 20,
                     d(gen) * 20,
                     d(gen) * 40,
-                    d(gen) * 0.15,
-                    d(gen) * 0.15,
-                    d(gen) * 0.15);
+                    d(gen) * 0.2,
+                    d(gen) * 0.2,
+                    d(gen) * 0.2);
         }
 
         gsl_qrng_free(q);

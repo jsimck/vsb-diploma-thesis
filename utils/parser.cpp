@@ -1,4 +1,5 @@
 #include "parser.h"
+#include <opencv2/ximgproc.hpp>
 #include "../processing/processing.h"
 #include "../objdetect/matcher.h"
 #include "../objdetect/hasher.h"

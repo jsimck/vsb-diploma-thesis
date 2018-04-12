@@ -1,4 +1,5 @@
 #include "particle.h"
+#include "../processing/processing.h"
 #include <glm/ext.hpp>
 #include <iostream>
 #include <opencv2/opencv.hpp>
@@ -57,20 +58,29 @@ namespace tless {
 
     void Particle::progress(float w, float c1, float c2, const Particle &gBest) {
         // Calculate new velocity
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 3; i++) {
             v[i] = velocity(w, v[i], pose[i], pBest.pose[i], gBest.pose[i], c1, c2, nextR(), nextR());
+        }
+        for (int i = 3; i < 6; i++) {
+            v[i] = velocity(0.96f, v[i], pose[i], pBest.pose[i], gBest.pose[i], c1, c2, nextR(), nextR());
         }
 
         // Update current possition with new velocity
         for (int i = 0; i < 6; i++) {
             pose[i] = v[i] + pose[i];
         }
+
+        for (int i = 3; i < 6; i++) {
+            if (std::abs(v[i]) > 1) {
+                std::cout << v[i] << std::endl;
+            }
+        }
     }
 
     float Particle::objFun(const cv::Mat &gt, const cv::Mat &gtNormals, const cv::Mat &gtEdges, const cv::Mat &pose,
                             const cv::Mat &poseNormals) {
         float sumD = 0, sumU = 0, sumE = 0;
-        const float tD = 100;
+        const float tD = 200;
         const float inf = std::numeric_limits<float>::max();
 
         // Compute edges
@@ -79,6 +89,10 @@ namespace tless {
         cv::threshold(poseEdges, poseEdges, 20, 255, CV_THRESH_BINARY_INV);
         poseEdges.convertTo(poseEdges, CV_8U);
         cv::distanceTransform(poseEdges, poseT, CV_DIST_L2, 3);
+
+        cv::Mat matD = cv::Mat::zeros(gt.size(), CV_32FC1);
+        cv::Mat matE = cv::Mat::zeros(gt.size(), CV_32FC1);
+        cv::Mat matU = cv::Mat::zeros(gt.size(), CV_32FC1);
 
 //        cv::normalize(poseT, poseT, 0, 1, CV_MINMAX);
 //        cv::imshow("poseEdges", poseEdges);
@@ -90,24 +104,36 @@ namespace tless {
                 // Compute distance transform
                 if (gtEdges.at<uchar>(y, x) > 0) {
                     sumE += 1 / (poseT.at<float>(y, x) + 1);
+                    matE.at<float>(y, x) = 1 / (poseT.at<float>(y, x) + 1);
                 }
 
-                // Skip invalid depth pixels for other tests pixels
-                if (pose.at<float>(y, x) <= 0) {
-                    continue;
-                }
+//                // Skip invalid depth pixels for other tests pixels
+//                if (pose.at<float>(y, x) <= 0) {
+//                    continue;
+//                }
 
                 // Compute depth diff
                 float dDiff = std::abs(gt.at<float>(y, x) - pose.at<float>(y, x));
                 sumD += (dDiff > tD) ? (1 / (inf + 1)) : (1 / (dDiff + 1));
+                matD.at<float>(y, x) = (dDiff > tD) ? (1 / (inf + 1)) : (1 / (dDiff + 1));
 
                 // Compare normals
                 float dot = std::abs(gtNormals.at<cv::Vec3f>(y, x).dot(poseNormals.at<cv::Vec3f>(y, x)));
                 sumU += std::isnan(dot) ? (1 / (inf + 1)) : (1 / (dot + 1));
+                matU.at<float>(y, x) = std::isnan(dot) ? (1 / (9999999 + 1)) : (1 / (dot + 1));
             }
         }
 
-        return -sumD * sumU * sumE;
+//        cv::normalize(matU, matU, 0, 1, CV_MINMAX);
+//        cv::normalize(matE, matE, 0, 1, CV_MINMAX);
+//        cv::normalize(matD, matD, 0, 1, CV_MINMAX);
+//
+//        cv::imshow("matU", matU);
+//        cv::imshow("matE", matE);
+//        cv::imshow("matD", matD);
+//        cv::waitKey(1);
+
+        return -sumD * 1 * sumE;
     }
 
     std::ostream &tless::operator<<(std::ostream &os, const Particle &particle) {
