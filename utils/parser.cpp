@@ -3,6 +3,7 @@
 #include "../objdetect/matcher.h"
 #include "../objdetect/hasher.h"
 #include "../core/classifier_criteria.h"
+#include "timer.h"
 
 namespace tless {
     void Parser::parseObject(const std::string &basePath, std::vector<Template> &templates, const std::vector<uint> &indices) {
@@ -132,24 +133,18 @@ namespace tless {
         normalizeHSV(srcHSV, srcHue);
 
         // Reserve size for scene pyramid
-        scene.pyramid.resize(levelsDown + levelsUp + 1);
+        const int pyrSize = levelsDown + levelsUp + 1;
+        scene.pyramid.resize(pyrSize);
 
-        // Create down levels of pyramid
-        float scale = 1.0f;
         #pragma omp parallel for
-        for (int i = levelsDown - 1; i >= 0; --i) {
-            scale /= scaleFactor;
-            scene.pyramid[i] = createPyramid(scale, srcRGB, srcDepth, srcGray, srcHue, K, R, t);
-        }
+        for (int i = 0; i < pyrSize; ++i) {
+            float scale = 1.0f;
+            if (i < levelsDown) {
+                scale = 1.0f / std::pow(scaleFactor, levelsDown - i);
+            } else if (i > levelsDown) {
+                scale =  std::pow(scaleFactor, i - levelsDown);
+            }
 
-        // Create current level of pyramid
-        scene.pyramid[levelsDown] = createPyramid(1.0f, srcRGB, srcDepth, srcGray, srcHue, K, R, t);
-
-        // Create up levels of pyramid
-        scale = 1.0f;
-        #pragma omp parallel for
-        for (int i = levelsDown + 1; i <= (levelsDown + levelsUp); ++i) {
-            scale *= scaleFactor;
             scene.pyramid[i] = createPyramid(scale, srcRGB, srcDepth, srcGray, srcHue, K, R, t);
         }
 

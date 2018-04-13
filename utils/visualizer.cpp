@@ -161,6 +161,7 @@ namespace tless {
     }
 #endif
 
+#ifdef DVIZ_OBJECTNESS
     void Visualizer::objectness(const ScenePyramid &scene, std::vector<Window> &windows, int wait, const char *title) {
         const auto winSize = static_cast<const int>(windows.size());
         auto minMag = static_cast<int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
@@ -257,7 +258,9 @@ namespace tless {
             }
         }
     }
+#endif
 
+#ifdef VIZ_TPL_FEATURES
     void Visualizer::tplFeaturePoints(const Template &t, int wait, const char *title) {
         // Dynamically load template
         cv::Mat tplRGB = loadTemplateSrc(t, CV_LOAD_IMAGE_COLOR);
@@ -344,7 +347,9 @@ namespace tless {
         cv::imshow(title == nullptr ? "Template features" : title, result);
         cv::waitKey(wait);
     }
+#endif
 
+#if defined(VIZ_MATCHING) || defined(VIZ_NMS)
     void Visualizer::tplMatch(Template &t, const std::vector<std::pair<cv::Point, int>> &features,
                               int highlight, int patchOffset, int wait, const char *title) {
         const int offset = 15;
@@ -470,7 +475,9 @@ namespace tless {
         cv::imshow(title == nullptr ? "Template features" : title, result);
         cv::waitKey(wait);
     }
+#endif
 
+#ifdef VIZ_MATCHING
     bool Visualizer::matching(const ScenePyramid &scene, Template &candidate, std::vector<Window> &windows,
                               int &currentIndex, int &candidateIndex, const std::vector<std::vector<std::pair<cv::Point, int>>> &scores,
                               int patchOffset, int minThreshold, int wait, const char *title) {
@@ -685,7 +692,9 @@ namespace tless {
 
         return false;
     }
+#endif
 
+#ifdef VIZ_RESULTS
     void Visualizer::matches(const ScenePyramid &scene, std::vector<Match> &matches, int wait, const char *title) {
         std::ostringstream oss;
         const int offset = 15, textWidth = 160;
@@ -805,7 +814,9 @@ namespace tless {
             }
         }
     }
+#endif
 
+#ifdef VIZ_NMS
     void Visualizer::preNonMaxima(const ScenePyramid &scene, std::vector<Match> &matches, int wait, const char *title) {
 
         std::ostringstream oss;
@@ -902,4 +913,5 @@ namespace tless {
             }
         }
     }
+#endif
 }

@@ -168,7 +168,7 @@ namespace tless {
                 objectness(scene.pyramid[l].srcDepth, windows, criteria->info.smallestTemplate,
                            criteria->windowStep, criteria->info.minDepth, criteria->info.maxDepth, minDepthMag, minEdgels);
                 ttObjectness += tObjectness.elapsed();
-//                viz.objectness(scene.pyramid[l], windows);
+                viz.objectness(scene.pyramid[l], windows);
 
                 /// Verification and filtering of template candidates
                 if (windows.empty()) {
@@ -188,7 +188,7 @@ namespace tless {
             }
 
             // Apply non-maxima suppression
-//            viz.preNonMaxima(scene.pyramid[criteria->pyrLvlsDown], matches);
+            viz.preNonMaxima(scene.pyramid[criteria->pyrLvlsDown], matches);
             Timer tNMS;
             nms(matches, criteria->overlapFactor);
             ttNMS = tNMS.elapsed();

@@ -207,7 +207,9 @@ namespace tless {
         const auto N = criteria->featurePointsCount;
         const auto minThreshold = static_cast<int>(criteria->featurePointsCount * criteria->matchFactor);
 
+#ifndef VIZ_MATCHING
         #pragma omp parallel for shared(scene, windows, matches) firstprivate(N, minThreshold)
+#endif
         for (int l = 0; l < windows.size(); l++) {
             std::vector<cv::Point> offsetStable(N), offsetEdge(N); // Array of feature points shifted to currently processed window
             const cv::Point winTl = windows[l].tl();
@@ -225,34 +227,33 @@ namespace tless {
                     offsetEdge[i] = candidate->edgePoints[i] + winTl;
                 }
 
-#ifndef NDEBUG
-//                // Accumulate depth differences
-//                depthMedian = depthDiffMedian(scene.srcDepth, offsetStable, candidate->features.depths);
-//                diameter = candidate->diameter * criteria->info.depthScaleFactor * criteria->depthK;
-//
-//                // Vizualization
-//                std::vector<std::pair<cv::Point, int>> vsI, vsII, vsIII, vsIV, vsV;
-//
-//                // Object size test
-//                std::cout << winCenter << std::endl;
-//                vsI.emplace_back(cv::Point(candidate->objBB.x + candidate->objBB.width / 2, candidate->objBB.y + candidate->objBB.height / 2),
-//                                 testObjectSize(scene.srcDepth, winCenter, candidate->features.avgDepth));
-//
-//                // Save validation for all points
-//                for (uint i = 0; i < N; i++) {
-//                    vsII.emplace_back(candidate->stablePoints[i], testNormals(scene.srcNormals, offsetStable[i], candidate->features.normals[i]));
-//                    vsIII.emplace_back(candidate->edgePoints[i], testGradients(scene.srcGradients, offsetEdge[i], candidate->features.gradients[i]));
-//                    vsIV.emplace_back(candidate->stablePoints[i], testDepth(scene.srcDepth, offsetStable[i], candidate->features.depths[i], depthMedian, diameter));
-//                    vsV.emplace_back(candidate->stablePoints[i], testColor(scene.srcHue, offsetStable[i], candidate->features.hue[i]));
-//                }
-//
-//                // Push each score to scores vector
-//                std::vector<std::vector<std::pair<cv::Point, int>>> scores = {vsI, vsII, vsIII, vsIV, vsV};
-//
-//                // Visualize matching
-//                if (viz.matching(scene, *candidate, windows, l, c, scores, criteria->patchOffset, minThreshold)) {
-//                    break;
-//                }
+#ifdef VIZ_MATCHING
+                // Accumulate depth differences
+                depthMedian = depthDiffMedian(scene.srcDepth, offsetStable, candidate->features.depths);
+                diameter = candidate->diameter * criteria->info.depthScaleFactor * criteria->depthK;
+
+                // Vizualization
+                std::vector<std::pair<cv::Point, int>> vsI, vsII, vsIII, vsIV, vsV;
+
+                // Object size test
+                vsI.emplace_back(cv::Point(candidate->objBB.x + candidate->objBB.width / 2, candidate->objBB.y + candidate->objBB.height / 2),
+                                 testObjectSize(scene.srcDepth, winCenter, candidate->features.avgDepth));
+
+                // Save validation for all points
+                for (uint i = 0; i < N; i++) {
+                    vsII.emplace_back(candidate->stablePoints[i], (scene.spreadNormals.at<uchar>(offsetStable[i]) & candidate->features.normals[i]) > 0);
+                    vsIII.emplace_back(candidate->edgePoints[i], (scene.spreadGradients.at<uchar>(offsetEdge[i]) & candidate->features.gradients[i]) > 0);
+                    vsIV.emplace_back(candidate->stablePoints[i], testDepth(scene.srcDepth, offsetStable[i], candidate->features.depths[i], depthMedian, diameter));
+                    vsV.emplace_back(candidate->stablePoints[i], testColor(scene.srcHue, offsetStable[i], candidate->features.hue[i]));
+                }
+
+                // Push each score to scores vector
+                std::vector<std::vector<std::pair<cv::Point, int>>> scores = {vsI, vsII, vsIII, vsIV, vsV};
+
+                // Visualize matching
+                if (viz.matching(scene, *candidate, windows, l, c, scores, criteria->patchOffset, minThreshold)) {
+                    break;
+                }
 #endif
                 // Scores for each test
                 float sII = 0, sIII = 0, sIV = 0, sV = 0;
