@@ -45,11 +45,29 @@ namespace tless {
         auto offsetX = static_cast<int>(NORMAL_LUT_SIZE * 0.5f);
         auto offsetY = static_cast<int>(NORMAL_LUT_SIZE * 0.5f);
 
-        #pragma omp parallel for default(none) shared(src, dst, NORMAL_LUT) firstprivate(fx, fy, maxDepth, maxDifference, PS, offsetX, offsetY)
+        // Get pointers and steps
+        auto step = static_cast<int>(src.step1());
+        const auto *src_p = src.ptr<ushort>();
+        auto *dst_p = dst.ptr<uchar>();
+
+        // Offsets
+        const int off1 = -PS - PS * step;
+        const int off2 =  0 - PS * step;
+        const int off3 = +PS - PS * step;
+        const int off4 = -PS;
+        const int off5 = +PS;
+        const int off6 = -PS + PS * step;
+        const int off7 =  0 + PS * step;
+        const int off8 = +PS + PS * step;
+
+        #pragma omp parallel for default(none) shared(src_p, dst_p, NORMAL_LUT) firstprivate(step, fx, fy, maxDepth, maxDifference, PS, offsetX, offsetY)
         for (int y = PS; y < src.rows - PS; y++) {
+            const ushort *row_src = src_p + (y * step + PS);
+            uchar *row_dst = dst_p + (y * step + PS);
+
             for (int x = PS; x < src.cols - PS; x++) {
                 // Get depth value at (x,y)
-                long d = src.at<ushort>(y, x);
+                long d = row_src[0];
 
                 if (d < maxDepth) {
                     long A[3], b[2];
@@ -57,14 +75,14 @@ namespace tless {
                     b[0] = b[1] = 0;
 
                     // Get 8 points around computing points in defined patch of size PS
-                    accumulateBilateral(src.at<ushort>(y - PS, x - PS) - d, -PS, -PS, A, b, maxDifference);
-                    accumulateBilateral(src.at<ushort>(y - PS, x) - d, 0, -PS, A, b, maxDifference);
-                    accumulateBilateral(src.at<ushort>(y - PS, x + PS) - d, +PS, -PS, A, b, maxDifference);
-                    accumulateBilateral(src.at<ushort>(y, x - PS) - d, -PS, 0, A, b, maxDifference);
-                    accumulateBilateral(src.at<ushort>(y, x + PS) - d, +PS, 0, A, b, maxDifference);
-                    accumulateBilateral(src.at<ushort>(y + PS, x - PS) - d, -PS, +PS, A, b, maxDifference);
-                    accumulateBilateral(src.at<ushort>(y + PS, x) - d, 0, +PS, A, b, maxDifference);
-                    accumulateBilateral(src.at<ushort>(y + PS, x + PS) - d, +PS, +PS, A, b, maxDifference);
+                    accumulateBilateral(row_src[off1] - d, -PS, -PS, A, b, maxDifference);
+                    accumulateBilateral(row_src[off2] - d, 0, -PS, A, b, maxDifference);
+                    accumulateBilateral(row_src[off3] - d, +PS, -PS, A, b, maxDifference);
+                    accumulateBilateral(row_src[off4] - d, -PS, 0, A, b, maxDifference);
+                    accumulateBilateral(row_src[off5] - d, +PS, 0, A, b, maxDifference);
+                    accumulateBilateral(row_src[off6] - d, -PS, +PS, A, b, maxDifference);
+                    accumulateBilateral(row_src[off7] - d, 0, +PS, A, b, maxDifference);
+                    accumulateBilateral(row_src[off8] - d, +PS, +PS, A, b, maxDifference);
 
                     // Solve
                     long det = A[0] * A[2] - A[1] * A[1];
@@ -93,14 +111,17 @@ namespace tless {
                         // auto vZ = static_cast<int>(Nz * NORMAL_LUT_SIZE + NORMAL_LUT_SIZE);
 
                         // Save quantized normals, ignore vZ, we quantize only in top half of sphere (cone)
-                        dst.at<uchar>(y, x) = NORMAL_LUT[vY][vX];
-                        // dst.at<uchar>(y, x) = static_cast<uchar>(std::fabs(Nz) * 255); // Lambert
+                        *row_dst = NORMAL_LUT[vY][vX];
+                        // *row_dst = static_cast<uchar>(std::fabs(Nz) * 255); // Lambert
                     } else {
-                        dst.at<uchar>(y, x) = 0; // Discard shadows & distant objects from depth sensor
+                        *row_dst = 0; // Discard shadows & distant objects from depth sensor
                     }
                 } else {
-                    dst.at<uchar>(y, x) = 0; // Wrong depth
+                    *row_dst = 0; // Wrong depth
                 }
+
+                row_dst++;
+                row_src++;
             }
         }
 
@@ -257,7 +278,6 @@ namespace tless {
         dst = cv::Mat::zeros(src.size(), CV_8UC1);
         cv::Mat grad = cv::Mat(src.size(), CV_32FC1);
 
-        #pragma omp parallel for default(none) shared(dst, angles, mags) firstprivate(minMag)
         for (int y = 0; y < dst.rows; y++) {
             for (int x = 0; x < dst.cols; x++) {
                 // Check for min

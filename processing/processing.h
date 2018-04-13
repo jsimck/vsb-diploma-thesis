@@ -36,6 +36,8 @@ namespace tless {
     /**
      * @brief Computes quantized surface normals from 16-bit depth image.
      *
+     * https://github.com/opencv/opencv_contrib/blob/master/modules/rgbd/src/linemod.cpp#L632
+     *
      * @param[in]  src           Source 16-bit depth image (in mm)
      * @param[out] dst           Destination 8-bit image, where each bit represents one bin of view cone
      * @param[in]  fx            Camera focal length in X direction

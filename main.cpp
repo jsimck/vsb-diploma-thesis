@@ -3,6 +3,7 @@
 #include "objdetect/classifier.h"
 #include "utils/timer.h"
 #include "utils/converter.h"
+#include "processing/processing.h"
 
 int main() {
     // Convert templates from t-less to custom format

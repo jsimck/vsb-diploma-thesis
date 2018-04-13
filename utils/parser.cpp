@@ -3,6 +3,7 @@
 #include "../objdetect/matcher.h"
 #include "../objdetect/hasher.h"
 #include "../core/classifier_criteria.h"
+#include "timer.h"
 
 namespace tless {
     void Parser::parseObject(const std::string &basePath, std::vector<Template> &templates, const std::vector<uint> &indices) {
@@ -124,31 +125,39 @@ namespace tless {
         cv::Mat t = cv::Mat(3, 1, CV_32FC1, vCamTw2c.data());
         fs.release();
 
+        // Create gray and hsv images
+        cv::Mat srcHSV, srcHue, srcGray;
+        cv::cvtColor(srcRGB, srcGray, CV_BGR2GRAY);
+        cv::cvtColor(srcRGB, srcHSV, CV_BGR2HSV);
+        normalizeHSV(srcHSV, srcHue);
+
         // Reserve size for scene pyramid
         scene.pyramid.resize(levelsDown + levelsUp + 1);
 
         // Create down levels of pyramid
         float scale = 1.0f;
+        #pragma omp parallel for
         for (int i = levelsDown - 1; i >= 0; --i) {
             scale /= scaleFactor;
-            scene.pyramid[i] = createPyramid(scale, srcRGB, srcDepth, K, R, t);
+            scene.pyramid[i] = createPyramid(scale, srcRGB, srcDepth, srcGray, srcHue, K, R, t);
         }
 
         // Create current level of pyramid
-        scene.pyramid[levelsDown] = createPyramid(1.0f, srcRGB, srcDepth, K, R, t);
+        scene.pyramid[levelsDown] = createPyramid(1.0f, srcRGB, srcDepth, srcGray, srcHue, K, R, t);
 
         // Create up levels of pyramid
         scale = 1.0f;
+        #pragma omp parallel for
         for (int i = levelsDown + 1; i <= (levelsDown + levelsUp); ++i) {
             scale *= scaleFactor;
-            scene.pyramid[i] = createPyramid(scale, srcRGB, srcDepth, K, R, t);
+            scene.pyramid[i] = createPyramid(scale, srcRGB, srcDepth, srcGray, srcHue, K, R, t);
         }
 
         return scene;
     }
 
-    ScenePyramid Parser::createPyramid(float scale, const cv::Mat &rgb, const cv::Mat &depth,
-                                       const cv::Mat &K, const cv::Mat &R, const cv::Mat &t) {
+    ScenePyramid Parser::createPyramid(float scale, const cv::Mat &rgb, const cv::Mat &depth, const cv::Mat &gray, const cv::Mat &hue,
+                                           const cv::Mat &K, const cv::Mat &R, const cv::Mat &t) {
         // Create camera
         Camera camera;
         camera.K = K.clone();
@@ -166,26 +175,22 @@ namespace tless {
         pyramid.camera = std::move(camera);
 
         if (scale != 1.0f) {
-            cv::resize(rgb, pyramid.srcRGB, cv::Size(), scale, scale);
-            cv::resize(depth, pyramid.srcDepth, cv::Size(), scale, scale);
+            cv::resize(rgb, pyramid.srcRGB, cv::Size(), scale, scale, CV_INTER_CUBIC);
+            cv::resize(depth, pyramid.srcDepth, cv::Size(), scale, scale, CV_INTER_AREA);
+            cv::resize(gray, pyramid.srcGray, cv::Size(), scale, scale, CV_INTER_CUBIC);
+            cv::resize(hue, pyramid.srcHue, cv::Size(), scale, scale, CV_INTER_CUBIC);
 
             // Recalculate depth values
-            pyramid.srcDepth = pyramid.srcDepth / scale;
+            pyramid.srcDepth /= scale;
         } else {
             pyramid.srcRGB = rgb.clone();
             pyramid.srcDepth = depth.clone();
+            pyramid.srcGray = gray.clone();
+            pyramid.srcHue = hue.clone();
         }
 
         // Smooth out depth image
         cv::medianBlur(pyramid.srcDepth, pyramid.srcDepth, 5);
-
-        // Convert to gray and hsv
-        cv::Mat hsv;
-        cv::cvtColor(pyramid.srcRGB, pyramid.srcGray, CV_BGR2GRAY);
-        cv::cvtColor(pyramid.srcRGB, hsv, CV_BGR2HSV);
-
-        // Normalize HSV
-        normalizeHSV(hsv, pyramid.srcHue);
 
         // Generate quantized normals and orientations
         quantizedGradients(pyramid.srcGray, pyramid.srcGradients, criteria->minMagnitude);

@@ -42,7 +42,8 @@ namespace tless {
          * @param[in] t     Camera translation vector
          * @return          New level of Scene pyramid at given scale
          */
-        ScenePyramid createPyramid(float scale, const cv::Mat &rgb, const cv::Mat &depth, const cv::Mat &K, const cv::Mat &R, const cv::Mat &t);
+        ScenePyramid createPyramid(float scale, const cv::Mat &rgb, const cv::Mat &depth, const cv::Mat &gray, const cv::Mat &hue,
+                                           const cv::Mat &K, const cv::Mat &R, const cv::Mat &t);
 
     public:
         Parser(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {};
