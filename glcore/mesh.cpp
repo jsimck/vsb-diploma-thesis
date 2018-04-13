@@ -110,4 +110,10 @@ namespace tless {
 
         return os;
     }
+
+    Mesh::~Mesh() {
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+        glDeleteVertexArrays(1, &id);
+    }
 }

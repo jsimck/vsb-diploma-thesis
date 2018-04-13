@@ -10,6 +10,9 @@
 #include "../libs/tinyply.h"
 
 namespace tless {
+    /**
+     * @brief Helper class which contains pair of two 3D vectors (position, normals)
+     */
     struct Vertex {
         glm::vec3 position;
         glm::vec3 normal;
@@ -45,6 +48,7 @@ namespace tless {
 
         Mesh() = default;
         Mesh(const std::string &plyFile);
+        ~Mesh();
 
         /**
          * @brief Parses mesh from .ply file using tinyply library and calls init.
