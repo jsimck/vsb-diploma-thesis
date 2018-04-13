@@ -3,7 +3,6 @@
 #include "../objdetect/matcher.h"
 #include "../objdetect/hasher.h"
 #include "../core/classifier_criteria.h"
-#include "timer.h"
 
 namespace tless {
     void Parser::parseObject(const std::string &basePath, std::vector<Template> &templates, const std::vector<uint> &indices) {
@@ -91,7 +90,8 @@ namespace tless {
         }
 
         // Compute normals
-        quantizedNormals(t.srcDepth, t.srcNormals, t.camera.fx(), t.camera.fy(), t.maxDepth, static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
+        cv::Mat normals3D;
+        quantizedNormals(t.srcDepth, t.srcNormals, normals3D, t.camera.fx(), t.camera.fy(), t.maxDepth, static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
     }
 
     Scene Parser::parseScene(const std::string &basePath, int index, float scaleFactor, int levelsUp, int levelsDown) {
@@ -194,7 +194,7 @@ namespace tless {
 
         // Generate quantized normals and orientations
         quantizedGradients(pyramid.srcGray, pyramid.srcGradients, criteria->minMagnitude);
-        quantizedNormals(pyramid.srcDepth, pyramid.srcNormals, pyramid.camera.fx(), pyramid.camera.fy(),
+        quantizedNormals(pyramid.srcDepth, pyramid.srcNormals, pyramid.srcNormals3D, pyramid.camera.fx(), pyramid.camera.fy(),
                          static_cast<int>(criteria->info.maxDepth), static_cast<int>(criteria->maxDepthDiff / scale));
 
         // Spread features

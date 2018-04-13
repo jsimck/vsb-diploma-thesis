@@ -40,13 +40,14 @@ namespace tless {
      *
      * @param[in]  src           Source 16-bit depth image (in mm)
      * @param[out] dst           Destination 8-bit image, where each bit represents one bin of view cone
+     * @param[out] dstNormals    32-bit 3-channel destionation image of extracted 3D normals
      * @param[in]  fx            Camera focal length in X direction
      * @param[in]  fy            Camera focal length in Y direction
      * @param[in]  maxDepth      Ignore pixels beyond this depth
      * @param[in]  maxDifference When computing surface normals, ignore contributions of
      *                           pixels whose depth difference with central pixel is above this threshold
      */
-    void quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, float fy, int maxDepth, int maxDifference);
+    void quantizedNormals(const cv::Mat &src, cv::Mat &dst, cv::Mat &dstNormals, float fx, float fy, int maxDepth, int maxDifference);
 
     /**
      * @brief Generates binary image of visible depth edgels, detected in depth image within (min, max) depths.

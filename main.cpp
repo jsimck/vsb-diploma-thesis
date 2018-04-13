@@ -1,9 +1,8 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "objdetect/classifier.h"
-#include "utils/timer.h"
-#include "utils/converter.h"
 #include "processing/processing.h"
+#include "utils/converter.h"
 
 int main() {
     // Convert templates from t-less to custom format
@@ -20,7 +19,7 @@ int main() {
     criteria->depthBinCount = 5;
 
     // Detect params
-    criteria->matchFactor = 0.55f;
+    criteria->matchFactor = 0.6f;
 
     // Init classifier
     tless::Classifier classifier(criteria);

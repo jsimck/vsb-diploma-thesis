@@ -15,7 +15,7 @@ namespace tless {
         settings[SETTINGS_INFO] = true;
         settings[SETTINGS_FEATURE_POINT_STYLE] = true;
         settings[SETTINGS_FEATURE_POINT] = true;
-        settings[SETTINGS_TPL_OVERLAY] = true;
+        settings[SETTINGS_TPL_OVERLAY] = false;
     }
 
     cv::Mat Visualizer::loadTemplateSrc(const Template &tpl, int flags) {
@@ -363,8 +363,8 @@ namespace tless {
         quantizedGradients(gray, gradients, criteria->minMagnitude);
 
         // Load normals
-        cv::Mat normals;
-        quantizedNormals(depth, normals, t.camera.fx(), t.camera.fy(), t.maxDepth, static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
+        cv::Mat normals, normals3D;
+        quantizedNormals(depth, normals, normals3D, t.camera.fx(), t.camera.fy(), t.maxDepth, static_cast<int>(criteria->maxDepthDiff / t.resizeRatio));
 
         // Load hue
         cv::Mat hue, hsv;

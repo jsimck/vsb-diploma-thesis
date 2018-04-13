@@ -32,7 +32,7 @@ namespace tless {
 
     public:
         // Constructors
-        Classifier(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
+        explicit Classifier(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
 
         // Methods
         void train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices = {});

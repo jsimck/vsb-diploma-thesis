@@ -3,7 +3,7 @@
 #include "../utils/timer.h"
 #include "../utils/visualizer.h"
 #include "../processing/processing.h"
-#include "../core/classifier_criteria.h"
+#include "fine_pose.h"
 
 namespace tless {
     void Classifier::train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices) {
@@ -135,10 +135,11 @@ namespace tless {
         Hasher hasher(criteria);
         Matcher matcher(criteria);
         Visualizer viz(criteria);
-        Scene scene;
+//        FinePose finePose(criteria, "data/shaders/", "data/meshes.txt");
 
         // Load trained template data
         load(trainedTemplatesListPath, trainedPath);
+        Scene scene;
 
         // Define contsants
         const int pyrLevels = criteria->pyrLvlsDown + criteria->pyrLvlsUp;
@@ -203,6 +204,10 @@ namespace tless {
 
             // Vizualize results and clear current matches
             viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);
+
+            // Apply fine pose estimation
+//            finePose.estimate(matches, scene);
+
             matches.clear();
         }
     }

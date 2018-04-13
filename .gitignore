@@ -97,4 +97,9 @@ fabric.properties
 
 cmake-build-debug/
 cmake-build-release/
-/data/*/**
+/data/108x108/
+/data/400x400/
+/data/scenes/
+/data/models/
+/data/trained/**/*.yml
+/data/398x398/

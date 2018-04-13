@@ -1,7 +1,6 @@
 #include "processing.h"
 #include "../objdetect/hasher.h"
 #include "computation.h"
-#include "../utils/timer.h"
 #include <cassert>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
@@ -36,19 +35,22 @@ namespace tless {
         b[1] += fy * delta;
     }
 
-    void quantizedNormals(const cv::Mat &src, cv::Mat &dst, float fx, float fy, int maxDepth, int maxDifference) {
+    void quantizedNormals(const cv::Mat &src, cv::Mat &dst, cv::Mat &dstNormals, float fx, float fy, int maxDepth, int maxDifference) {
         assert(!src.empty());
         assert(src.type() == CV_16UC1);
 
         int PS = 5; // patch size
         dst = cv::Mat::zeros(src.size(), CV_8UC1);
+        dstNormals = cv::Mat::zeros(src.size(), CV_32FC3);
         auto offsetX = static_cast<int>(NORMAL_LUT_SIZE * 0.5f);
         auto offsetY = static_cast<int>(NORMAL_LUT_SIZE * 0.5f);
 
         // Get pointers and steps
         auto step = static_cast<int>(src.step1());
+        auto stepNormals = static_cast<int>(src.step1());
         const auto *src_p = src.ptr<ushort>();
         auto *dst_p = dst.ptr<uchar>();
+        auto *normals_p = dstNormals.ptr<cv::Vec3f>();
 
         // Offsets
         const int off1 = -PS - PS * step;
@@ -60,10 +62,11 @@ namespace tless {
         const int off7 =  0 + PS * step;
         const int off8 = +PS + PS * step;
 
-        #pragma omp parallel for default(none) shared(src_p, dst_p, NORMAL_LUT) firstprivate(step, fx, fy, maxDepth, maxDifference, PS, offsetX, offsetY)
+        #pragma omp parallel for default(none) shared(src_p, dst_p, normals_p, NORMAL_LUT) firstprivate(step, stepNormals, fx, fy, maxDepth, maxDifference, PS, offsetX, offsetY)
         for (int y = PS; y < src.rows - PS; y++) {
             const ushort *row_src = src_p + (y * step + PS);
             uchar *row_dst = dst_p + (y * step + PS);
+            cv::Vec3f *row_normals = normals_p + (y * stepNormals + PS);
 
             for (int x = PS; x < src.cols - PS; x++) {
                 // Get depth value at (x,y)
@@ -103,7 +106,10 @@ namespace tless {
                         // Normalize normal
                         Nx *= normInv;
                         Ny *= normInv;
-                        // Nz *= normInv;
+                        Nz *= normInv;
+
+                        // Save normals
+                        *row_normals = cv::Vec3f(-Nz, -Ny, Nx);
 
                         // Get values for pre-generated Normal look up table
                         auto vX = static_cast<int>(Nx * offsetX + offsetX);
@@ -120,6 +126,7 @@ namespace tless {
                     *row_dst = 0; // Wrong depth
                 }
 
+                row_normals++;
                 row_dst++;
                 row_src++;
             }
