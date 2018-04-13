@@ -56,13 +56,13 @@ namespace tless {
         pBest.fitness = fitness;
     }
 
-    void Particle::progress(float w, float c1, float c2, const Particle &gBest) {
+    void Particle::progress(float w1, float w2, float c1, float c2, const Particle &gBest) {
         // Calculate new velocity
         for (int i = 0; i < 3; i++) {
-            v[i] = velocity(w, v[i], pose[i], pBest.pose[i], gBest.pose[i], c1, c2, nextR(), nextR());
+            v[i] = velocity(w1, v[i], pose[i], pBest.pose[i], gBest.pose[i], c1, c2, nextR(), nextR());
         }
         for (int i = 3; i < 6; i++) {
-            v[i] = velocity(0.96f, v[i], pose[i], pBest.pose[i], gBest.pose[i], c1, c2, nextR(), nextR());
+            v[i] = velocity(w2, v[i], pose[i], pBest.pose[i], gBest.pose[i], c1, c2, nextR(), nextR());
         }
 
         // Update current possition with new velocity
@@ -136,7 +136,7 @@ namespace tless {
         return -sumD * 1 * sumE;
     }
 
-    std::ostream &tless::operator<<(std::ostream &os, const Particle &particle) {
+    std::ostream &operator<<(std::ostream &os, const Particle &particle) {
         os << "fitness: " << particle.fitness << " v1: " << particle.v1 << " v2: " << particle.v2 << " v3: "
            << particle.v3 << " v4: " << particle.v4 << " v5: " << particle.v5 << " v6: " << particle.v6 << " v: "
            << particle.v << " tx: " << particle.tx << " ty: " << particle.ty << " tz: " << particle.tz << " rx: "

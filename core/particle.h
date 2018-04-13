@@ -56,7 +56,7 @@ namespace tless {
 
         void updatePBest();
 
-        void progress(float w, float c1, float c2, const Particle &gBest);
+        void progress(float w1, float w2, float c1, float c2, const Particle &gBest);
 
         static float objFun(const cv::Mat &gt, const cv::Mat &gtNormals, const cv::Mat &gtEdges, const cv::Mat &pose, const cv::Mat &poseNormals);
 

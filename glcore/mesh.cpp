@@ -95,13 +95,19 @@ namespace tless {
         glBindVertexArray(0);
     }
 
-    std::ostream &tless::operator<<(std::ostream &os, const Mesh &mesh) {
+    Mesh::~Mesh() {
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+        glDeleteVertexArrays(1, &id);
+    }
+
+    std::ostream &operator<<(std::ostream &os, const Mesh &mesh) {
         os << "VBO: " << mesh.VBO
            << " EBO: " << mesh.EBO
            << " id: " << mesh.id << std::endl;
 
-        for (int i = 0; i < mesh.vertices.size(); ++i) {
-            os << "V: " << mesh.vertices[i] <<std::endl;
+        for (const auto &vertice : mesh.vertices) {
+            os << "V: " << vertice << std::endl;
         }
 
         for (int i = 0; i < mesh.indices.size(); i += 3) {
@@ -109,11 +115,5 @@ namespace tless {
         }
 
         return os;
-    }
-
-    Mesh::~Mesh() {
-        glDeleteBuffers(1, &VBO);
-        glDeleteBuffers(1, &EBO);
-        glDeleteVertexArrays(1, &id);
     }
 }

@@ -220,7 +220,7 @@ namespace tless {
 
                 for (auto &p : particles) {
                     // Progress (updates velocity and moves particle)
-                    p.progress(W, C1, C2, gBest);
+                    p.progress(W, W, C1, C2, gBest);
 
                     // Fitness
                     m = p.model();
