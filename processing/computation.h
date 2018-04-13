@@ -70,7 +70,7 @@ namespace tless {
      *
      * @tparam    T        elements data type
      * @param[in] elements Array of input elements
-     * @param     toRemove Array of indices identifying elements to remove
+     * @param[in] toRemove Array of indices identifying elements to remove
      */
     template<typename T>
     void removeIndex(std::vector<T> &elements, const std::vector<size_t> &toRemove) {

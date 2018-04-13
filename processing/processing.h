@@ -119,9 +119,9 @@ namespace tless {
     /**
      * @brief Spread quantized features in src image in TxT patch around every pixel
      *
-     * @param src 8-bit input image of quantized features
-     * @param dst 8-bit spread feature version of input image
-     * @param T   Size of the patch TxT
+     * @param[in]  src 8-bit input image of quantized features
+     * @param[out] dst 8-bit spread feature version of input image
+     * @param[in]  T   Size of the patch TxT
      */
     void spread(const cv::Mat& src, cv::Mat& dst, int T);
 

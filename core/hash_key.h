@@ -22,8 +22,8 @@ namespace tless {
         /**
          * @brief Converts key values from 8bit to 3bit representation in order to reduce hash key length
          *
-         * @param  value uchar value to convert to 3bit decimal number (2^1 - 2^7 -> 0-7)
-         * @return       returns value between 0-7 depending on the power of the on the input
+         * @param[in] value uchar value to convert to 3bit decimal number (2^1 - 2^7 -> 0-7)
+         * @return    returns value between 0-7 depending on the power of the on the input
          */
         inline size_t hashValue(uchar value) const;
 

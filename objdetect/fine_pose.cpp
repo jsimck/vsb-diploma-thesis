@@ -273,19 +273,20 @@ namespace tless {
             gsl_qrng_get(q, v);
 
             // Generate particle
-            particles.emplace_back(
-                    (v[0] - 0.5) * 50,
-                    (v[1] - 0.5) * 50,
-                    (v[2] - 0.8) * 200,
-                    (v[3] - 0.5),
-                    (v[4] - 0.5),
-                    (v[5] - 0.5),
-                    d(gen) * 20,
-                    d(gen) * 20,
-                    d(gen) * 40,
-                    d(gen) * 0.2,
-                    d(gen) * 0.2,
-                    d(gen) * 0.2);
+            particles.emplace_back(Particle(
+                (v[0] - 0.5) * 50,
+                (v[1] - 0.5) * 50,
+                (v[2] - 0.8) * 200,
+                (v[3] - 0.5),
+                (v[4] - 0.5),
+                (v[5] - 0.5),
+                d(gen) * 20,
+                d(gen) * 20,
+                d(gen) * 40,
+                d(gen) * 0.2f,
+                d(gen) * 0.2f,
+                d(gen) * 0.2f
+            ));
         }
 
         gsl_qrng_free(q);

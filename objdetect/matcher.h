@@ -40,10 +40,10 @@ namespace tless {
         /**
          * @brief Test I, perfmors check whether scene center depth lies within interval defined using avg template depth.
          *
-         * @param sceneDepth Input 16-bit scene depth image
-         * @param winCenter  Center point of currently processed window
-         * @param avgDepth   Average depth across object in current tempate
-         * @return           True whether depth is within defined interval, otherwise 0
+         * @param[in] sceneDepth Input 16-bit scene depth image
+         * @param[in] winCenter  Center point of currently processed window
+         * @param[in] avgDepth   Average depth across object in current tempate
+         * @return               True whether depth is within defined interval, otherwise 0
          */
         inline bool testObjectSize(const cv::Mat &sceneDepth, const cv::Point winCenter, ushort avgDepth);
 

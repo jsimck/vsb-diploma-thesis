@@ -29,14 +29,6 @@ namespace tless {
         updatePBest();
     };
 
-    float Particle::nextR() {
-        static std::random_device rd;
-        static std::mt19937 gen(rd());
-        static std::uniform_real_distribution<float> d(0, 1.0f);
-
-        return d(gen);
-    }
-
     glm::mat4 Particle::model()  {
         glm::mat4 m;
         glm::vec3 t(tx, ty, tz);
@@ -57,52 +49,52 @@ namespace tless {
     }
 
     void Particle::progress(float w1, float w2, float c1, float c2, const Particle &gBest) {
-        // Calculate new velocity
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        static std::uniform_real_distribution<float> d(0, 1.0f);
+
+        // Calculate new velocity for translations
         for (int i = 0; i < 3; i++) {
-            v[i] = velocity(w1, v[i], pose[i], pBest.pose[i], gBest.pose[i], c1, c2, nextR(), nextR());
+            v[i] = velocity(w1, v[i], pose[i], pBest.pose[i], gBest.pose[i], c1, c2, d(gen), d(gen));
         }
+
+        // Use different w coeff for euler angles
         for (int i = 3; i < 6; i++) {
-            v[i] = velocity(w2, v[i], pose[i], pBest.pose[i], gBest.pose[i], c1, c2, nextR(), nextR());
+            v[i] = velocity(w2, v[i], pose[i], pBest.pose[i], gBest.pose[i], c1, c2, d(gen), d(gen));
         }
 
         // Update current possition with new velocity
         for (int i = 0; i < 6; i++) {
             pose[i] = v[i] + pose[i];
         }
-
-        for (int i = 3; i < 6; i++) {
-            if (std::abs(v[i]) > 1) {
-                std::cout << v[i] << std::endl;
-            }
-        }
     }
 
-    float Particle::objFun(const cv::Mat &gt, const cv::Mat &gtNormals, const cv::Mat &gtEdges, const cv::Mat &pose,
-                            const cv::Mat &poseNormals) {
+    float Particle::objFun(const cv::Mat &srcDepth, const cv::Mat &srcNormals, const cv::Mat &srcEdges,
+                           const cv::Mat &poseDepth, const cv::Mat &poseNormals) {
         float sumD = 0, sumU = 0, sumE = 0;
         const float tD = 200;
         const float inf = std::numeric_limits<float>::max();
 
         // Compute edges
         cv::Mat poseT, poseEdges;
-        cv::Laplacian(pose, poseEdges, -1);
+        cv::Laplacian(poseDepth, poseEdges, -1);
         cv::threshold(poseEdges, poseEdges, 20, 255, CV_THRESH_BINARY_INV);
         poseEdges.convertTo(poseEdges, CV_8U);
         cv::distanceTransform(poseEdges, poseT, CV_DIST_L2, 3);
 
-        cv::Mat matD = cv::Mat::zeros(gt.size(), CV_32FC1);
-        cv::Mat matE = cv::Mat::zeros(gt.size(), CV_32FC1);
-        cv::Mat matU = cv::Mat::zeros(gt.size(), CV_32FC1);
+        cv::Mat matD = cv::Mat::zeros(srcDepth.size(), CV_32FC1);
+        cv::Mat matE = cv::Mat::zeros(srcDepth.size(), CV_32FC1);
+        cv::Mat matU = cv::Mat::zeros(srcDepth.size(), CV_32FC1);
 
 //        cv::normalize(poseT, poseT, 0, 1, CV_MINMAX);
 //        cv::imshow("poseEdges", poseEdges);
 //        cv::imshow("distance", poseT);
 //        cv::waitKey(1);
 
-        for (int y = 0; y < gt.rows; y++) {
-            for (int x = 0; x < gt.cols; x++) {
+        for (int y = 0; y < srcDepth.rows; y++) {
+            for (int x = 0; x < srcDepth.cols; x++) {
                 // Compute distance transform
-                if (gtEdges.at<uchar>(y, x) > 0) {
+                if (srcEdges.at<uchar>(y, x) > 0) {
                     sumE += 1 / (poseT.at<float>(y, x) + 1);
                     matE.at<float>(y, x) = 1 / (poseT.at<float>(y, x) + 1);
                 }
@@ -113,12 +105,12 @@ namespace tless {
 //                }
 
                 // Compute depth diff
-                float dDiff = std::abs(gt.at<float>(y, x) - pose.at<float>(y, x));
+                float dDiff = std::abs(srcDepth.at<ushort>(y, x) - poseDepth.at<float>(y, x));
                 sumD += (dDiff > tD) ? (1 / (inf + 1)) : (1 / (dDiff + 1));
                 matD.at<float>(y, x) = (dDiff > tD) ? (1 / (inf + 1)) : (1 / (dDiff + 1));
 
                 // Compare normals
-                float dot = std::abs(gtNormals.at<cv::Vec3f>(y, x).dot(poseNormals.at<cv::Vec3f>(y, x)));
+                float dot = std::abs(srcNormals.at<cv::Vec3f>(y, x).dot(poseNormals.at<cv::Vec3f>(y, x)));
                 sumU += std::isnan(dot) ? (1 / (inf + 1)) : (1 / (dot + 1));
                 matU.at<float>(y, x) = std::isnan(dot) ? (1 / (9999999 + 1)) : (1 / (dot + 1));
             }
@@ -133,7 +125,7 @@ namespace tless {
 //        cv::imshow("matD", matD);
 //        cv::waitKey(1);
 
-        return -sumD * 1 * sumE;
+        return -sumD * sumU * sumE;
     }
 
     std::ostream &operator<<(std::ostream &os, const Particle &particle) {
