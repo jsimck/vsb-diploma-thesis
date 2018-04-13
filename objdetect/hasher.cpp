@@ -17,14 +17,6 @@ namespace tless {
         cv::Point nP2 = triplet.p2 + window.tl();
         cv::Point nC = triplet.c + window.tl();
 
-        const int brX = window.br().x;
-        const int brY = window.br().y;
-
-        // Ignore if we're out of object bounding box
-        if (nC.x >= brX || nP1.x >= brX || nP2.x >= brX || nC.y >= brY || nP1.y >= brY || nP2.y >= brY) {
-            return {};
-        }
-
         // Check for minimal gray value (triplet is on an object)
         if (!gray.empty()) {
             assert(gray.type() == CV_8UC1);

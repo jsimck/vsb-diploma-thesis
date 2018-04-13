@@ -11,10 +11,7 @@
 
 namespace tless {
     /**
-     * class Hasher
-     *
-     * Used to train HashTables and quickly verify what templates should be matched
-     * per each window passed form objectness detection
+     * @brief Used to train template features and during template matching cascade to verify candidates for each window.
      */
     class Matcher {
     private:
