@@ -130,7 +130,7 @@ namespace tless {
     }
 
     std::ostream &operator<<(std::ostream &os, const Particle &particle) {
-        os << "fitness: " << ", pbest: " << particle.pBest.fitness << ", pose: ";
+        os << "fitness: " << particle.fitness << ", pbest: " << particle.pBest.fitness << ", pose: ";
         for (int i = 0; i < 6; ++i) {
             os << i << ": " << particle.pose[i] << ",";
         }

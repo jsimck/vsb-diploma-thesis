@@ -16,7 +16,7 @@ namespace tless {
      */
     class Converter {
     private:
-        const uchar minGray = 20; //!< Minimal gray color value of image to consider containing object
+        const uchar minGray = 40; //!< Minimal gray color value of image to consider containing object
         const int offset = 2; //!< Offset for object bounding boxes, when cropping we enlarge the objBB by this value in both directions to not cut any edges
         std::vector<float> diameters;
 
