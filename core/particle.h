@@ -8,43 +8,32 @@
 namespace tless {
     class Particle {
     private:
+        /**
+         * @brief Updates velocity vector according to equation defined in fine-pose estimation.
+         *
+         * @param[in] w     Tunable param (reduces velocity over time)
+         * @param[in] v     Current velocity
+         * @param[in] x     Current position (pose component)
+         * @param[in] pBest Current personal best
+         * @param[in] gBest Current global best
+         * @param[in] c1    Learning factor [0 - 2] that affects how much is the particle leading towards personal best
+         * @param[in] c2    Learning factor [0 - 2] that affects how much is the particle leading towards global best
+         * @param[in] r1    Random number [0 - 1]
+         * @param[in] r2    Random number [0 - 1]
+         * @return
+         */
         inline float velocity(float w, float v, float x, float pBest, float gBest, float c1, float c2, float r1, float r2);
 
     public:
         float fitness = 0;
+        float pose[6];
+        float v[6];
 
-        // Velocity vector
-        union {
-            struct {
-                float v1, v2, v3, v4, v5, v6;
-            };
-            float v[6];
-        };
-
-        // 6D pose
-        union {
-            struct {
-                float tx, ty, tz, rx, ry, rz;
-            };
-            float pose[6];
-        };
-
+        // pBest velocity and 6D pose
         struct {
-            union {
-                struct {
-                    float v1, v2, v3, v4, v5, v6;
-                };
-                float v[6];
-            };
-
-            union {
-                struct {
-                    float tx, ty, tz, rx, ry, rz;
-                };
-                float pose[6];
-            };
-
             float fitness = 0;
+            float pose[6];
+            float v[6];
         } pBest;
 
         Particle() = default;
@@ -66,11 +55,11 @@ namespace tless {
         /**
          * @brief Computes new velocity vectors and updates all 6D pose properties by adding new velocity.
          *
-         * @param[in] w1    Tunable param [0 - 1.2] amount which decreases final velocity at each new calculation (translation).
-         * @param[in] w2    Tunable param [0 - 1.2] amount which decreases final velocity at each new calculation (rotation).
-         * @param[in] c1    Learning factor [0 - 2] that affects how much is the particle leading towards personal best.
-         * @param[in] c2    Learning factor [0 - 2] that affects how much is the particle leading towards global best.
-         * @param[in] gBest Particle that has the best fitness value currently.
+         * @param[in] w1    Tunable param [0 - 1.2] amount which decreases final velocity at each new calculation (translation)
+         * @param[in] w2    Tunable param [0 - 1.2] amount which decreases final velocity at each new calculation (rotation)
+         * @param[in] c1    Learning factor [0 - 2] that affects how much is the particle leading towards personal best
+         * @param[in] c2    Learning factor [0 - 2] that affects how much is the particle leading towards global best
+         * @param[in] gBest Particle that has the best fitness value currently
          */
         void progress(float w1, float w2, float c1, float c2, const Particle &gBest);
 

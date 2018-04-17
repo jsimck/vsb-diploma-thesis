@@ -12,18 +12,18 @@ namespace tless {
 
     Particle::Particle(float tx, float ty, float tz, float rx, float ry, float rz,
                        float v1, float v2, float v3, float v4, float v5, float v6) {
-        this->tx = tx;
-        this->ty = ty;
-        this->tz = tz;
-        this->rx = rx;
-        this->ry = ry;
-        this->rz = rz;
-        this->v1 = v1;
-        this->v2 = v2;
-        this->v3 = v3;
-        this->v4 = v4;
-        this->v5 = v5;
-        this->v6 = v6;
+        this->pose[0] = tx;
+        this->pose[1] = ty;
+        this->pose[2] = tz;
+        this->pose[3] = rx;
+        this->pose[4] = ry;
+        this->pose[5] = rz;
+        this->v[0] = v1;
+        this->v[1] = v2;
+        this->v[2] = v3;
+        this->v[3] = v4;
+        this->v[4] = v5;
+        this->v[5] = v6;
 
         // Init pBest
         updatePBest();
@@ -31,12 +31,12 @@ namespace tless {
 
     glm::mat4 Particle::model()  {
         glm::mat4 m;
-        glm::vec3 t(tx, ty, tz);
+        glm::vec3 t(pose[0], pose[1], pose[2]);
 
         // Rotate
-        m = glm::rotate(m, rx, glm::vec3(1, 0, 0));
-        m = glm::rotate(m, ry, glm::vec3(0, 1, 0));
-        m = glm::rotate(m, rz, glm::vec3(0, 0, 1));
+        m = glm::rotate(m, pose[3], glm::vec3(1, 0, 0));
+        m = glm::rotate(m, pose[4], glm::vec3(0, 1, 0));
+        m = glm::rotate(m, pose[5], glm::vec3(0, 0, 1));
 
         // Translate
         return glm::translate(m, t);
@@ -69,6 +69,7 @@ namespace tless {
         }
     }
 
+    // TODO cleanup, improve
     float Particle::objFun(const cv::Mat &srcDepth, const cv::Mat &srcNormals, const cv::Mat &srcEdges,
                            const cv::Mat &poseDepth, const cv::Mat &poseNormals) {
         float sumD = 0, sumU = 0, sumE = 0;
@@ -129,10 +130,15 @@ namespace tless {
     }
 
     std::ostream &operator<<(std::ostream &os, const Particle &particle) {
-        os << "fitness: " << particle.fitness << " v1: " << particle.v1 << " v2: " << particle.v2 << " v3: "
-           << particle.v3 << " v4: " << particle.v4 << " v5: " << particle.v5 << " v6: " << particle.v6 << " v: "
-           << particle.v << " tx: " << particle.tx << " ty: " << particle.ty << " tz: " << particle.tz << " rx: "
-           << particle.rx << " ry: " << particle.ry << " rz: " << particle.rz;
+        os << "fitness: " << ", pbest: " << particle.pBest.fitness << ", pose: ";
+        for (int i = 0; i < 6; ++i) {
+            os << i << ": " << particle.pose[i] << ",";
+        }
+        os << std::endl << "velocity: ";
+        for (int i = 0; i < 6; ++i) {
+            os << i << ": " << particle.v[i] << ",";
+        }
+
         return os;
     }
 }

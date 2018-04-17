@@ -48,7 +48,6 @@ namespace tless {
 
         Mesh() = default;
         Mesh(const std::string &plyFile);
-        ~Mesh();
 
         /**
          * @brief Parses mesh from .ply file using tinyply library and calls init.

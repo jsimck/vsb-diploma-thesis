@@ -36,7 +36,8 @@ namespace tless {
 
         // Methods
         void train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices = {});
-        void detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath);
+        void detect(std::string trainedTemplatesListPath, std::string trainedPath, const std::string &shadersFolder,
+                    const std::string &meshesListPath, std::string scenePath);
     };
 }
 

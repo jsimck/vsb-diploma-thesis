@@ -125,7 +125,8 @@ namespace tless {
         std::cout << "DONE!, took: " << tLoading.elapsed() << " s" << std::endl << std::endl;
     }
 
-    void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, std::string scenePath) {
+    void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, const std::string &shadersFolder,
+                            const std::string &meshesListPath, std::string scenePath) {
         // Checks
         assert(criteria->info.smallestTemplate.area() > 0);
         assert(criteria->info.minEdgels > 0);
@@ -135,7 +136,7 @@ namespace tless {
         Hasher hasher(criteria);
         Matcher matcher(criteria);
         Visualizer viz(criteria);
-//        FinePose finePose(criteria, "data/shaders/", "data/meshes.txt");
+        FinePose finePose(criteria, shadersFolder, meshesListPath);
 
         // Load trained template data
         load(trainedTemplatesListPath, trainedPath);
@@ -203,10 +204,10 @@ namespace tless {
             std::cout << "  |_ Matches: " << matches.size() << std::endl;
 
             // Vizualize results and clear current matches
-            viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);
+            viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches);
 
             // Apply fine pose estimation
-//            finePose.estimate(matches, scene);
+            finePose.estimate(matches, scene);
 
             matches.clear();
         }

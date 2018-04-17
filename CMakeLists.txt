@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.6)
 project(vsb-semestral-project)
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -std=c++14 -march=native -Wall -pedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -std=c++14 -march=native -Wall -Wno-gnu-anonymous-struct -Wno-nested-anon-types -pedantic")
 
 # Vizualization flags
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVIZ_HASHING")
@@ -10,7 +10,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -std=c++14 -march=native -Wall 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVIZ_MATCHING")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVIZ_NMS")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVIZ_OBJECTNESS")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVIZ_RESULTS")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVIZ_RESULTS")
 
 # Source files
 set(SOURCE_FILES

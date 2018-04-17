@@ -11,6 +11,12 @@
 #include "../core/classifier_criteria.h"
 
 namespace tless {
+    const int FinePose::SHADER_DEPTH = 0;
+    const int FinePose::SHADER_NORMAL = 1;
+    const int FinePose::SHADER_DEPTH_NORMAL = 2;
+    const int FinePose::SCR_WIDTH = 800;
+    const int FinePose::SCR_HEIGHT = 600;
+
     void FinePose::initOpenGL() {
         // GLFW init and config
         glfwInit();
@@ -47,9 +53,10 @@ namespace tless {
         glCullFace(GL_FRONT);
     }
 
-    void FinePose::loadShaders(const std::string &shadersBasePath) {
-        shaders[SHADER_DEPTH] = Shader(shadersBasePath + "depth.vert", shadersBasePath + "depth.frag");
-        shaders[SHADER_NORMAL] = Shader(shadersBasePath + "normal.vert", shadersBasePath + "normal.frag");
+    void FinePose::loadShaders(const std::string &shadersFolder) {
+        shaders[SHADER_DEPTH] = Shader(shadersFolder + "depth.vert", shadersFolder + "depth.frag");
+        shaders[SHADER_NORMAL] = Shader(shadersFolder + "normal.vert", shadersFolder + "normal.frag");
+        shaders[SHADER_DEPTH_NORMAL] = Shader(shadersFolder + "depth_normal.vert", shadersFolder + "depth_normal.frag");
     }
 
     void FinePose::loadMeshes(const std::string &meshesListPath) {
@@ -66,13 +73,13 @@ namespace tless {
         ifs.close();
     }
 
-    FinePose::FinePose(cv::Ptr<ClassifierCriteria> criteria, const std::string &shadersBasePath,
+    FinePose::FinePose(cv::Ptr<ClassifierCriteria> criteria, const std::string &shadersFolder,
                        const std::string &meshesListPath) : criteria(criteria) {
         // First initialize OpenGL
         initOpenGL();
 
         // Load shaders and meshes
-        loadShaders(shadersBasePath);
+        loadShaders(shadersFolder);
         loadMeshes(meshesListPath);
     }
 
@@ -91,38 +98,28 @@ namespace tless {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Activate shader and set uniforms
-        shaders[SHADER_NORMAL].use();
-        shaders[SHADER_NORMAL].setMat4("NMatrix", nMat(modelView));
-        shaders[SHADER_NORMAL].setMat4("MVPMatrix", modelViewProjection);
+        shaders[SHADER_DEPTH_NORMAL].use();
+        shaders[SHADER_DEPTH_NORMAL].setMat4("NMatrix", nMat(modelView));
+        shaders[SHADER_DEPTH_NORMAL].setMat4("MVMatrix", modelView);
+        shaders[SHADER_DEPTH_NORMAL].setMat4("MVPMatrix", modelViewProjection);
 
         // Draw mesh
         mesh.draw();
 
         // Read data from frame buffer
-        normals = cv::Mat::zeros(fbo.height, fbo.width, CV_32FC3);
-        glReadPixels(0, 0, fbo.width, fbo.height, GL_BGR, GL_FLOAT, normals.data);
-
-        /// DEPTH
-        glClearColor(0, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Activate shader and set uniforms
-        shaders[SHADER_DEPTH].use();
-        shaders[SHADER_DEPTH].setMat4("MVMatrix", modelView);
-        shaders[SHADER_DEPTH].setMat4("MVPMatrix", modelViewProjection);
-
-        // Draw mesh
-        mesh.draw();
-
-        // Read data from frame buffer
-        depth = cv::Mat::zeros(fbo.height, fbo.width, CV_32FC3);
-        glReadPixels(0, 0, fbo.width, fbo.height, GL_BGR, GL_FLOAT, depth.data);
+        cv::Mat result = cv::Mat::zeros(fbo.height, fbo.width, CV_32FC4);
+        glReadPixels(0, 0, fbo.width, fbo.height, GL_BGRA, GL_FLOAT, result.data);
 
         // Unbind frame buffer
         fbo.unbind();
 
-        // Convert to 1-channel and normalize depth
-        cv::cvtColor(depth, depth, CV_BGR2GRAY);
+        // Convert to normals and depth
+        cv::Mat channels[4];
+        cv::split(result, channels);
+
+        // Copy separate channels into own matrices
+        cv::merge(channels, 3, normals);
+        cv::merge(channels + 3, 1, depth);
     }
 
     void FinePose::estimate(std::vector<Match> &matches, const Scene &scene) {
@@ -258,7 +255,7 @@ namespace tless {
     }
 
     void FinePose::generatePopulation(std::vector<Particle> &particles, int N) {
-        // init sobol sequence for 6 dimensions
+        // Init sobol sequence for 6 dimensions
         gsl_qrng *q = gsl_qrng_alloc(gsl_qrng_sobol, 6);
         particles.reserve(N);
 

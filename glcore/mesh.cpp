@@ -95,12 +95,6 @@ namespace tless {
         glBindVertexArray(0);
     }
 
-    Mesh::~Mesh() {
-        glDeleteBuffers(1, &VBO);
-        glDeleteBuffers(1, &EBO);
-        glDeleteVertexArrays(1, &id);
-    }
-
     std::ostream &operator<<(std::ostream &os, const Mesh &mesh) {
         os << "VBO: " << mesh.VBO
            << " EBO: " << mesh.EBO

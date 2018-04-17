@@ -23,14 +23,14 @@ namespace tless {
          *
          * @return x-focal length
          */
-        float fx();
+        float fx() const;
 
         /**
          * @brief Returns y-focal length from K camera matrix.
          *
          * @return y-focal length
          */
-        float fy();
+        float fy() const;
 
         /**
          * @brief Computes vector in camera space on screen (x, y) coordinates.
@@ -42,7 +42,7 @@ namespace tless {
          * @param[in] d      Depth value (z) at given (x, y)
          * @return           vector from camera to screen location (x, y) in camera space
          */
-        cv::Vec3f v(uint x, uint width, uint y, uint height, float d);
+        cv::Vec3f v(int x, int width, int y, int height, float d) const;
 
         friend void operator>>(const cv::FileNode &node, Camera &t);
         friend cv::FileStorage &operator<<(cv::FileStorage &fs, const Camera &t);

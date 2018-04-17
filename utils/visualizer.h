@@ -10,6 +10,8 @@
 #include "../core/hash_table.h"
 #include "../core/match.h"
 #include "../core/scene.h"
+#include "../glcore/mesh.h"
+#include "../glcore/shader.h"
 
 namespace tless {
     class Visualizer {
@@ -149,7 +151,7 @@ namespace tless {
 #else
         bool matching(const ScenePyramid &scene, Template &candidate, std::vector<Window> &windows, int &currentIndex,
                       int &candidateIndex, const std::vector<std::vector<std::pair<cv::Point, int>>> &scores,
-                      int patchOffset, int minThreshold, int wait = 0, const char *title = nullptr) { void(); }
+                      int patchOffset, int minThreshold, int wait = 0, const char *title = nullptr) { return false; }
 #endif
 
         /**

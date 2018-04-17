@@ -5,6 +5,10 @@
 #include "../processing/processing.h"
 #include "../core/classifier_criteria.h"
 #include "../core/template.h"
+#include "../glcore/frame_buffer.h"
+#include "../glcore/shader.h"
+#include "glutils.h"
+#include "../objdetect/fine_pose.h"
 
 namespace tless {
     Visualizer::Visualizer(cv::Ptr<ClassifierCriteria> criteria, const std::string &templatesPath)

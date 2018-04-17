@@ -1,15 +1,15 @@
 #include "camera.h"
 
 namespace tless {
-    float Camera::fx() {
+    float Camera::fx() const {
         return K.at<float>(0, 0);
     }
 
-    float Camera::fy() {
+    float Camera::fy() const {
         return K.at<float>(1, 1);
     }
 
-    cv::Vec3f Camera::v(uint x, uint width, uint y, uint height, float d) {
+    cv::Vec3f Camera::v(int x, int width, int y, int height, float d) const {
         return cv::Vec3f(((x - (width / 2)) * d) / fx(), ((y + (height / 2)) * d) / fy(), d);
     }
 

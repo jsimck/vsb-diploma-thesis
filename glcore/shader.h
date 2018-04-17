@@ -33,7 +33,6 @@ namespace tless {
 
         Shader() = default;
         Shader(const std::string &vertexPath, const std::string &fragmentPath);
-        ~Shader();
 
         /**
          * @brief Utility function which loads and compiles vertex and fragment shaders from given path
