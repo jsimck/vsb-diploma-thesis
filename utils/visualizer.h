@@ -48,7 +48,7 @@ namespace tless {
                 KEY_ENTER = 13, KEY_G = 103, KEY_S = 115, KEY_K = 107, KEY_T = 116, KEY_I = 105,
                 KEY_C = 99, KEY_V = 118, KEY_L = 108, KEY_J = 106;
 
-        Visualizer(cv::Ptr<ClassifierCriteria> criteria, const std::string &templatesPath = "data/108x108/kinectv2/");
+        Visualizer(cv::Ptr<ClassifierCriteria> criteria, const std::string &templatesPath = "data/108x108/primesense/");
 
         /**
          * @brief Draws label with surrounded background for better visibility on any source image.

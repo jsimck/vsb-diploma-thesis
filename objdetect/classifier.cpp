@@ -124,6 +124,7 @@ namespace tless {
 
         fsr.release();
         std::cout << "  |_ hashTables -> LOADED (" << tables.size() << ")" << std::endl;
+        std::cout << *criteria << std::endl;
         std::cout << "DONE!, took: " << tLoading.elapsed() << " s" << std::endl << std::endl;
     }
 
@@ -210,7 +211,7 @@ namespace tless {
             std::cout << "  |_ Matches: " << matches.size() << std::endl;
 
             // Vizualize results and clear current matches
-//            viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches);
+            viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches);
 
             // Apply fine pose estimation
 //            finePose.estimate(matches, scene);

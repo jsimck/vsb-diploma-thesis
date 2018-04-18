@@ -28,14 +28,15 @@ int main() {
     // Run classifier
     // Primesense
 //    classifier.train("data/templates_primesense.txt", "data/trained/primesense/");
-//    classifier.detect("data/trained_primesense.txt", "data/trained/primesense/", "data/scenes/primesense/02/");
+//    classifier.detect("data/trained_primesense.txt", "data/trained/primesense/", "data/shaders/", "data/meshes.txt",
+//                      "data/scenes/primesense/02/", "data/results.yml");
 
     // Kinect
 //    classifier.train("data/templates_kinectv2.txt", "data/trained/kinectv2/");
-    classifier.detect("data/trained_kinectv2.txt", "data/trained/kinectv2/", "data/shaders/", "data/meshes.txt",
-                      "data/scenes/kinectv2/02/", "data/results.yml");
+//    classifier.detect("data/trained_kinectv2.txt", "data/trained/kinectv2/", "data/shaders/", "data/meshes.txt",
+//                      "data/scenes/kinectv2/02/", "data/results.yml");
 
-    tless::Evaluator eval("data/scenes/kinectv2/", 0.5f);
+    tless::Evaluator eval("data/scenes/primesense/", 0.5f);
     eval.evaluate("data/results.yml", 2);
 
     return 0;

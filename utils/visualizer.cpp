@@ -348,6 +348,11 @@ namespace tless {
         textTl.y += 18;
         label(result, oss.str(), textTl);
 
+        oss.str("");
+        oss << "avgDepth: " << t.features.avgDepth;
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+
         cv::imshow(title == nullptr ? "Template features" : title, result);
         cv::waitKey(wait);
     }
