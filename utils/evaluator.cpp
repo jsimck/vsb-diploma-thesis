@@ -1,39 +1,40 @@
 #include "evaluator.h"
 
 namespace tless {
-    void Evaluator::evaluate(const std::string &resultsFile, int sceneId) {
-        std::vector<std::vector<Result>> results;
-        std::vector<Result> sceneMatches;
+    void Evaluator::evaluate(const std::string &resultsFolder, const std::vector<int> indices, const std::string &resultsFileNameFormat) {
+        // Evaluate each scene in indices
+        for (auto &sceneId : indices) {
+            std::vector<std::vector<Result>> results;
+            std::vector<Result> sceneMatches;
 
-        // Load results from file
-        cv::FileStorage fs(resultsFile, cv::FileStorage::READ);
-        cv::FileNode scenesNode = fs["scenes"];
-        Result r;
+            // Load results from file
+            std::string resultPath = cv::format((resultsFolder + resultsFileNameFormat).c_str(), sceneId);
+            cv::FileStorage fs(resultPath, cv::FileStorage::READ);
+            cv::FileNode scenesNode = fs["scenes"];
+            Result r;
 
-        for (auto &&scene : scenesNode) {
-            cv::FileNode matches = scene["matches"];
+            for (auto &&scene : scenesNode) {
+                cv::FileNode matches = scene["matches"];
 
-            for (auto &&m : matches) {
-                m >> r;
-                sceneMatches.emplace_back(r);
+                for (auto &&m : matches) {
+                    m >> r;
+                    sceneMatches.emplace_back(r);
+                }
+
+                results.emplace_back(std::move(sceneMatches));
             }
 
-            results.emplace_back(std::move(sceneMatches));
+            fs.release();
+
+            // Evaluate
+            evaluate(results, sceneId);
         }
-
-        fs.release();
-
-        // Evaluate
-        evaluate(results, sceneId);
     }
 
     void Evaluator::evaluate(std::vector<std::vector<Result>> &results, int sceneId) {
-        std::ostringstream oss;
-        oss << scenesFolder << std::setfill('0') << std::setw(2) << sceneId << "/" << "gt.yml";
-
-        // Load scene
-        cv::FileStorage fs(oss.str(), cv::FileStorage::READ);
-        oss.str("");
+        // Load scene GT
+        std::string sceneGtPath = cv::format((scenesFolder + "%02d/gt.yml").c_str(), sceneId);
+        cv::FileStorage fs(sceneGtPath, cv::FileStorage::READ);
 
         // Init validation params
         int objId;
@@ -41,8 +42,7 @@ namespace tless {
         int TP = 0, FP = 0, FN = 0;
 
         for (int i = 0; i < results.size(); ++i) {
-            oss << "scene_" << i;
-            cv::FileNode scene = fs[oss.str()];
+            cv::FileNode scene = fs[cv::format("scene_%d", i)];
 
             // Iterate GT
             for (auto &&gt : scene) {
@@ -72,22 +72,37 @@ namespace tless {
                     FP++;
                 }
             }
-
-            oss.str("");
         }
 
         // Calculate results
         float precision = static_cast<float>(TP) / (TP + FP);
         float recall = static_cast<float>(TP) / (TP + FN);
-        float f1score = 2 * (precision * recall) / (precision + recall);
+        float f1Score = 2 * (precision * recall) / (precision + recall);
 
         // Print results
-        std::cout << "TP: " << TP << ", FP: " << FP << ", FN: " << FN
+        std::cout << "SCENE " << sceneId << "." << std::endl;
+        std::cout << " - TP: " << TP << ", FP: " << FP << ", FN: " << FN
             << ", Total: " << (TP + FP + FN) << std::endl;
-        std::cout << "precision: " << precision << std::endl
-            << "recall: " << recall << std::endl
-            << "f1score: " << (f1score * 100) << "%" << std::endl;
+        std::cout << " - F1: " << (f1Score * 100) << "%" << ", "
+                << "Precision: " << precision << ", "
+                << "Recall: " << recall << std::endl << std::endl;
 
         fs.release();
+    }
+
+    float Evaluator::getMinOverlap() const {
+        return minOverlap;
+    }
+
+    void Evaluator::setMinOverlap(float minOverlap) {
+        Evaluator::minOverlap = minOverlap;
+    }
+
+    const std::string &Evaluator::getScenesFolder() const {
+        return scenesFolder;
+    }
+
+    void Evaluator::setScenesFolder(const std::string &scenesFolder) {
+        Evaluator::scenesFolder = scenesFolder;
     }
 }

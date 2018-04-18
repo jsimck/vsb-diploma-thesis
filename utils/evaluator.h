@@ -10,12 +10,32 @@ namespace tless {
         float minOverlap;
         std::string scenesFolder;
 
+        /**
+         * @brief Evaluates given results agains GT available in gt.yml and prints F1 score.
+         *
+         * @param[in] results      Array of results, loaded from results files
+         * @param[in] sceneId      Current scene ID
+         */
         void evaluate(std::vector<std::vector<Result>> &results, int sceneId);
     public:
         Evaluator(const std::string &scenesFolder, float minOverlap = 0.5f)
-                : minOverlap(minOverlap), scenesFolder(scenesFolder) {}
+                : scenesFolder(scenesFolder), minOverlap(minOverlap) {}
 
-        void evaluate(const std::string &resultsFile, int sceneId);
+        /**
+         * @brief Loads and parses saved results for given indicies (scenes) and evaluates them.
+         *
+         * @param[in] resultsFolder         Path to results folder
+         * @param[in] indices               Indices identifying specific results files
+         * @param[in] resultsFileNameFormat Individual results file name format
+         */
+        void evaluate(const std::string &resultsFolder, const std::vector<int> indices,
+                      const std::string &resultsFileNameFormat = "results_%02d.yml.gz");
+
+        void setScenesFolder(const std::string &scenesFolder);
+        void setMinOverlap(float minOverlap);
+
+        const std::string &getScenesFolder() const;
+        float getMinOverlap() const;
     };
 }
 
