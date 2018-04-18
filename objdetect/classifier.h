@@ -30,10 +30,12 @@ namespace tless {
         Matcher matcher;
 
         /**
-         * @brief Saves matched results to fileName .yml file for further evaluation.
+         * @brief Saves matched results to yml file for further evaluation.
          *
-         * @param[in] results  Found matches in obj detection
-         * @param[in] resultsFolder Path to the result file
+         * @param[in] sceneId           Current scene ID
+         * @param[in] results           Array of found matches
+         * @param[in] resultsFolder     Path to results folder (created if doesn't exist)
+         * @param[in] resultsFileFormat File format for the results file
          */
         void saveResults(int sceneId, const std::vector<std::vector<Match>> &results, const std::string &resultsFolder,
                          const std::string &resultsFileFormat);

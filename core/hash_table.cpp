@@ -111,9 +111,12 @@ namespace tless {
         // Save Templates
         fs << "data" << "[";
         for (int i = 0; i < table.templates.size(); ++i) {
-            HashKey key = HashKey::unhash(i);
+            if (table.templates[i].empty()) {
+                continue;
+            }
 
             // Save key
+            HashKey key = HashKey::unhash(i);
             fs << "{";
             fs << "key" << "{";
             fs << "d1" << key.d1;

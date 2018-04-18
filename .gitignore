@@ -101,8 +101,7 @@ cmake-build-release/
 /data/400x400/
 /data/scenes/
 /data/models/
-/data/trained/**/*.yml
-/data/trained/**/**/*.yml
+/data/trained/
 /data/*.yml
 /data/398x398/
 data/results/*
