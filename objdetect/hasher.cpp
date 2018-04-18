@@ -3,6 +3,7 @@
 #include "../utils/timer.h"
 #include "../processing/processing.h"
 #include "../processing/computation.h"
+#include "../core/classifier_criteria.h"
 
 namespace tless {
     HashKey Hasher::validateTripletAndComputeHashKey(const Triplet &triplet, const std::vector<cv::Range> &binRanges, const cv::Mat &depth,
@@ -86,9 +87,19 @@ namespace tless {
                 auto p2D = static_cast<int>(t.srcDepth.at<ushort>(nP2));
                 auto cD = static_cast<int>(t.srcDepth.at<ushort>(nC));
 
+                // Compute relative diff
+                int diff1 = p1D - cD;
+                int diff2 = p2D - cD;
+
+                // Ignore diffs larger than obj diameter + threshold
+                float diam = t.diameter * criteria->info.depthScaleFactor * 1.5f;
+                if (std::abs(diff1) > diam || std::abs(diff2) > diam) {
+                    continue;
+                }
+
                 // Push relative depths
-                rDepths.push_back(p1D - cD);
-                rDepths.push_back(p2D - cD);
+                rDepths.push_back(diff1);
+                rDepths.push_back(diff2);
             }
 
             // Sort depths to calculate bin ranges
@@ -105,9 +116,9 @@ namespace tless {
                     int max = rDepths[(j + 1) * binSize];
 
                     if (j == 0) {
-                        min -= rDepths[rDepths.size()] * 0.2f;
+                        min -= rDepths[0] * 0.2f;
                     } else if (j + 1 == binCount) {
-                        max += rDepths[rDepths.size()] * 0.2f;
+                        max += rDepths[rDepths.size() - 1] * 0.2f;
                     }
 
                     ranges.emplace_back(min, max);

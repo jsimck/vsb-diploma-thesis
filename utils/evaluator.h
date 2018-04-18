@@ -8,12 +8,12 @@ namespace tless {
     class Evaluator {
     private:
         float minOverlap;
-        std::string scenesFolderPath;
+        std::string scenesFolder;
 
         void evaluate(std::vector<std::vector<Result>> &results, int sceneId);
     public:
         Evaluator(const std::string &scenesFolder, float minOverlap = 0.5f)
-                : scenesFolderPath(scenesFolder), minOverlap(minOverlap) {}
+                : minOverlap(minOverlap), scenesFolder(scenesFolder) {}
 
         void evaluate(const std::string &resultsFile, int sceneId);
     };

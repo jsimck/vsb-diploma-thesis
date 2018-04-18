@@ -6,19 +6,16 @@
 #include "timer.h"
 
 namespace tless {
-    void Parser::parseObject(const std::string &basePath, std::vector<Template> &templates, const std::vector<uint> &indices) {
+    void Parser::parseObject(const std::string &basePath, std::vector<Template> &templates) {
         // Load object info.yml.gz at the root of each object folder
         cv::FileStorage fsInfo(basePath + "info.yml.gz", cv::FileStorage::READ);
         cv::FileNode tplNodes = fsInfo["templates"];
-        const size_t nodesSize = indices.empty() ? tplNodes.size() : indices.size();
 
         // Loop through each template node and parse info + images
-        for (uint i = 0; i < nodesSize; i++) {
-            uint index = indices.empty() ? i : indices[i];
-
+        for (const auto &tplNode : tplNodes) {
             // Load template info
             Template tpl;
-            tplNodes[index] >> tpl;
+            tplNode >> tpl;
 
             // Load template images and generate gradients, normals, hue, gray images
             parseTemplate(tpl, basePath);

@@ -1,3 +1,0 @@
-data/trained/kinectv2/05.yml.gz
-data/trained/kinectv2/06.yml.gz
-data/trained/kinectv2/07.yml.gz

@@ -29,7 +29,7 @@ namespace tless {
 
     void Evaluator::evaluate(std::vector<std::vector<Result>> &results, int sceneId) {
         std::ostringstream oss;
-        oss << scenesFolderPath << std::setfill('0') << std::setw(2) << sceneId << "/" << "gt.yml";
+        oss << scenesFolder << std::setfill('0') << std::setw(2) << sceneId << "/" << "gt.yml";
 
         // Load scene
         cv::FileStorage fs(oss.str(), cv::FileStorage::READ);

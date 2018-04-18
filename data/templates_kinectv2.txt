@@ -1,3 +1,0 @@
-data/108x108/kinectv2/05/
-data/108x108/kinectv2/06/
-data/108x108/kinectv2/07/
