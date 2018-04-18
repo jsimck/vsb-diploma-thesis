@@ -165,12 +165,13 @@ namespace tless {
         return t;
     }
 
-    void Converter::convert(const std::string &objectsListPath, const std::string &modelsInfoPath, std::string outputPath, int outputSize) {
+    void Converter::convert(const std::string &templatesFolder, const std::string &modelsFolder,
+                            const std::vector<int> &indices, std::string outputFolder, int outputSize) {
         std::cout << "Converting..." << std::endl;
 
         // Parse object diameters if empty
         if (diameters.empty()) {
-            cv::FileStorage fs(modelsInfoPath + "info.yml", cv::FileStorage::READ);
+            cv::FileStorage fs(modelsFolder + "info.yml", cv::FileStorage::READ);
             assert(fs.isOpened());
 
             // Parse only diameters for now
@@ -192,21 +193,15 @@ namespace tless {
 
         std::cout << "  |_ models info.yml parsed" << std::endl;
 
-        // Parse each object in the objects list
-        std::ifstream ifs(objectsListPath);
-        assert(ifs.is_open());
-
         // Init parser and common
         std::vector<Template> templates;
-        std::ostringstream oss;
         std::string basePath;
 
-        while (ifs >> basePath) {
+        for (auto &objId : indices) {
             // Load obj_gt and info for each object
+            basePath = cv::format((templatesFolder + "%02d/").c_str(), objId);
             cv::FileStorage fsInfo(basePath + "info.yml", cv::FileStorage::READ);
             cv::FileStorage fsGt(basePath + "gt.yml", cv::FileStorage::READ);
-            assert(fsInfo.isOpened());
-            assert(fsGt.isOpened());
 
             // Parse templates
             for (uint i = 0;; i++) {
@@ -225,8 +220,7 @@ namespace tless {
             fsGt.release();
 
             // Resize templates and save obj info
-            oss << outputPath << std::setw(2) << std::setfill('0') << templates[0].objId << "/";
-            std::string objectOutputPath = oss.str();
+            std::string objectOutputPath = cv::format((outputFolder + "%02d/").c_str(), templates[0].objId);
 
             // Create directories
             boost::filesystem::create_directories(objectOutputPath);
@@ -244,14 +238,12 @@ namespace tless {
             }
             fsObjInfo << "]";
 
-            oss.str("");
             fsObjInfo.release();
             templates.clear();
 
             std::cout << "  |_ model ID:" << templates[0].objId << " converted, results saved to -> " << objectOutputPath << std::endl;
         }
 
-        ifs.close();
         std::cout << "DONE!" << std::endl << std::endl;
     }
 }

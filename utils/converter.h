@@ -64,12 +64,14 @@ namespace tless {
          * Templates are parsed and resized to given outputSize. Some additional meta details are also extracted/generated and then saved to
          * accompanying info.yml file for further reference.
          *
-         * @param[in] objectsListPath List of object folders to parse
-         * @param[in] modelsInfoPath  Path to the models/info.yml containing objects diameters and other info
-         * @param[in] outputPath      Base output path to which the converted templates are saved
+         * @param[in] templatesFolder Folder containing templates defined in indicies to parse
+         * @param[in] indices         Indices of objects to parse
+         * @param[in] outputFolder    Output folder to which the converted templates are saved
          * @param[in] outputSize      Desired size of the final template to which the templates should be scaled to fit
+         * @param[in] modelsFolder    Path to the models folder containing info.yml containing objects diameters and other info
          */
-        void convert(const std::string &objectsListPath, const std::string &modelsInfoPath, std::string outputPath, int outputSize);
+        void convert(const std::string &templatesFolder, const std::string &modelsFolder,
+                     const std::vector<int> &indices, std::string outputFolder, int outputSize);
     };
 }
 

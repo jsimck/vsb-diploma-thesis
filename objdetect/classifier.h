@@ -61,7 +61,7 @@ namespace tless {
          * @param[in] tplsFolder Path to templates folder containing object folders (01, 02, ...)
          * @param[in] indices    Indicies of object to extract feature and train hash tables for
          */
-        void train(const std::string &tplsFolder, std::vector<int> indices);
+        void train(const std::string &tplsFolder, const std::vector<int> &indices);
 
         /**
          * @brief Save trained classifier and templates.

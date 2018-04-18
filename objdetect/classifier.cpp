@@ -7,7 +7,7 @@
 #include "../core/result.h"
 
 namespace tless {
-    void Classifier::train(const std::string &tplsFolder, std::vector<int> indices) {
+    void Classifier::train(const std::string &tplsFolder, const std::vector<int> &indices) {
         Timer tTraining;
         std::vector<Template> objTpls;
         std::cout << "Training... " << std::endl;
@@ -37,7 +37,7 @@ namespace tless {
         std::cout << "DONE!, training took: " << tTraining.elapsed() << " s" << std::endl << std::endl;
 
         // Save obj ids
-        this->objIds.swap(indices);
+        this->objIds.insert(this->objIds.end(), indices.begin(), indices.end());
 
         // Checks
         assert(!this->tables.empty());

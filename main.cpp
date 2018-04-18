@@ -7,9 +7,9 @@
 
 int main() {
     // Convert templates from t-less to custom format
-//    tless::Converter converter;
-//    converter.convert("data/convert_kinectv2.txt", "data/models/", "data/108x108/kinectv2/", 108);
-//    converter.convert("data/convert_primesense.txt", "data/models/", "data/108x108/primesense/", 108);
+    tless::Converter converter;
+//    converter.convert("data/400x400/kinectv2/", "data/models/", {5, 6, 7, 25, 29, 30}, "data/108x108/kinectv2/", 108);
+    converter.convert("data/400x400/primesense/", "data/models/", {5, 6, 7, 25, 29, 30}, "data/108x108/primesense/", 108);
 
     // Custom criteria
     cv::Ptr<tless::ClassifierCriteria> criteria(new tless::ClassifierCriteria());
