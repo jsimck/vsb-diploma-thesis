@@ -44,6 +44,7 @@ namespace tless {
         bool operator<=(const Match &rhs) const;
         bool operator>=(const Match &rhs) const;
         friend std::ostream &operator<<(std::ostream &os, const Match &match);
+        friend cv::FileStorage &operator<<(cv::FileStorage &fs, const Match &match);
     };
 }
 

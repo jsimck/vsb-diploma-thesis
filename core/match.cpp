@@ -41,4 +41,12 @@ namespace tless {
 
         return os;
     }
+
+    cv::FileStorage &tless::operator<<(cv::FileStorage &fs, const Match &match) {
+        fs << "{";
+        fs << "bb" << match.normObjBB;
+        fs << "}";
+
+        return fs;
+    }
 }

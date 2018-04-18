@@ -1,0 +1,477 @@
+%YAML:1.0
+---
+scenes:
+   -
+      index: 0
+      matches:
+         -
+            objId: 5
+            objBB: [ 293, 93, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 175, 181, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 418, 237, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 293, 318, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 350, 275, 135, 135 ]
+   -
+      index: 1
+      matches:
+         -
+            objId: 5
+            objBB: [ 300, 100, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 175, 175, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 265, 304, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 398, 234, 168, 168 ]
+   -
+      index: 2
+      matches:
+         -
+            objId: 7
+            objBB: [ 280, 219, 263, 263 ]
+         -
+            objId: 6
+            objBB: [ 181, 162, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 312, 93, 135, 135 ]
+   -
+      index: 3
+      matches:
+         -
+            objId: 6
+            objBB: [ 181, 156, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 318, 93, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 390, 250, 168, 168 ]
+   -
+      index: 4
+      matches:
+         -
+            objId: 5
+            objBB: [ 193, 143, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 382, 265, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 331, 93, 135, 135 ]
+   -
+      index: 5
+      matches:
+         -
+            objId: 6
+            objBB: [ 193, 137, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 387, 281, 135, 135 ]
+   -
+      index: 6
+      matches:
+         -
+            objId: 5
+            objBB: [ 206, 125, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 381, 287, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 306, 293, 135, 135 ]
+   -
+      index: 7
+      matches:
+         -
+            objId: 5
+            objBB: [ 212, 112, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 375, 300, 135, 135 ]
+   -
+      index: 8
+      matches:
+         -
+            objId: 6
+            objBB: [ 218, 112, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 212, 281, 135, 135 ]
+   -
+      index: 9
+      matches:
+         -
+            objId: 5
+            objBB: [ 368, 118, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 225, 106, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 281, 293, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 206, 281, 135, 135 ]
+   -
+      index: 10
+      matches:
+         -
+            objId: 5
+            objBB: [ 375, 125, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 237, 106, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 268, 287, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 343, 318, 135, 135 ]
+   -
+      index: 11
+      matches:
+         -
+            objId: 5
+            objBB: [ 381, 131, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 243, 93, 135, 135 ]
+   -
+      index: 12
+      matches:
+         -
+            objId: 5
+            objBB: [ 393, 137, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 318, 325, 135, 135 ]
+   -
+      index: 13
+      matches:
+         -
+            objId: 7
+            objBB: [ 183, 231, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 375, 132, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 262, 87, 135, 135 ]
+   -
+      index: 14
+      matches:
+         -
+            objId: 7
+            objBB: [ 170, 219, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 400, 156, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 275, 87, 135, 135 ]
+   -
+      index: 15
+      matches:
+         -
+            objId: 7
+            objBB: [ 170, 219, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 400, 168, 135, 135 ]
+   -
+      index: 16
+      matches:
+         -
+            objId: 7
+            objBB: [ 158, 219, 263, 263 ]
+         -
+            objId: 6
+            objBB: [ 382, 164, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 293, 87, 135, 135 ]
+   -
+      index: 17
+      matches:
+         -
+            objId: 7
+            objBB: [ 158, 219, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 406, 187, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 306, 87, 135, 135 ]
+   -
+      index: 18
+      matches:
+         -
+            objId: 5
+            objBB: [ 406, 200, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 256, 318, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 312, 87, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 212, 256, 135, 135 ]
+   -
+      index: 19
+      matches:
+         -
+            objId: 7
+            objBB: [ 146, 195, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 406, 212, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 325, 87, 135, 135 ]
+   -
+      index: 20
+      matches:
+         -
+            objId: 7
+            objBB: [ 146, 183, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 406, 218, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 331, 93, 135, 135 ]
+   -
+      index: 21
+      matches:
+         -
+            objId: 7
+            objBB: [ 134, 183, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 406, 225, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 343, 100, 135, 135 ]
+   -
+      index: 22
+      matches:
+         -
+            objId: 7
+            objBB: [ 134, 170, 263, 263 ]
+         -
+            objId: 6
+            objBB: [ 382, 218, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 356, 100, 135, 135 ]
+   -
+      index: 23
+      matches:
+         -
+            objId: 7
+            objBB: [ 134, 158, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 362, 106, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 400, 243, 135, 135 ]
+   -
+      index: 24
+      matches:
+         -
+            objId: 5
+            objBB: [ 368, 112, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 193, 212, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 193, 287, 135, 135 ]
+   -
+      index: 25
+      matches:
+         -
+            objId: 7
+            objBB: [ 134, 146, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 375, 125, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 393, 262, 135, 135 ]
+   -
+      index: 26
+      matches:
+         -
+            objId: 7
+            objBB: [ 122, 146, 263, 263 ]
+         -
+            objId: 6
+            objBB: [ 387, 131, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 381, 268, 135, 135 ]
+   -
+      index: 27
+      matches:
+         -
+            objId: 7
+            objBB: [ 134, 122, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 381, 275, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 393, 137, 135, 135 ]
+   -
+      index: 28
+      matches:
+         -
+            objId: 7
+            objBB: [ 134, 109, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 368, 281, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 393, 143, 135, 135 ]
+   -
+      index: 29
+      matches:
+         -
+            objId: 7
+            objBB: [ 134, 109, 263, 263 ]
+         -
+            objId: 6
+            objBB: [ 400, 156, 135, 135 ]
+   -
+      index: 30
+      matches:
+         -
+            objId: 7
+            objBB: [ 134, 97, 263, 263 ]
+         -
+            objId: 6
+            objBB: [ 406, 168, 135, 135 ]
+   -
+      index: 31
+      matches:
+         -
+            objId: 7
+            objBB: [ 134, 97, 263, 263 ]
+         -
+            objId: 6
+            objBB: [ 412, 175, 135, 135 ]
+   -
+      index: 32
+      matches:
+         -
+            objId: 7
+            objBB: [ 146, 85, 263, 263 ]
+         -
+            objId: 6
+            objBB: [ 320, 289, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 412, 181, 135, 135 ]
+   -
+      index: 33
+      matches:
+         -
+            objId: 7
+            objBB: [ 146, 73, 263, 263 ]
+         -
+            objId: 6
+            objBB: [ 412, 193, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 304, 289, 168, 168 ]
+   -
+      index: 34
+      matches:
+         -
+            objId: 7
+            objBB: [ 158, 73, 263, 263 ]
+         -
+            objId: 6
+            objBB: [ 412, 206, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 318, 312, 135, 135 ]
+   -
+      index: 35
+      matches:
+         -
+            objId: 6
+            objBB: [ 412, 212, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 306, 312, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 287, 81, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 168, 175, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 225, 131, 135, 135 ]
+   -
+      index: 36
+      matches:
+         -
+            objId: 5
+            objBB: [ 293, 306, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 175, 162, 135, 135 ]
+   -
+      index: 37
+      matches:
+         -
+            objId: 6
+            objBB: [ 265, 296, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 306, 87, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 412, 231, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 237, 118, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 175, 156, 135, 135 ]
+   -
+      index: 38
+      matches:
+         -
+            objId: 7
+            objBB: [ 183, 61, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 406, 237, 135, 135 ]
+   -
+      index: 39
+      matches:
+         -
+            objId: 7
+            objBB: [ 195, 48, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 406, 250, 135, 135 ]

@@ -30,6 +30,8 @@ namespace tless {
         // Methods
         void load(const std::string &trainedTemplatesListPath, const std::string &trainedPath);
 
+        void saveResults(const std::vector<std::vector<Match>> &results, const std::string &fileName);
+
     public:
         // Constructors
         explicit Classifier(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}

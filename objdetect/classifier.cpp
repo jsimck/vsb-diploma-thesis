@@ -4,6 +4,7 @@
 #include "../utils/visualizer.h"
 #include "../processing/processing.h"
 #include "fine_pose.h"
+#include "../core/result.h"
 
 namespace tless {
     void Classifier::train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices) {
@@ -142,6 +143,9 @@ namespace tless {
         load(trainedTemplatesListPath, trainedPath);
         Scene scene;
 
+        // Init array of results
+        std::vector<std::vector<Match>> results;
+
         // Define contsants
         const int pyrLevels = criteria->pyrLvlsDown + criteria->pyrLvlsUp;
         const auto minEdgels = static_cast<const int>(criteria->info.minEdgels * criteria->objectnessFactor);
@@ -152,7 +156,7 @@ namespace tless {
         double ttSceneLoading, ttObjectness, ttVerification, ttMatching, ttNMS;
         std::cout << "Matching started..." << std::endl << std::endl;
 
-        for (int i = 0; i < 503; ++i) {
+        for (int i = 0; i < 40; ++i) {
             // Reset timers
             ttObjectness = ttVerification = ttMatching = 0;
             tTotal.reset();
@@ -204,12 +208,38 @@ namespace tless {
             std::cout << "  |_ Matches: " << matches.size() << std::endl;
 
             // Vizualize results and clear current matches
-            viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches);
+//            viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches);
 
             // Apply fine pose estimation
-            finePose.estimate(matches, scene);
+//            finePose.estimate(matches, scene);
 
-            matches.clear();
+            results.emplace_back(std::move(matches));
         }
+
+        // Save results
+        saveResults(results, "data/results.yml");
+    }
+
+    void Classifier::saveResults(const std::vector<std::vector<Match>> &results, const std::string &fileName) {
+        // Open file for wirting
+        cv::FileStorage fs(fileName, cv::FileStorage::WRITE);
+        fs << "scenes" << "[";
+
+        for (int i = 0; i < results.size(); ++i) {
+            fs << "{";
+            fs << "index" << i;
+            fs << "matches" << "[";
+
+            for (auto &match : results[i]) {
+                fs << Result(match);
+            }
+
+            fs << "]";
+            fs << "}";
+        }
+
+        // Close file
+        fs << "]";
+        fs.release();
     }
 }

@@ -40,7 +40,7 @@ set(SOURCE_FILES
     core/particle.h core/particle.cpp
     glcore/frame_buffer.h glcore/frame_buffer.cpp
     objdetect/fine_pose.h objdetect/fine_pose.cpp
-)
+    utils/validator.h utils/validator.cpp core/result.cpp core/result.h)
 
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
