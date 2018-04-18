@@ -5,17 +5,17 @@
 #include "../core/result.h"
 
 namespace tless {
-    class Validator {
+    class Evaluator {
     private:
         float minOverlap;
         std::string scenesFolderPath;
 
+        void evaluate(std::vector<std::vector<Result>> &results, int sceneId);
     public:
-        Validator(const std::string &scenesFolder, float minOverlap = 0.5f)
+        Evaluator(const std::string &scenesFolder, float minOverlap = 0.5f)
                 : scenesFolderPath(scenesFolder), minOverlap(minOverlap) {}
 
-        void validate(std::vector<std::vector<Result>> &results, int sceneId);
-        void validate(const std::string &resultsFile, int sceneId);
+        void evaluate(const std::string &resultsFile, int sceneId);
     };
 }
 

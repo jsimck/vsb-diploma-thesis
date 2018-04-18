@@ -3,7 +3,7 @@
 #include "objdetect/classifier.h"
 #include "processing/processing.h"
 #include "utils/converter.h"
-#include "utils/validator.h"
+#include "utils/evaluator.h"
 
 int main() {
     // Convert templates from t-less to custom format
@@ -32,10 +32,11 @@ int main() {
 
     // Kinect
 //    classifier.train("data/templates_kinectv2.txt", "data/trained/kinectv2/");
-//    classifier.detect("data/trained_kinectv2.txt", "data/trained/kinectv2/", "data/shaders/", "data/meshes.txt", "data/scenes/kinectv2/02/");
+    classifier.detect("data/trained_kinectv2.txt", "data/trained/kinectv2/", "data/shaders/", "data/meshes.txt",
+                      "data/scenes/kinectv2/02/", "data/results.yml");
 
-    tless::Validator validator("data/scenes/kinectv2/", 0.5f);
-    validator.validate("data/results.yml", 2);
+    tless::Evaluator eval("data/scenes/kinectv2/", 0.5f);
+    eval.evaluate("data/results.yml", 2);
 
     return 0;
 }

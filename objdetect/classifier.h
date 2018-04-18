@@ -37,9 +37,9 @@ namespace tless {
         explicit Classifier(cv::Ptr<ClassifierCriteria> criteria) : criteria(criteria) {}
 
         // Methods
-        void train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices = {});
-        void detect(std::string trainedTemplatesListPath, std::string trainedPath, const std::string &shadersFolder,
-                    const std::string &meshesListPath, std::string scenePath);
+        void train(const std::string &templatesListPath, const std::string &resultPath, std::vector<uint> indices = {});
+        void detect(const std::string &trainedTemplatesListPath, const std::string &trainedPath, const std::string &shadersFolder,
+                            const std::string &meshesListPath, const std::string &scenePath, const std::string &resultsFileName);
     };
 }
 

@@ -7,7 +7,8 @@
 #include "../core/result.h"
 
 namespace tless {
-    void Classifier::train(std::string templatesListPath, std::string resultPath, std::vector<uint> indices) {
+    void Classifier::train(const std::string &templatesListPath, const std::string &resultPath,
+                           std::vector<uint> indices) {
         std::ifstream ifs(templatesListPath);
         assert(ifs.is_open());
 
@@ -126,8 +127,8 @@ namespace tless {
         std::cout << "DONE!, took: " << tLoading.elapsed() << " s" << std::endl << std::endl;
     }
 
-    void Classifier::detect(std::string trainedTemplatesListPath, std::string trainedPath, const std::string &shadersFolder,
-                            const std::string &meshesListPath, std::string scenePath) {
+    void Classifier::detect(const std::string &trainedTemplatesListPath, const std::string &trainedPath, const std::string &shadersFolder,
+                                const std::string &meshesListPath, const std::string &scenePath, const std::string &resultsFileName) {
         // Checks
         assert(criteria->info.smallestTemplate.area() > 0);
         assert(criteria->info.minEdgels > 0);
@@ -137,7 +138,7 @@ namespace tless {
         Hasher hasher(criteria);
         Matcher matcher(criteria);
         Visualizer viz(criteria);
-        FinePose finePose(criteria, shadersFolder, meshesListPath);
+//        FinePose finePose(criteria, shadersFolder, meshesListPath);
 
         // Load trained template data
         load(trainedTemplatesListPath, trainedPath);
@@ -147,6 +148,7 @@ namespace tless {
         std::vector<std::vector<Match>> results;
 
         // Define contsants
+        const int numScenes = 100;
         const int pyrLevels = criteria->pyrLvlsDown + criteria->pyrLvlsUp;
         const auto minEdgels = static_cast<const int>(criteria->info.minEdgels * criteria->objectnessFactor);
         const auto minDepthMag = static_cast<const int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
@@ -156,7 +158,7 @@ namespace tless {
         double ttSceneLoading, ttObjectness, ttVerification, ttMatching, ttNMS;
         std::cout << "Matching started..." << std::endl << std::endl;
 
-        for (int i = 0; i < 40; ++i) {
+        for (int i = 0; i < numScenes; ++i) {
             // Reset timers
             ttObjectness = ttVerification = ttMatching = 0;
             tTotal.reset();
@@ -200,7 +202,7 @@ namespace tless {
 
             // Print results
             std::cout << std::endl << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
-            std::cout << "  |_ Scene loading took: " << ttSceneLoading << "s" << std::endl;
+            std::cout << "  |_ Scene " << (i + 1) << "/" <<  (numScenes) << " took: " << ttSceneLoading << "s" << std::endl;
             std::cout << "  |_ Objectness detection took: " << ttObjectness << "s" << std::endl;
             std::cout << "  |_ Hashing verification took: " << ttVerification << "s" << std::endl;
             std::cout << "  |_ Template matching took: " << ttMatching << "s" << std::endl;

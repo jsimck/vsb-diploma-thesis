@@ -1,7 +1,7 @@
-#include "validator.h"
+#include "evaluator.h"
 
 namespace tless {
-    void Validator::validate(const std::string &resultsFile, int sceneId) {
+    void Evaluator::evaluate(const std::string &resultsFile, int sceneId) {
         std::vector<std::vector<Result>> results;
         std::vector<Result> sceneMatches;
 
@@ -23,11 +23,11 @@ namespace tless {
 
         fs.release();
 
-        // Validate
-        validate(results, sceneId);
+        // Evaluate
+        evaluate(results, sceneId);
     }
 
-    void Validator::validate(std::vector<std::vector<Result>> &results, int sceneId) {
+    void Evaluator::evaluate(std::vector<std::vector<Result>> &results, int sceneId) {
         std::ostringstream oss;
         oss << scenesFolderPath << std::setfill('0') << std::setw(2) << sceneId << "/" << "gt.yml";
 
@@ -45,8 +45,8 @@ namespace tless {
             cv::FileNode scene = fs[oss.str()];
 
             // Iterate GT
-            bool checked = false;
             for (auto &&gt : scene) {
+                bool checked = false;
                 gt["obj_id"] >> objId;
                 gt["obj_bb"] >> objBB;
 
