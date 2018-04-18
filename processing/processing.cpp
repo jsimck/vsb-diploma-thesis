@@ -265,9 +265,9 @@ namespace tless {
         // Total Gradient (approximate)
         cv::addWeighted(gradX, 0.5, gradY, 0.5, 0, dst);
 
-        // TODO compare with and without and see which iser
+        // TODO compare with and without and see which is better
         // Substract eroded image to get outlines
-//        cv::subtract(dst, eroded, dst);
+        cv::subtract(dst, eroded, dst);
     }
 
     void quantizedGradients(const cv::Mat &src, cv::Mat &dst, float minMag) {

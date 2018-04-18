@@ -7,11 +7,19 @@ def findfiles(directory, folder):
 def clean(fileName, prefix):
     reNum = re.compile(r'(\d.*):', re.IGNORECASE)
     reCamR = re.compile(r'(- cam_R_m2c:)', re.IGNORECASE)
+    isSceneGt = fileName[-6:] == 'gt.yml' and prefix == 'scene_'    
 
     output = '%YAML 1.0\n---\n'
     with open(fileName, 'r') as f:
         for line in f:
-            if re.match(reNum, line) is not None:
+            if isSceneGt:
+                if re.match(reNum, line) is not None:
+                    output += prefix + line
+                elif re.match(reCamR, line) is not None:
+                    output += '  -\n   ' + line[1:]
+                else:
+                    output += '  ' + line
+            elif re.match(reNum, line) is not None:
                 output += prefix + line
             elif re.match(reCamR, line) is not None:
                 output += ' ' + line[1:]
