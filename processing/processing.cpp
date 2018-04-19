@@ -252,9 +252,8 @@ namespace tless {
         assert(src.type() == CV_8UC1);
 
         // Blur image to minimize noise
-        cv::Mat blurred, eroded, gradX, gradY;
+        cv::Mat blurred, gradX, gradY;
         cv::GaussianBlur(src, blurred, cv::Size(kSize, kSize), 0, 0, cv::BORDER_REPLICATE);
-        cv::erode(src, eroded, cv::Mat(), cv::Point(-1, -1), 1, cv::BORDER_REPLICATE);
 
         // Compute sobel
         cv::Sobel(blurred, gradX, CV_16S, 1, 0, 3, 1, 0, cv::BORDER_REPLICATE);
@@ -264,10 +263,6 @@ namespace tless {
 
         // Total Gradient (approximate)
         cv::addWeighted(gradX, 0.5, gradY, 0.5, 0, dst);
-
-        // TODO compare with and without and see which is better
-        // Substract eroded image to get outlines
-        cv::subtract(dst, eroded, dst);
     }
 
     void quantizedGradients(const cv::Mat &src, cv::Mat &dst, float minMag) {

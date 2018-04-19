@@ -1,0 +1,5106 @@
+%YAML:1.0
+---
+scenes:
+   -
+      index: 0
+      matches:
+         -
+            objId: 7
+            objBB: [ 305, 97, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 181, 193, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 234, 289, 168, 168 ]
+   -
+      index: 1
+      matches:
+         -
+            objId: 7
+            objBB: [ 317, 109, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 0, 0, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 226, 281, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 181, 187, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 581, 0, 135, 135 ]
+   -
+      index: 2
+      matches:
+         -
+            objId: 7
+            objBB: [ 317, 109, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 0, 0, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 218, 273, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 187, 181, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 518, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 581, 12, 135, 135 ]
+   -
+      index: 3
+      matches:
+         -
+            objId: 7
+            objBB: [ 0, 0, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 361, 156, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 523, 0, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 210, 281, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 187, 175, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 450, 0, 135, 135 ]
+   -
+      index: 4
+      matches:
+         -
+            objId: 7
+            objBB: [ 361, 156, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 9, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 546, 7, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 203, 273, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 193, 168, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 450, 0, 135, 135 ]
+   -
+      index: 5
+      matches:
+         -
+            objId: 7
+            objBB: [ 9, 0, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 351, 146, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 498, 0, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 187, 265, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 200, 162, 135, 135 ]
+   -
+      index: 6
+      matches:
+         -
+            objId: 7
+            objBB: [ 351, 166, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 9, 9, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 507, 0, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 206, 150, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 179, 257, 168, 168 ]
+   -
+      index: 7
+      matches:
+         -
+            objId: 7
+            objBB: [ 351, 166, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 0, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 507, 9, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 171, 250, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 206, 143, 135, 135 ]
+   -
+      index: 8
+      matches:
+         -
+            objId: 7
+            objBB: [ 507, 9, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 9, 9, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 212, 137, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 381, 268, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 187, 256, 135, 135 ]
+   -
+      index: 9
+      matches:
+         -
+            objId: 7
+            objBB: [ 507, 0, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 0, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 218, 131, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 181, 250, 135, 135 ]
+   -
+      index: 10
+      matches:
+         -
+            objId: 7
+            objBB: [ 507, 0, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 343, 265, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 23, 7, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 231, 131, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 181, 243, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 131, 0, 135, 135 ]
+   -
+      index: 11
+      matches:
+         -
+            objId: 7
+            objBB: [ 317, 170, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 507, 0, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 0, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 181, 237, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 237, 131, 135, 135 ]
+   -
+      index: 12
+      matches:
+         -
+            objId: 7
+            objBB: [ 317, 170, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 507, 0, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 175, 225, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 7, 7, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 243, 125, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 118, 0, 135, 135 ]
+   -
+      index: 13
+      matches:
+         -
+            objId: 6
+            objBB: [ 320, 281, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 175, 218, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 256, 125, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 539, 15, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 68, 0, 135, 135 ]
+   -
+      index: 14
+      matches:
+         -
+            objId: 7
+            objBB: [ 305, 195, 263, 263 ]
+         -
+            objId: 6
+            objBB: [ 175, 206, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 262, 118, 135, 135 ]
+   -
+      index: 15
+      matches:
+         -
+            objId: 7
+            objBB: [ 305, 195, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 275, 118, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 175, 200, 135, 135 ]
+   -
+      index: 16
+      matches:
+         -
+            objId: 6
+            objBB: [ 281, 273, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 175, 187, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 287, 131, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 12, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 237, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 81, 6, 135, 135 ]
+   -
+      index: 17
+      matches:
+         -
+            objId: 7
+            objBB: [ 268, 207, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 0, 7, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 175, 181, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 300, 131, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 337, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 181, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 481, 12, 135, 135 ]
+   -
+      index: 18
+      matches:
+         -
+            objId: 7
+            objBB: [ 280, 183, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 0, 0, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 181, 175, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 237, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 418, 12, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 312, 6, 135, 135 ]
+   -
+      index: 19
+      matches:
+         -
+            objId: 7
+            objBB: [ 280, 195, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 0, 9, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 193, 175, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 506, 37, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 575, 37, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 325, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 393, 12, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 270, 15, 108, 108 ]
+   -
+      index: 20
+      matches:
+         -
+            objId: 7
+            objBB: [ 268, 195, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 0, 19, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 193, 168, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 331, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 531, 50, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 431, 31, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 270, 5, 108, 108 ]
+   -
+      index: 21
+      matches:
+         -
+            objId: 7
+            objBB: [ 19, 9, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 200, 162, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 421, 7, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 523, 31, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 325, 0, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 337, 137, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 270, 0, 108, 108 ]
+   -
+      index: 22
+      matches:
+         -
+            objId: 7
+            objBB: [ 19, 19, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 206, 156, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 523, 39, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 445, 23, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 362, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 156, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 300, 0, 108, 108 ]
+   -
+      index: 23
+      matches:
+         -
+            objId: 7
+            objBB: [ 0, 39, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 101, 0, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 212, 150, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 500, 39, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 414, 0, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 350, 137, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 345, 5, 108, 108 ]
+   -
+      index: 24
+      matches:
+         -
+            objId: 7
+            objBB: [ 9, 39, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 507, 29, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 117, 7, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 218, 150, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 429, 15, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 368, 0, 135, 135 ]
+   -
+      index: 25
+      matches:
+         -
+            objId: 7
+            objBB: [ 219, 219, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 507, 29, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 15, 70, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 85, 23, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 429, 0, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 171, 0, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 368, 143, 135, 135 ]
+   -
+      index: 26
+      matches:
+         -
+            objId: 7
+            objBB: [ 498, 29, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 97, 19, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 7, 62, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 421, 0, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 237, 137, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 243, 0, 135, 135 ]
+   -
+      index: 27
+      matches:
+         -
+            objId: 7
+            objBB: [ 195, 207, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 507, 29, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 437, 0, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 7, 54, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 156, 0, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 78, 31, 168, 168 ]
+   -
+      index: 28
+      matches:
+         -
+            objId: 7
+            objBB: [ 195, 219, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 478, 0, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 15, 46, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 140, 7, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 243, 6, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 381, 162, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 335, 0, 108, 108 ]
+   -
+      index: 29
+      matches:
+         -
+            objId: 7
+            objBB: [ 183, 207, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 507, 9, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 39, 39, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 117, 15, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 231, 12, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 293, 0, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 387, 156, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 375, 0, 108, 108 ]
+   -
+      index: 30
+      matches:
+         -
+            objId: 7
+            objBB: [ 170, 195, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 507, 0, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 393, 181, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 206, 12, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 25, 50, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 137, 25, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 275, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 370, 5, 108, 108 ]
+   -
+      index: 31
+      matches:
+         -
+            objId: 7
+            objBB: [ 170, 195, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 507, 0, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 393, 181, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 181, 18, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 50, 37, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 275, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 380, 10, 108, 108 ]
+   -
+      index: 32
+      matches:
+         -
+            objId: 7
+            objBB: [ 170, 195, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 539, 15, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 400, 187, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 206, 12, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 293, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 93, 25, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 390, 15, 108, 108 ]
+   -
+      index: 33
+      matches:
+         -
+            objId: 7
+            objBB: [ 170, 195, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 546, 0, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 400, 193, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 293, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 193, 12, 135, 135 ]
+   -
+      index: 34
+      matches:
+         -
+            objId: 7
+            objBB: [ 146, 183, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 406, 200, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 12, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 68, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 581, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 412, 6, 135, 135 ]
+   -
+      index: 35
+      matches:
+         -
+            objId: 7
+            objBB: [ 175, 214, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 23, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 406, 206, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 87, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 287, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 162, 0, 135, 135 ]
+   -
+      index: 36
+      matches:
+         -
+            objId: 7
+            objBB: [ 175, 214, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 0, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 400, 218, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 312, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 243, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 425, 18, 135, 135 ]
+   -
+      index: 37
+      matches:
+         -
+            objId: 7
+            objBB: [ 166, 195, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 0, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 406, 218, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 337, 137, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 281, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 375, 12, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 568, 37, 135, 135 ]
+   -
+      index: 38
+      matches:
+         -
+            objId: 7
+            objBB: [ 166, 195, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 19, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 406, 225, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 343, 137, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 462, 31, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 287, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 356, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 556, 56, 135, 135 ]
+   -
+      index: 39
+      matches:
+         -
+            objId: 7
+            objBB: [ 166, 185, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 9, 19, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 393, 237, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 531, 39, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 343, 7, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 462, 31, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 143, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 290, 5, 108, 108 ]
+   -
+      index: 40
+      matches:
+         -
+            objId: 7
+            objBB: [ 156, 175, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 9, 29, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 400, 237, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 125, 0, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 362, 150, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 539, 46, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 453, 23, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 356, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 295, 0, 108, 108 ]
+   -
+      index: 41
+      matches:
+         -
+            objId: 7
+            objBB: [ 156, 166, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 39, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 109, 0, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 368, 150, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 393, 243, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 515, 46, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 414, 7, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 350, 0, 135, 135 ]
+   -
+      index: 42
+      matches:
+         -
+            objId: 7
+            objBB: [ 156, 166, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 498, 29, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 78, 31, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 7, 62, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 406, 7, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 148, 0, 168, 168 ]
+   -
+      index: 43
+      matches:
+         -
+            objId: 7
+            objBB: [ 156, 166, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 507, 39, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 148, 7, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 381, 162, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 7, 70, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 429, 7, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 78, 39, 168, 168 ]
+   -
+      index: 44
+      matches:
+         -
+            objId: 7
+            objBB: [ 156, 156, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 488, 29, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 387, 162, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 23, 54, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 179, 0, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 414, 0, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 101, 23, 168, 168 ]
+   -
+      index: 45
+      matches:
+         -
+            objId: 7
+            objBB: [ 156, 156, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 507, 29, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 393, 168, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 429, 0, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 140, 23, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 62, 39, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 231, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 93, 135, 135 ]
+   -
+      index: 46
+      matches:
+         -
+            objId: 7
+            objBB: [ 156, 156, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 498, 19, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 156, 15, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 400, 175, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 23, 46, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 262, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 437, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 350, 0, 108, 108 ]
+   -
+      index: 47
+      matches:
+         -
+            objId: 7
+            objBB: [ 166, 136, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 498, 9, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 406, 175, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 39, 39, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 181, 18, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 275, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 370, 0, 108, 108 ]
+   -
+      index: 48
+      matches:
+         -
+            objId: 7
+            objBB: [ 175, 136, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 507, 29, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 328, 265, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 406, 181, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 12, 56, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 300, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 137, 31, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 206, 18, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 395, 0, 108, 108 ]
+   -
+      index: 49
+      matches:
+         -
+            objId: 7
+            objBB: [ 175, 136, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 507, 0, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 412, 187, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 331, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 237, 12, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 80, 64, 86, 86 ]
+   -
+      index: 50
+      matches:
+         -
+            objId: 5
+            objBB: [ 304, 265, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 539, 15, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 185, 107, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 412, 200, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 362, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 295, 25, 108, 108 ]
+   -
+      index: 51
+      matches:
+         -
+            objId: 5
+            objBB: [ 289, 257, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 195, 107, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 412, 206, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 546, 7, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 360, 25, 108, 108 ]
+   -
+      index: 52
+      matches:
+         -
+            objId: 5
+            objBB: [ 281, 265, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 406, 212, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 175, 175, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 55, 25, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 295, 25, 108, 108 ]
+   -
+      index: 53
+      matches:
+         -
+            objId: 7
+            objBB: [ 0, 23, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 205, 107, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 273, 265, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 406, 218, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 518, 18, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 231, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 337, 12, 135, 135 ]
+   -
+      index: 54
+      matches:
+         -
+            objId: 7
+            objBB: [ 0, 0, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 214, 107, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 265, 273, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 406, 225, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 406, 18, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 475, 25, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 305, 25, 108, 108 ]
+   -
+      index: 55
+      matches:
+         -
+            objId: 7
+            objBB: [ 0, 0, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 250, 265, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 406, 237, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 556, 43, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 481, 31, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 325, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 270, 15, 108, 108 ]
+   -
+      index: 56
+      matches:
+         -
+            objId: 7
+            objBB: [ 0, 19, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 242, 265, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 400, 243, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 456, 31, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 368, 12, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 306, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 550, 56, 135, 135 ]
+   -
+      index: 57
+      matches:
+         -
+            objId: 7
+            objBB: [ 9, 19, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 400, 250, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 537, 56, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 418, 25, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 331, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 143, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 265, 0, 108, 108 ]
+   -
+      index: 58
+      matches:
+         -
+            objId: 7
+            objBB: [ 0, 39, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 387, 256, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 109, 0, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 546, 54, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 421, 15, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 343, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 285, 0, 108, 108 ]
+   -
+      index: 59
+      matches:
+         -
+            objId: 7
+            objBB: [ 0, 48, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 387, 262, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 109, 0, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 531, 46, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 421, 23, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 362, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 300, 0, 108, 108 ]
+   -
+      index: 60
+      matches:
+         -
+            objId: 7
+            objBB: [ 0, 39, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 125, 7, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 539, 70, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 375, 268, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 445, 23, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 375, 0, 135, 135 ]
+   -
+      index: 61
+      matches:
+         -
+            objId: 7
+            objBB: [ 507, 39, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 93, 23, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 7, 78, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 406, 0, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 368, 275, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 212, 0, 135, 135 ]
+   -
+      index: 62
+      matches:
+         -
+            objId: 7
+            objBB: [ 488, 29, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 23, 62, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 421, 0, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 125, 15, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 237, 0, 135, 135 ]
+   -
+      index: 63
+      matches:
+         -
+            objId: 7
+            objBB: [ 488, 19, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 78, 31, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 7, 54, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 148, 7, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 418, 0, 135, 135 ]
+   -
+      index: 64
+      matches:
+         -
+            objId: 7
+            objBB: [ 498, 19, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 15, 46, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 132, 15, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 387, 162, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 437, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 231, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 320, 0, 108, 108 ]
+   -
+      index: 65
+      matches:
+         -
+            objId: 7
+            objBB: [ 498, 9, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 46, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 93, 23, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 393, 168, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 212, 12, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 340, 5, 108, 108 ]
+   -
+      index: 66
+      matches:
+         -
+            objId: 7
+            objBB: [ 280, 85, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 507, 0, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 93, 37, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 206, 12, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 6, 62, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 281, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 385, 0, 108, 108 ]
+   -
+      index: 67
+      matches:
+         -
+            objId: 7
+            objBB: [ 292, 97, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 507, 0, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 37, 37, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 106, 31, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 225, 12, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 375, 10, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 310, 20, 108, 108 ]
+   -
+      index: 68
+      matches:
+         -
+            objId: 7
+            objBB: [ 322, 117, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 546, 15, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 65, 50, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 295, 25, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 5, 55, 108, 108 ]
+   -
+      index: 69
+      matches:
+         -
+            objId: 7
+            objBB: [ 332, 126, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 181, 212, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 37, 18, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 581, 18, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 581, 87, 135, 135 ]
+   -
+      index: 70
+      matches:
+         -
+            objId: 7
+            objBB: [ 332, 126, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 181, 206, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 12, 43, 135, 135 ]
+   -
+      index: 71
+      matches:
+         -
+            objId: 7
+            objBB: [ 341, 136, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 7, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 181, 206, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 506, 18, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 100, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 268, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 187, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 420, 30, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 365, 25, 108, 108 ]
+   -
+      index: 72
+      matches:
+         -
+            objId: 7
+            objBB: [ 341, 136, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 0, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 181, 193, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 234, 273, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 250, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 418, 18, 135, 135 ]
+   -
+      index: 73
+      matches:
+         -
+            objId: 7
+            objBB: [ 351, 146, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 0, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 181, 187, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 226, 257, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 331, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 562, 37, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 475, 25, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 270, 15, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 415, 35, 108, 108 ]
+   -
+      index: 74
+      matches:
+         -
+            objId: 7
+            objBB: [ 351, 156, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 9, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 210, 265, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 187, 181, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 400, 18, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 468, 37, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 331, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 537, 50, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 275, 0, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 188, 0, 86, 86 ]
+   -
+      index: 75
+      matches:
+         -
+            objId: 7
+            objBB: [ 351, 156, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 29, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 195, 265, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 193, 175, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 550, 56, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 131, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 362, 12, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 468, 37, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 300, 0, 135, 135 ]
+   -
+      index: 76
+      matches:
+         -
+            objId: 7
+            objBB: [ 361, 156, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 29, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 195, 250, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 109, 0, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 193, 168, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 546, 46, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 445, 23, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 362, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 290, 0, 108, 108 ]
+   -
+      index: 77
+      matches:
+         -
+            objId: 7
+            objBB: [ 351, 156, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 39, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 200, 162, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 101, 0, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 539, 62, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 406, 0, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 337, 0, 135, 135 ]
+   -
+      index: 78
+      matches:
+         -
+            objId: 7
+            objBB: [ 351, 166, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 39, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 206, 156, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 498, 29, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 117, 0, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 193, 268, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 390, 0, 168, 168 ]
+   -
+      index: 79
+      matches:
+         -
+            objId: 7
+            objBB: [ 351, 166, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 0, 39, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 212, 150, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 488, 29, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 421, 0, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 132, 7, 168, 168 ]
+   -
+      index: 80
+      matches:
+         -
+            objId: 7
+            objBB: [ 351, 175, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 507, 29, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 218, 143, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 429, 0, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 15, 54, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 85, 23, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 164, 0, 168, 168 ]
+   -
+      index: 81
+      matches:
+         -
+            objId: 7
+            objBB: [ 341, 185, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 507, 29, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 437, 0, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 225, 143, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 62, 31, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 156, 0, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 0, 87, 135, 135 ]
+   -
+      index: 82
+      matches:
+         -
+            objId: 7
+            objBB: [ 341, 195, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 507, 19, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 237, 137, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 23, 46, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 132, 7, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 450, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 256, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 340, 0, 108, 108 ]
+   -
+      index: 83
+      matches:
+         -
+            objId: 7
+            objBB: [ 332, 205, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 507, 9, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 175, 225, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 243, 137, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 7, 39, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 85, 23, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 231, 6, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 300, 0, 135, 135 ]
+   -
+      index: 84
+      matches:
+         -
+            objId: 7
+            objBB: [ 507, 0, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 320, 265, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 175, 218, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 250, 137, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 206, 12, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 37, 43, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 268, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 143, 31, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 360, 5, 108, 108 ]
+   -
+      index: 85
+      matches:
+         -
+            objId: 7
+            objBB: [ 332, 214, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 507, 0, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 175, 212, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 262, 137, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 175, 18, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 275, 0, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 93, 31, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 360, 10, 108, 108 ]
+   -
+      index: 86
+      matches:
+         -
+            objId: 7
+            objBB: [ 292, 195, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 546, 7, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 268, 131, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 168, 200, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 81, 25, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 390, 15, 108, 108 ]
+   -
+      index: 87
+      matches:
+         -
+            objId: 7
+            objBB: [ 341, 205, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 281, 131, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 175, 193, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 562, 6, 135, 135 ]
+   -
+      index: 88
+      matches:
+         -
+            objId: 5
+            objBB: [ 281, 242, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 175, 193, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 568, 68, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 6, 81, 135, 135 ]
+   -
+      index: 89
+      matches:
+         -
+            objId: 7
+            objBB: [ 280, 195, 263, 263 ]
+         -
+            objId: 6
+            objBB: [ 181, 193, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 112, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 528, 92, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 236, 84, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 144, 84, 86, 86 ]
+   -
+      index: 90
+      matches:
+         -
+            objId: 6
+            objBB: [ 181, 187, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 25, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 156, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 124, 76, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 272, 84, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 340, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 440, 92, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 172, 76, 86, 86 ]
+   -
+      index: 91
+      matches:
+         -
+            objId: 5
+            objBB: [ 187, 181, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 50, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 12, 125, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 268, 268, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 240, 76, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 188, 68, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 360, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 416, 92, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 476, 100, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 284, 80, 86, 86 ]
+   -
+      index: 92
+      matches:
+         -
+            objId: 7
+            objBB: [ 0, 125, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 68, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 118, 43, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 420, 80, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 260, 72, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 332, 80, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 496, 104, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 372, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 212, 64, 86, 86 ]
+   -
+      index: 93
+      matches:
+         -
+            objId: 6
+            objBB: [ 200, 175, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 125, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 87, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 137, 43, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 380, 75, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 295, 60, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 460, 104, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 508, 112, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 252, 64, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 616, 128, 86, 86 ]
+   -
+      index: 94
+      matches:
+         -
+            objId: 7
+            objBB: [ 37, 112, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 93, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 150, 43, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 156, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 415, 80, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 360, 75, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 580, 120, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 260, 45, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 495, 100, 108, 108 ]
+   -
+      index: 95
+      matches:
+         -
+            objId: 7
+            objBB: [ 12, 131, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 100, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 156, 50, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 531, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 245, 35, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 425, 90, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 375, 70, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 610, 135, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 475, 100, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 315, 50, 108, 108 ]
+   -
+      index: 96
+      matches:
+         -
+            objId: 7
+            objBB: [ 31, 118, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 150, 68, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 93, 93, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 493, 93, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 562, 112, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 425, 68, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 275, 40, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 225, 50, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 365, 60, 108, 108 ]
+   -
+      index: 97
+      matches:
+         -
+            objId: 7
+            objBB: [ 56, 106, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 131, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 168, 68, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 518, 106, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 581, 131, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 431, 75, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 225, 43, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 368, 56, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 310, 35, 108, 108 ]
+   -
+      index: 98
+      matches:
+         -
+            objId: 7
+            objBB: [ 207, 195, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 6, 118, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 93, 93, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 531, 112, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 156, 75, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 456, 75, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 218, 62, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 290, 45, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 345, 35, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 410, 55, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 605, 155, 108, 108 ]
+   -
+      index: 99
+      matches:
+         -
+            objId: 7
+            objBB: [ 195, 195, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 562, 131, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 18, 118, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 512, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 456, 68, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 93, 93, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 175, 75, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 365, 35, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 260, 60, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 405, 60, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 310, 45, 108, 108 ]
+   -
+      index: 100
+      matches:
+         -
+            objId: 7
+            objBB: [ 195, 195, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 546, 117, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 487, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 30, 130, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 185, 90, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 250, 75, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 390, 35, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 125, 100, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 435, 55, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 305, 55, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 75, 110, 108, 108 ]
+   -
+      index: 101
+      matches:
+         -
+            objId: 7
+            objBB: [ 183, 195, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 546, 117, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 500, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 115, 105, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 65, 115, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 225, 80, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 420, 45, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 355, 50, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 295, 65, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 475, 40, 108, 108 ]
+   -
+      index: 102
+      matches:
+         -
+            objId: 7
+            objBB: [ 183, 195, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 387, 175, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 568, 125, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 506, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 460, 50, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 100, 116, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 240, 96, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 152, 108, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 340, 72, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 392, 68, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 284, 84, 86, 86 ]
+   -
+      index: 103
+      matches:
+         -
+            objId: 6
+            objBB: [ 273, 257, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 393, 181, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 568, 118, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 525, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 232, 96, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 488, 60, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 124, 108, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 284, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 420, 68, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 364, 76, 86, 86 ]
+   -
+      index: 104
+      matches:
+         -
+            objId: 5
+            objBB: [ 400, 187, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 275, 275, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 556, 87, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 581, 143, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 256, 92, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 364, 80, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 200, 96, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 412, 76, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 148, 100, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 516, 68, 86, 86 ]
+   -
+      index: 105
+      matches:
+         -
+            objId: 7
+            objBB: [ 158, 183, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 400, 193, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 581, 87, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 544, 76, 86, 86 ]
+   -
+      index: 106
+      matches:
+         -
+            objId: 7
+            objBB: [ 185, 205, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 400, 200, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 284, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 612, 84, 86, 86 ]
+   -
+      index: 107
+      matches:
+         -
+            objId: 7
+            objBB: [ 185, 205, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 400, 200, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 106, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 256, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 468, 92, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 372, 92, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 336, 108, 86, 86 ]
+   -
+      index: 108
+      matches:
+         -
+            objId: 7
+            objBB: [ 175, 195, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 400, 206, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 18, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 62, 62, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 384, 92, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 276, 84, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 188, 80, 86, 86 ]
+   -
+      index: 109
+      matches:
+         -
+            objId: 7
+            objBB: [ 175, 195, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 400, 212, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 62, 75, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 18, 125, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 352, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 408, 96, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 160, 72, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 208, 72, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 252, 80, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 572, 116, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 516, 104, 86, 86 ]
+   -
+      index: 110
+      matches:
+         -
+            objId: 7
+            objBB: [ 166, 185, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 406, 225, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 37, 112, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 93, 68, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 156, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 405, 85, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 356, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 276, 76, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 188, 64, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 620, 124, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 232, 72, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 500, 108, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 552, 120, 86, 86 ]
+   -
+      index: 111
+      matches:
+         -
+            objId: 7
+            objBB: [ 166, 175, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 6, 137, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 62, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 112, 62, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 445, 90, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 190, 50, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 390, 85, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 515, 105, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 335, 70, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 570, 115, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 288, 72, 86, 86 ]
+   -
+      index: 112
+      matches:
+         -
+            objId: 7
+            objBB: [ 166, 175, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 7, 117, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 93, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 143, 43, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 440, 95, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 580, 125, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 500, 105, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 220, 35, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 350, 70, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 296, 64, 86, 86 ]
+   -
+      index: 113
+      matches:
+         -
+            objId: 7
+            objBB: [ 179, 203, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 400, 231, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 62, 106, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 6, 131, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 143, 62, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 406, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 235, 40, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 530, 115, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 600, 135, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 295, 50, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 350, 65, 108, 108 ]
+   -
+      index: 114
+      matches:
+         -
+            objId: 7
+            objBB: [ 118, 75, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 31, 118, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 181, 62, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 562, 118, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 437, 87, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 260, 40, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 355, 60, 108, 108 ]
+   -
+      index: 115
+      matches:
+         -
+            objId: 6
+            objBB: [ 175, 231, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 156, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 18, 131, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 81, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 543, 112, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 462, 93, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 225, 43, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 345, 50, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 400, 70, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 649, 169, 69, 69 ]
+   -
+      index: 116
+      matches:
+         -
+            objId: 7
+            objBB: [ 50, 118, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 575, 131, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 106, 93, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 512, 106, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 168, 75, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 325, 40, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 250, 55, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 425, 70, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 375, 50, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 475, 80, 108, 108 ]
+   -
+      index: 117
+      matches:
+         -
+            objId: 7
+            objBB: [ 156, 156, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 568, 137, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 500, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 187, 75, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 437, 68, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 25, 118, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 110, 110, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 375, 40, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 275, 60, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 320, 40, 108, 108 ]
+   -
+      index: 118
+      matches:
+         -
+            objId: 7
+            objBB: [ 156, 146, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 546, 125, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 493, 93, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 443, 56, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 235, 80, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 370, 45, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 135, 105, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 80, 115, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 25, 130, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 290, 60, 108, 108 ]
+   -
+      index: 119
+      matches:
+         -
+            objId: 7
+            objBB: [ 166, 146, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 335, 234, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 537, 112, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 581, 150, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 487, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 50, 120, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 435, 40, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 230, 80, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 105, 105, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 384, 64, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 316, 76, 86, 86 ]
+   -
+      index: 120
+      matches:
+         -
+            objId: 7
+            objBB: [ 166, 146, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 328, 242, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 537, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 581, 143, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 487, 68, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 312, 80, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 404, 64, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 208, 100, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 364, 72, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 152, 108, 86, 86 ]
+   -
+      index: 121
+      matches:
+         -
+            objId: 7
+            objBB: [ 185, 136, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 406, 193, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 581, 131, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 537, 87, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 495, 65, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 284, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 364, 76, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 420, 68, 86, 86 ]
+   -
+      index: 122
+      matches:
+         -
+            objId: 5
+            objBB: [ 304, 242, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 195, 136, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 412, 193, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 575, 125, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 537, 75, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 340, 84, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 284, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 492, 72, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 448, 76, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 396, 76, 86, 86 ]
+   -
+      index: 123
+      matches:
+         -
+            objId: 7
+            objBB: [ 185, 126, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 406, 200, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 575, 106, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 428, 80, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 336, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 160, 96, 86, 86 ]
+   -
+      index: 124
+      matches:
+         -
+            objId: 6
+            objBB: [ 175, 181, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 93, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 575, 106, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 216, 92, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 396, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 284, 88, 86, 86 ]
+   -
+      index: 125
+      matches:
+         -
+            objId: 6
+            objBB: [ 412, 212, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 106, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 181, 175, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 136, 84, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 184, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 240, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 416, 92, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 84, 84, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 368, 92, 86, 86 ]
+   -
+      index: 126
+      matches:
+         -
+            objId: 5
+            objBB: [ 265, 242, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 406, 218, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 25, 93, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 264, 84, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 388, 92, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 124, 76, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 180, 80, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 340, 88, 86, 86 ]
+   -
+      index: 127
+      matches:
+         -
+            objId: 5
+            objBB: [ 406, 225, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 50, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 6, 131, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 468, 100, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 236, 76, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 340, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 288, 84, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 396, 92, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 572, 108, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 198, 83, 69, 69 ]
+   -
+      index: 128
+      matches:
+         -
+            objId: 5
+            objBB: [ 242, 242, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 400, 231, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 50, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 93, 62, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 150, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 315, 80, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 204, 68, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 412, 96, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 548, 112, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 492, 108, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 264, 72, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 608, 124, 86, 86 ]
+   -
+      index: 129
+      matches:
+         -
+            objId: 5
+            objBB: [ 400, 237, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 125, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 93, 68, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 325, 80, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 170, 50, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 460, 104, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 516, 116, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 240, 64, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 568, 124, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 632, 136, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 412, 96, 86, 86 ]
+   -
+      index: 130
+      matches:
+         -
+            objId: 5
+            objBB: [ 393, 243, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 37, 118, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 87, 87, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 137, 56, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 162, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 390, 85, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 440, 95, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 560, 115, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 220, 45, 108, 108 ]
+         -
+            objId: 6
+            objBB: [ 295, 160, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 292, 64, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 344, 76, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 628, 152, 86, 86 ]
+   -
+      index: 131
+      matches:
+         -
+            objId: 5
+            objBB: [ 387, 250, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 18, 131, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 93, 87, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 143, 56, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 225, 40, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 605, 135, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 390, 80, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 550, 120, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 495, 105, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 440, 95, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 295, 50, 108, 108 ]
+   -
+      index: 132
+      matches:
+         -
+            objId: 5
+            objBB: [ 381, 256, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 81, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 25, 131, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 143, 68, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 550, 112, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 393, 68, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 285, 40, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 490, 105, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 225, 50, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 340, 55, 108, 108 ]
+   -
+      index: 133
+      matches:
+         -
+            objId: 6
+            objBB: [ 375, 262, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 43, 118, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 112, 87, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 568, 125, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 168, 62, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 431, 75, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 500, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 285, 35, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 380, 65, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 0, 165, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 335, 45, 108, 108 ]
+   -
+      index: 134
+      matches:
+         -
+            objId: 6
+            objBB: [ 362, 262, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 50, 112, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 568, 131, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 118, 87, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 506, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 340, 40, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 200, 62, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 443, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 280, 45, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 390, 55, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 0, 155, 108, 108 ]
+   -
+      index: 135
+      matches:
+         -
+            objId: 5
+            objBB: [ 356, 268, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 518, 106, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 462, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 581, 143, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 56, 106, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 175, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 355, 35, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 0, 140, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 420, 55, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 275, 55, 108, 108 ]
+   -
+      index: 136
+      matches:
+         -
+            objId: 7
+            objBB: [ 506, 93, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 556, 131, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 400, 185, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 450, 62, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 55, 120, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 105, 110, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 200, 80, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 255, 70, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 390, 40, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 305, 55, 108, 108 ]
+   -
+      index: 137
+      matches:
+         -
+            objId: 5
+            objBB: [ 193, 237, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 393, 168, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 550, 118, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 500, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 450, 50, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 45, 120, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 175, 90, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 270, 70, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 364, 64, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 112, 120, 86, 86 ]
+   -
+      index: 138
+      matches:
+         -
+            objId: 5
+            objBB: [ 187, 231, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 400, 175, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 537, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 575, 143, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 487, 62, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 280, 84, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 76, 124, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 208, 100, 86, 86 ]
+   -
+      index: 139
+      matches:
+         -
+            objId: 5
+            objBB: [ 187, 225, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 406, 175, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 556, 112, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 506, 68, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 280, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 44, 120, 86, 86 ]
+   -
+      index: 140
+      matches:
+         -
+            objId: 7
+            objBB: [ 312, 117, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 181, 218, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 568, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 518, 62, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 444, 72, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 228, 96, 86, 86 ]
+   -
+      index: 141
+      matches:
+         -
+            objId: 7
+            objBB: [ 332, 136, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 181, 212, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 575, 87, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 368, 84, 86, 86 ]
+   -
+      index: 142
+      matches:
+         -
+            objId: 7
+            objBB: [ 332, 136, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 181, 206, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 93, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 575, 106, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 396, 88, 86, 86 ]
+   -
+      index: 143
+      matches:
+         -
+            objId: 7
+            objBB: [ 332, 136, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 181, 200, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 106, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 184, 84, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 360, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 524, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 88, 84, 86, 86 ]
+   -
+      index: 144
+      matches:
+         -
+            objId: 7
+            objBB: [ 341, 136, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 181, 193, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 37, 87, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 256, 275, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 6, 137, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 124, 76, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 548, 96, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 336, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 172, 80, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 444, 92, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 396, 92, 86, 86 ]
+   -
+      index: 145
+      matches:
+         -
+            objId: 7
+            objBB: [ 351, 146, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 181, 193, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 237, 275, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 6, 137, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 62, 68, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 180, 72, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 232, 76, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 524, 104, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 472, 100, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 323, 96, 69, 69 ]
+   -
+      index: 146
+      matches:
+         -
+            objId: 7
+            objBB: [ 351, 156, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 237, 268, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 43, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 93, 56, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 6, 143, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 435, 85, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 535, 100, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 332, 84, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 232, 68, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 376, 88, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 280, 76, 86, 86 ]
+   -
+      index: 147
+      matches:
+         -
+            objId: 7
+            objBB: [ 351, 156, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 225, 268, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 117, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 93, 75, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 137, 37, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 395, 80, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 560, 110, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 244, 64, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 308, 72, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 500, 108, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 352, 84, 86, 86 ]
+   -
+      index: 148
+      matches:
+         -
+            objId: 7
+            objBB: [ 351, 156, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 212, 262, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 0, 125, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 81, 87, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 137, 50, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 580, 120, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 420, 85, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 530, 110, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 315, 60, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 228, 48, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 268, 60, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 484, 112, 86, 86 ]
+   -
+      index: 149
+      matches:
+         -
+            objId: 7
+            objBB: [ 375, 187, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 206, 256, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 12, 131, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 100, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 156, 50, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 250, 40, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 465, 95, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 390, 75, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 515, 110, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 605, 130, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 325, 55, 108, 108 ]
+   -
+      index: 150
+      matches:
+         -
+            objId: 6
+            objBB: [ 393, 231, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 193, 256, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 37, 112, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 125, 75, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 450, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 575, 118, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 200, 43, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 387, 62, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 280, 35, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 330, 50, 108, 108 ]
+   -
+      index: 151
+      matches:
+         -
+            objId: 7
+            objBB: [ 351, 166, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 212, 162, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 6, 125, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 81, 93, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 168, 62, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 481, 93, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 581, 125, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 412, 68, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 280, 35, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 345, 45, 108, 108 ]
+   -
+      index: 152
+      matches:
+         -
+            objId: 6
+            objBB: [ 367, 226, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 181, 243, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 31, 112, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 93, 93, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 575, 125, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 518, 106, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 181, 68, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 450, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 340, 40, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 285, 45, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 390, 50, 108, 108 ]
+   -
+      index: 153
+      matches:
+         -
+            objId: 6
+            objBB: [ 359, 234, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 539, 109, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 12, 118, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 468, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 187, 75, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 75, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 275, 50, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 375, 35, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 415, 60, 108, 108 ]
+   -
+      index: 154
+      matches:
+         -
+            objId: 7
+            objBB: [ 341, 185, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 175, 231, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 546, 117, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 493, 87, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 443, 56, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 10, 130, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 155, 95, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 395, 40, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 65, 115, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 340, 45, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 235, 75, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 300, 76, 86, 86 ]
+   -
+      index: 155
+      matches:
+         -
+            objId: 7
+            objBB: [ 341, 195, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 243, 150, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 546, 117, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 500, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 450, 50, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 45, 120, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 120, 100, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 180, 90, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 255, 70, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 350, 50, 108, 108 ]
+   -
+      index: 156
+      matches:
+         -
+            objId: 7
+            objBB: [ 332, 195, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 175, 218, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 250, 150, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 537, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 581, 143, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 493, 62, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 240, 80, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 140, 95, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 340, 72, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 388, 64, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 96, 116, 86, 86 ]
+   -
+      index: 157
+      matches:
+         -
+            objId: 7
+            objBB: [ 332, 205, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 175, 212, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 256, 150, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 537, 81, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 575, 125, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 470, 50, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 408, 68, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 96, 112, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 228, 96, 86, 86 ]
+   -
+      index: 158
+      matches:
+         -
+            objId: 7
+            objBB: [ 332, 205, 210, 210 ]
+         -
+            objId: 6
+            objBB: [ 175, 206, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 268, 150, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 575, 118, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 537, 75, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 464, 72, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 224, 92, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 288, 88, 86, 86 ]
+   -
+      index: 159
+      matches:
+         -
+            objId: 7
+            objBB: [ 292, 183, 263, 263 ]
+         -
+            objId: 6
+            objBB: [ 175, 200, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 575, 100, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 164, 96, 86, 86 ]
+   -
+      index: 160
+      matches:
+         -
+            objId: 5
+            objBB: [ 300, 250, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 175, 193, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 10, 145, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 610, 165, 108, 108 ]
+   -
+      index: 161
+      matches:
+         -
+            objId: 5
+            objBB: [ 287, 250, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 181, 193, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 20, 155, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 179, 148, 55, 55 ]
+   -
+      index: 162
+      matches:
+         -
+            objId: 6
+            objBB: [ 268, 250, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 15, 175, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 60, 145, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 252, 137, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 486, 161, 55, 55 ]
+   -
+      index: 163
+      matches:
+         -
+            objId: 5
+            objBB: [ 262, 250, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 65, 155, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 10, 185, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 105, 130, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 197, 140, 55, 55 ]
+   -
+      index: 164
+      matches:
+         -
+            objId: 7
+            objBB: [ 25, 175, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 80, 145, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 125, 125, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 271, 140, 55, 55 ]
+   -
+      index: 165
+      matches:
+         -
+            objId: 7
+            objBB: [ 351, 210, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 5, 190, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 85, 150, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 135, 130, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 470, 160, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 302, 140, 55, 55 ]
+         -
+            objId: 7
+            objBB: [ 230, 130, 55, 55 ]
+   -
+      index: 166
+      matches:
+         -
+            objId: 7
+            objBB: [ 20, 180, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 70, 160, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 130, 135, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 208, 124, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 643, 188, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 259, 121, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 325, 140, 55, 55 ]
+   -
+      index: 167
+      matches:
+         -
+            objId: 7
+            objBB: [ 231, 158, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 5, 185, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 60, 165, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 110, 150, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 180, 132, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 624, 184, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 220, 120, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 272, 121, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 537, 172, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 572, 179, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 473, 160, 69, 69 ]
+   -
+      index: 168
+      matches:
+         -
+            objId: 7
+            objBB: [ 219, 158, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 5, 185, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 72, 180, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 168, 148, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 124, 164, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 560, 176, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 520, 164, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 624, 192, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 476, 152, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 284, 112, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 336, 121, 69, 69 ]
+   -
+      index: 169
+      matches:
+         -
+            objId: 7
+            objBB: [ 590, 175, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 156, 156, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 472, 144, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 112, 168, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 508, 160, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 548, 172, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 64, 176, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 368, 120, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 432, 136, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 265, 134, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 297, 128, 69, 69 ]
+   -
+      index: 170
+      matches:
+         -
+            objId: 7
+            objBB: [ 595, 180, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 540, 160, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 496, 148, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 432, 136, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 388, 124, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 156, 156, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 355, 118, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 320, 128, 69, 69 ]
+   -
+      index: 171
+      matches:
+         -
+            objId: 6
+            objBB: [ 337, 250, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 605, 185, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 535, 160, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 480, 140, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 436, 128, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 400, 112, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 188, 160, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 361, 124, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 326, 131, 69, 69 ]
+   -
+      index: 172
+      matches:
+         -
+            objId: 6
+            objBB: [ 325, 250, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 610, 185, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 510, 145, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 560, 165, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 450, 120, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 188, 160, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 384, 133, 55, 55 ]
+   -
+      index: 173
+      matches:
+         -
+            objId: 5
+            objBB: [ 312, 250, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 570, 170, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 520, 145, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 610, 195, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 480, 120, 108, 108 ]
+   -
+      index: 174
+      matches:
+         -
+            objId: 5
+            objBB: [ 300, 250, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 560, 155, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 600, 190, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 515, 135, 108, 108 ]
+   -
+      index: 175
+      matches:
+         -
+            objId: 7
+            objBB: [ 170, 170, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 575, 160, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 605, 195, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 535, 135, 108, 108 ]
+   -
+      index: 176
+      matches:
+         -
+            objId: 7
+            objBB: [ 158, 170, 263, 263 ]
+         -
+            objId: 7
+            objBB: [ 565, 150, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 605, 175, 108, 108 ]
+   -
+      index: 177
+      matches:
+         -
+            objId: 7
+            objBB: [ 170, 170, 263, 263 ]
+         -
+            objId: 5
+            objBB: [ 400, 193, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 590, 140, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 605, 195, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 4, 156, 86, 86 ]
+   -
+      index: 178
+      matches:
+         -
+            objId: 7
+            objBB: [ 185, 195, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 400, 200, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 10, 165, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 605, 175, 108, 108 ]
+   -
+      index: 179
+      matches:
+         -
+            objId: 7
+            objBB: [ 185, 185, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 400, 206, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 40, 155, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 5, 200, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 163, 151, 55, 55 ]
+   -
+      index: 180
+      matches:
+         -
+            objId: 7
+            objBB: [ 175, 185, 210, 210 ]
+         -
+            objId: 5
+            objBB: [ 400, 206, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 50, 155, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 20, 190, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 90, 130, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 256, 151, 55, 55 ]
+         -
+            objId: 7
+            objBB: [ 215, 148, 55, 55 ]
+   -
+      index: 181
+      matches:
+         -
+            objId: 5
+            objBB: [ 203, 218, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 393, 212, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 35, 170, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 85, 145, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 0, 205, 108, 108 ]
+   -
+      index: 182
+      matches:
+         -
+            objId: 7
+            objBB: [ 195, 195, 168, 168 ]
+         -
+            objId: 5
+            objBB: [ 406, 212, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 10, 190, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 80, 150, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 125, 130, 108, 108 ]
+   -
+      index: 183
+      matches:
+         -
+            objId: 7
+            objBB: [ 179, 195, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 60, 170, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 5, 190, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 105, 145, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 160, 128, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 296, 140, 55, 55 ]
+   -
+      index: 184
+      matches:
+         -
+            objId: 7
+            objBB: [ 179, 187, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 50, 170, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 5, 190, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 105, 150, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 172, 140, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 212, 124, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 617, 188, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 556, 176, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 320, 143, 55, 55 ]
+   -
+      index: 185
+      matches:
+         -
+            objId: 7
+            objBB: [ 171, 187, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 55, 170, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 10, 190, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 115, 150, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 224, 124, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 624, 188, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 576, 185, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 278, 124, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 524, 172, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 473, 163, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 188, 144, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 326, 131, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 361, 137, 69, 69 ]
+   -
+      index: 186
+      matches:
+         -
+            objId: 7
+            objBB: [ 546, 367, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 181, 218, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 64, 180, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 116, 164, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 20, 196, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 616, 192, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 556, 176, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 512, 164, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 264, 120, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 156, 152, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 384, 137, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 342, 128, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 430, 148, 55, 55 ]
+   -
+      index: 187
+      matches:
+         -
+            objId: 7
+            objBB: [ 171, 179, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 608, 192, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 548, 176, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 504, 160, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 120, 168, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 56, 184, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 12, 192, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 292, 120, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 392, 128, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 352, 124, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 448, 147, 69, 69 ]
+   -
+      index: 188
+      matches:
+         -
+            objId: 7
+            objBB: [ 171, 179, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 610, 185, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 560, 170, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 504, 160, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 460, 144, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 396, 128, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 60, 180, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 364, 121, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 313, 131, 69, 69 ]
+   -
+      index: 189
+      matches:
+         -
+            objId: 7
+            objBB: [ 166, 156, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 546, 367, 168, 168 ]
+         -
+            objId: 7
+            objBB: [ 610, 190, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 555, 170, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 490, 145, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 435, 125, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 396, 116, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 366, 130, 55, 55 ]
+   -
+      index: 190
+      matches:
+         -
+            objId: 6
+            objBB: [ 168, 206, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 605, 195, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 545, 170, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 500, 145, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 460, 132, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 419, 128, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 389, 135, 55, 55 ]
+   -
+      index: 191
+      matches:
+         -
+            objId: 7
+            objBB: [ 156, 146, 210, 210 ]
+         -
+            objId: 7
+            objBB: [ 580, 185, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 540, 155, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 490, 130, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 452, 120, 86, 86 ]
+   -
+      index: 192
+      matches:
+         -
+            objId: 6
+            objBB: [ 168, 200, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 545, 150, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 580, 180, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 500, 130, 108, 108 ]
+   -
+      index: 193
+      matches:
+         -
+            objId: 6
+            objBB: [ 168, 200, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 565, 165, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 605, 200, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 530, 135, 108, 108 ]
+   -
+      index: 194
+      matches:
+         -
+            objId: 5
+            objBB: [ 296, 226, 168, 168 ]
+         -
+            objId: 6
+            objBB: [ 175, 193, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 570, 155, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 605, 190, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 4, 168, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 537, 150, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 412, 151, 55, 55 ]
+   -
+      index: 195
+      matches:
+         -
+            objId: 5
+            objBB: [ 312, 250, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 195, 200, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 0, 180, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 610, 200, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 575, 155, 108, 108 ]
+   -
+      index: 196
+      matches:
+         -
+            objId: 5
+            objBB: [ 306, 250, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 406, 206, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 15, 160, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 610, 170, 108, 108 ]
+   -
+      index: 197
+      matches:
+         -
+            objId: 5
+            objBB: [ 293, 250, 135, 135 ]
+         -
+            objId: 6
+            objBB: [ 406, 212, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 35, 165, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 624, 176, 86, 86 ]
+         -
+            objId: 7
+            objBB: [ 166, 151, 55, 55 ]
+         -
+            objId: 7
+            objBB: [ 422, 158, 55, 55 ]
+   -
+      index: 198
+      matches:
+         -
+            objId: 5
+            objBB: [ 281, 250, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 406, 218, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 60, 150, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 15, 190, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 171, 145, 55, 55 ]
+   -
+      index: 199
+      matches:
+         -
+            objId: 5
+            objBB: [ 268, 250, 135, 135 ]
+         -
+            objId: 5
+            objBB: [ 406, 218, 135, 135 ]
+         -
+            objId: 7
+            objBB: [ 75, 145, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 25, 185, 108, 108 ]
+         -
+            objId: 7
+            objBB: [ 147, 140, 69, 69 ]
+         -
+            objId: 7
+            objBB: [ 202, 143, 55, 55 ]
