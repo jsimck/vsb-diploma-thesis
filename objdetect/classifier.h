@@ -53,7 +53,7 @@ namespace tless {
          * @param[in] resultsFileFormat File format of the results file
          */
         void detect(const std::string &scenesFolder, const std::string &sceneIndices, const std::string &resultsFolder,
-                    const std::string &resultsFileFormat = "results_%02d.yml.gz");
+                    int numScenes = 504, const std::string &resultsFileFormat = "results_%02d.yml.gz");
 
         /**
          * @brief Trains hastables and extract template features for objects defined in indicies parameter.

@@ -150,7 +150,7 @@ namespace tless {
     }
 
     void Classifier::detect(const std::string &scenesFolder, const std::string &sceneIndices, const std::string &resultsFolder,
-                                const std::string &resultsFileFormat) {
+                            int numScenes, const std::string &resultsFileFormat) {
         assert(criteria->info.smallestTemplate.area() > 0);
         assert(criteria->info.minEdgels > 0);
 
@@ -162,7 +162,6 @@ namespace tless {
 //        FinePose finePose(criteria, shadersFolder, meshesListPath);
 
         // Define contsants
-        const int numScenes = 10;
         const int pyrLevels = criteria->pyrLvlsDown + criteria->pyrLvlsUp;
         const auto minEdgels = static_cast<const int>(criteria->info.minEdgels * criteria->objectnessFactor);
         const auto minDepthMag = static_cast<const int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);

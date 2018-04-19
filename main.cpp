@@ -33,7 +33,7 @@ int main() {
 
     // Detect
     classifier.load("data/trained/kinectv2/");
-    classifier.detect("data/scenes/kinectv2/", {2}, "data/results/");
+    classifier.detect("data/scenes/kinectv2/", {2}, "data/results/", 504);
 
     // Evaluate
     tless::Evaluator eval("data/scenes/kinectv2/", 0.5f);
