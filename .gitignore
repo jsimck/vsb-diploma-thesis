@@ -104,4 +104,4 @@ cmake-build-release/
 /data/trained/
 /data/*.yml
 /data/398x398/
-data/results/*
+data/results/

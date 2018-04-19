@@ -28,7 +28,7 @@ int main() {
     std::string trainedPath = "data/trained/";
     std::string templatesPath = "data/108x108/";
     std::string convertPath = "data/400x400/";
-    std::string resultsPath = "data/results_no_errode/";
+    std::string resultsPath = "data/results/";
     std::string scenesPath = "data/scenes/";
 
     // Update paths based on current sensor
