@@ -226,7 +226,7 @@ namespace tless {
                 std::cout << "  |_ Matches: " << matches.size() << std::endl;
 
                 // Vizualize results and clear current matches
-                viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches);
+                viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);
 
                 // Apply fine pose estimation
                 finePose.estimate(matches, scene);

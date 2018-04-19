@@ -112,13 +112,10 @@ namespace tless {
         K.at<float>(1, 2) += offsetY;
     }
 
-    cv::Point2f isToSs(const cv::Point &p, int width, int height) {
+    cv::Point2f imageToScreen(const cv::Point &p, int width, int height) {
         float halfWidth = width / 2.0f;
         float halfHeight = height / 2.0f;
 
-        return cv::Point2f(
-                p.x / halfWidth + 1,
-                p.y / halfHeight + 1
-        );
+        return cv::Point2f(p.x / halfWidth - 1, p.y / halfHeight - 1);
     }
 }

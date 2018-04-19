@@ -51,6 +51,6 @@ namespace tless {
     }
 
     cv::Point Match::normBBCenter() {
-        return {normObjBB.x + (normObjBB.x / normObjBB.width), normObjBB.y + (normObjBB.y / normObjBB.height)};
+        return {normObjBB.x + (normObjBB.width / 2), normObjBB.y + (normObjBB.height / 2)};
     }
 }

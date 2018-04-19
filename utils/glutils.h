@@ -110,7 +110,7 @@ namespace tless {
      * @param[in] height Height of the image
      * @return           Point in screen space, in range (-1, 1), where 0 is center of image
      */
-    cv::Point2f isToSs(const cv::Point &p, int width, int height);
+    cv::Point2f imageToScreen(const cv::Point &p, int width, int height);
 }
 
 #endif

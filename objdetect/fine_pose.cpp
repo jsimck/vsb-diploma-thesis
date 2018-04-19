@@ -14,8 +14,8 @@ namespace tless {
     const int FinePose::SHADER_DEPTH = 0;
     const int FinePose::SHADER_NORMAL = 1;
     const int FinePose::SHADER_DEPTH_NORMAL = 2;
-    const int FinePose::SCR_WIDTH = 800;
-    const int FinePose::SCR_HEIGHT = 600;
+    const int FinePose::SCR_WIDTH = 720;
+    const int FinePose::SCR_HEIGHT = 540;
 
     void FinePose::initOpenGL() {
         // GLFW init and config
@@ -103,6 +103,11 @@ namespace tless {
         cv::Mat result = cv::Mat::zeros(fbo.height, fbo.width, CV_32FC4);
         glReadPixels(0, 0, fbo.width, fbo.height, GL_BGRA, GL_FLOAT, result.data);
 
+        cv::Mat testDepth = cv::Mat::zeros(fbo.height, fbo.width, CV_32FC1);
+        glReadPixels(0, 0, fbo.width, fbo.height, GL_DEPTH_COMPONENT, GL_FLOAT, testDepth.data);
+        cv::imshow("TestDepth", testDepth);
+        std::cout << testDepth << std::endl;
+
         // Unbind frame buffer
         fbo.unbind();
 
@@ -152,7 +157,7 @@ namespace tless {
             // Show cropped part of the scene
             cv::imshow("normals", normals);
             cv::imshow("sEdge", edges);
-            cv::waitKey(0);
+            cv::waitKey(1);
 
             // Create FBO with given size and update viewport size
             FrameBuffer fbo(bb.width, bb.height);
