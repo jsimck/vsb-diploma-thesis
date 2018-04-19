@@ -3,6 +3,7 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv/cv.hpp>
 #include "triplet.h"
+#include "../processing/computation.h"
 
 namespace tless {
     cv::Point Triplet::randPoint(cv::Size grid) {
@@ -11,27 +12,42 @@ namespace tless {
         static std::uniform_int_distribution<> dX(0, grid.width - 1);
         static std::uniform_int_distribution<> dY(0, grid.height - 1);
 
-        int x, y;
-        do {
-            x = static_cast<int>(std::abs(dX(gen)));
-            y = static_cast<int>(std::abs(dY(gen)));
-        } while (x >= grid.width || y >= grid.height);
-
-        return {x, y};
+        return {dX(gen), dY(gen)};
     }
 
     Triplet Triplet::create(cv::Size grid, cv::Size window) {
         assert(grid.area() > 0);
         assert(window.area() > 0);
 
-        // Generate unique points in relative coordinates (grid-space)
-        cv::Point c, p1, p2;
+        float p1Dist, p2Dist, angle;
+        cv::Point c, p1, p2, p1Diff, p2Diff;
+        cv::Point2f vP1, vP2;
+        const float minDistance = grid.width * 0.1f;
+        const float maxDistance = grid.width * 0.6f;
+        const auto minAngle = rad<float>(30);
 
+        // Generate unique points in relative coordinates (grid-space)
         do {
             c = randPoint(grid);
             p1= randPoint(grid);
             p2 = randPoint(grid);
-        } while (!(c != p1 && p1 != p2 && p2 != c));
+            p1Diff = p1 - c;
+            p2Diff = p2 - c;
+
+            // Compute distance
+            p1Dist = std::sqrtf(sqr<int>(p1Diff.x) + sqr<int>(p1Diff.y));
+            p2Dist = std::sqrtf(sqr<int>(p2Diff.x) + sqr<int>(p2Diff.y));
+
+            // Normalize points
+            vP1 = static_cast<cv::Point2f>(p1Diff) / p1Dist;
+            vP2 = static_cast<cv::Point2f>(p2Diff) / p2Dist;
+            angle = std::acos(vP1.dot(vP2));
+        } while (
+            !(c != p1 && p1 != p2 && p2 != c) || // Equality ceck
+            !(p1Dist >= minDistance && p1Dist <= maxDistance) || // min distance check
+            !(p2Dist >= minDistance && p2Dist <= maxDistance) || // max distance check
+            angle < minAngle // angle check
+        );
 
         // Generate absolute offsets and steps
         auto stepX = window.width / static_cast<float>(grid.width);

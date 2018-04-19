@@ -1,4 +1,5 @@
 #include <unordered_set>
+#include <gsl/gsl_qrng.h>
 #include "hasher.h"
 #include "../utils/timer.h"
 #include "../processing/processing.h"

@@ -162,7 +162,7 @@ namespace tless {
 //        FinePose finePose(criteria, shadersFolder, meshesListPath);
 
         // Define contsants
-        const int numScenes = 20;
+        const int numScenes = 10;
         const int pyrLevels = criteria->pyrLvlsDown + criteria->pyrLvlsUp;
         const auto minEdgels = static_cast<const int>(criteria->info.minEdgels * criteria->objectnessFactor);
         const auto minDepthMag = static_cast<const int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
@@ -236,6 +236,7 @@ namespace tless {
 
             // Save results
             saveResults(sceneId, results, resultsFolder, resultsFileFormat);
+            results.clear();
         }
     }
 

@@ -18,6 +18,7 @@ int main() {
     criteria->tablesCount = 100;
     criteria->minVotes = 3;
     criteria->depthBinCount = 5;
+    criteria->tablesTrainingMultiplier = 15;
 
     // Detect params
     criteria->matchFactor = 0.6f;
@@ -27,15 +28,16 @@ int main() {
 
     // Train
 //    classifier.train("data/108x108/kinectv2/", {5, 6, 7, 25, 29, 30});
-//    classifier.save("data/trained/kinectv2/");
+    classifier.train("data/108x108/kinectv2/", {5, 6, 7});
+    classifier.save("data/trained/kinectv2/");
 
     // Detect
-//    classifier.load("data/trained/kinectv2/");
-//    classifier.detect("data/scenes/kinectv2/", {1, 2}, "data/results/");
+    classifier.load("data/trained/kinectv2/");
+    classifier.detect("data/scenes/kinectv2/", {2}, "data/results/");
 
     // Evaluate
     tless::Evaluator eval("data/scenes/kinectv2/", 0.5f);
-    eval.evaluate("data/results/", {1,2});
+    eval.evaluate("data/results/", {2});
 
     return 0;
 }

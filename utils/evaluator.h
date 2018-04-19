@@ -19,7 +19,7 @@ namespace tless {
         void evaluate(std::vector<std::vector<Result>> &results, int sceneId);
     public:
         Evaluator(const std::string &scenesFolder, float minOverlap = 0.5f)
-                : scenesFolder(scenesFolder), minOverlap(minOverlap) {}
+                : minOverlap(minOverlap), scenesFolder(scenesFolder) {}
 
         /**
          * @brief Loads and parses saved results for given indicies (scenes) and evaluates them.
