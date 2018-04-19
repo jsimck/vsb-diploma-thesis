@@ -46,7 +46,7 @@ namespace tless {
     }
 
     void Classifier::save(const std::string &trainedFolder, const std::string &classifierFileName,
-                          const std::string &tplsFormat) {
+                          const std::string &tplsFileFormat) {
         // Create directories if they don't exist
         boost::filesystem::create_directories(trainedFolder);
 
@@ -69,7 +69,7 @@ namespace tless {
                 objId = tpl.objId;
 
                 // Open new file
-                std::string tplPath = cv::format((trainedFolder + tplsFormat).c_str(), objId);
+                std::string tplPath = cv::format((trainedFolder + tplsFileFormat).c_str(), objId);
                 fs.open(tplPath, cv::FileStorage::WRITE);
                 fs << "templates" << "[";
 
@@ -105,7 +105,7 @@ namespace tless {
     }
 
     void Classifier::load(const std::string &trainedFolder, const std::string &classifierFileName,
-                          const std::string &tplsFormat) {
+                          const std::string &tplsFileFormat) {
         Timer tLoading;
         std::cout << "Loading trained templates... " << std::endl;
 
@@ -122,7 +122,7 @@ namespace tless {
 
         // Load templates
         for (auto &objId : this->objIds) {
-            cv::FileStorage fs(cv::format((trainedFolder + tplsFormat).c_str(), objId), cv::FileStorage::READ);
+            cv::FileStorage fs(cv::format((trainedFolder + tplsFileFormat).c_str(), objId), cv::FileStorage::READ);
             cv::FileNode tplsNode = fs["templates"];
 
             // Loop through templates
@@ -158,8 +158,9 @@ namespace tless {
         std::vector<Window> windows;
         std::vector<Match> matches;
 
+        // Init fine pose and vizualizer
         Visualizer viz(criteria);
-//        FinePose finePose(criteria, shadersFolder, meshesListPath);
+        FinePose finePose(criteria, shadersFolder, modelsFolder, modelsFileFormat, objIds);
 
         // Define contsants
         const int pyrLevels = criteria->pyrLvlsDown + criteria->pyrLvlsUp;
@@ -228,7 +229,7 @@ namespace tless {
                 viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches);
 
                 // Apply fine pose estimation
-    //            finePose.estimate(matches, scene);
+                finePose.estimate(matches, scene);
 
                 results.emplace_back(std::move(matches));
             }
@@ -280,10 +281,10 @@ namespace tless {
     }
 
     const std::string &Classifier::getModelFileFormat() const {
-        return modelFileFormat;
+        return modelsFileFormat;
     }
 
     void Classifier::setModelFileFormat(const std::string &modelFileFormat) {
-        Classifier::modelFileFormat = modelFileFormat;
+        Classifier::modelsFileFormat = modelFileFormat;
     }
 }

@@ -31,11 +31,13 @@ namespace tless {
         void loadShaders(const std::string &shadersFolder);
 
         /**
-         * @brief Loads mesh models for each object from text file, which has form of [id meshFullPath]
+         * @brief Loads modesl in .ply format for objects defined in objIds array.
          *
-         * @param[in] meshesListPath List of model ids and paths to their .ply files [id meshFullPath]
+         * @param[in] modelsFolder     Path to folder containing all objects
+         * @param[in] modelsFileFormat File format for filename of each .ply file
+         * @param[in] objIds           Array of objIds to load
          */
-        void loadMeshes(const std::string &meshesListPath);
+        void loadMeshes(const std::string &modelsFolder, const std::string &modelsFileFormat, const std::vector<int> &objIds);
 
         /**
          * @brief Generates uniformly distributed population in 6D space using 6D sobol sequence.
@@ -64,7 +66,8 @@ namespace tless {
         static const int SHADER_DEPTH, SHADER_NORMAL, SHADER_DEPTH_NORMAL;
         static const int SCR_WIDTH, SCR_HEIGHT;
 
-        FinePose(cv::Ptr<ClassifierCriteria> criteria, const std::string &shadersFolder, const std::string &meshesListPath);
+        FinePose(cv::Ptr<ClassifierCriteria> criteria, const std::string &shadersFolder, const std::string &meshesListPath,
+                         const std::string &modelsFileFormat, const std::vector<int> &objIds);
         ~FinePose();
 
         /**

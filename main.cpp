@@ -7,7 +7,7 @@
 
 static const int SENSOR_KINECT = 0;
 static const int SENSOR_PRIMESENSE = 1;
-static const int SENSOR_CURRENT = SENSOR_PRIMESENSE;
+static const int SENSOR_CURRENT = SENSOR_KINECT;
 
 int main() {
     // Custom criteria
@@ -55,8 +55,8 @@ int main() {
 
     // Train
 //    classifier.train(templatesPath, {5, 6, 7, 25, 29, 30});
-    classifier.train(templatesPath, {5, 6, 7});
-    classifier.save(trainedPath);
+//    classifier.train(templatesPath, {5, 6, 7});
+//    classifier.save(trainedPath);
 
     // Detect
     classifier.load(trainedPath);

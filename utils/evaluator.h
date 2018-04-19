@@ -24,12 +24,12 @@ namespace tless {
         /**
          * @brief Loads and parses saved results for given indicies (scenes) and evaluates them.
          *
-         * @param[in] resultsFolder         Path to results folder
-         * @param[in] indices               Indices identifying specific results files
-         * @param[in] resultsFileNameFormat Individual results file name format
+         * @param[in] resultsFolder     Path to results folder
+         * @param[in] indices           Indices identifying specific results files
+         * @param[in] resultsFileFormat Individual results file name format
          */
-        void evaluate(const std::string &resultsFolder, const std::vector<int> indices,
-                      const std::string &resultsFileNameFormat = "results_%02d.yml.gz");
+        void evaluate(const std::string &resultsFolder, const std::vector<int> &indices,
+                      const std::string &resultsFileFormat = "results_%02d.yml.gz");
 
         void setScenesFolder(const std::string &scenesFolder);
         void setMinOverlap(float minOverlap);

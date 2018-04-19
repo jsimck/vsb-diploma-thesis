@@ -59,28 +59,21 @@ namespace tless {
         shaders[SHADER_DEPTH_NORMAL] = Shader(shadersFolder + "depth_normal.vert", shadersFolder + "depth_normal.frag");
     }
 
-    void FinePose::loadMeshes(const std::string &meshesListPath) {
-        std::ifstream ifs(meshesListPath);
-        std::string path;
-        int id;
-
-        // File format in ifs [obj_id path]
-        while (ifs >> id) {
-            ifs >> path;
-            meshes[id] = Mesh(path);
+    void FinePose::loadMeshes(const std::string &modelsFolder, const std::string &modelsFileFormat, const std::vector<int> &objIds) {
+        for (auto &objId : objIds) {
+            std::string path = cv::format((modelsFolder + modelsFileFormat).c_str(), objId);
+            meshes[objId] = Mesh(path);
         }
-
-        ifs.close();
     }
 
-    FinePose::FinePose(cv::Ptr<ClassifierCriteria> criteria, const std::string &shadersFolder,
-                       const std::string &meshesListPath) : criteria(criteria) {
+    FinePose::FinePose(cv::Ptr<ClassifierCriteria> criteria, const std::string &shadersFolder, const std::string &meshesListPath,
+                           const std::string &modelsFileFormat, const std::vector<int> &objIds) : criteria(criteria) {
         // First initialize OpenGL
         initOpenGL();
 
         // Load shaders and meshes
         loadShaders(shadersFolder);
-        loadMeshes(meshesListPath);
+        loadMeshes(meshesListPath, modelsFileFormat, objIds);
     }
 
     FinePose::~FinePose() {
@@ -159,7 +152,7 @@ namespace tless {
             // Show cropped part of the scene
             cv::imshow("normals", normals);
             cv::imshow("sEdge", edges);
-            cv::waitKey(1);
+            cv::waitKey(0);
 
             // Create FBO with given size and update viewport size
             FrameBuffer fbo(bb.width, bb.height);

@@ -18,7 +18,7 @@ namespace tless {
     private:
         std::string shadersFolder = "data/shaders/";
         std::string modelsFolder = "data/models/";
-        std::string modelFileFormat = "obj_%02d.ply";
+        std::string modelsFileFormat = "obj_%02d.ply";
 
         cv::Ptr<ClassifierCriteria> criteria;
         std::vector<int> objIds;
@@ -68,20 +68,20 @@ namespace tless {
          *
          * @param[in] trainedFolder      Trained data output folder (created if doesn't exits)
          * @param[in] classifierFileName Trained classifier file name
-         * @param[in] tplsFormat         File name format for trained templates
+         * @param[in] tplsFileFormat     File name format for trained templates
          */
         void save(const std::string &trainedFolder, const std::string &classifierFileName = "classifier.yml.gz",
-                  const std::string &tplsFormat = "template_%02d.yml.gz");
+                  const std::string &tplsFileFormat = "template_%02d.yml.gz");
 
         /**
          * @brief Loads trained templates and hash tables into classifier.
          *
          * @param[in] trainedFolder      Trained data output folder containing trained templates and classifier
          * @param[in] classifierFileName Trained classifier file name
-         * @param[in] tplsFormat         Trained templates file format
+         * @param[in] tplsFileFormat     Trained templates file format
          */
         void load(const std::string &trainedFolder, const std::string &classifierFileName = "classifier.yml.gz",
-                  const std::string &tplsFormat = "template_%02d.yml.gz");
+                  const std::string &tplsFileFormat = "template_%02d.yml.gz");
 
         void setShadersFolder(const std::string &shadersFolder);
         void setModelsFolder(const std::string &modelsFolder);

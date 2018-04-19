@@ -111,4 +111,14 @@ namespace tless {
         K.at<float>(0, 2) += offsetX;
         K.at<float>(1, 2) += offsetY;
     }
+
+    cv::Point2f isToSs(const cv::Point &p, int width, int height) {
+        float halfWidth = width / 2.0f;
+        float halfHeight = height / 2.0f;
+
+        return cv::Point2f(
+                p.x / halfWidth + 1,
+                p.y / halfHeight + 1
+        );
+    }
 }

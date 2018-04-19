@@ -39,6 +39,13 @@ namespace tless {
          */
         float overlap(const Match &m);
 
+        /**
+         * @brief Calculates the center coordinates of normed bounding box.
+         *
+         * @return Coordinates of the px located in the center of normed bounding box
+         */
+        cv::Point normBBCenter();
+
         bool operator<(const Match &rhs) const;
         bool operator>(const Match &rhs) const;
         bool operator<=(const Match &rhs) const;

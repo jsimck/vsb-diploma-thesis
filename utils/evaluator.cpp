@@ -1,14 +1,15 @@
 #include "evaluator.h"
 
 namespace tless {
-    void Evaluator::evaluate(const std::string &resultsFolder, const std::vector<int> indices, const std::string &resultsFileNameFormat) {
+    void Evaluator::evaluate(const std::string &resultsFolder, const std::vector<int> &indices,
+                             const std::string &resultsFileFormat) {
         // Evaluate each scene in indices
         for (auto &sceneId : indices) {
             std::vector<std::vector<Result>> results;
             std::vector<Result> sceneMatches;
 
             // Load results from file
-            std::string resultPath = cv::format((resultsFolder + resultsFileNameFormat).c_str(), sceneId);
+            std::string resultPath = cv::format((resultsFolder + resultsFileFormat).c_str(), sceneId);
             cv::FileStorage fs(resultPath, cv::FileStorage::READ);
             cv::FileNode scenesNode = fs["scenes"];
             Result r;
