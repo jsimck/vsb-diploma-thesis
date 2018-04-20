@@ -32,10 +32,23 @@ namespace tless {
             int x = (offsetBB.height - offsetBB.width) / 2;
             offsetBB.x -= x;
             offsetBB.width = offsetBB.height;
+
+            // Offset has to be larger than 0
+            offsetBB.x = offsetBB.x < 0 ? 0 : offsetBB.x;
         } else {
             int y = (offsetBB.width - offsetBB.height) / 2;
             offsetBB.y -= y;
             offsetBB.height = offsetBB.width;
+
+            // Offset has to be larger than 0
+            offsetBB.y = offsetBB.y < 0 ? 0 : offsetBB.y;
+        }
+
+        // Shift to fit source image size
+        if (offsetBB.x + offsetBB.width > t.srcRGB.cols) {
+            offsetBB.x = t.srcRGB.cols - offsetBB.width;
+        } else if (offsetBB.y + offsetBB.height > t.srcRGB.rows) {
+            offsetBB.y = t.srcRGB.rows - offsetBB.height;
         }
 
         // Resize images by given ratio and recalculate depth values

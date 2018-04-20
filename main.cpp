@@ -13,8 +13,8 @@ int main() {
 
     // Dataset pairs (sceneId, templates)
     std::vector<std::pair<int, std::vector<int>>> data = {
-//        {1, {2, 25, 29, 30}},
-        {2, {5, 6, 7}},
+        {1, {2, 25, 29, 30}},
+//        {2, {5, 6, 7}},
 //        {3, {5, 8, 11, 12, 18}},
 //        {4, {5, 8, 26, 28}},
 //        {5, {1, 4, 9, 10, 27}},
@@ -57,36 +57,28 @@ int main() {
     std::string resultsPath = "data/results/%s/%02d/";
     std::string modelsPath = "data/models/";
 
-    // Convert templates from t-less to custom format
-    tless::Converter converter;
-    converter.convert(convertPath, modelsPath, {
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-        11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-        21, 22, 23, 24, 25, 26, 27, 28, 29, 30
-    }, templatesPath, 108);
-
     // Init classifier
     tless::Evaluator eval(scenesPath, 0.3f);
     tless::Classifier classifier(criteria);
 
     // Run classification on defined dataset
-//    for (auto &scene : data) {
-//        // Results and trained paths
-//        std::string sceneResultsPath = cv::format(resultsPath.c_str(), sensorPath, scene.first);
-//        std::string sceneTrainedPath = cv::format(trainedPath.c_str(), sensorPath, scene.first);
-//
-//        // Train
+    for (auto &scene : data) {
+        // Results and trained paths
+        std::string sceneResultsPath = cv::format(resultsPath.c_str(), sensorPath, scene.first);
+        std::string sceneTrainedPath = cv::format(trainedPath.c_str(), sensorPath, scene.first);
+
+        // Train
 //        classifier.train(templatesPath, scene.second);
 //        classifier.save(sceneTrainedPath);
 //
 //        // Detect
 //        classifier.load(sceneTrainedPath);
-//        classifier.detect(scenesPath, { scene.first }, sceneResultsPath, 100);
-//
-//        // Evaluate
-//        std::cout << sceneResultsPath << std::endl;
-//        eval.evaluate(sceneResultsPath, { scene.first });
-//    }
+//        classifier.detect(scenesPath, { scene.first }, sceneResultsPath, 504);
+
+        // Evaluate
+        std::cout << sceneResultsPath << std::endl;
+        eval.evaluate(sceneResultsPath, { scene.first });
+    }
 
     return 0;
 }
