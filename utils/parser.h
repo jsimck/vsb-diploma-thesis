@@ -15,6 +15,7 @@ namespace tless {
     class Parser {
     private:
         cv::Ptr<ClassifierCriteria> criteria;
+        std::vector<int> objEdgels;
 
         /**
          * @brief Parses template images and generates gray, hue and gradient images for each template.

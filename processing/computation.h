@@ -68,7 +68,7 @@ namespace tless {
     /**
      * @brief Removes elements at indexes to_remove from the input array.
      *
-     * @tparam    T        elements data type
+     * @tparam    T        Elements data type
      * @param[in] elements Array of input elements
      * @param[in] toRemove Array of indices identifying elements to remove
      */
@@ -83,6 +83,60 @@ namespace tless {
         }
 
         elements.resize(elements.size() - toRemove.size());
+    }
+
+    /**
+     * @brief Calculates mean and sd of numerical array.
+     *
+     * @tparam    T      Elements data type
+     * @param[in] values Array of numerical values
+     * @param[in] mean   Values mean
+     * @param[in] sd     Values standard deviation
+     */
+    template<typename T>
+    void standardDeviation(const std::vector<T> &values, T &mean, T &sd) {
+        // Calculate mean
+        mean = 0;
+        for (auto &val : values) {
+            mean += val;
+        }
+        mean = mean / static_cast<float>(values.size());
+
+        // Calculate sd
+        T sum = 0;
+        for (auto &val : values) {
+            sum += sqr<T>(val - mean);
+        }
+
+        sd = std::sqrt((1 / (static_cast<float>(values.size()) - 1)) * sum);
+    }
+
+    /**
+     * @brief Removes outliers from numerical array using three sigma rule.
+     *
+     * @tparam    T         Elements data type
+     * @param[in] sigmaRule Number [1-3] defining three sigma rule
+     * @param[in] values    Array of numerical values
+     */
+    template<typename T>
+    void removeOutliers(std::vector<T> &values, int sigmaRule = 3) {
+        // Find mean and sd
+        T mean, sd;
+        standardDeviation<T>(values, mean, sd);
+
+        // Find outliers
+        std::vector<size_t> toRemove;
+        T negThreeSigma = mean - sigmaRule * sd;
+        T posThreeSigma = mean + sigmaRule * sd;
+
+        for (int i = 0; i < values.size(); ++i) {
+            if (values[i] < negThreeSigma || values[i] > posThreeSigma) {
+                toRemove.push_back(i);
+            }
+        }
+
+        // Remove outliers
+        removeIndex<T>(values, toRemove);
     }
 }
 

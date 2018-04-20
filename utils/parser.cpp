@@ -4,12 +4,14 @@
 #include "../objdetect/hasher.h"
 #include "../core/classifier_criteria.h"
 #include "timer.h"
+#include "../processing/computation.h"
 
 namespace tless {
     void Parser::parseObject(const std::string &basePath, std::vector<Template> &templates) {
         // Load object info.yml.gz at the root of each object folder
         cv::FileStorage fsInfo(basePath + "info.yml.gz", cv::FileStorage::READ);
         cv::FileNode tplNodes = fsInfo["templates"];
+        objEdgels.clear();
 
         // Loop through each template node and parse info + images
         for (const auto &tplNode : tplNodes) {
@@ -20,6 +22,16 @@ namespace tless {
             // Load template images and generate gradients, normals, hue, gray images
             parseTemplate(tpl, basePath);
             templates.push_back(tpl);
+        }
+
+        // TODO validate sigma rule for other scenes
+        // Calculate sd and mean to remove outliers
+        removeOutliers<int>(objEdgels, 2);
+
+        // Save min edgels
+        std::stable_sort(objEdgels.begin(), objEdgels.end());
+        if (objEdgels[0] < criteria->info.minEdgels && objEdgels[0] > 0) {
+            criteria->info.minEdgels = objEdgels[0];
         }
 
         fsInfo.release();
@@ -72,7 +84,7 @@ namespace tless {
 
         // Extract min edgels
         cv::Mat integral, edgels;
-        depthEdgels(t.srcDepth, edgels, t.minDepth, t.maxDepth, static_cast<int>(criteria->objectnessDiameterThreshold * t.diameter * criteria->info.depthScaleFactor));
+        depthEdgels(t.srcDepth, edgels, t.minDepth - 1000, t.maxDepth + 1000, static_cast<int>(criteria->objectnessDiameterThreshold * t.diameter * criteria->info.depthScaleFactor));
         cv::integral(edgels, integral, CV_32S);
 
         // Get objBB corners for sum area table calculation
@@ -83,9 +95,7 @@ namespace tless {
 
         // Get edgel count inside obj bounding box
         int edgelsCount = integral.at<int>(D) - integral.at<int>(B) - integral.at<int>(C) + integral.at<int>(A);
-        if (edgelsCount < criteria->info.minEdgels && edgelsCount > 0) {
-            criteria->info.minEdgels = edgelsCount;
-        }
+        objEdgels.push_back(edgelsCount);
 
         // Compute normals
         cv::Mat normals3D;

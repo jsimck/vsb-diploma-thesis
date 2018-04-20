@@ -103,11 +103,6 @@ namespace tless {
         cv::Mat result = cv::Mat::zeros(fbo.height, fbo.width, CV_32FC4);
         glReadPixels(0, 0, fbo.width, fbo.height, GL_BGRA, GL_FLOAT, result.data);
 
-        cv::Mat testDepth = cv::Mat::zeros(fbo.height, fbo.width, CV_32FC1);
-        glReadPixels(0, 0, fbo.width, fbo.height, GL_DEPTH_COMPONENT, GL_FLOAT, testDepth.data);
-        cv::imshow("TestDepth", testDepth);
-        std::cout << testDepth << std::endl;
-
         // Unbind frame buffer
         fbo.unbind();
 

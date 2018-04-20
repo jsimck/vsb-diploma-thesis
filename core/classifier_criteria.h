@@ -21,7 +21,7 @@ namespace tless {
         float minMagnitude = 100; //!< Minimal magnitude of edge gradient to classify it as valid
         ushort maxDepthDiff = 100; //!< When computing surface normals, contribution of pixel is ignored if the depth difference with central pixel is above this threshold
         float objectnessDiameterThreshold = 0.3f; //!< Minimal threshold of sobel operator when computing depth edgels. (objectnessDiameterThreshold * objectDiameter * info.depthScaleFactor)
-        float depthDeviation = .316227766f; //!< sqrt(depthScaleFactor)
+        float depthDeviation = .1f; //!< sqrt(depthScaleFactor)
 
         // Detect Params
         float pyrScaleFactor = 1.25f; //!< Scale factor for building scene image pyramid

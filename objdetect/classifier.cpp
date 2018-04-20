@@ -149,7 +149,8 @@ namespace tless {
         std::cout << *criteria << std::endl << std::endl;
     }
 
-    void Classifier::detect(const std::string &scenesFolder, const std::string &sceneIndices, const std::string &resultsFolder,
+    void Classifier::detect(const std::string &scenesFolder, std::vector<int> sceneIndices,
+                            const std::string &resultsFolder,
                             int numScenes, const std::string &resultsFileFormat) {
         assert(criteria->info.smallestTemplate.area() > 0);
         assert(criteria->info.minEdgels > 0);
@@ -229,7 +230,7 @@ namespace tless {
                 viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);
 
                 // Apply fine pose estimation
-                finePose.estimate(matches, scene);
+//                finePose.estimate(matches, scene);
 
                 results.emplace_back(std::move(matches));
             }

@@ -91,7 +91,7 @@ namespace tless {
          * @param[in] wait    Optional wait time in waitKey() function
          * @param[in] title   Optional image window title
          */
-#ifdef DVIZ_OBJECTNESS
+#ifdef VIZ_OBJECTNESS
         void objectness(const ScenePyramid &scene, std::vector<Window> &windows, int wait = 0, const char *title = nullptr);
 #else
         void objectness(const ScenePyramid &scene, std::vector<Window> &windows, int wait = 0, const char *title = nullptr) { void(); }

@@ -165,7 +165,7 @@ namespace tless {
     }
 #endif
 
-#ifdef DVIZ_OBJECTNESS
+#ifdef VIZ_OBJECTNESS
     void Visualizer::objectness(const ScenePyramid &scene, std::vector<Window> &windows, int wait, const char *title) {
         const auto winSize = static_cast<const int>(windows.size());
         auto minMag = static_cast<int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
