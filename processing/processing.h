@@ -141,8 +141,8 @@ namespace tless {
      * @param[in]     minMag    Ignore pixels with edge magnitude lower than this (used for edgel detection)
      * @param[in]     minEdgels Minimum number of edgels window can contain to be classified as containing object
      */
-    void objectness(const cv::Mat &src, std::vector<Window> &windows, const cv::Size &winSize,
-                    int winStep, int minDepth, int maxDepth, int minMag, int minEdgels);
+    void objectness(const cv::Mat &src, std::vector<Window> &windows, const cv::Size &winSize, int winStep, float scale,
+                    int minDepth, int maxDepth, int minMag, int minEdgels);
 }
 
 #endif

@@ -164,6 +164,7 @@ namespace tless {
         FinePose finePose(criteria, shadersFolder, modelsFolder, modelsFileFormat, objIds);
 
         // Define contsants
+        const int start = 0;
         const int pyrLevels = criteria->pyrLvlsDown + criteria->pyrLvlsUp;
         const auto minEdgels = static_cast<const int>(criteria->info.minEdgels * criteria->objectnessFactor);
         const auto minDepthMag = static_cast<const int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
@@ -174,7 +175,7 @@ namespace tless {
         std::cout << "Matching started..." << std::endl << std::endl;
 
         for (auto &sceneId : sceneIndices) {
-            for (int i = 0; i < numScenes; ++i) {
+            for (int i = start; i < numScenes; ++i) {
                 // Reset timers
                 ttObjectness = ttVerification = ttMatching = 0;
                 tTotal.reset();
@@ -189,8 +190,8 @@ namespace tless {
                 for (int l = 0; l <= pyrLevels; ++l) {
                     /// Objectness detection
                     Timer tObjectness;
-                    objectness(scene.pyramid[l].srcDepth, windows, criteria->info.smallestTemplate,
-                               criteria->windowStep, criteria->info.minDepth, criteria->info.maxDepth, minDepthMag, minEdgels);
+                    objectness(scene.pyramid[l].srcDepth, windows, criteria->info.smallestTemplate, criteria->windowStep,
+                               scene.pyramid[l].scale, criteria->info.minDepth, criteria->info.maxDepth, minDepthMag, minEdgels);
                     ttObjectness += tObjectness.elapsed();
                     viz.objectness(scene.pyramid[l], windows);
 
@@ -236,20 +237,20 @@ namespace tless {
             }
 
             // Save results
-            saveResults(sceneId, results, resultsFolder, resultsFileFormat);
+            saveResults(sceneId, results, resultsFolder, resultsFileFormat, start);
             results.clear();
         }
     }
 
     void Classifier::saveResults(int sceneId, const std::vector<std::vector<Match>> &results, const std::string &resultsFolder,
-                                     const std::string &resultsFileFormat) {
+                                     const std::string &resultsFileFormat, int startIndex = 0) {
         boost::filesystem::create_directories(resultsFolder);
         cv::FileStorage fs(cv::format((resultsFolder + resultsFileFormat).c_str(), sceneId), cv::FileStorage::WRITE);
         fs << "scenes" << "[";
 
         for (int i = 0; i < results.size(); ++i) {
             fs << "{";
-            fs << "index" << i;
+            fs << "index" << i + startIndex;
             fs << "matches" << "[";
 
             for (auto &match : results[i]) {

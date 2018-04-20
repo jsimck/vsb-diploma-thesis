@@ -38,7 +38,7 @@ namespace tless {
          * @param[in] resultsFileFormat File format for the results file
          */
         void saveResults(int sceneId, const std::vector<std::vector<Match>> &results, const std::string &resultsFolder,
-                         const std::string &resultsFileFormat);
+                                 const std::string &resultsFileFormat, int startIndex);
 
     public:
         explicit Classifier(cv::Ptr<ClassifierCriteria> criteria) :

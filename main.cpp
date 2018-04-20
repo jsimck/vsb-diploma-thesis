@@ -13,8 +13,8 @@ int main() {
 
     // Dataset pairs (sceneId, templates)
     std::vector<std::pair<int, std::vector<int>>> data = {
-        {1, {2, 25, 29, 30}},
-//        {2, {5, 6, 7}},
+//        {1, {2, 25, 29, 30}},
+        {2, {5, 6, 7}},
 //        {3, {5, 8, 11, 12, 18}},
 //        {4, {5, 8, 26, 28}},
 //        {5, {1, 4, 9, 10, 27}},
@@ -70,13 +70,12 @@ int main() {
         // Train
 //        classifier.train(templatesPath, scene.second);
 //        classifier.save(sceneTrainedPath);
-//
-//        // Detect
+
+        // Detect
 //        classifier.load(sceneTrainedPath);
 //        classifier.detect(scenesPath, { scene.first }, sceneResultsPath, 504);
 
         // Evaluate
-        std::cout << sceneResultsPath << std::endl;
         eval.evaluate(sceneResultsPath, { scene.first });
     }
 

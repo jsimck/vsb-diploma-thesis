@@ -5,24 +5,26 @@ namespace tless {
                              const std::string &resultsFileFormat) {
         // Evaluate each scene in indices
         for (auto &sceneId : indices) {
-            std::vector<std::vector<Result>> results;
+            std::vector<std::pair<int, std::vector<Result>>> results;
             std::vector<Result> sceneMatches;
 
             // Load results from file
             std::string resultPath = cv::format((resultsFolder + resultsFileFormat).c_str(), sceneId);
             cv::FileStorage fs(resultPath, cv::FileStorage::READ);
             cv::FileNode scenesNode = fs["scenes"];
-            Result r;
+            int sceneIndex;
 
             for (auto &&scene : scenesNode) {
                 cv::FileNode matches = scene["matches"];
+                scene["index"] >> sceneIndex;
 
                 for (auto &&m : matches) {
+                    Result r;
                     m >> r;
-                    sceneMatches.emplace_back(r);
+                    sceneMatches.push_back(r);
                 }
 
-                results.emplace_back(std::move(sceneMatches));
+                results.emplace_back(sceneIndex, std::move(sceneMatches));
             }
 
             fs.release();
@@ -32,7 +34,7 @@ namespace tless {
         }
     }
 
-    void Evaluator::evaluate(std::vector<std::vector<Result>> &results, int sceneId) {
+    void Evaluator::evaluate(std::vector<std::pair<int, std::vector<Result>>> &results, int sceneId) {
         // Load scene GT
         std::string sceneGtPath = cv::format((scenesFolder + "%02d/gt.yml").c_str(), sceneId);
         cv::FileStorage fs(sceneGtPath, cv::FileStorage::READ);
@@ -43,7 +45,7 @@ namespace tless {
         int TP = 0, FP = 0, FN = 0;
 
         for (int i = 0; i < results.size(); ++i) {
-            cv::FileNode scene = fs[cv::format("scene_%d", i)];
+            cv::FileNode scene = fs[cv::format("scene_%d", results[i].first)];
 
             // Iterate GT
             for (auto &&gt : scene) {
@@ -51,7 +53,7 @@ namespace tless {
                 gt["obj_id"] >> objId;
                 gt["obj_bb"] >> objBB;
 
-                for (auto &r : results[i]) {
+                for (auto &r : results[i].second) {
                     if (r.validated) continue;
 
                     if (r.jaccard(objBB) > minOverlap && r.objId == objId) {
@@ -68,7 +70,7 @@ namespace tless {
             }
 
             // Count FP
-            for (auto &r : results[i]) {
+            for (auto &r : results[i].second) {
                 if (!r.validated) {
                     FP++;
                 }

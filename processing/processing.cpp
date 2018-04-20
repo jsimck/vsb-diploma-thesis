@@ -331,15 +331,15 @@ namespace tless {
         }
     }
 
-    void objectness(const cv::Mat &src, std::vector<Window> &windows, const cv::Size &winSize,
-                    int winStep, int minDepth, int maxDepth, int minMag, int minEdgels) {
+    void objectness(const cv::Mat &src, std::vector<Window> &windows, const cv::Size &winSize, int winStep, float scale,
+                        int minDepth, int maxDepth, int minMag, int minEdgels) {
         // Checks
         assert(!src.empty());
         assert(src.type() == CV_16U);
 
         // Generate integral image of detected edgels
         cv::Mat edgels, integral;
-        depthEdgels(src, edgels, minDepth, maxDepth, minMag);
+        depthEdgels(src, edgels, minDepth, maxDepth, static_cast<int>(minMag / scale));
         cv::integral(edgels, integral, CV_32S);
 
         // Slide window over scene and calculate edge count for each overlap

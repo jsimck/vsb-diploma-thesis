@@ -16,7 +16,7 @@ namespace tless {
          * @param[in] results      Array of results, loaded from results files
          * @param[in] sceneId      Current scene ID
          */
-        void evaluate(std::vector<std::vector<Result>> &results, int sceneId);
+        void evaluate(std::vector<std::pair<int, std::vector<Result>>> &results, int sceneId);
     public:
         Evaluator(const std::string &scenesFolder, float minOverlap = 0.5f)
                 : minOverlap(minOverlap), scenesFolder(scenesFolder) {}
