@@ -14,7 +14,7 @@ int main() {
     // Dataset pairs (sceneId, templates)
     std::vector<std::pair<int, std::vector<int>>> data = {
 //        {1, {2, 25, 29, 30}},
-        {2, {5, 6, 7}},
+//        {2, {5, 6, 7}},
 //        {3, {5, 8, 11, 12, 18}},
 //        {4, {5, 8, 26, 28}},
 //        {5, {1, 4, 9, 10, 27}},
@@ -44,6 +44,7 @@ int main() {
     criteria->depthBinCount = 5;
     criteria->tablesTrainingMultiplier = 15;
     criteria->depthK = 0.5f;
+    criteria->depthDeviation = 0.85f;
 
     // Detect params
     criteria->matchFactor = 0.55f;
@@ -68,12 +69,12 @@ int main() {
         std::string sceneTrainedPath = cv::format(trainedPath.c_str(), sensorPath, scene.first);
 
         // Train
-//        classifier.train(templatesPath, scene.second);
-//        classifier.save(sceneTrainedPath);
+        classifier.train(templatesPath, scene.second);
+        classifier.save(sceneTrainedPath);
 
         // Detect
-//        classifier.load(sceneTrainedPath);
-//        classifier.detect(scenesPath, { scene.first }, sceneResultsPath, 504);
+        classifier.load(sceneTrainedPath);
+        classifier.detect(scenesPath, {scene.first}, sceneResultsPath, 0, 504);
 
         // Evaluate
         eval.evaluate(sceneResultsPath, { scene.first });

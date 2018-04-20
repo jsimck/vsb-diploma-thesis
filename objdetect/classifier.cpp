@@ -149,9 +149,8 @@ namespace tless {
         std::cout << *criteria << std::endl << std::endl;
     }
 
-    void Classifier::detect(const std::string &scenesFolder, std::vector<int> sceneIndices,
-                            const std::string &resultsFolder,
-                            int numScenes, const std::string &resultsFileFormat) {
+    void Classifier::detect(const std::string &scenesFolder, std::vector<int> sceneIndices, const std::string &resultsFolder,
+                            int startScene, int endScene, const std::string &resultsFileFormat) {
         assert(criteria->info.smallestTemplate.area() > 0);
         assert(criteria->info.minEdgels > 0);
 
@@ -164,7 +163,6 @@ namespace tless {
         FinePose finePose(criteria, shadersFolder, modelsFolder, modelsFileFormat, objIds);
 
         // Define contsants
-        const int start = 0;
         const int pyrLevels = criteria->pyrLvlsDown + criteria->pyrLvlsUp;
         const auto minEdgels = static_cast<const int>(criteria->info.minEdgels * criteria->objectnessFactor);
         const auto minDepthMag = static_cast<const int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
@@ -175,7 +173,7 @@ namespace tless {
         std::cout << "Matching started..." << std::endl << std::endl;
 
         for (auto &sceneId : sceneIndices) {
-            for (int i = start; i < numScenes; ++i) {
+            for (int i = startScene; i < endScene; ++i) {
                 // Reset timers
                 ttObjectness = ttVerification = ttMatching = 0;
                 tTotal.reset();
@@ -213,14 +211,14 @@ namespace tless {
                 }
 
                 // Apply non-maxima suppression
-                viz.preNonMaxima(scene.pyramid[criteria->pyrLvlsDown], matches);
+                viz.preNonMaxima(scene.pyramid[criteria->pyrLvlsDown], matches, 0);
                 Timer tNMS;
                 nms(matches, criteria->overlapFactor);
                 ttNMS = tNMS.elapsed();
 
                 // Print results
                 std::cout << std::endl << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
-                std::cout << "  |_ Scene " << (i + 1) << "/" <<  (numScenes) << " took: " << ttSceneLoading << "s" << std::endl;
+                std::cout << "  |_ Scene " << (i + 1) << "/" <<  (endScene) << " took: " << ttSceneLoading << "s" << std::endl;
                 std::cout << "  |_ Objectness detection took: " << ttObjectness << "s" << std::endl;
                 std::cout << "  |_ Hashing verification took: " << ttVerification << "s" << std::endl;
                 std::cout << "  |_ Template matching took: " << ttMatching << "s" << std::endl;
@@ -237,7 +235,7 @@ namespace tless {
             }
 
             // Save results
-            saveResults(sceneId, results, resultsFolder, resultsFileFormat, start);
+            saveResults(sceneId, results, resultsFolder, resultsFileFormat, startScene);
             results.clear();
         }
     }

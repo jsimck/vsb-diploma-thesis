@@ -42,7 +42,6 @@ namespace tless {
         node["tripletGrid"] >> crit->tripletGrid;
         node["minMagnitude"] >> crit->minMagnitude;
         node["maxDepthDiff"] >> crit->maxDepthDiff;
-        node["depthDeviation"] >> crit->depthDeviation;
         node["objectnessDiameterThreshold"] >> crit->objectnessDiameterThreshold;
 
         // Load unsigned int params
@@ -75,7 +74,6 @@ namespace tless {
         fs << "featurePointsCount" << static_cast<int>(crit.featurePointsCount);
         fs << "minMagnitude" << crit.minMagnitude;
         fs << "maxDepthDiff" << crit.maxDepthDiff;
-        fs << "depthDeviation" << crit.depthDeviation;
         fs << "objectnessDiameterThreshold" << crit.objectnessDiameterThreshold;
         fs << "info" << "{";
         fs << "depthScaleFactor" << crit.info.depthScaleFactor;

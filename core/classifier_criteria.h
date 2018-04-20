@@ -16,12 +16,12 @@ namespace tless {
         cv::Size tripletGrid{12, 12}; //!< Relative size of the triplet grid, 12x12 yields 144 possible locations
         uint depthBinCount = 5;  //!< Amount of bins that are used in depth difference quantization in hashing
         uint tablesCount = 100;  //!< Amount of tables to generate for hashing verification
-        uint tablesTrainingMultiplier = 10;  //!< tablesTrainingMultiplier * tablesCount = yields amount of tables that are generated before only tablesCount containing most templates are picked
+        uint tablesTrainingMultiplier = 15;  //!< tablesTrainingMultiplier * tablesCount = yields amount of tables that are generated before only tablesCount containing most templates are picked
         uint featurePointsCount = 100; //!< Amount of points to generate for feature points matching
         float minMagnitude = 100; //!< Minimal magnitude of edge gradient to classify it as valid
         ushort maxDepthDiff = 100; //!< When computing surface normals, contribution of pixel is ignored if the depth difference with central pixel is above this threshold
         float objectnessDiameterThreshold = 0.3f; //!< Minimal threshold of sobel operator when computing depth edgels. (objectnessDiameterThreshold * objectDiameter * info.depthScaleFactor)
-        float depthDeviation = .1f; //!< sqrt(depthScaleFactor)
+        float depthDeviation = .9f; //!< sqrt(depthScaleFactor)
 
         // Detect Params
         float pyrScaleFactor = 1.25f; //!< Scale factor for building scene image pyramid

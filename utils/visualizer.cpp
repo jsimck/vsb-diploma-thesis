@@ -19,7 +19,7 @@ namespace tless {
         settings[SETTINGS_INFO] = true;
         settings[SETTINGS_FEATURE_POINT_STYLE] = true;
         settings[SETTINGS_FEATURE_POINT] = true;
-        settings[SETTINGS_TPL_OVERLAY] = false;
+        settings[SETTINGS_TPL_OVERLAY] = true;
     }
 
     cv::Mat Visualizer::loadTemplateSrc(const Template &tpl, int flags) {
@@ -478,6 +478,16 @@ namespace tless {
 
         oss.str("");
         oss << "avgDepth: " << t.features.avgDepth;
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+
+        oss.str("");
+        oss << "distMin: " << t.features.avgDepth * criteria->depthDeviation;
+        textTl.y += 18;
+        label(result, oss.str(), textTl);
+
+        oss.str("");
+        oss << "distMax: " << t.features.avgDepth / criteria->depthDeviation;
         textTl.y += 18;
         label(result, oss.str(), textTl);
 
