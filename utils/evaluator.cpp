@@ -83,10 +83,10 @@ namespace tless {
         float f1Score = 2 * (precision * recall) / (precision + recall);
 
         // Print results
-        std::cout << "SCENE " << sceneId << "." << std::endl;
-        std::cout << " - TP: " << TP << ", FP: " << FP << ", FN: " << FN
+        std::cout << "Scene " << sceneId << "." << std::endl;
+        std::cout << "  |_ TP: " << TP << ", FP: " << FP << ", FN: " << FN
             << ", Total: " << (TP + FP + FN) << std::endl;
-        std::cout << " - F1: " << (f1Score * 100) << "%" << ", "
+        std::cout << "  |_ F1: " << (f1Score * 100) << "%" << ", "
                 << "Precision: " << precision << ", "
                 << "Recall: " << recall << std::endl << std::endl;
 
