@@ -154,6 +154,7 @@ namespace tless {
         assert(criteria->info.smallestTemplate.area() > 0);
         assert(criteria->info.minEdgels > 0);
 
+        std::vector<std::vector<double>> timers;
         std::vector<std::vector<Match>> results;
         std::vector<Window> windows;
         std::vector<Match> matches;
@@ -225,6 +226,9 @@ namespace tless {
                 std::cout << "  |_ NMS took: " << ttNMS << "s" << std::endl;
                 std::cout << "  |_ Matches: " << matches.size() << std::endl;
 
+                // Save times each section took
+                timers.push_back({ttSceneLoading, ttObjectness, ttVerification, ttMatching, ttNMS});
+
                 // Vizualize results and clear current matches
                 viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);
 
@@ -235,26 +239,34 @@ namespace tless {
             }
 
             // Save results
-            saveResults(sceneId, results, resultsFolder, resultsFileFormat, startScene);
+            saveResults(sceneId, results, resultsFolder, resultsFileFormat, timers, startScene);
             results.clear();
         }
     }
 
     void Classifier::saveResults(int sceneId, const std::vector<std::vector<Match>> &results, const std::string &resultsFolder,
-                                     const std::string &resultsFileFormat, int startIndex = 0) {
+                                     const std::string &resultsFileFormat, const std::vector<std::vector<double>> &timers, int startIndex) {
+        // Crete directories
         boost::filesystem::create_directories(resultsFolder);
+
+        // Open file for saving
         cv::FileStorage fs(cv::format((resultsFolder + resultsFileFormat).c_str(), sceneId), cv::FileStorage::WRITE);
         fs << "scenes" << "[";
 
         for (int i = 0; i < results.size(); ++i) {
             fs << "{";
             fs << "index" << i + startIndex;
+            fs << "timers" << "{";
+            fs << "scene" << timers[i][0];
+            fs << "objectness" << timers[i][1];
+            fs << "hashing" << timers[i][2];
+            fs << "matching" << timers[i][3];
+            fs << "nms" << timers[i][4];
+            fs << "}";
             fs << "matches" << "[";
-
             for (auto &match : results[i]) {
                 fs << Result(match);
             }
-
             fs << "]";
             fs << "}";
         }

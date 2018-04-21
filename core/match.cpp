@@ -34,7 +34,6 @@ namespace tless {
 
     std::ostream &operator<<(std::ostream &os, const Match &match) {
         os << "id: " << match.t->id
-           << " objBB: " << match.objBB
            << " scale: " << match.scale
            << " t: " << match.t
            << " score: " << match.score;
@@ -42,15 +41,11 @@ namespace tless {
         return os;
     }
 
-    cv::FileStorage &tless::operator<<(cv::FileStorage &fs, const Match &match) {
-        fs << "{";
-        fs << "bb" << match.normObjBB;
-        fs << "}";
-
-        return fs;
+    cv::Point Match::objBBCenter() {
+        return {objBB.x + (objBB.width / 2), objBB.y + (objBB.height / 2)};
     }
 
-    cv::Point Match::normBBCenter() {
-        return {normObjBB.x + (normObjBB.width / 2), normObjBB.y + (normObjBB.height / 2)};
+    float Match::jaccard(const cv::Rect &r1) const {
+        return (objBB & r1).area() / static_cast<float>((objBB | r1).area());
     }
 }

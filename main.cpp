@@ -4,14 +4,14 @@
 #include "processing/processing.h"
 #include "utils/converter.h"
 #include "utils/evaluator.h"
+#include "utils/timer.h"
 
 static const int SENSOR_KINECT = 0;
 static const int SENSOR_PRIMESENSE = 1;
 static const int SENSOR_CURRENT = SENSOR_KINECT;
-static const int RUNS = 1;
+static const int RUNS = 5;
 
 int main() {
-
     // Dataset pairs (sceneId, templates)
     std::vector<std::pair<int, std::vector<int>>> data = {
         {1, {2, 25, 29, 30}},
@@ -74,6 +74,7 @@ int main() {
     for (int i = 0; i < RUNS; ++i) {
         for (auto &scene : data) {
             // Results and trained paths
+            tless::Timer t;
             std::string sceneResultsPath = cv::format(resultsPath.c_str(), sensorPath, scene.first);
             std::string sceneTrainedPath = cv::format(trainedPath.c_str(), sensorPath, scene.first);
             std::string resultsFileFormat = cv::format("results_%02d", i) + "_%02d.yml.gz";
@@ -87,11 +88,11 @@ int main() {
 
             // Detect
 //            classifier.load(sceneTrainedPath, classifierFileName, trainedFileFormat);
-            classifier.detect(scenesPath, {scene.first}, sceneResultsPath, 0, 5, resultsFileFormat);
+            classifier.detect(scenesPath, {scene.first}, sceneResultsPath, 0, 504, resultsFileFormat);
 
             // Evaluate
             std::cout.clear();
-            std::cout << "Run: " << (i + 1) << ", ";
+            std::cout << "Run: " << (i + 1) << ", " << "took: " << t.elapsed() << "s" << ", ";
             eval.evaluate(sceneResultsPath, { scene.first }, resultsFileFormat);
         }
     }

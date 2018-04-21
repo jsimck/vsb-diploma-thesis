@@ -44,14 +44,22 @@ namespace tless {
          *
          * @return Coordinates of the px located in the center of normed bounding box
          */
-        cv::Point normBBCenter();
+        cv::Point objBBCenter();
+
+        /**
+         * @brief Computes jaccard index for given rect with objBB (intersect over union)
+         *
+         * @param[in] r1 Rectangle to compare objBB with
+         * @return       Amount of jaccard index (how much the rects are overlapping)
+         */
+        float jaccard(const cv::Rect &r1) const;
 
         bool operator<(const Match &rhs) const;
         bool operator>(const Match &rhs) const;
         bool operator<=(const Match &rhs) const;
         bool operator>=(const Match &rhs) const;
+
         friend std::ostream &operator<<(std::ostream &os, const Match &match);
-        friend cv::FileStorage &operator<<(cv::FileStorage &fs, const Match &match);
     };
 }
 

@@ -8,13 +8,21 @@
 namespace tless {
     struct Result {
     public:
-        int objId;
+        int id, objId;
+        float scale, score;
+        Camera camera;
         cv::Rect objBB;
         bool validated = false;
 
         Result() = default;
         Result(const Match &m);
 
+        /**
+         * @brief Computes jaccard index for given rect with objBB (intersect over union)
+         *
+         * @param[in] r1 Rectangle to compare objBB with
+         * @return       Amount of jaccard index (how much the rects are overlapping)
+         */
         float jaccard(const cv::Rect &r1) const;
 
         friend void operator>>(const cv::FileNode &node, Result &r);
