@@ -12,7 +12,7 @@ namespace tless {
     class Shader {
     private:
         /**
-         * @brief Utility function to check for compile errors when compiling shader
+         * @brief Utility function to check for compile errors when compiling shader.
          *
          * @param[in] shader ID of compiled shader
          * @param[in] type   Shader type (TYPE_VERTEX / TYPE_FRAGMENT / TYPE_PROGRAM)
@@ -20,7 +20,7 @@ namespace tless {
         void checkCompileErrors(GLuint shader, int type);
 
         /**
-         * @brief Utility function which compiles shader sources passed in the input params
+         * @brief Utility function which compiles shader sources passed in the input params.
          *
          * @param[in] vertexShader   Vertex shader code
          * @param[in] fragmentShader Fragment shader code
@@ -35,7 +35,7 @@ namespace tless {
         Shader(const std::string &vertexPath, const std::string &fragmentPath);
 
         /**
-         * @brief Utility function which loads and compiles vertex and fragment shaders from given path
+         * @brief Utility function which loads and compiles vertex and fragment shaders from given path.
          *
          * @param[in] vertexPath   Path to vertex shader file
          * @param[in] fragmentPath Path to fragment shader file
@@ -48,12 +48,20 @@ namespace tless {
         void use() const;
 
         /**
-         * @brief Utility function to quickly set mat4 uniform on this shader
+         * @brief Utility function to quickly set mat4 uniform on this shader.
          *
          * @param[in] name Uniform name on glsl shader
          * @param[in] mat  Source matrix to set on this shader
          */
         void setMat4(const std::string &name, const glm::mat4 &mat) const;
+
+        /**
+         * @brief Utility function to quickly set int uniform on this shader.
+         *
+         * @param[in] name  Uniform name on glsl shader
+         * @param[in] value Value to set on this shader
+         */
+        void setInt(const std::string &name, int value) const;
     };
 };
 

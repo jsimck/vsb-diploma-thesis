@@ -42,7 +42,7 @@ namespace tless {
         float c1 = 0.2f; //!< Tunable param, affects how much particle converges to pBest
         float c2 = 0.2f; //!< Tunable param, affects how much particle converges to gBest
         float w1 = 0.85f; //!< Affects how much the velocity of translations is being decreased in each generation
-        float w2 = 0.85f; //!< Affects how much the velocity of angles is being decreased in each generation
+        float w2 = 0.95f; //!< Affects how much the velocity of angles is being decreased in each generation
 
         struct {
             ushort minDepth = std::numeric_limits<unsigned short>::max(); //!< Minimum depth found across all templates withing their bounding box

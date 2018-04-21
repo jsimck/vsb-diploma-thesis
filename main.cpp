@@ -14,26 +14,26 @@ static const int RUNS = 1;
 int main() {
     // Dataset pairs (sceneId, templates)
     std::vector<std::pair<int, std::vector<int>>> data = {
-        {1, {2, 25, 29, 30}},
+//        {1, {2, 25, 29, 30}},
         {2, {5, 6, 7}},
-        {3, {5, 8, 11, 12, 18}},
-        {4, {5, 8, 26, 28}},
-        {5, {1, 4, 9, 10, 27}},
-        {6, {6, 7, 11, 12}},
-        {7, {1, 3, 13, 14, 15, 16, 17, 18}},
-        {8, {19, 20, 21, 22, 23, 24}},
-        {9, {1, 2, 3, 4}},
-        {10, {19, 20, 21, 22, 23, 24}},
-        {11, {5, 8, 9, 10}},
-        {12, {2, 3, 7, 9}},
-        {13, {19, 20, 21, 23, 28}},
-        {14, {19, 20, 22, 23, 24}},
-        {15, {25, 26, 27, 28, 29, 30}},
-        {16, {10, 11, 12, 13, 14, 15, 16, 17}},
-        {17, {1, 4, 7, 9}},
-        {18, {1, 4, 7, 9}},
-        {19, {13, 14, 15, 16, 17, 18, 24, 30}},
-        {20, {1, 2, 3, 4}},
+//        {3, {5, 8, 11, 12, 18}},
+//        {4, {5, 8, 26, 28}},
+//        {5, {1, 4, 9, 10, 27}},
+//        {6, {6, 7, 11, 12}},
+//        {7, {1, 3, 13, 14, 15, 16, 17, 18}},
+//        {8, {19, 20, 21, 22, 23, 24}},
+//        {9, {1, 2, 3, 4}},
+//        {10, {19, 20, 21, 22, 23, 24}},
+//        {11, {5, 8, 9, 10}},
+//        {12, {2, 3, 7, 9}},
+//        {13, {19, 20, 21, 23, 28}},
+//        {14, {19, 20, 22, 23, 24}},
+//        {15, {25, 26, 27, 28, 29, 30}},
+//        {16, {10, 11, 12, 13, 14, 15, 16, 17}},
+//        {17, {1, 4, 7, 9}},
+//        {18, {1, 4, 7, 9}},
+//        {19, {13, 14, 15, 16, 17, 18, 24, 30}},
+//        {20, {1, 2, 3, 4}},
     };
 
     // Custom criteria
@@ -47,6 +47,7 @@ int main() {
     std::string currDate = buffer.str();
     currDate = "TEST";
 //    currDate = "_set_per_scene";
+//    currDate = "set_per_scene_1";
 
     // Define path to files
     const char *sensorPath = (SENSOR_CURRENT == SENSOR_KINECT) ? "kinectv2" : "primesense";
@@ -74,12 +75,12 @@ int main() {
             // Train
 //            std::cout.setstate(std::ios_base::failbit); // Disable cout
             tless::Classifier classifier(criteria);
-            classifier.train(templatesPath, scene.second);
-            classifier.save(sceneTrainedPath, classifierFileName, trainedFileFormat);
+//            classifier.train(templatesPath, scene.second);
+//            classifier.save(sceneTrainedPath, classifierFileName, trainedFileFormat);
 
             // Detect
             classifier.load(sceneTrainedPath, classifierFileName, trainedFileFormat);
-            classifier.detect(scenesPath, {scene.first}, sceneResultsPath, 0, 15, resultsFileFormat);
+            classifier.detect(scenesPath, {scene.first}, sceneResultsPath, 0, 504, resultsFileFormat);
 
             // Evaluate
 //            std::cout.clear();

@@ -137,7 +137,7 @@ namespace tless {
         // Loop through mateches
         for (auto &match : matches) {
             // Enlarge BB
-            cv::Rect bb(match.objBB.x - 20, match.objBB.y - 20, match.objBB.width + 40, match.objBB.height + 40);
+            cv::Rect bb(match.normObjBB.x - 20, match.normObjBB.y - 20, match.normObjBB.width + 40, match.normObjBB.height + 40);
             cv::Mat edgeCLone = canny.clone();
 
             // Crop to current bounding box
@@ -173,6 +173,7 @@ namespace tless {
             cv::Mat org, orgNormals;
             renderPose(fbo, meshes[match.t->objId], org, orgNormals, VMatrix, VPMatrix);
             cv::imshow("Found match", orgNormals);
+            cv::waitKey(0);
 
             // Init global best
             Particle gBest;
