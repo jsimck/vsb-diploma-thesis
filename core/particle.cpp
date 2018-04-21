@@ -29,7 +29,7 @@ namespace tless {
         updatePBest();
     };
 
-    glm::mat4 Particle::model()  {
+    glm::mat4 Particle::model()const {
         glm::mat4 m;
         glm::vec3 t(pose[0], pose[1], pose[2]);
 
@@ -73,7 +73,7 @@ namespace tless {
     float Particle::objFun(const cv::Mat &srcDepth, const cv::Mat &srcNormals, const cv::Mat &srcEdges,
                            const cv::Mat &poseDepth, const cv::Mat &poseNormals) {
         float sumD = 0, sumU = 0, sumE = 0;
-        const float tD = 200;
+        const float tD = 500;
         const float inf = std::numeric_limits<float>::max();
 
         // Compute edges
@@ -86,11 +86,10 @@ namespace tless {
         cv::Mat matD = cv::Mat::zeros(srcDepth.size(), CV_32FC1);
         cv::Mat matE = cv::Mat::zeros(srcDepth.size(), CV_32FC1);
         cv::Mat matU = cv::Mat::zeros(srcDepth.size(), CV_32FC1);
-
-//        cv::normalize(poseT, poseT, 0, 1, CV_MINMAX);
-//        cv::imshow("poseEdges", poseEdges);
-//        cv::imshow("distance", poseT);
-//        cv::waitKey(1);
+        cv::normalize(poseT, poseT, 0, 1, CV_MINMAX);
+        cv::imshow("poseEdges", poseEdges);
+        cv::imshow("distance", poseT);
+        cv::waitKey(1);
 
         for (int y = 0; y < srcDepth.rows; y++) {
             for (int x = 0; x < srcDepth.cols; x++) {
@@ -100,13 +99,13 @@ namespace tless {
                     matE.at<float>(y, x) = 1 / (poseT.at<float>(y, x) + 1);
                 }
 
-//                // Skip invalid depth pixels for other tests pixels
-//                if (pose.at<float>(y, x) <= 0) {
-//                    continue;
-//                }
+                // Skip invalid depth pixels for other tests pixels
+                if (poseDepth.at<ushort>(y, x) <= 0) {
+                    continue;
+                }
 
                 // Compute depth diff
-                float dDiff = std::abs(srcDepth.at<ushort>(y, x) - poseDepth.at<float>(y, x));
+                int dDiff = std::abs(srcDepth.at<ushort>(y, x) - poseDepth.at<ushort>(y, x));
                 sumD += (dDiff > tD) ? (1 / (inf + 1)) : (1 / (dDiff + 1));
                 matD.at<float>(y, x) = (dDiff > tD) ? (1 / (inf + 1)) : (1 / (dDiff + 1));
 
@@ -117,14 +116,14 @@ namespace tless {
             }
         }
 
-//        cv::normalize(matU, matU, 0, 1, CV_MINMAX);
-//        cv::normalize(matE, matE, 0, 1, CV_MINMAX);
-//        cv::normalize(matD, matD, 0, 1, CV_MINMAX);
-//
-//        cv::imshow("matU", matU);
-//        cv::imshow("matE", matE);
-//        cv::imshow("matD", matD);
-//        cv::waitKey(1);
+        cv::normalize(matU, matU, 0, 1, CV_MINMAX);
+        cv::normalize(matE, matE, 0, 1, CV_MINMAX);
+        cv::normalize(matD, matD, 0, 1, CV_MINMAX);
+
+        cv::imshow("matU", matU);
+        cv::imshow("matE", matE);
+        cv::imshow("matD", matD);
+        cv::waitKey(1);
 
         return -sumD * sumU * sumE;
     }

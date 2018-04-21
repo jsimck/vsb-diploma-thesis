@@ -45,7 +45,7 @@ namespace tless {
          *
          * @return Model matrix consiting of tx, ty, tz (translations) and rx, ry, rz (rotations)
          */
-        glm::mat4 model();
+        glm::mat4 model() const;
 
         /**
          * @brief Updates personal best by copying current 6D properties and fitness value.
@@ -69,7 +69,7 @@ namespace tless {
          * @param[in] srcDepth    16-bit depth image of matched bounding box
          * @param[in] srcNormals  32-bit 3D normals of matched bounding box
          * @param[in] srcEdges    Binary image of edges, detected in mached bounding box
-         * @param[in] poseDepth   32-bit  depth image of currently processed pose (from OpenGL)
+         * @param[in] poseDepth   16-bit  depth image of currently processed pose (from OpenGL)
          * @param[in] poseNormals 32-bit 3D normals of currently processed pose (from OpenGL)
          * @return                Fitness value describind amount of matched features between rendered pose and matched bounding box
          */

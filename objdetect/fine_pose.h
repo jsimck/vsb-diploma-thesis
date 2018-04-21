@@ -18,6 +18,10 @@ namespace tless {
         GLFWwindow *window;
         cv::Ptr<ClassifierCriteria> criteria;
 
+        void vizualize(const Particle &p, const ScenePyramid &pyr, const FrameBuffer &fbo, const cv::Rect &matchBB, const Mesh &mesh,
+                       const glm::mat4 &view, const glm::mat4 &viewProjection, const cv::Mat &depth, const cv::Mat &normals,
+                       const cv::Mat &edges, int wait = 0, const char *title = nullptr);
+
         /**
          * @brief Initializes OpenGL using GLFW library.
          */
@@ -58,7 +62,22 @@ namespace tless {
          * @param[in]  modelViewProjection Object modelViewProjection matrix
          */
         void renderPose(const FrameBuffer &fbo, const Mesh &mesh, cv::Mat &depth, cv::Mat &normals,
-                        const glm::mat4 &modelView, const glm::mat4 &modelViewProjection);
+                        const glm::mat4 &modelView, const glm::mat4 &modelViewProjection, float scale);
+
+        /**
+         * @brief Inflates detected boungin box, rescales K matrix and generates depths, normals, edges from source pyramid.
+         *
+         * @param[in]     pyr           Input level of image scale pyramid
+         * @param[in]     match         Current match detected in detection cascade
+         * @param[out]    inflatedBB    Out inflated original boudning box
+         * @param[in,out] K             Out camera matrix rescaled to new bounding box
+         * @param[out]    depth         Cropped image pyramid depths
+         * @param[out]    normals       Cropped image pyramid normals
+         * @param[out]    edges         Cropped image pyramid edges
+         * @param[in]     inflateOffset Value identifying how much should the rectangle inflate
+         */
+        void prepareMatch(const ScenePyramid &pyr, const Match &match, cv::Rect &inflatedBB, cv::Mat &K,
+                          cv::Mat &depth, cv::Mat &normals, cv::Mat &edges, int inflateOffset = 15);
     public:
         std::unordered_map<int, Mesh> meshes;
         std::unordered_map<int, Shader> shaders;
@@ -74,9 +93,9 @@ namespace tless {
          * @brief Applies fine-pose estimation algorithm to given matches. Final refined poses are then returned in matches {R, t} matrices.
          *
          * @param[in,out] matches Array of matched detected during detection process
-         * @param[in]     scene   Current scene that is being classified
+         * @param[in]     pyr   Current scene that is being classified
          */
-        void estimate(std::vector<Match> &matches, const Scene &scene);
+        void estimate(std::vector<Match> &matches, const ScenePyramid &pyr);
     };
 }
 

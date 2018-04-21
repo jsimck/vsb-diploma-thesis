@@ -62,6 +62,14 @@ namespace tless {
          * @param[in] value Value to set on this shader
          */
         void setInt(const std::string &name, int value) const;
+
+        /**
+         * @brief Utility function to quickly set float uniform on this shader.
+         *
+         * @param[in] name  Uniform name on glsl shader
+         * @param[in] value Value to set on this shader
+         */
+        void setFloat(const std::string &name, float value) const;
     };
 };
 
