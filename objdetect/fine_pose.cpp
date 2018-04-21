@@ -116,10 +116,6 @@ namespace tless {
     }
 
     void FinePose::estimate(std::vector<Match> &matches, const Scene &scene) {
-        // Constants
-        const int IT = 100, N = 100;
-        const float C1 = 0.2f, C2 = 0.2f, W = 0.85f;
-
         // Init scene
         auto &pyr = scene.pyramid[criteria->pyrLvlsDown]; // TODO better handling of scene loading
         cv::Mat sNormals, sEdge, sDepth;
@@ -128,6 +124,7 @@ namespace tless {
         auto minMag = static_cast<int>(criteria->objectnessDiameterThreshold * criteria->info.smallestDiameter * criteria->info.depthScaleFactor);
         depthEdgels(pyr.srcDepth, sEdge, criteria->info.minDepth, criteria->info.maxDepth, minMag);
         pyr.srcDepth.convertTo(sDepth, CV_32F);
+        cv::Mat vizResult = pyr.srcRGB.clone();
 
         // Canny test
         cv::Mat canny;
@@ -170,7 +167,7 @@ namespace tless {
             glm::mat4 m;
             cv::Mat pose, poseNormals;
             std::vector<Particle> particles;
-            generatePopulation(particles, N);
+            generatePopulation(particles, criteria->popSize);
 
             // Render match for reference
             cv::Mat org, orgNormals;
@@ -182,7 +179,7 @@ namespace tless {
             gBest.fitness = 0;
 
             // Generate initial particle positions
-            for (int i = 0; i < N; ++i) {
+            for (int i = 0; i < particles.size(); ++i) {
                 // Render depth image
                 m = particles[i].model();
                 renderPose(fbo, meshes[match.t->objId], pose, poseNormals, mvMat(m, VMatrix), mvpMat(m, VPMatrix));
@@ -205,12 +202,12 @@ namespace tless {
             renderPose(fbo, meshes[match.t->objId], imGBest, imGBestNormals, mvMat(m, VMatrix), mvpMat(m, VPMatrix));
 
             // Generations
-            for (int i = 0; i < IT; i++) {
+            for (int i = 0; i < criteria->generations; i++) {
                 std::cout << "Iteration: " << i << std::endl;
 
                 for (auto &p : particles) {
                     // Progress (updates velocity and moves particle)
-                    p.progress(W, W, C1, C2, gBest);
+                    p.progress(criteria->w1, criteria->w2, criteria->c1, criteria->c2, gBest);
 
                     // Fitness
                     m = p.model();
@@ -230,21 +227,48 @@ namespace tless {
                         m = gBest.model();
                         renderPose(fbo, meshes[match.t->objId], imGBest, imGBestNormals, mvMat(m, VMatrix), mvpMat(m, VPMatrix));
                         Particle::objFun(depth, normals, edges, imGBest, imGBestNormals);
-                        cv::imshow("imGBestNormals", imGBestNormals);
+
+                        // Render gbest to vizualization
+                        cv::Mat curVizResult = pyr.srcRGB.clone();
+                        for (int y = 0; y < imGBestNormals.rows; y++) {
+                            for (int x = 0; x < imGBestNormals.cols; x++) {
+                                auto px = imGBestNormals.at<cv::Vec3f>(y, x);
+
+                                if (px[0] > 0 || px[1] > 0 || px[2] > 0) {
+                                    curVizResult.at<cv::Vec3b>(y + bb.tl().y, x + bb.tl().x) = cv::Vec3b(px[0] * 128 + 128, px[1] * 128 + 128, px[2] * 128 + 128);
+                                }
+                            }
+                        }
+
+                        cv::imshow("vizResult", curVizResult);
                         cv::waitKey(1);
                     }
 
-                    cv::imshow("pose 2", poseNormals);
-                    cv::waitKey(1);
+//                    cv::imshow("pose 2", poseNormals);
+//                    cv::waitKey(1);
                 }
             }
 
             // Show results
             m = gBest.model();
             renderPose(fbo, meshes[match.t->objId], imGBest, imGBestNormals, mvMat(m, VMatrix), mvpMat(m, VPMatrix));
+
+            // Render gbest to vizualization
+            for (int y = 0; y < imGBestNormals.rows; y++) {
+                for (int x = 0; x < imGBestNormals.cols; x++) {
+                    auto px = imGBestNormals.at<cv::Vec3f>(y, x);
+
+                    if (px[0] > 0 || px[1] > 0 || px[2] > 0) {
+                        vizResult.at<cv::Vec3b>(y + bb.tl().y, x + bb.tl().x) = cv::Vec3b(px[0] * 128 + 128, px[1] * 128 + 128, px[2] * 128 + 128);
+                    }
+                }
+            }
+
+            cv::imshow("vizResultResult", vizResult);
             cv::imshow("imGBestNormals", imGBestNormals);
-            cv::waitKey(0);
+            cv::waitKey(1);
         }
+        cv::waitKey(0);
     }
 
     void FinePose::generatePopulation(std::vector<Particle> &particles, int N) {

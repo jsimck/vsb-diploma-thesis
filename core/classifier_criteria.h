@@ -36,6 +36,14 @@ namespace tless {
         float depthK = 0.5f; //!< Constant used in depth test in template matching phase
         int maxHueDiff = 5; //!< Constant used in hue color matching, abs difference of 2 hue values should be lower than this for the test to pass
 
+        // Fine pose
+        int generations = 100; //!< Number of generations to run for each population
+        int popSize = 100; //!< Size of the population
+        float c1 = 0.2f; //!< Tunable param, affects how much particle converges to pBest
+        float c2 = 0.2f; //!< Tunable param, affects how much particle converges to gBest
+        float w1 = 0.85f; //!< Affects how much the velocity of translations is being decreased in each generation
+        float w2 = 0.85f; //!< Affects how much the velocity of angles is being decreased in each generation
+
         struct {
             ushort minDepth = std::numeric_limits<unsigned short>::max(); //!< Minimum depth found across all templates withing their bounding box
             ushort maxDepth = 0; //!< Maximum depth found across all templates withing their bounding box

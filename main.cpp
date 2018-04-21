@@ -14,7 +14,7 @@ int main() {
     // Dataset pairs (sceneId, templates)
     std::vector<std::pair<int, std::vector<int>>> data = {
 //        {1, {2, 25, 29, 30}},
-//        {2, {5, 6, 7}},
+        {2, {5, 6, 7}},
 //        {3, {5, 8, 11, 12, 18}},
 //        {4, {5, 8, 26, 28}},
 //        {5, {1, 4, 9, 10, 27}},
@@ -69,8 +69,8 @@ int main() {
         std::string sceneTrainedPath = cv::format(trainedPath.c_str(), sensorPath, scene.first);
 
         // Train
-        classifier.train(templatesPath, scene.second);
-        classifier.save(sceneTrainedPath);
+//        classifier.train(templatesPath, scene.second);
+//        classifier.save(sceneTrainedPath);
 
         // Detect
         classifier.load(sceneTrainedPath);
