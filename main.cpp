@@ -9,7 +9,7 @@
 static const int SENSOR_KINECT = 0;
 static const int SENSOR_PRIMESENSE = 1;
 static const int SENSOR_CURRENT = SENSOR_KINECT;
-static const int RUNS = 5;
+static const int RUNS = 1;
 
 int main() {
     // Dataset pairs (sceneId, templates)
@@ -39,23 +39,14 @@ int main() {
     // Custom criteria
     cv::Ptr<tless::ClassifierCriteria> criteria(new tless::ClassifierCriteria());
 
-    // Training params
-    criteria->tablesCount = 100;
-    criteria->minVotes = 3;
-    criteria->depthBinCount = 5;
-    criteria->tablesTrainingMultiplier = 15;
-    criteria->depthK = 0.5f;
-    criteria->depthDeviation = 0.85f;
-
-    // Detect params
-    criteria->matchFactor = 0.55f;
-
     // Start date
     std::stringstream buffer;
     std::time_t t = std::time(nullptr);
     std::tm tm = *std::localtime(&t);
     buffer << std::put_time(&tm, "%j_%H_%M");
     std::string currDate = buffer.str();
+    currDate = "TEST";
+//    currDate = "_set_per_scene";
 
     // Define path to files
     const char *sensorPath = (SENSOR_CURRENT == SENSOR_KINECT) ? "kinectv2" : "primesense";
@@ -68,11 +59,10 @@ int main() {
 
     // Init classifier
     tless::Evaluator eval(scenesPath, 0.3f);
-    tless::Classifier classifier(criteria);
 
     // Run classification on defined dataset
-    for (int i = 0; i < RUNS; ++i) {
-        for (auto &scene : data) {
+    for (auto &scene : data) {
+        for (int i = 0; i < RUNS; ++i) {
             // Results and trained paths
             tless::Timer t;
             std::string sceneResultsPath = cv::format(resultsPath.c_str(), sensorPath, scene.first);
@@ -82,16 +72,17 @@ int main() {
             std::string classifierFileName = cv::format("classifier_%02d.yml.gz", i);
 
             // Train
-            std::cout.setstate(std::ios_base::failbit); // Disable cout
+//            std::cout.setstate(std::ios_base::failbit); // Disable cout
+            tless::Classifier classifier(criteria);
             classifier.train(templatesPath, scene.second);
             classifier.save(sceneTrainedPath, classifierFileName, trainedFileFormat);
 
             // Detect
-//            classifier.load(sceneTrainedPath, classifierFileName, trainedFileFormat);
-            classifier.detect(scenesPath, {scene.first}, sceneResultsPath, 0, 504, resultsFileFormat);
+            classifier.load(sceneTrainedPath, classifierFileName, trainedFileFormat);
+            classifier.detect(scenesPath, {scene.first}, sceneResultsPath, 0, 15, resultsFileFormat);
 
             // Evaluate
-            std::cout.clear();
+//            std::cout.clear();
             std::cout << "Run: " << (i + 1) << ", " << "took: " << t.elapsed() << "s" << ", ";
             eval.evaluate(sceneResultsPath, { scene.first }, resultsFileFormat);
         }

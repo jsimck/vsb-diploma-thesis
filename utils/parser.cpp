@@ -24,7 +24,6 @@ namespace tless {
             templates.push_back(tpl);
         }
 
-        // TODO validate sigma rule for other scenes
         // Calculate sd and mean to remove outliers
         removeOutliers<int>(objEdgels, 2);
 

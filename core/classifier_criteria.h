@@ -21,7 +21,7 @@ namespace tless {
         float minMagnitude = 100; //!< Minimal magnitude of edge gradient to classify it as valid
         ushort maxDepthDiff = 100; //!< When computing surface normals, contribution of pixel is ignored if the depth difference with central pixel is above this threshold
         float objectnessDiameterThreshold = 0.3f; //!< Minimal threshold of sobel operator when computing depth edgels. (objectnessDiameterThreshold * objectDiameter * info.depthScaleFactor)
-        float depthDeviation = .9f; //!< sqrt(depthScaleFactor)
+        float depthDeviation = .85f; //!< sqrt(depthScaleFactor)
 
         // Detect Params
         float pyrScaleFactor = 1.25f; //!< Scale factor for building scene image pyramid
@@ -31,7 +31,7 @@ namespace tless {
         int windowStep = 5; //!< Objectness sliding window step
         int patchOffset = 2; //!< +-offset, defining neighbourhood to look for a feature point match
         float objectnessFactor = 0.3f; //!< Amount of edgels window must contain (30% of minimum) to classify as containing object in objectness detection
-        float matchFactor = 0.6f; //!< Amount of feature points that needs to match to classify candidate as a match (at least 60%)
+        float matchFactor = 0.55f; //!< Amount of feature points that needs to match to classify candidate as a match (at least 60%)
         float overlapFactor = 0.5f; //!< Permitted factor of which two templates can overlap
         float depthK = 0.5f; //!< Constant used in depth test in template matching phase
         int maxHueDiff = 5; //!< Constant used in hue color matching, abs difference of 2 hue values should be lower than this for the test to pass

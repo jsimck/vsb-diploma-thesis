@@ -141,9 +141,9 @@ namespace tless {
 
         const int filterX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
         const int filterY[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
-        cv::Mat edgels = cv::Mat::zeros(src.size(), CV_8U);
+        dst = cv::Mat::zeros(src.size(), CV_8U);
 
-        #pragma omp parallel for default(none) shared(src, edgels, filterX, filterY) firstprivate(minDepth, maxDepth, minMag)
+        #pragma omp parallel for default(none) shared(src, dst, filterX, filterY) firstprivate(minDepth, maxDepth, minMag)
         for (int y = 1; y < src.rows - 1; y++) {
             for (int x = 1; x < src.cols - 1; x++) {
                 int i = 0, sumX = 0, sumY = 0;
@@ -169,12 +169,9 @@ namespace tless {
                     continue;
                 }
 
-                edgels.at<uchar>(y, x) = static_cast<uchar>((std::sqrt(sqr<float>(sumX) + sqr<float>(sumY)) > minMag) ? 1 : 0);
+                dst.at<uchar>(y, x) = static_cast<uchar>((std::sqrt(sqr<float>(sumX) + sqr<float>(sumY)) > minMag) ? 1 : 0);
             }
         }
-
-        // TODO evaluate with and without erosion (add to paper
-        cv::erode(edgels, dst, cv::Mat(), cv::Point(-1, -1), 1, cv::BORDER_REPLICATE);
     }
 
     uchar quantizeDepth(int depth, const std::vector<cv::Range> &ranges) {
@@ -339,7 +336,7 @@ namespace tless {
 
         // Generate integral image of detected edgels
         cv::Mat edgels, integral;
-        depthEdgels(src, edgels, minDepth, maxDepth, static_cast<int>(minMag / scale));
+        depthEdgels(src, edgels, minDepth, maxDepth, minMag);
         cv::integral(edgels, integral, CV_32S);
 
         // Slide window over scene and calculate edge count for each overlap
