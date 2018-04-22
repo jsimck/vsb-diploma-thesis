@@ -63,19 +63,6 @@ namespace tless {
          */
         void progress(float w1, float w2, float c1, float c2, const Particle &gBest);
 
-        /**
-         * @brief Objective function used to calculate fitness of each particle.
-         *
-         * @param[in] srcDepth    16-bit depth image of matched bounding box
-         * @param[in] srcNormals  32-bit 3D normals of matched bounding box
-         * @param[in] srcEdges    Binary image of edges, detected in mached bounding box
-         * @param[in] poseDepth   16-bit  depth image of currently processed pose (from OpenGL)
-         * @param[in] poseNormals 32-bit 3D normals of currently processed pose (from OpenGL)
-         * @return                Fitness value describind amount of matched features between rendered pose and matched bounding box
-         */
-        static float objFun(const cv::Mat &srcDepth, const cv::Mat &srcNormals, const cv::Mat &srcEdges,
-                            const cv::Mat &poseDepth, const cv::Mat &poseNormals);
-
         friend std::ostream &operator<<(std::ostream &os, const Particle &particle);
     };
 }

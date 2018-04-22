@@ -73,8 +73,8 @@ int main() {
             // Train
 //            std::cout.setstate(std::ios_base::failbit); // Disable cout
             tless::Classifier classifier(criteria);
-            classifier.train(templatesPath, scene.second);
-            classifier.save(sceneTrainedPath, classifierFileName, trainedFileFormat);
+//            classifier.train(templatesPath, scene.second);
+//            classifier.save(sceneTrainedPath, classifierFileName, trainedFileFormat);
 
             // Detect
             classifier.load(sceneTrainedPath, classifierFileName, trainedFileFormat);

@@ -17,6 +17,7 @@ namespace tless {
     private:
         GLFWwindow *window;
         cv::Ptr<ClassifierCriteria> criteria;
+        int maxDepthDiff = 1500;
 
         /**
          * @brief Vizualizes current particle by rendering it's mesh at approximate pose into objBB in the scene pyramid image.
@@ -66,6 +67,19 @@ namespace tless {
         void generatePopulation(std::vector<Particle> &particles, int N);
 
         /**
+         * @brief Objective function used to calculate fitness of each particle.
+         *
+         * @param[in] srcDepth    16-bit depth image of matched bounding box
+         * @param[in] srcNormals  32-bit 3D normals of matched bounding box
+         * @param[in] srcEdges    Binary image of edges, detected in mached bounding box
+         * @param[in] poseDepth   16-bit  depth image of currently processed pose (from OpenGL)
+         * @param[in] poseNormals 32-bit 3D normals of currently processed pose (from OpenGL)
+         * @return                Fitness value describind amount of matched features between rendered pose and matched bounding box
+         */
+        float objFun(const cv::Mat &srcDepth, const cv::Mat &srcNormals, const cv::Mat &srcEdges,
+                     const cv::Mat &poseDepth, const cv::Mat &poseNormals);
+
+        /**
          * @brief Renders normals and depth images for given mesth and copies them from gpu into depth and normals matrices.
          *
          * @param[in]  fbo                 FrameBuffer object initialized to desired size
@@ -98,6 +112,7 @@ namespace tless {
 
         static const int SHADER_DEPTH, SHADER_NORMAL, SHADER_DEPTH_NORMAL;
         static const int SCR_WIDTH, SCR_HEIGHT;
+        static const float F_INFTY;
 
         FinePose(cv::Ptr<ClassifierCriteria> criteria, const std::string &shadersFolder, const std::string &meshesListPath,
                          const std::string &modelsFileFormat, const std::vector<int> &objIds);
@@ -110,6 +125,9 @@ namespace tless {
          * @param[in]     pyr   Current scene that is being classified
          */
         void estimate(std::vector<Match> &matches, const ScenePyramid &pyr);
+
+        int getMaxDepthDiff() const;
+        void setMaxDepthDiff(int maxDepthDiff);
     };
 }
 

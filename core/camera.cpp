@@ -9,6 +9,14 @@ namespace tless {
         return K.at<float>(1, 1);
     }
 
+    float Camera::cx() const {
+        return K.at<float>(0, 2);
+    }
+
+    float Camera::cy() const {
+        return K.at<float>(1, 2);
+    }
+
     cv::Vec3f Camera::v(int x, int width, int y, int height, float d) const {
         return cv::Vec3f(((x - (width / 2)) * d) / fx(), ((y + (height / 2)) * d) / fy(), d);
     }

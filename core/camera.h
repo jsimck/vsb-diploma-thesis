@@ -33,6 +33,20 @@ namespace tless {
         float fy() const;
 
         /**
+         * @brief Returns x coordinate of camera principal point from K camera matrix.
+         *
+         * @return x-focal length
+         */
+        float cx() const;
+
+        /**
+         * @brief Returns y coordinate of camera principal point from K camera matrix.
+         *
+         * @return y-focal length
+         */
+        float cy() const;
+
+        /**
          * @brief Computes vector in camera space on screen (x, y) coordinates.
          *
          * @param[in] x      Screen x position

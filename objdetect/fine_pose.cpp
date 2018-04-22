@@ -16,6 +16,7 @@ namespace tless {
     const int FinePose::SHADER_DEPTH_NORMAL = 2;
     const int FinePose::SCR_WIDTH = 720;
     const int FinePose::SCR_HEIGHT = 540;
+    const float FinePose::F_INFTY = std::numeric_limits<float>::max();
 
     void FinePose::initOpenGL() {
         // GLFW init and config
@@ -94,7 +95,7 @@ namespace tless {
         // Render pose and calculate fitness
         renderPose(fbo, mesh, pDepth, pNormals, mvMat(model, view), mvpMat(model, viewProjection), 0);
 
-        // Render gbest to vizualization
+        // Render particle to result scene
         for (int y = 0; y < pNormals.rows; y++) {
             for (int x = 0; x < pNormals.cols; x++) {
                 auto px = pNormals.at<cv::Vec3f>(y, x);
@@ -140,6 +141,7 @@ namespace tless {
         // Convert to normals and depth
         cv::Mat channels[4];
         cv::split(result, channels);
+
 
         // Copy separate channels into own matrices
         cv::merge(channels, 3, normals);
@@ -191,13 +193,13 @@ namespace tless {
 //                cv::waitKey(1);
 
                 // Compute fitness for new particle
-                particles[i].fitness = Particle::objFun(depth, normals, edges, pDepth, pNormals);
+                particles[i].fitness = objFun(depth, normals, edges, pDepth, pNormals);
 
                 // Save gBest
                 if (particles[i].fitness < gBest.fitness) {
                     gBest = particles[i];
                     cv::Mat vizGBest;
-                    vizualize(gBest, vizGBest, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, 1);
+                    vizualize(gBest, vizGBest, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, 1, "gBest particle");
                 }
             }
 
@@ -213,7 +215,7 @@ namespace tless {
                     MMatrix = p.model();
                     renderPose(fbo, meshes[match.t->objId], pDepth, pNormals, mvMat(MMatrix, VMatrix),
                                mvpMat(MMatrix, VPMatrix), match.scale);
-                    p.fitness = Particle::objFun(depth, normals, edges, pDepth, pNormals);
+                    p.fitness = objFun(depth, normals, edges, pDepth, pNormals);
 
                     // Check for pBest
                     if (p.fitness < p.pBest.fitness) {
@@ -227,12 +229,12 @@ namespace tless {
 
                         // Vizualize gbest
                         cv::Mat vizGBest;
-                        vizualize(gBest, vizGBest, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, 1);
+                        vizualize(gBest, vizGBest, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, 1, "gBest particle");
                         cv::imshow("Gbest pose", pNormals);
                     }
 
-//                    cv::imshow("Pose normals", pNormals);
-//                    cv::waitKey(1);
+                    cv::imshow("Pose normals", pNormals);
+                    cv::waitKey(1);
                 }
             }
 
@@ -268,12 +270,12 @@ namespace tless {
                 (v[3] - 0.5),
                 (v[4] - 0.5),
                 (v[5] - 0.5),
-                d(gen) * 20,
-                d(gen) * 20,
-                d(gen) * 40,
-                d(gen) * 0.2f,
-                d(gen) * 0.2f,
-                d(gen) * 0.2f
+                d(gen) * 25,
+                d(gen) * 25,
+                d(gen) * 100,
+                d(gen) * 0.25f,
+                d(gen) * 0.25f,
+                d(gen) * 0.25f
             ));
         }
 
@@ -302,5 +304,71 @@ namespace tless {
         depth = pyr.srcDepth(inflatedBB);
         normals = pyr.srcNormals3D(inflatedBB);
         edges = edges(inflatedBB);
+    }
+
+    float FinePose::objFun(const cv::Mat &srcDepth, const cv::Mat &srcNormals, const cv::Mat &srcEdges,
+                           const cv::Mat &poseDepth, const cv::Mat &poseNormals) {
+        float sumD = 0, sumU = 0, sumE = 0;
+
+        // Compute edges
+        cv::Mat poseT, poseEdges;
+        cv::Laplacian(poseDepth, poseEdges, -1);
+        cv::threshold(poseEdges, poseEdges, 20, 255, CV_THRESH_BINARY_INV);
+        poseEdges.convertTo(poseEdges, CV_8U);
+        cv::distanceTransform(poseEdges, poseT, CV_DIST_L2, 3);
+
+//        cv::Mat matD = cv::Mat::zeros(srcDepth.size(), CV_32FC1);
+//        cv::Mat matE = cv::Mat::zeros(srcDepth.size(), CV_32FC1);
+//        cv::Mat matU = cv::Mat::zeros(srcDepth.size(), CV_32FC1);
+//        cv::normalize(poseT, poseT, 0, 1, CV_MINMAX);
+//        cv::imshow("srcDepth", srcDepth);
+//        cv::imshow("poseDepth", poseDepth);
+//        cv::imshow("poseEdges", poseEdges);
+//        cv::imshow("distance", poseT);
+//        cv::waitKey(1);
+
+        for (int y = 0; y < srcDepth.rows; y++) {
+            for (int x = 0; x < srcDepth.cols; x++) {
+                // Compute distance transform
+                if (srcEdges.at<uchar>(y, x) > 0) {
+                    sumE += 1 / (poseT.at<float>(y, x) + 1);
+//                    matE.at<float>(y, x) = 1 / (poseT.at<float>(y, x) + 1);
+                }
+
+                // Skip invalid depth pixels for other tests pixels
+                if (poseDepth.at<ushort>(y, x) <= 0) {
+                    continue;
+                }
+
+                // Compute depth diff
+                float dDiff = std::abs(srcDepth.at<ushort>(y, x) - poseDepth.at<ushort>(y, x));
+                sumD += (dDiff > maxDepthDiff) ? (1.0f / (F_INFTY + 1)) : (1.0f / (dDiff + 1));
+
+                // Compare normals
+                float dot = std::abs(srcNormals.at<cv::Vec3f>(y, x).dot(poseNormals.at<cv::Vec3f>(y, x)));
+                sumU += std::isnan(dot) ? (1.0f / (F_INFTY + 1)) : (1.0f / (dot + 1));
+
+//                matD.at<float>(y, x) = (dDiff > maxDepthDiff) ? (1.0f / (F_INFTY + 1)) : (1.0f / (dDiff + 1));
+//                matU.at<float>(y, x) = std::isnan(dot) ? (1.0f / (F_INFTY + 1)) : (1.0f / (dot + 1));
+            }
+        }
+
+//        cv::normalize(matU, matU, 0, 1, CV_MINMAX);
+//        cv::normalize(matE, matE, 0, 1, CV_MINMAX);
+//        cv::normalize(matD, matD, 0, 1, CV_MINMAX);
+//        cv::imshow("matU", matU);
+//        cv::imshow("matD", matD);
+//        cv::imshow("matE", matE);
+//        cv::waitKey(1);
+
+        return -1 * 1 * sumE;
+    }
+
+    int FinePose::getMaxDepthDiff() const {
+        return maxDepthDiff;
+    }
+
+    void FinePose::setMaxDepthDiff(int maxDepthDiff) {
+        FinePose::maxDepthDiff = maxDepthDiff;
     }
 }
