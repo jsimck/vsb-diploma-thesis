@@ -25,6 +25,13 @@ namespace tless {
         os << "  |_ pyrLvlsUp: " << crit.pyrLvlsUp << std::endl;
         os << "  |_ pyrLvlsDown: " << crit.pyrLvlsDown << std::endl;
         os << "  |_ maxHueDiff: " << crit.maxHueDiff << std::endl;
+        os << "Fine pose: " << std::endl;
+        os << "  |_ generations: " << crit.generations << std::endl;
+        os << "  |_ popSize: " << crit.popSize << std::endl;
+        os << "  |_ c1: " << crit.c1 << std::endl;
+        os << "  |_ c2: " << crit.c2 << std::endl;
+        os << "  |_ w1: " << crit.w1 << std::endl;
+        os << "  |_ w2: " << crit.w2 << std::endl;
         os << "Info: " << std::endl;
         os << "  |_ minDepth: " << crit.info.minDepth << std::endl;
         os << "  |_ maxDepth: " << crit.info.maxDepth << std::endl;

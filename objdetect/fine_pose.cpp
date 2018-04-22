@@ -219,7 +219,7 @@ namespace tless {
 #ifdef VIZ_FINE_POSE_PROGRESS
                         // Vizualize gbest
                         cv::Mat vizGBest;
-                        vizualize(gBest, vizGBest, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, 1, "gBest particle");
+                        vizualize(gBest, vizGBest, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, 1, "Current global best pose");
 #endif
                     }
                 }
@@ -227,7 +227,7 @@ namespace tless {
 
 #ifdef VIZ_FINE_POSE
             // Vizualize results
-            vizualize(gBest, result, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, 1);
+            vizualize(gBest, result, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, 1, "Fine Pose results");
 #endif
         }
     }
