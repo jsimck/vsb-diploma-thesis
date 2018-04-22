@@ -16,6 +16,7 @@ namespace tless {
         cv::Size tripletGrid{12, 12}; //!< Relative size of the triplet grid, 12x12 yields 144 possible locations
         uint depthBinCount = 5;  //!< Amount of bins that are used in depth difference quantization in hashing
         uint tablesCount = 100;  //!< Amount of tables to generate for hashing verification
+        uint maxCandidates = 100;  //!< Max amount of candidates to pass through hashing to next stage
         uint tablesTrainingMultiplier = 15;  //!< tablesTrainingMultiplier * tablesCount = yields amount of tables that are generated before only tablesCount containing most templates are picked
         uint featurePointsCount = 100; //!< Amount of points to generate for feature points matching
         float minMagnitude = 100; //!< Minimal magnitude of edge gradient to classify it as valid
@@ -52,6 +53,7 @@ namespace tless {
             float smallestDiameter = std::numeric_limits<float>::max(); //!< Smallest physical diameter of object in database (in mm)
             cv::Size smallestTemplate{500, 500}; //!< Size of the largest template found across all templates
             cv::Size largestArea{0, 0}; //!< Size of the largest area (largest width and largest height) found across all templates
+            int maxId = 0; //!< Holds the max ID value of a template in database
         } info;
 
         friend void operator>>(const cv::FileNode &node, cv::Ptr<ClassifierCriteria> crit);

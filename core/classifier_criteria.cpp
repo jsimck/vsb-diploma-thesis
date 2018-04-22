@@ -6,6 +6,7 @@ namespace tless {
         os << "Params: " << std::endl;
         os << "  |_ tripletGrid: " << crit.tripletGrid.width << "x" << crit.tripletGrid.height << std::endl;
         os << "  |_ tablesCount: " << crit.tablesCount << std::endl;
+        os << "  |_ maxCandidates: " << crit.maxCandidates << std::endl;
         os << "  |_ depthBinCount: " << crit.depthBinCount << std::endl;
         os << "  |_ tablesTrainingMultiplier: " << crit.tablesTrainingMultiplier << std::endl;
         os << "  |_ featurePointsCount: " << crit.featurePointsCount << std::endl;
@@ -28,6 +29,7 @@ namespace tless {
         os << "  |_ minDepth: " << crit.info.minDepth << std::endl;
         os << "  |_ maxDepth: " << crit.info.maxDepth << std::endl;
         os << "  |_ smallestDiameter: " << crit.info.smallestDiameter << std::endl;
+        os << "  |_ maxId: " << crit.info.maxId << std::endl;
         os << "  |_ minEdgels: " << crit.info.minEdgels << std::endl;
         os << "  |_ depthScaleFactor: " << crit.info.depthScaleFactor << std::endl;
         os << "  |_ smallestTemplate: " << crit.info.smallestTemplate.width << "x" << crit.info.smallestTemplate.height
@@ -45,12 +47,14 @@ namespace tless {
         node["objectnessDiameterThreshold"] >> crit->objectnessDiameterThreshold;
 
         // Load unsigned int params
-        int tablesCount, featurePointsCount, depthBinCount, tablesTrainingMultiplier;
+        int tablesCount, featurePointsCount, depthBinCount, tablesTrainingMultiplier, maxCandidates;
         node["tablesCount"] >> tablesCount;
+        node["maxCandidates"] >> maxCandidates;
         node["depthBinCount"] >> depthBinCount;
         node["tablesTrainingMultiplier"] >> tablesTrainingMultiplier;
         node["featurePointsCount"] >> featurePointsCount;
         crit->tablesCount = static_cast<uint>(tablesCount);
+        crit->maxCandidates = static_cast<uint>(maxCandidates);
         crit->depthBinCount = static_cast<uint>(depthBinCount);
         crit->tablesTrainingMultiplier = static_cast<uint>(tablesTrainingMultiplier);
         crit->featurePointsCount = static_cast<uint>(featurePointsCount);
@@ -63,12 +67,14 @@ namespace tless {
         info["minDepth"] >> crit->info.minDepth;
         info["maxDepth"] >> crit->info.maxDepth;
         info["smallestDiameter"] >> crit->info.smallestDiameter;
+        info["maxId"] >> crit->info.maxId;
     }
 
     cv::FileStorage &operator<<(cv::FileStorage &fs, const ClassifierCriteria &crit) {
         fs << "{";
         fs << "tripletGrid" << crit.tripletGrid;
         fs << "tablesCount" << static_cast<int>(crit.tablesCount);
+        fs << "maxCandidates" << static_cast<int>(crit.maxCandidates);
         fs << "depthBinCount" << static_cast<int>(crit.depthBinCount);
         fs << "tablesTrainingMultiplier" << static_cast<int>(crit.tablesTrainingMultiplier);
         fs << "featurePointsCount" << static_cast<int>(crit.featurePointsCount);
@@ -83,6 +89,7 @@ namespace tless {
         fs << "minDepth" << crit.info.minDepth;
         fs << "maxDepth" << crit.info.maxDepth;
         fs << "smallestDiameter" << crit.info.smallestDiameter;
+        fs << "maxId" << crit.info.maxId;
         fs << "}";
         fs << "}";
 

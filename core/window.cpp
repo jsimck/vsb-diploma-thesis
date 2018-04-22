@@ -25,35 +25,6 @@ namespace tless {
         return !candidates.empty();
     }
 
-    void Window::pushUnique(Template *t, int N, int minVotes) {
-        if (t->votes < minVotes) return;
-
-        // Check if candidate list is not full
-        if (candidates.size() >= N) {
-            size_t minI = 0;
-            int minVotes = N + 1;
-
-            for (size_t i = 0; i < candidates.size(); i++) {
-                if (candidates[i] == t) return; // Check for duplicates
-                if (candidates[i]->votes < minVotes) {
-                    minVotes = candidates[i]->votes;
-                    minI = i;
-                }
-            }
-
-            // Replace template with least amount of votes
-            candidates[minI] = t;
-        } else {
-            if (hasCandidates()) {
-                for (const auto &candidate : candidates) {
-                    if (candidate == t) return;  // Check for duplicates
-                }
-            }
-
-            candidates.emplace_back(t);
-        }
-    }
-
     std::ostream &operator<<(std::ostream &os, const Window &w) {
         os << "[" << w.width << "," << w.height << "]" << " at" << "(" << w.x << "," << w.y << ")" << " candidates["
            << w.candidates.size() << "](";

@@ -7,6 +7,8 @@
 #include "../processing/computation.h"
 
 namespace tless {
+    int Parser::idCounter = 0;
+
     void Parser::parseObject(const std::string &basePath, std::vector<Template> &templates) {
         // Load object info.yml.gz at the root of each object folder
         cv::FileStorage fsInfo(basePath + "info.yml.gz", cv::FileStorage::READ);
@@ -18,6 +20,7 @@ namespace tless {
             // Load template info
             Template tpl;
             tplNode >> tpl;
+            tpl.id = ++idCounter;
 
             // Load template images and generate gradients, normals, hue, gray images
             parseTemplate(tpl, basePath);
@@ -33,6 +36,7 @@ namespace tless {
             criteria->info.minEdgels = objEdgels[0];
         }
 
+        criteria->info.maxId = idCounter - 1;
         fsInfo.release();
     }
 

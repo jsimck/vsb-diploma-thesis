@@ -38,15 +38,6 @@ namespace tless {
          */
         bool hasCandidates();
 
-        /**
-         * @brief Used in hashing verification, to push only new unique candidates to candidates array.
-         *
-         * @param[in] t        Template to push to candidates array
-         * @param[in] N        Maximum number of templates the candidate array can hold (it will always hold top N candidates)
-         * @param[in] minVotes Minimum number of votes template has to have to be used as candidate
-         */
-        void pushUnique(Template *t, int N = 100, int minVotes = 3);
-
         bool operator<(const Window &rhs) const;
         bool operator>(const Window &rhs) const;
         bool operator<=(const Window &rhs) const;

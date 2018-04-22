@@ -46,8 +46,6 @@ int main() {
     buffer << std::put_time(&tm, "%j_%H_%M");
     std::string currDate = buffer.str();
     currDate = "TEST";
-//    currDate = "_set_per_scene";
-//    currDate = "set_per_scene_1";
 
     // Define path to files
     const char *sensorPath = (SENSOR_CURRENT == SENSOR_KINECT) ? "kinectv2" : "primesense";
@@ -75,8 +73,8 @@ int main() {
             // Train
 //            std::cout.setstate(std::ios_base::failbit); // Disable cout
             tless::Classifier classifier(criteria);
-//            classifier.train(templatesPath, scene.second);
-//            classifier.save(sceneTrainedPath, classifierFileName, trainedFileFormat);
+            classifier.train(templatesPath, scene.second);
+            classifier.save(sceneTrainedPath, classifierFileName, trainedFileFormat);
 
             // Detect
             classifier.load(sceneTrainedPath, classifierFileName, trainedFileFormat);
@@ -90,4 +88,4 @@ int main() {
     }
 
     return 0;
-}
+};

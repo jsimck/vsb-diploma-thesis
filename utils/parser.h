@@ -14,6 +14,7 @@ namespace tless {
      */
     class Parser {
     private:
+        static int idCounter;
         cv::Ptr<ClassifierCriteria> criteria;
         std::vector<int> objEdgels;
 

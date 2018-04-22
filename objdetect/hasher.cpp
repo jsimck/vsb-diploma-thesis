@@ -181,10 +181,18 @@ namespace tless {
         assert(!tables.empty());
         assert(criteria->info.largestArea.area() > 0);
 
+        // Define candidates array size
+#ifdef VIZ_HASHING
         std::vector<Template *> usedTemplates;
-        std::vector<size_t> emptyIndexes;
+#endif
+        const auto candidatesSize = static_cast<const size_t>(criteria->info.maxId + 2);
 
+#ifndef VIZ_HASHING
+        #pragma omp parallel for
+#endif
         for (size_t i = 0; i < windows.size(); ++i) {
+            std::vector<std::pair<Template*, int>> candidates(candidatesSize);
+
             for (auto &table : tables) {
                 // Validate and generate hash key at given triplet point
                 HashKey key = validateTripletAndComputeHashKey(table.triplet, table.binRanges, depth, normals, cv::Mat(), windows[i].rect());
@@ -196,14 +204,26 @@ namespace tless {
 
                 // Vote for each template in hash table at specific key and push unique to window candidates
                 for (auto &entry : table.templates[key.hash()]) {
-                    entry->votes++;
+                    candidates[entry->id].first = entry;
+                    candidates[entry->id].second++;
 #ifdef VIZ_HASHING
                     entry->triplets.push_back(table.triplet);
-#endif
-
-                    // pushes only unique templates with minimum of votes (minVotes) building vector of size up to N
-                    windows[i].pushUnique(entry, criteria->tablesCount, criteria->minVotes);
+                    entry->votes++;
                     usedTemplates.push_back(entry);
+#endif
+                }
+            }
+
+            // Sort first N elements by their votes descending
+            std::nth_element(candidates.begin(), candidates.begin() + criteria->maxCandidates, candidates.end(),
+                             [](const std::pair<Template*,int> &p1, const std::pair<Template*,int> &p2) {
+                                 return p1.second > p2.second;
+                             });
+
+            // Push first N elements to windows.candidates with largest amount of votes
+            for (int j = 0; j < criteria->maxCandidates; ++j) {
+                if (candidates[j].first != nullptr && candidates[j].second >= criteria->minVotes) {
+                    windows[i].candidates.push_back(candidates[j].first);
                 }
             }
 
@@ -216,21 +236,21 @@ namespace tless {
                 windows[i].votes.push_back(candidate->votes);
                 windows[i].triplets.push_back(candidate->triplets);
             }
-#endif
 
-            // Reset votes for all used templates
             for (auto &t : usedTemplates) {
-                t->votes = 0;
-#ifdef VIZ_HASHING
                 t->triplets.clear();
-#endif
+                t->votes = 0;
             }
 
             usedTemplates.clear();
+#endif
+        }
 
-            // Save empty windows indexes
-            if (!windows[i].hasCandidates()) {
-                emptyIndexes.emplace_back(i);
+        // Clear empty indexes
+        std::vector<size_t> emptyIndexes;
+        for (int k = 0; k < windows.size(); ++k) {
+            if (!windows[k].hasCandidates()) {
+                emptyIndexes.emplace_back(k);
             }
         }
 
