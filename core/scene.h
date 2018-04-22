@@ -9,7 +9,7 @@ namespace tless {
     struct ScenePyramid {
         float scale;  //!< Current scale of scale pyramid
         Camera camera; //!< Camera params for current matrix
-        cv::Mat srcRGB, srcGray, srcHue, srcDepth; //!< Source scene in different
+        cv::Mat srcRGB, srcGray, srcHue, srcDepth, srcDepthEdgels; //!< Source scene in different
         cv::Mat srcGradients, srcNormals, srcNormals3D; //!< Matrix of quantized features
         cv::Mat spreadGradients, spreadNormals; //!< Matrix of quantized features
 

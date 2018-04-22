@@ -189,8 +189,8 @@ namespace tless {
                 for (int l = 0; l <= pyrLevels; ++l) {
                     /// Objectness detection
                     Timer tObjectness;
-                    objectness(scene.pyramid[l].srcDepth, windows, criteria->info.smallestTemplate, criteria->windowStep,
-                               scene.pyramid[l].scale, criteria->info.minDepth, criteria->info.maxDepth, minDepthMag, minEdgels);
+                    objectness(scene.pyramid[l].srcDepth, scene.pyramid[l].srcDepthEdgels, windows, criteria->info.smallestTemplate,
+                               criteria->windowStep, criteria->info.minDepth, criteria->info.maxDepth, minDepthMag, minEdgels);
                     ttObjectness += tObjectness.elapsed();
                     viz.objectness(scene.pyramid[l], windows);
 
@@ -233,7 +233,9 @@ namespace tless {
                 viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);
 
                 // Apply fine pose estimation
+#ifdef FINE_POSE
                 finePose.estimate(matches, scene.pyramid[criteria->pyrLvlsDown]);
+#endif
 
                 results.emplace_back(std::move(matches));
             }

@@ -52,13 +52,16 @@ namespace tless {
     /**
      * @brief Generates binary image of visible depth edgels, detected in depth image within (min, max) depths.
      *
-     * @param[in]  src      Source 16-bit depth image (in mm)
-     * @param[out] dst      8-bit uchar binary image containing 1 where edgels arise in depth image
-     * @param[in]  minDepth Ignore pixels with depth lower then this threshold
-     * @param[in]  maxDepth Ignore pixels with depth higher then this threshold
-     * @param[in]  minMag   Ignore pixels with edge magnitude lower than this
+     * @param[in]  src       Source 16-bit depth image (in mm)
+     * @param[out] dst       8-bit uchar binary image containing 1 where edgels arise in depth image
+     * @param[in]  minDepth  Ignore pixels with depth lower then this threshold
+     * @param[in]  maxDepth  Ignore pixels with depth higher then this threshold
+     * @param[in]  minMag    Ignore pixels with edge magnitude lower than this
+     * @param[in]  lowValue  Optional value used for non existing edgels in binary image
+     * @param[in]  highValue Optional value used for edges in binary image
      */
-    void depthEdgels(const cv::Mat &src, cv::Mat &dst, int minDepth, int maxDepth, int minMag);
+    void depthEdgels(const cv::Mat &src, cv::Mat &dst, int minDepth, int maxDepth,
+                     int minMag, int lowValue = 0, int highValue = 1);
 
     /**
      * @brief Returns quantized depth into one of 5 bins defined in ranges.
@@ -133,6 +136,7 @@ namespace tless {
      * Window is classified as containing object if it contains at least [minEdgels] of edgels.
      *
      * @param[in]     src       Input 16-bit depth image
+     * @param[in,out] edgels    Output 8-bit depth edgels image
      * @param[in,out] windows   Contains all window positions, that were classified as containing object
      * @param[in]     winSize   Sliding window size
      * @param[in]     winStep   Sliding window step
@@ -141,8 +145,8 @@ namespace tless {
      * @param[in]     minMag    Ignore pixels with edge magnitude lower than this (used for edgel detection)
      * @param[in]     minEdgels Minimum number of edgels window can contain to be classified as containing object
      */
-    void objectness(const cv::Mat &src, std::vector<Window> &windows, const cv::Size &winSize, int winStep, float scale,
-                    int minDepth, int maxDepth, int minMag, int minEdgels);
+    void objectness(const cv::Mat &src, cv::Mat &edgels, std::vector<Window> &windows, const cv::Size &winSize,
+                    int winStep, int minDepth, int maxDepth, int minMag, int minEdgels);
 }
 
 #endif

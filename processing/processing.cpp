@@ -135,15 +135,15 @@ namespace tless {
         cv::medianBlur(dst, dst, 5);
     }
 
-    void depthEdgels(const cv::Mat &src, cv::Mat &dst, int minDepth, int maxDepth, int minMag) {
+    void depthEdgels(const cv::Mat &src, cv::Mat &dst, int minDepth, int maxDepth, int minMag, int lowValue, int highValue) {
         assert(!src.empty());
         assert(src.type() == CV_16U);
 
         const int filterX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
         const int filterY[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
-        dst = cv::Mat::zeros(src.size(), CV_8U);
+        dst = cv::Mat::ones(src.size(), CV_8U) * lowValue;
 
-        #pragma omp parallel for default(none) shared(src, dst, filterX, filterY) firstprivate(minDepth, maxDepth, minMag)
+        #pragma omp parallel for default(none) shared(src, dst, filterX, filterY) firstprivate(minDepth, maxDepth, minMag, lowValue, highValue)
         for (int y = 1; y < src.rows - 1; y++) {
             for (int x = 1; x < src.cols - 1; x++) {
                 int i = 0, sumX = 0, sumY = 0;
@@ -169,7 +169,7 @@ namespace tless {
                     continue;
                 }
 
-                dst.at<uchar>(y, x) = static_cast<uchar>((std::sqrt(sqr<float>(sumX) + sqr<float>(sumY)) > minMag) ? 1 : 0);
+                dst.at<uchar>(y, x) = static_cast<uchar>((std::sqrt(sqr<float>(sumX) + sqr<float>(sumY)) > minMag) ? highValue : lowValue);
             }
         }
     }
@@ -328,14 +328,14 @@ namespace tless {
         }
     }
 
-    void objectness(const cv::Mat &src, std::vector<Window> &windows, const cv::Size &winSize, int winStep, float scale,
-                        int minDepth, int maxDepth, int minMag, int minEdgels) {
+    void objectness(const cv::Mat &src, cv::Mat &edgels, std::vector<Window> &windows, const cv::Size &winSize,
+                    int winStep, int minDepth, int maxDepth, int minMag, int minEdgels) {
         // Checks
         assert(!src.empty());
         assert(src.type() == CV_16U);
 
         // Generate integral image of detected edgels
-        cv::Mat edgels, integral;
+        cv::Mat integral;
         depthEdgels(src, edgels, minDepth, maxDepth, minMag);
         cv::integral(edgels, integral, CV_32S);
 

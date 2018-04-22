@@ -177,8 +177,7 @@ namespace tless {
         cv::cvtColor(depth, depth, CV_GRAY2BGR);
 
         // Edgels computation
-        depthEdgels(scene.srcDepth, edgels, criteria->info.minDepth, criteria->info.maxDepth,
-                    static_cast<int>(minMag / scene.scale));
+        depthEdgels(scene.srcDepth, edgels, criteria->info.minDepth, criteria->info.maxDepth, static_cast<int>(minMag / scene.scale));
         cv::normalize(edgels, edgels, 0, 255, CV_MINMAX);
         cv::cvtColor(edgels, edgels, CV_GRAY2BGR);
 
