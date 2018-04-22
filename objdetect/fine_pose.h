@@ -17,7 +17,7 @@ namespace tless {
     private:
         GLFWwindow *window;
         cv::Ptr<ClassifierCriteria> criteria;
-        int maxDepthDiff = 1500;
+        int maxDepthDiff = 200;
 
         /**
          * @brief Vizualizes current particle by rendering it's mesh at approximate pose into objBB in the scene pyramid image.
@@ -90,7 +90,7 @@ namespace tless {
          * @param[in]  modelViewProjection Object modelViewProjection matrix
          */
         void renderPose(const FrameBuffer &fbo, const Mesh &mesh, cv::Mat &depth, cv::Mat &normals,
-                        const glm::mat4 &modelView, const glm::mat4 &modelViewProjection, float scale);
+                        const glm::mat4 &modelView, const glm::mat4 &modelViewProjection);
 
         /**
          * @brief Inflates detected boungin box, rescales K matrix and generates depths, normals, edges from source pyramid.
@@ -112,7 +112,7 @@ namespace tless {
 
         static const int SHADER_DEPTH, SHADER_NORMAL, SHADER_DEPTH_NORMAL;
         static const int SCR_WIDTH, SCR_HEIGHT;
-        static const float F_INFTY;
+        static const float FLOAT_MIN;
 
         FinePose(cv::Ptr<ClassifierCriteria> criteria, const std::string &shadersFolder, const std::string &meshesListPath,
                          const std::string &modelsFileFormat, const std::vector<int> &objIds);
