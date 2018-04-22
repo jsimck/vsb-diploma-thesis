@@ -18,9 +18,23 @@ namespace tless {
         GLFWwindow *window;
         cv::Ptr<ClassifierCriteria> criteria;
 
-        void vizualize(const Particle &p, const ScenePyramid &pyr, const FrameBuffer &fbo, const cv::Rect &matchBB, const Mesh &mesh,
-                       const glm::mat4 &view, const glm::mat4 &viewProjection, const cv::Mat &depth, const cv::Mat &normals,
-                       const cv::Mat &edges, int wait = 0, const char *title = nullptr);
+        /**
+         * @brief Vizualizes current particle by rendering it's mesh at approximate pose into objBB in the scene pyramid image.
+         *
+         * @param[in] p              Particle representing pose to render into the scene
+         * @param[in] dst            Optional destination image (if empty, it is created by coyping pyr.srcRGB)
+         * @param[in] pyr            Scene pyramid at scale 1.0f
+         * @param[in] fbo            Frame buffer object used to render the poses
+         * @param[in] matchBB        Match bounding box in scene
+         * @param[in] mesh           Template mesh modle
+         * @param[in] view           Mesh view matrix
+         * @param[in] viewProjection Mesh view porojectio matrix
+         * @param[in] wait           Wait time in ms in cv::waitKey()
+         * @param[in] title          Optional window title
+         */
+        void vizualize(const Particle &p, cv::Mat &dst, const ScenePyramid &pyr, const FrameBuffer &fbo,
+                       const cv::Rect &matchBB, const Mesh &mesh, const glm::mat4 &view,
+                       const glm::mat4 &viewProjection, int wait = 0, const char *title = nullptr);
 
         /**
          * @brief Initializes OpenGL using GLFW library.

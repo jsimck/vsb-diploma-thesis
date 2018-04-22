@@ -233,7 +233,7 @@ namespace tless {
                 viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);
 
                 // Apply fine pose estimation
-//                finePose.estimate(matches, scene.pyramid[criteria->pyrLvlsDown]);
+                finePose.estimate(matches, scene.pyramid[criteria->pyrLvlsDown]);
 
                 results.emplace_back(std::move(matches));
             }

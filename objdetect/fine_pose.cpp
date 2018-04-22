@@ -81,11 +81,15 @@ namespace tless {
         glfwTerminate();
     }
 
-    void FinePose::vizualize(const Particle &p, const ScenePyramid &pyr, const FrameBuffer &fbo, const cv::Rect &matchBB, const Mesh &mesh,
-                             const glm::mat4 &view, const glm::mat4 &viewProjection, const cv::Mat &depth, const cv::Mat &normals,
-                             const cv::Mat &edges, int wait, const char *title) {
-        cv::Mat pDepth, pNormals, result = pyr.srcRGB.clone();
+    void FinePose::vizualize(const Particle &p, cv::Mat &dst, const ScenePyramid &pyr, const FrameBuffer &fbo, const cv::Rect &matchBB, const Mesh &mesh,
+                             const glm::mat4 &view, const glm::mat4 &viewProjection, int wait, const char *title) {
+        // Init common
+        cv::Mat pDepth, pNormals;
         glm::mat4 model = p.model();
+
+        if (dst.empty()) {
+            dst = pyr.srcRGB.clone();
+        }
 
         // Render pose and calculate fitness
         renderPose(fbo, mesh, pDepth, pNormals, mvMat(model, view), mvpMat(model, viewProjection), 0);
@@ -97,13 +101,13 @@ namespace tless {
 
                 // Draw normals over rgbd image
                 if (px[0] > 0 || px[1] > 0 || px[2] > 0) {
-                    result.at<cv::Vec3b>(y + matchBB.tl().y, x + matchBB.tl().x) = cv::Vec3b(px[0] * 128 + 128, px[1] * 128 + 128, px[2] * 128 + 128);
+                    dst.at<cv::Vec3b>(y + matchBB.tl().y, x + matchBB.tl().x) = cv::Vec3b(px[0] * 128 + 128, px[1] * 128 + 128, px[2] * 128 + 128);
                 }
             }
         }
 
         // Show results
-        cv::imshow(title == nullptr ? "Particle progress vizualization" : title, result);
+        cv::imshow(title == nullptr ? "Particle progress vizualization" : title, dst);
         cv::waitKey(wait);
     }
 
@@ -147,8 +151,7 @@ namespace tless {
         // Init common
         Particle gBest;
         std::vector<Particle> particles;
-        cv::Mat vizResult = pyr.srcRGB.clone();
-        cv::Mat pDepth, pNormals;
+        cv::Mat result, pDepth, pNormals;
         glm::mat4 MMatrix;
 
         // Loop through mateches
@@ -193,8 +196,8 @@ namespace tless {
                 // Save gBest
                 if (particles[i].fitness < gBest.fitness) {
                     gBest = particles[i];
-                    std::cout << gBest.fitness << std::endl;
-                    vizualize(gBest, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, depth, normals, edges, 1);
+                    cv::Mat vizGBest;
+                    vizualize(gBest, vizGBest, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, 1);
                 }
             }
 
@@ -223,7 +226,8 @@ namespace tless {
                         gBest = p;
 
                         // Vizualize gbest
-                        vizualize(gBest, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, depth, normals, edges, 1);
+                        cv::Mat vizGBest;
+                        vizualize(gBest, vizGBest, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, 1);
                         cv::imshow("Gbest pose", pNormals);
                     }
 
@@ -233,7 +237,7 @@ namespace tless {
             }
 
             // Vizualize results
-            vizualize(gBest, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, depth, normals, edges, 1);
+            vizualize(gBest, result, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, 1);
         }
         cv::waitKey(0);
     }
