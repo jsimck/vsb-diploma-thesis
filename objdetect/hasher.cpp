@@ -185,10 +185,10 @@ namespace tless {
 #ifdef VIZ_HASHING
         std::vector<Template *> usedTemplates;
 #endif
-        const auto candidatesSize = static_cast<const size_t>(criteria->info.maxId + 2);
+        const size_t candidatesSize = criteria->info.maxId + 2;
 
 #ifndef VIZ_HASHING
-        #pragma omp parallel for
+        #pragma omp parallel for default(none) shared(depth, normals, tables, windows) firstprivate(candidatesSize)
 #endif
         for (size_t i = 0; i < windows.size(); ++i) {
             std::vector<std::pair<Template*, int>> candidates(candidatesSize);
