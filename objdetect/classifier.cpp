@@ -170,7 +170,7 @@ namespace tless {
 
         // Timing
         Timer tTotal;
-        double ttSceneLoading, ttObjectness, ttVerification, ttMatching, ttNMS;
+        double ttSceneLoading, ttObjectness, ttVerification, ttMatching, ttNMS, ttFinePose = 0;
         std::cout << "Matching started..." << std::endl << std::endl;
 
         for (auto &sceneId : sceneIndices) {
@@ -217,6 +217,16 @@ namespace tless {
                 nms(matches, criteria->overlapFactor);
                 ttNMS = tNMS.elapsed();
 
+                // Vizualize results and clear current matches
+                viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);
+
+                // Apply fine pose estimation
+#ifdef FINE_POSE
+                Timer tFinePose;
+                finePose.estimate(matches, scene.pyramid[criteria->pyrLvlsDown]);
+                ttFinePose = tFinePose.elapsed();
+#endif
+
                 // Print results
                 std::cout << std::endl << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
                 std::cout << "  |_ Scene " << (i + 1) << "/" <<  (endScene) << " took: " << ttSceneLoading << "s" << std::endl;
@@ -224,19 +234,11 @@ namespace tless {
                 std::cout << "  |_ Hashing verification took: " << ttVerification << "s" << std::endl;
                 std::cout << "  |_ Template matching took: " << ttMatching << "s" << std::endl;
                 std::cout << "  |_ NMS took: " << ttNMS << "s" << std::endl;
+                std::cout << "  |_ Fine pose estimation took: " << ttFinePose << "s" << std::endl;
                 std::cout << "  |_ Matches: " << matches.size() << std::endl;
 
                 // Save times each section took
-                timers.push_back({ttSceneLoading, ttObjectness, ttVerification, ttMatching, ttNMS});
-
-                // Vizualize results and clear current matches
-                viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);
-
-                // Apply fine pose estimation
-#ifdef FINE_POSE
-                finePose.estimate(matches, scene.pyramid[criteria->pyrLvlsDown]);
-#endif
-
+                timers.push_back({ttSceneLoading, ttObjectness, ttVerification, ttMatching, ttNMS, ttFinePose});
                 results.emplace_back(std::move(matches));
             }
 
@@ -264,6 +266,7 @@ namespace tless {
             fs << "hashing" << timers[i][2];
             fs << "matching" << timers[i][3];
             fs << "nms" << timers[i][4];
+            fs << "finePose" << timers[i][5];
             fs << "}";
             fs << "matches" << "[";
             for (auto &match : results[i]) {

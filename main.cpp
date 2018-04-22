@@ -8,7 +8,7 @@
 
 static const int SENSOR_KINECT = 0;
 static const int SENSOR_PRIMESENSE = 1;
-static const int SENSOR_CURRENT = SENSOR_KINECT;
+static const int SENSOR_CURRENT = SENSOR_PRIMESENSE;
 static const int RUNS = 1;
 
 int main() {
@@ -73,8 +73,8 @@ int main() {
             // Train
 //            std::cout.setstate(std::ios_base::failbit); // Disable cout
             tless::Classifier classifier(criteria);
-//            classifier.train(templatesPath, scene.second);
-//            classifier.save(sceneTrainedPath, classifierFileName, trainedFileFormat);
+            classifier.train(templatesPath, scene.second);
+            classifier.save(sceneTrainedPath, classifierFileName, trainedFileFormat);
 
             // Detect
             classifier.load(sceneTrainedPath, classifierFileName, trainedFileFormat);
