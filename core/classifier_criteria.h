@@ -38,12 +38,12 @@ namespace tless {
         int maxHueDiff = 5; //!< Constant used in hue color matching, abs difference of 2 hue values should be lower than this for the test to pass
 
         // Fine pose
-        int generations = 50; //!< Number of generations to run for each population
-        int popSize = 50; //!< Size of the population
+        int generations = 100; //!< Number of generations to run for each population
+        int popSize = 100; //!< Size of the population
         float c1 = 0.15f; //!< Tunable param, affects how much particle converges to pBest
-        float c2 = 0.35f; //!< Tunable param, affects how much particle converges to gBest
-        float w1 = 0.9f; //!< Affects how much the velocity of translations is being decreased in each generation
-        float w2 = 0.98f; //!< Affects how much the velocity of angles is being decreased in each generation
+        float c2 = 0.32f; //!< Tunable param, affects how much particle converges to gBest
+        float w1 = 0.85f; //!< Affects how much the velocity of translations is being decreased in each generation
+        float w2 = 0.97f; //!< Affects how much the velocity of angles is being decreased in each generation
 
         struct {
             ushort minDepth = std::numeric_limits<unsigned short>::max(); //!< Minimum depth found across all templates withing their bounding box

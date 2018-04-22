@@ -233,8 +233,8 @@ namespace tless {
                         cv::imshow("Gbest pose", pNormals);
                     }
 
-                    cv::imshow("Pose normals", pNormals);
-                    cv::waitKey(1);
+//                    cv::imshow("Pose normals", pNormals);
+//                    cv::waitKey(1);
                 }
             }
 
@@ -342,26 +342,30 @@ namespace tless {
 
                 // Compute depth diff
                 float dDiff = std::abs(srcDepth.at<ushort>(y, x) - poseDepth.at<ushort>(y, x));
-                sumD += (dDiff > maxDepthDiff) ? (1.0f / (F_INFTY + 1)) : (1.0f / (dDiff + 1));
+                if (dDiff > maxDepthDiff) {
+                    sumU = (1.0f / (dDiff + 1));
+                }
 
                 // Compare normals
                 float dot = std::abs(srcNormals.at<cv::Vec3f>(y, x).dot(poseNormals.at<cv::Vec3f>(y, x)));
-                sumU += std::isnan(dot) ? (1.0f / (F_INFTY + 1)) : (1.0f / (dot + 1));
+                if (!std::isnan(dot)) {
+                    sumU = (1.0f / (dot + 1));
+                }
 
-//                matD.at<float>(y, x) = (dDiff > maxDepthDiff) ? (1.0f / (F_INFTY + 1)) : (1.0f / (dDiff + 1));
-//                matU.at<float>(y, x) = std::isnan(dot) ? (1.0f / (F_INFTY + 1)) : (1.0f / (dot + 1));
+//                matD.at<float>(y, x) = (dDiff > maxDepthDiff) ? (1.0f / 0) : (1.0f / (dDiff + 1));
+//                matU.at<float>(y, x) = std::isnan(dot) ? (1.0f / 0) : (1.0f / (dot + 1));
             }
         }
 
 //        cv::normalize(matU, matU, 0, 1, CV_MINMAX);
 //        cv::normalize(matE, matE, 0, 1, CV_MINMAX);
 //        cv::normalize(matD, matD, 0, 1, CV_MINMAX);
-//        cv::imshow("matU", matU);
+//        cv::imshow("matU", sumU);
 //        cv::imshow("matD", matD);
 //        cv::imshow("matE", matE);
 //        cv::waitKey(1);
 
-        return -1 * 1 * sumE;
+        return -1 * sumU * sumE;
     }
 
     int FinePose::getMaxDepthDiff() const {

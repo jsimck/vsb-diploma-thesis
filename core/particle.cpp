@@ -34,9 +34,7 @@ namespace tless {
         glm::vec3 t(pose[0], pose[1], pose[2]);
 
         // Rotate
-        m = glm::rotate(m, pose[3], glm::vec3(1, 0, 0));
-        m = glm::rotate(m, pose[4], glm::vec3(0, 1, 0));
-        m = glm::rotate(m, pose[5], glm::vec3(0, 0, 1));
+        m = glm::eulerAngleXYZ(pose[3], pose[4], pose[5]);
 
         // Translate
         return glm::translate(m, t);
