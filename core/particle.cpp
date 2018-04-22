@@ -61,9 +61,22 @@ namespace tless {
             v[i] = velocity(w2, v[i], pose[i], pBest.pose[i], gBest.pose[i], c1, c2, d(gen), d(gen));
         }
 
+        // Save old pose for clamping
+        float oldPose[6];
+        std::memcpy(oldPose, pose, sizeof pose);
+
         // Update current possition with new velocity
         for (int i = 0; i < 6; i++) {
             pose[i] = v[i] + pose[i];
+
+            // Clamped poses within defined bound
+            if (i > 2 && (pose[i] > 0.6f || pose[i] < -0.6f)) {
+                pose[i] = oldPose[i]; // Rotation
+            } else if (i == 2 && (pose[i] < -150 || pose[i] > 250)) {
+                pose[i] = oldPose[i]; // Z-translation
+            } else if (i < 2 && (pose[i] < -40 || pose[i] > 40)) {
+                pose[i] = oldPose[i]; // XY-translation
+            }
         }
     }
 

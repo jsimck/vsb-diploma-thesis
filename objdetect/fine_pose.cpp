@@ -228,6 +228,7 @@ namespace tless {
 #ifdef VIZ_FINE_POSE
             // Vizualize results
             vizualize(gBest, result, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, 1, "Fine Pose results");
+            std::cout << gBest << std::endl;
 #endif
         }
     }
@@ -254,16 +255,16 @@ namespace tless {
             particles.emplace_back(Particle(
                 (v[0] - 0.5) * 50,
                 (v[1] - 0.5) * 50,
-                (v[2] - 0.8) * 200,
+                (v[2] - 0.38) * 200,
                 (v[3] - 0.5),
                 (v[4] - 0.5),
                 (v[5] - 0.5),
-                d(gen) * 5,
-                d(gen) * 5,
-                d(gen) * 20,
-                d(gen) * 0.1f,
-                d(gen) * 0.1f,
-                d(gen) * 0.1f
+                d(gen) * 10,
+                d(gen) * 10,
+                d(gen) * 25,
+                d(gen) * 0.15f,
+                d(gen) * 0.15f,
+                d(gen) * 0.15f
             ));
         }
 
