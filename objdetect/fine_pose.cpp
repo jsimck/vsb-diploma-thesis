@@ -142,7 +142,6 @@ namespace tless {
         cv::Mat channels[4];
         cv::split(result, channels);
 
-
         // Copy separate channels into own matrices
         cv::merge(channels, 3, normals);
         cv::merge(channels + 3, 1, depth);
@@ -167,9 +166,6 @@ namespace tless {
             // Prepare structures for current match
             prepareMatch(pyr, match, matchBB, K, depth, normals, edges, 15);
 
-            // Shift t - Z to camera Z
-            match.t->camera.t.at<float>(2) = pyr.camera.t.at<float>(2);
-
             // Create FBO and prepare matrices
             FrameBuffer fbo(matchBB.width, matchBB.height);
             glm::mat4 VMatrix = vMat(match.t->camera.R, match.t->camera.t);
@@ -191,6 +187,10 @@ namespace tless {
 
                 // Compute fitness for new particle
                 particles[i].fitness = objFun(depth, normals, edges, pDepth, pNormals);
+                cv::Mat test;
+                cv::imshow("te", pNormals);
+                std::cout << particles[i] << std::endl;
+                vizualize(particles[i], test, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, 0, "Initial poses");
 
                 // Save gBest
                 if (particles[i].fitness < gBest.fitness) {
@@ -288,7 +288,11 @@ namespace tless {
         inflatedBB.y = inflatedBB.y < 0 ? 0 : inflatedBB.y;
 
         // Rescale K
-        rescaleK(K, match.objBB.size(), inflatedBB.size());
+        rescaleK(K, match.objBB.size(), match.normObjBB.size());
+
+        // Move center
+        K.at<float>(0, 2) += inflateOffset;
+        K.at<float>(1, 2) += inflateOffset;
 
         // Crop
         depth = pyr.srcDepth(inflatedBB);
