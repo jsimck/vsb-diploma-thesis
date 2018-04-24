@@ -241,6 +241,7 @@ namespace tless {
 #endif
 
                 // Print sum time
+                std::cout << "  |_ Matches: " << matches.size() << "s" << std::endl;
                 std::cout << "  |_ SUM: " << tTotal.elapsed() << "s" << std::endl;
 
                 // Save times each section took

@@ -306,6 +306,7 @@ namespace tless {
         depthEdgels(poseDepth, poseEdges, 100, 100000, 360, 255, 0);
         cv::distanceTransform(poseEdges, poseT, CV_DIST_L2, 3);
 
+        #pragma omp parallel for default(shared) reduction(+:sumD, sumU, sumE)
         for (int y = 0; y < srcDepth.rows; y++) {
             for (int x = 0; x < srcDepth.cols; x++) {
                 // Compute distance transform

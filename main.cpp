@@ -15,12 +15,12 @@ int main() {
     // Dataset pairs (sceneId, templates)
     std::vector<std::pair<int, std::vector<int>>> data = {
 //        {1, {2, 25, 29, 30}},
-//        {2, {5, 6, 7}},
+        {2, {5, 6, 7}},
 //        {3, {5, 8, 11, 12, 18}},
 //        {4, {5, 8, 26, 28}},
 //        {5, {1, 4, 9, 10, 27}},
 //        {6, {6, 7, 11, 12}},
-        {7, {1, 3, 13, 14, 15, 16, 17, 18}},
+//        {7, {1, 3, 13, 14, 15, 16, 17, 18}},
 //        {8, {19, 20, 21, 22, 23, 24}},
 //        {9, {1, 2, 3, 4}},
 //        {10, {19, 20, 21, 22, 23, 24}},
@@ -32,7 +32,7 @@ int main() {
 //        {16, {10, 11, 12, 13, 14, 15, 16, 17}},
 //        {17, {1, 4, 7, 9}},
 //        {18, {1, 4, 7, 9}},
-        {19, {13, 14, 15, 16, 17, 18, 24, 30}},
+//        {19, {13, 14, 15, 16, 17, 18, 24, 30}},
 //        {20, {1, 2, 3, 4}},
 //        {0, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30}},
     };
@@ -76,6 +76,7 @@ int main() {
                 // Train
     //            std::cout.setstate(std::ios_base::failbit); // Disable cout
                 tless::Classifier classifier(criteria);
+                classifier.setModelsFolder(modelsPath);
 //                classifier.train(templatesPath, scene.second);
 //                classifier.save(sceneTrainedPath, classifierFileName, trainedFileFormat);
 
