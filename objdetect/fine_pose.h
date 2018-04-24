@@ -109,6 +109,7 @@ namespace tless {
     public:
         std::unordered_map<int, Mesh> meshes;
         std::unordered_map<int, Shader> shaders;
+        double tGlRead = 0, tObjFunction = 0, tPopGeneration = 0;
 
         static const int SHADER_DEPTH, SHADER_NORMAL, SHADER_DEPTH_NORMAL;
         static const int SCR_WIDTH, SCR_HEIGHT;

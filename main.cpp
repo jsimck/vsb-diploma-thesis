@@ -15,7 +15,7 @@ int main() {
     // Dataset pairs (sceneId, templates)
     std::vector<std::pair<int, std::vector<int>>> data = {
 //        {1, {2, 25, 29, 30}},
-        {2, {5, 6, 7}},
+//        {2, {5, 6, 7}},
 //        {3, {5, 8, 11, 12, 18}},
 //        {4, {5, 8, 26, 28}},
 //        {5, {1, 4, 9, 10, 27}},
@@ -66,7 +66,7 @@ int main() {
         for (auto &scene : data) {
             for (int i = 0; i < RUNS; ++i) {
                 // Results and trained paths
-                tless::Timer t;
+                tless::Timer tt;
                 std::string sceneResultsPath = cv::format(resultsPath.c_str(), sensorPath, scene.first);
                 std::string sceneTrainedPath = cv::format(trainedPath.c_str(), sensorPath, scene.first);
                 std::string resultsFileFormat = cv::format("results_%02d", i) + "_%02d.yml.gz";
@@ -76,8 +76,8 @@ int main() {
                 // Train
     //            std::cout.setstate(std::ios_base::failbit); // Disable cout
                 tless::Classifier classifier(criteria);
-                classifier.train(templatesPath, scene.second);
-                classifier.save(sceneTrainedPath, classifierFileName, trainedFileFormat);
+//                classifier.train(templatesPath, scene.second);
+//                classifier.save(sceneTrainedPath, classifierFileName, trainedFileFormat);
 
                 // Detect
                 classifier.load(sceneTrainedPath, classifierFileName, trainedFileFormat);
@@ -89,7 +89,7 @@ int main() {
 
                 // Evaluate
     //            std::cout.clear();
-                std::cout << "Run: " << (i + 1) << ", " << "took: " << t.elapsed() << "s" << ", ";
+                std::cout << "Run: " << (i + 1) << ", " << "took: " << tt.elapsed() << "s" << ", ";
                 eval.evaluate(sceneResultsPath, { scene.first }, resultsFileFormat);
             }
         }

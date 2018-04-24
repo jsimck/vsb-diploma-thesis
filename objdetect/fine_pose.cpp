@@ -114,6 +114,7 @@ namespace tless {
 
     void FinePose::renderPose(const FrameBuffer &fbo, const Mesh &mesh, cv::Mat &depth, cv::Mat &normals, const glm::mat4 &modelView,
                                   const glm::mat4 &modelViewProjection) {
+        Timer t;
         // Bind frame buffer
         fbo.bind();
 
@@ -146,6 +147,7 @@ namespace tless {
         cv::merge(channels, 3, normals);
         cv::merge(channels + 3, 1, depth);
         depth.convertTo(depth, CV_16U);
+        tGlRead += t.elapsed();
     }
 
     void FinePose::estimate(std::vector<Match> &matches, const ScenePyramid &pyr) {
@@ -154,6 +156,7 @@ namespace tless {
         std::vector<Particle> particles;
         cv::Mat result, pDepth, pNormals;
         glm::mat4 MMatrix;
+        tGlRead = tObjFunction = tPopGeneration = 0;
 
         // Loop through mateches
         for (auto &match : matches) {
@@ -228,12 +231,12 @@ namespace tless {
 #ifdef VIZ_FINE_POSE
             // Vizualize results
             vizualize(gBest, result, pyr, fbo, matchBB, meshes[match.t->objId], VMatrix, VPMatrix, 1, "Fine Pose results");
-            std::cout << gBest << std::endl;
 #endif
         }
     }
 
     void FinePose::generatePopulation(std::vector<Particle> &particles, int N) {
+        Timer t;
         // Cleanup
         particles.clear();
 
@@ -269,6 +272,7 @@ namespace tless {
         }
 
         gsl_qrng_free(q);
+        tPopGeneration += t.elapsed();
     }
 
     void FinePose::prepareMatch(const ScenePyramid &pyr, const Match &match, cv::Rect &inflatedBB, cv::Mat &K,
@@ -294,6 +298,7 @@ namespace tless {
 
     float FinePose::objFun(const cv::Mat &srcDepth, const cv::Mat &srcNormals, const cv::Mat &srcEdges,
                            const cv::Mat &poseDepth, const cv::Mat &poseNormals) {
+        Timer t;
         float sumD = 0, sumU = 0, sumE = 0;
 
         // Compute Distance transform
@@ -331,6 +336,7 @@ namespace tless {
             }
         }
 
+        tObjFunction += t.elapsed();
         return -sumD * sumU * sumE;
     }
 

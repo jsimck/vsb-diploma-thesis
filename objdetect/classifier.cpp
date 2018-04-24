@@ -220,22 +220,28 @@ namespace tless {
                 // Vizualize results and clear current matches
                 viz.matches(scene.pyramid[criteria->pyrLvlsDown], matches, 1);
 
-                // Apply fine pose estimation
-#ifdef FINE_POSE
-                Timer tFinePose;
-                finePose.estimate(matches, scene.pyramid[criteria->pyrLvlsDown]);
-                ttFinePose = tFinePose.elapsed();
-#endif
-
                 // Print results
-                std::cout << std::endl << "Classification took: " << tTotal.elapsed() << "s" << std::endl;
+                std::cout << std::endl << "Classification..." << std::endl;
                 std::cout << "  |_ Scene " << (i + 1) << "/" <<  (endScene) << " took: " << ttSceneLoading << "s" << std::endl;
                 std::cout << "  |_ Objectness detection took: " << ttObjectness << "s" << std::endl;
                 std::cout << "  |_ Hashing verification took: " << ttVerification << "s" << std::endl;
                 std::cout << "  |_ Template matching took: " << ttMatching << "s" << std::endl;
                 std::cout << "  |_ NMS took: " << ttNMS << "s" << std::endl;
-                std::cout << "  |_ Fine pose estimation took: " << ttFinePose << "s" << std::endl;
-                std::cout << "  |_ Matches: " << matches.size() << std::endl;
+
+                // Apply fine pose estimation
+#ifdef FINE_POSE
+                Timer tFinePose;
+                finePose.estimate(matches, scene.pyramid[criteria->pyrLvlsDown]);
+                ttFinePose = tFinePose.elapsed();
+
+                // Print timers
+                std::cout << "  |_ tGlRead: " << finePose.tGlRead << "s" << std::endl;
+                std::cout << "  |_ tObjFunction: " << finePose.tObjFunction << "s" << std::endl;
+                std::cout << "  |_ tPopGeneration: " << finePose.tPopGeneration << "s" << std::endl;
+#endif
+
+                // Print sum time
+                std::cout << "  |_ SUM: " << tTotal.elapsed() << "s" << std::endl;
 
                 // Save times each section took
                 timers.push_back({ttSceneLoading, ttObjectness, ttVerification, ttMatching, ttNMS, ttFinePose});
