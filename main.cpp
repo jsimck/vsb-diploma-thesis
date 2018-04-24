@@ -8,7 +8,7 @@
 
 static const int SENSOR_PRIMESENSE = 0;
 static const int SENSOR_KINECT = 1;
-static const int SENSOR_CURRENT = SENSOR_PRIMESENSE;
+static const int SENSOR_CURRENT = SENSOR_KINECT;
 static const int RUNS = 1;
 
 int main() {
@@ -20,7 +20,7 @@ int main() {
 //        {4, {5, 8, 26, 28}},
 //        {5, {1, 4, 9, 10, 27}},
 //        {6, {6, 7, 11, 12}},
-//        {7, {1, 3, 13, 14, 15, 16, 17, 18}},
+        {7, {1, 3, 13, 14, 15, 16, 17, 18}},
 //        {8, {19, 20, 21, 22, 23, 24}},
 //        {9, {1, 2, 3, 4}},
 //        {10, {19, 20, 21, 22, 23, 24}},
@@ -32,7 +32,7 @@ int main() {
 //        {16, {10, 11, 12, 13, 14, 15, 16, 17}},
 //        {17, {1, 4, 7, 9}},
 //        {18, {1, 4, 7, 9}},
-//        {19, {13, 14, 15, 16, 17, 18, 24, 30}},
+        {19, {13, 14, 15, 16, 17, 18, 24, 30}},
 //        {20, {1, 2, 3, 4}},
 //        {0, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30}},
     };
@@ -48,7 +48,7 @@ int main() {
         buffer << std::put_time(&tm, "%j_%H_%M");
         std::string currDate = buffer.str();
 //        currDate = "set_per_scene_" + currDate;
-        currDate = "TEST";
+        currDate = "set_per_scene_1";
 
         // Define path to files
         const char *sensorPath = (sensor == SENSOR_KINECT) ? "kinectv2" : "primesense";
@@ -76,8 +76,8 @@ int main() {
                 // Train
     //            std::cout.setstate(std::ios_base::failbit); // Disable cout
                 tless::Classifier classifier(criteria);
-//                classifier.train(templatesPath, scene.second);
-//                classifier.save(sceneTrainedPath, classifierFileName, trainedFileFormat);
+                classifier.train(templatesPath, scene.second);
+                classifier.save(sceneTrainedPath, classifierFileName, trainedFileFormat);
 
                 // Detect
                 classifier.load(sceneTrainedPath, classifierFileName, trainedFileFormat);

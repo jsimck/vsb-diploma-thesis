@@ -12,7 +12,8 @@ namespace tless {
             std::string resultPath = cv::format((resultsFolder + resultsFileFormat).c_str(), sceneId);
             cv::FileStorage fs(resultPath, cv::FileStorage::READ);
             cv::FileNode scenesNode = fs["scenes"];
-            int sceneIndex;
+            double tScene = 0, tObjectness = 0, tHashing = 0, tMatching = 0, tNms = 0, tFinePose = 0;
+            int sceneIndex, timerCount = 0;
 
             for (auto &&scene : scenesNode) {
                 cv::FileNode matches = scene["matches"];
@@ -25,9 +26,44 @@ namespace tless {
                 }
 
                 results.emplace_back(sceneIndex, std::move(sceneMatches));
+
+                // Timers
+                double timer;
+                cv::FileNode timers = scene["timers"];
+                timers["scene"] >> timer;
+                tScene += timer;
+                timers["objectness"] >> timer;
+                tObjectness += timer;
+                timers["hashing"] >> timer;
+                tHashing += timer;
+                timers["matching"] >> timer;
+                tMatching += timer;
+                timers["nms"] >> timer;
+                tNms += timer;
+                timers["finePose"] >> timer;
+                tFinePose += timer;
+                timerCount++;
             }
 
             fs.release();
+
+            // AVG times
+            tScene /= static_cast<float>(timerCount);
+            tObjectness /= static_cast<float>(timerCount);
+            tHashing /= static_cast<float>(timerCount);
+            tMatching /= static_cast<float>(timerCount);
+            tNms /= static_cast<float>(timerCount);
+            tFinePose /= static_cast<float>(timerCount);
+
+            // Print timers
+            std::cout << "TIMERS" << std::endl;
+            std::cout << "  |_ scene: " << tScene << "s" << std::endl;
+            std::cout << "  |_ objectness: " << tObjectness << "s" << std::endl;
+            std::cout << "  |_ hashing: " << tHashing << "s" << std::endl;
+            std::cout << "  |_ matching: " << tMatching << "s" << std::endl;
+            std::cout << "  |_ nms: " << tNms << "s" << std::endl;
+            std::cout << "  |_ finePose: " << tFinePose << "s" << std::endl;
+            std::cout << "  |_ Detection sum: " << tFinePose << "s" << std::endl;
 
             // Evaluate
             evaluate(results, sceneId);
