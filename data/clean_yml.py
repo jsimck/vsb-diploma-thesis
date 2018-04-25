@@ -30,15 +30,24 @@ def clean(fileName, prefix):
         text_file.write(output)
 
 def main():
-    print('WARNING! This script will overwrite existing .yml files in the directory.')
-    folder = input('Enter path to folder containing scenes and templates folder: ')
-    
-    for sceneFolder in findfiles(folder, 'scenes'):
+    folder = './'
+    for sceneFolder in findfiles(folder, 'scenes/primesense/'):
         print('Cleaning: ' + sceneFolder)
         clean(os.path.join(sceneFolder, 'info.yml'), 'scene_')
         clean(os.path.join(sceneFolder, 'gt.yml'), 'scene_')
     
-    for tplFolder in findfiles(folder, 'templates'):
+    for tplFolder in findfiles(folder, '400x400/primesense/'):
+        print('Cleaning: ' + tplFolder)
+        clean(os.path.join(tplFolder, 'info.yml'), 'tpl_')
+        clean(os.path.join(tplFolder, 'gt.yml'), 'tpl_')
+
+    folder = './'
+    for sceneFolder in findfiles(folder, 'scenes/kinectv2/'):
+        print('Cleaning: ' + sceneFolder)
+        clean(os.path.join(sceneFolder, 'info.yml'), 'scene_')
+        clean(os.path.join(sceneFolder, 'gt.yml'), 'scene_')
+    
+    for tplFolder in findfiles(folder, '400x400/kinectv2/'):
         print('Cleaning: ' + tplFolder)
         clean(os.path.join(tplFolder, 'info.yml'), 'tpl_')
         clean(os.path.join(tplFolder, 'gt.yml'), 'tpl_')
