@@ -5,6 +5,9 @@
 #include "../core/result.h"
 
 namespace tless {
+    /**
+     * @brief Evaluates results that run through the detection cascade with their ground truth positions in dataset.
+     */
     class Evaluator {
     private:
         float minOverlap;

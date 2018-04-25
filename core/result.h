@@ -6,6 +6,9 @@
 #include "match.h"
 
 namespace tless {
+    /**
+     * @brief Utility structure which is used in evaluation of detection results.
+     */
     struct Result {
     public:
         int id, objId;

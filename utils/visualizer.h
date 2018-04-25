@@ -14,6 +14,9 @@
 #include "../glcore/shader.h"
 
 namespace tless {
+    /**
+     * @brief Utility class which helps vizualizes certain parts of the detection algorithm, usefull for debugging.
+     */
     class Visualizer {
     private:
         const int SETTINGS_GRID = 0, SETTINGS_TITLE = 1, SETTINGS_INFO = 2, SETTINGS_FEATURE_POINT_STYLE = 3,

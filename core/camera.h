@@ -7,6 +7,9 @@
 #include <ostream>
 
 namespace tless {
+    /**
+     * @brief Camera class which holds R, t, K camera matrices and provides utility functions for working with those matrices.
+     */
     class Camera {
     public:
         cv::Mat R; //!< Rotation matrix R_m2c

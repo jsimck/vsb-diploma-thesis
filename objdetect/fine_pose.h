@@ -13,6 +13,9 @@
 #include "../core/particle.h"
 
 namespace tless {
+    /**
+     * @brief Handles all stuff related to fine pose estimation (Opengl rendering and initialization, detection itself)
+     */
     class FinePose {
     private:
         GLFWwindow *window;

@@ -6,6 +6,9 @@
 #include "camera.h"
 
 namespace tless {
+    /**
+     * @brief Structure which holds all scene images and features related to current scale of image scale pyramid.
+     */
     struct ScenePyramid {
         float scale;  //!< Current scale of scale pyramid
         Camera camera; //!< Camera params for current matrix

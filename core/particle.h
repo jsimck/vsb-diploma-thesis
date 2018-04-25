@@ -6,6 +6,9 @@
 #include <opencv2/core/mat.hpp>
 
 namespace tless {
+    /**
+     * @brief Represents one particle in PSO optimization in fine pose estimation.
+     */
     class Particle {
     private:
         /**

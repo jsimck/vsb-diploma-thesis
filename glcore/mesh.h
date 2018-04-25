@@ -32,6 +32,9 @@ namespace tless {
         }
     };
 
+    /**
+     * @brief Helper class which loads mesh models from .ply files and initializes them to opengl.
+     */
     class Mesh {
     private:
         GLuint VBO, EBO;
