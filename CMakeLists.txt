@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.6)
 project(vsb-semestral-project)
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -std=c++14 -march=native -Wall -Wno-gnu-anonymous-struct -Wno-nested-anon-types -pedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -std=c++14 -march=native -Wall -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-extra-qualification -pedantic")
 
 # Vizualization flags
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVIZ_HASHING")
